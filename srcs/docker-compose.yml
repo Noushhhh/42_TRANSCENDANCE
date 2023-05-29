@@ -1,0 +1,75 @@
+version: '3' # Define the version of the Compose file
+services:
+
+  # Database Service
+  db:
+    container_name: db_container # Set the container name
+    env_file:
+      - ./.env # Set the environment file
+    image: postgres:latest # Set the image name
+    volumes:
+      - db_volume:/var/lib/postgresql/data # Mount the volume
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB} # Set the environment variable
+      - POSTGRES_USER=${POSTGRES_USER} # Set the environment variable
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # Set the environment variable
+    networks:
+      - app_network # Connect to the app network
+
+  # Backend Service
+  backend:
+    container_name: backend_container # Set the container name
+    env_file:
+      - ./.env # Set the environment file
+    build:
+      context: ./files/backend # Set the build context
+      dockerfile: Dockerfile # Set the Dockerfile
+    image: backend_image # Set the image name
+    ports:
+      - 4000:4000 # Map the container port to the host port
+    networks:
+      - app_network # Connect to the app network
+    depends_on:
+      - db 
+
+  # Frontend Service
+  frontend:
+    container_name: frontend_container # Set the container name
+    build:
+      context: ./files/frontend # Set the build context
+      dockerfile: Dockerfile # Set the Dockerfile
+    image: frontend_image # Set the image name
+    volumes:
+    - react_build:/app/build
+    ports:
+      - 8080:80 # Map the container port to the host port
+    networks:
+      - app_network # Connect to the app network
+
+  # Nginx Service
+  nginx:
+    container_name: nginx_container # Set the container name
+    build:
+      context: ./files/nginx # Set the build context
+      dockerfile: Dockerfile # Set the Dockerfile
+    image: nginx_image # Set the image name
+    volumes:
+      - react_build:/usr/share/nginx/html
+    ports:
+      - 80:80 # Map the container port to the host port
+    networks:
+      - app_network # Connect to the app network
+    depends_on:
+      - backend
+      - frontend
+    tty: true
+    stdin_open: true
+
+networks:
+  app_network: # Define the app network
+
+volumes:
+  db_volume: # Define the db volume
+    name: db_volume # Set the volume name
+  react_build:  # Added name for the react_build volume
+    name: react_build
