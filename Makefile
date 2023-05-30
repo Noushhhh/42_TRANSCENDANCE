@@ -21,13 +21,8 @@ up: build
 		$(COMPOSE) up -d
 
 # This rule builds the images
-build: volumes check-docker
+build: check-docker
 		$(COMPOSE) build
-
-# This rule creates necessary volumes for the services
-volumes:
-		mkdir -p ./data/backend-data
-		mkdir -p ./data/frontend-data
 
 # This rule checks if docker daemon is running
 check-docker:
@@ -72,7 +67,6 @@ stop:
 # This rule removes the services, images, and volumes. It also removes the data directory.
 down:
 		$(COMPOSE) down --rmi all --volumes
-		rm -rf ./data
 
 # This rule shows the logs of the services
 logs:

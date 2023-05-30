@@ -13,12 +13,17 @@ Our `docker-compose.yml` file defines 4 services:
 3. **Database:** 🗄️ A PostgreSQL server for our data storage.
 4. **Nginx:** 🌍 An Nginx server that serves our frontend and proxies our backend.
 
+## 📁 File structure
+[![Transcendance file structure](./assets/images/transcendance-file-structure.png "transcendance file structure")](http://www.plantuml.com/plantuml/png/fLJlJjim4F-UfpYnhv07w102oWP8Avf6fKr2q-GcbzRKiOtj5BffxxwpdIn9NRPE0wdAdN_tk_ztRXqphgb5bcMQ5MksH3YgtBUvOT8MA4ic2po27rdsC6DhhBZ0hy0iTCB0ofh2UYJGtqEfYZMQaqBLMbdCjxK8PbT1FOtQYCnHRiBRExd9WggFWnnqbE6lKg940wUd2u9GS6TdyEP2ElxKuESLT_XMS8cJQu-IdrGPn7n1ue0ZE8rnUFuJJnNyzxfBKetnCQG8pX-jai7YOzIcS6SB9Ik-xA7pLZF23KiNg0UvzcHCwvoCdL52eCcT3OGNMaz_A_SRrQfi10uCPa6n7spHR7WnHDz7JGgl6PSTRaRV8yJFBFdgsrOP2hdhco3oIz6qJVDV1_KhSEmqxBtNxUrOX2Sj6ngalOX6Uvl1POalH1V8RhsGPfzowcP1sVw1SELgqLFUa7HuKUMIonUgA9NqgM4rCrosDRrVRyTbVRMgmVUT9-frOso95Mk4yvDOzUWfIOFOug__pwHo20lbdAf1LNwv9_w7KsLhb0wy1_1ZpRZaSWauUDjG3cmXq5AI1jmAGHlrY8NBTsa76pZf18YRrXZck9BHKSVJtWtefdsNhrlJ2Sot6kyBmxNxTpwdD96DLtG2LrXH7opqkso9WpbOCLaI9vTqBNqf3D8ziyu2wKbmZP5Wq6ebBTg3NSTbxzrw6wEKWtWM2BMFvXYULsZebTvC2xN7mvYFGrZKa0qlVGgCq9pkkN5O9a746z97qRaPPHxZQAm7M11goOl3ilJ7Xpf5CAJmjg0LbovjK9fUU69Q2rx4fd8BD8QECy6_Onaoj8wbAGtFnq435o_UwnCN5pvD8YNv_omIj_xEHDV-fCFDVFRXxuvviGeYMdy5t6xSoko6jUkxlnmJcEwltDtrxTsNpbdPZivAFNlgwDoqisFJjSa1ikoSecvgyGi0)
+
 ## 🛠️ Makefile 🛠️
 
 The Makefile provides a simplified interface to manage Docker and Docker Compose commands.
 
 Here is a brief description of the available commands:
 
+- `make refresh`: 🔄 **I put this one in the first place beause it is the one we are going to use the most each time we integrate \
+something in the app**, this command rebuild `frontend` and `nginx` container, also the volume they are sharing.
 - `make up`: 🔼 Builds and starts the Docker Compose environment.
 - `make build`: 🏗️ Builds the Docker Compose services.
 - `make volumes`: 📁 Creates directories for volume data.
