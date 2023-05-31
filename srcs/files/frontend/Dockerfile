@@ -18,7 +18,8 @@ RUN npm install
 COPY . .  
 
 # Run npm run build to build the React application
-RUN npm run build
+RUN npm run build 
+
 
 # Start the application
 CMD ["npx", "serve", "-s", "build"]
