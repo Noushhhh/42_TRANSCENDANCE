@@ -73,12 +73,12 @@ logs:
 		$(COMPOSE) logs
 
 refresh:
-		$(COMPOSE) stop frontend nginx
-		$(COMPOSE) rm -f --volumes frontend nginx
+		$(COMPOSE) stop frontend nginx backend 
+		$(COMPOSE) rm -f --volumes frontend nginx backend
 		docker volume rm react_build
-		docker rmi -f frontend_image nginx_image
-		$(COMPOSE) build frontend nginx
-		$(COMPOSE) up -d frontend nginx
+		docker rmi -f frontend_image nginx_image backend_image
+		$(COMPOSE) build backend frontend nginx
+		$(COMPOSE) up -d backend frontend nginx
 
 
 

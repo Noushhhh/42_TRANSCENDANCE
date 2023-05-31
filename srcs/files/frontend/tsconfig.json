@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+      /* Basic Options */
+      "target": "es5",
+      "module": "commonjs",
+      "allowJs": true,
+      "jsx": "react",
+      "sourceMap": true,
+      "outDir": "./dist",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+  
+      /* Module Resolution Options */
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+  
+      /* Experimental Options */
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+    },
+  
+    "include": [
+      "src/**/*"
+    ],
+  
+    "exclude": [
+      "node_modules",
+      "**/*.spec.ts"
+    ]
+  }
+  
