@@ -19,13 +19,37 @@ package "srcs" {
                 [app.module.ts] as AppModule
                 [app.service.ts] as AppService
                 [main.ts] as Main
+                folder user{
+
+                }
+                folder auth{
+
+                } 
+                folder product{
+
+                }
+                folder shared{
+
+                }
             }
         }
         folder <<frontend>> #AliceBlue;line:Blue;line.bold {
             [Dockerfile-front] as DockerfileFront
             [package-front.json] as PackageFront
             package "src-front" {
-                [index.js] as Index
+                [index.tsx] as Index
+                folder components{
+
+                }
+                folder utilities{
+
+                } 
+                folder hooks{
+
+                }
+                folder contextProviders{
+
+                }
             }
             package "public" {
                 [index.html] as IndexHtml
@@ -50,5 +74,9 @@ note top of PackageFront: Package configuration file for the frontend service.
 note bottom of Index: The entry point file for the frontend service, where the application is initialized and started.
 note bottom of IndexHtml: The main HTML file for the frontend service, which serves as the entry point for the application.
 note bottom of NginxConf: Configuration file for NGINX, which defines how the server handles incoming requests.  
+note bottom of shared : Share code module 
+note top of user : User feature module 
+note top of auth: Auth feature module
+note top of product: Product feature module
 
 @enduml
