@@ -1,5 +1,5 @@
 # This is the project name
-NAME = ft_transcendase
+NAME = ft_transcendance
 
 # This gets the current user's username
 USER = $(shell whoami)
@@ -79,9 +79,6 @@ refresh:
 		docker rmi -f frontend_image nginx_image backend_image
 		$(COMPOSE) build backend frontend nginx
 		$(COMPOSE) up -d backend frontend nginx
-
-
-
 
 
 # This rule is equivalent to running `make fclean` and then `make all`
