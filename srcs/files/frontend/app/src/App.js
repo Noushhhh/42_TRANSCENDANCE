@@ -7,7 +7,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and le sexe to reload.
+          Edit <code>src/App.js</code> and le MAX et le sexe to reload.
         </p>
         <a
           className="App-link"
