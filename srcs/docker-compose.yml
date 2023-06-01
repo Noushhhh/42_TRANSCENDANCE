@@ -41,8 +41,9 @@ services:
     image: frontend_image # Set the image name
     volumes:
     - react_build:/app/build
+    - frontend_volume:/app
     ports:
-      - 8080:80 # Map the container port to the host port
+      - 8080:3000 # Map the container port to the host port
     networks:
       - app_network # Connect to the app network
 
@@ -73,3 +74,10 @@ volumes:
     name: db_volume # Set the volume name
   react_build:  # Added name for the react_build volume
     name: react_build
+  frontend_volume:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/polo/transcendance/srcs/files/frontend/app'
+    
