@@ -57,7 +57,7 @@ services:
     volumes:
       - react_build:/usr/share/nginx/html
     ports:
-      - 80:80 # Map the container port to the host port
+      - 8081:80 # Map the container port to the host port
     networks:
       - app_network # Connect to the app network
     depends_on:
@@ -79,5 +79,5 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/home/polo/transcendance/srcs/files/frontend/app'
+      device: './files/frontend/app'
     

@@ -22,4 +22,4 @@ CMD chmod 777 entrypoint.sh
 # Start the application
 ENTRYPOINT ["sh", "./entrypoint.sh"]
 
-#CMD ["tail", "-f", "/dev/random"]
+# CMD ["tail", "-f", "/dev/random"]
