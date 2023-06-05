@@ -1,5 +1,5 @@
 # This is the project name
-NAME = ft_transcendase
+NAME = ft_transcendanse
 
 # This gets the current user's username
 USER = $(shell whoami)
