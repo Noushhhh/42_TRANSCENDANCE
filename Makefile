@@ -15,6 +15,8 @@ COMPOSE = docker-compose -f srcs/docker-compose.yml -p $(NAME)
 
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
 all: up
+	touch srcs/files/frontend/app/node_modules/.gitignore
+	echo '*' > srcs/files/frontend/app/node_modules/.gitignore
 
 # This rule starts the containers
 up: build
