@@ -1,5 +1,5 @@
 # This is the project name
-NAME = ft_transcendase
+NAME = ft_transcendance
 
 # This gets the current user's username
 USER = $(shell whoami)
@@ -25,61 +25,74 @@ update_env:
 	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
 
 
-# This rule starts the containers
 up: build
-		$(COMPOSE) up -d
+	@printf "Starting the services...\n"
+	$(COMPOSE) up -d
 
 # This rule builds the images
 build: check-docker
-		$(COMPOSE) build
+	@printf "Building the images...\n"
+	$(COMPOSE) build
 
 # This rule checks if docker daemon is running
-check-docker:
-		@docker info > /dev/null 2>&1 || (echo "Docker daemon is not running"; exit 1)
+check-docker: # print message if docker deamon running
+	@printf "Checking if Docker daemon is running...\n"
+	@docker info > /dev/null 2>&1 || (echo "Docker daemon is not running"; exit 1)
 
 # This rule creates the services
 create: build
-		$(COMPOSE) create
+	@printf "Creating the services...\n"
+	$(COMPOSE) create
 
 # This rule displays the volumes
 show_volumes:
-		$(VOLUMES)
+	$(VOLUMES)
 
 # This rule starts the services
 start:
-		$(COMPOSE) start
+	@printf "Starting the services...\n"
+	$(COMPOSE) start
 
 # This rule restarts the services
 restart:
-		$(COMPOSE) restart
+	@printf "Restarting the services...\n"
+	$(COMPOSE) restart
 
 # This rule shows the service status
 ps:
-		$(COMPOSE) ps
+	$(COMPOSE) ps
 
 # This rule shows the images of the services
 images:
-		$(COMPOSE) images
+	$(COMPOSE) images
 
 # This rule stops the services
 stop:
-		$(COMPOSE) stop
+	@printf "Stopping the services...\n"
+	$(COMPOSE) stop
 
 # This rule removes the services, images, and volumes. It also removes the data directory.
 down:
-		$(COMPOSE) down --rmi all --volumes
+	@printf "Stopping the services and removing all resources...\n"
+	$(COMPOSE) down --rmi all --volumes 
 
 # This rule shows the logs of the services
 logs:
-		$(COMPOSE) logs
+	$(COMPOSE) logs
 
 refresh:
-		$(COMPOSE) stop frontend nginx backend 
-		$(COMPOSE) rm -f --volumes frontend nginx backend
-		docker volume rm react_build
-		docker rmi -f frontend_image nginx_image backend_image
-		$(COMPOSE) build backend frontend nginx
-		$(COMPOSE) up -d backend frontend nginx
+	@printf "Refreshing the services...\n"
+	@printf "Stop containers, delete volumes, rebuild containers.\n"
+	$(COMPOSE) stop frontend nginx backend 
+	$(COMPOSE) rm -f --volumes frontend nginx backend
+	docker volume rm react_build
+	docker rmi -f frontend_image nginx_image backend_image
+	$(COMPOSE) build backend frontend nginx
+	$(COMPOSE) up -d backend frontend nginx
+
+prune:
+	@printf "Pruning unused containers, images, and volumes...\n"
+	docker system prune -f -a
 
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all

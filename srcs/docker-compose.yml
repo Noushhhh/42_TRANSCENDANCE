@@ -6,7 +6,7 @@ services:
     container_name: db_container # Set the container name
     env_file:
       - ./.env # Set the environment file
-    image: postgres:latest # Set the image name
+    image: postgres:15.3 # Set the image name and set up version
     volumes:
       - db_volume:/var/lib/postgresql/data # Mount the volume
     environment:
