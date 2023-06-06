@@ -10,6 +10,10 @@ USER = $(shell whoami)
 # current working directory or folder where the project is intalled 
 CWD = $(shell dirname $(PWD))
 
+# current working directory or folder where the project is intalled 
+CWD = $(shell dirname $(PWD))
+
+
 # This gets the ID of the running containers
 CONTAINER = $(shell docker ps -q)
 
