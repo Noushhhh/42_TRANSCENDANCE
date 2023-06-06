@@ -33,8 +33,9 @@ all: update_env up
 
 #updates .env file with current current working directory
 update_env:
-	@$(SED_INPLACE) 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./.env
-  
+	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
+
+
 up: build
 	@printf "Starting the services...\n"
 	$(COMPOSE) up -d
@@ -87,18 +88,12 @@ logs:
 	$(COMPOSE) logs
 
 refresh:
-	@printf "Refreshing the services...\n"
-	@printf "Stop containers, delete volumes, rebuild containers.\n"
-	$(COMPOSE) stop frontend nginx backend 
-	$(COMPOSE) rm -f --volumes frontend nginx backend
-	docker volume rm react_build
-	docker rmi -f frontend_image nginx_image backend_image
-	$(COMPOSE) build backend frontend nginx
-	$(COMPOSE) up -d backend frontend nginx
-
-prune:
-	@printf "Pruning unused containers, images, and volumes...\n"
-	docker system prune -f -a
+		$(COMPOSE) stop frontend nginx backend 
+		$(COMPOSE) rm -f --volumes frontend nginx backend
+		docker volume rm react_build
+		docker rmi -f frontend_image nginx_image backend_image
+		$(COMPOSE) build backend frontend nginx
+		$(COMPOSE) up -d backend frontend nginx
 
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all
