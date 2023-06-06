@@ -8,6 +8,23 @@ The `package.json` file contains metadata about your application and its depende
 
 ### Dependencies Explained 🧩
 
+- **[@testing-library/jest-dom](https://www.npmjs.com/package/@testing-library/jest-dom):** This package provides a set of custom jest matchers that you can use to extend jest. These will make your tests more declarative, clear to read, and maintain.
+
+- **[@testing-library/react](https://www.npmjs.com/package/@testing-library/react):** A lightweight solution for testing React components. It provides light utility functions on top of react-dom and react-dom/test-utils, in a way that encourages better testing practice.
+
+- **[@testing-library/user-event](https://www.npmjs.com/package/@testing-library/user-event):** This package allows you to simulate user events for testing your components. It builds on top of @testing-library/dom to simulate user events as closely as possible to how they would actually occur.
+
+- **[prisma](https://www.npmjs.com/package/prisma):** Prisma is an open-source database toolkit. It replaces traditional ORMs and makes it easy to build performant, reliable and easy-to-use database acces.
+
+- **[react](https://www.npmjs.com/package/react):** This is the core package for the React library, which allows us to build user interfaces with component.
+
+- **[react-dom](https://www.npmjs.com/package/react-dom):** This package serves as the entry point of the DOM-related rendering paths. It is intended to be paired with the generic React packag.
+
+- **react-scripts:** This package includes scripts and configuration used by Create React App.
+
+- **run:** This package provides a simple way to run command line scripts.
+
+- **web-vitals:** This is a tiny, modular library for measuring all the Web Vitals metrics on real users, in a way that accurately matches how they're measured by Chrome and reported to other Google tools.
 
 ***
 
