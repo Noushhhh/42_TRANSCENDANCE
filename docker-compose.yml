@@ -77,6 +77,7 @@ volumes:
   react_build:  # Added name for the react_build volume
     name: react_build
   frontend_volume:
+    name: frontend_volume
     driver: local
     driver_opts:
       type: 'none'
