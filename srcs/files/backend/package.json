@@ -4,8 +4,7 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "start": "nest start",
-    "prestart": "tsc",
+    "start": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -14,10 +13,14 @@
     "@nestjs/core": "9.4.2",
     "@nestjs/platform-express": "9.4.2",
     "@nestjs/typeorm": "9.0.1",
-    "typeorm": "0.3.15",
     "pg": "8.11.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "7.8.1",
-    "serve-static": "1.15.0"
+    "serve-static": "1.15.0",
+    "typeorm": "0.3.15"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1"
   }
 }

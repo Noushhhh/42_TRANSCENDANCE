@@ -25,6 +25,8 @@ services:
       context: ./files/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: backend_image # Set the image name
+    volumes:
+      - backend_volume:/usr/src/app
     ports:
       - 4000:4000 # Map the container port to the host port
     networks:
@@ -81,4 +83,10 @@ volumes:
       type: 'none'
       o: 'bind'
       device: './files/frontend/app'
-    
+  backend_volume:
+    name: backend_volume
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './files/backend'
