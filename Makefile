@@ -11,7 +11,7 @@ VOLUMES = $(shell docker volume ls --filter name='^(db_volume|react_build)$')
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
-COMPOSE = docker-compose -f srcs/docker-compose.yml -p $(NAME)
+COMPOSE = docker-compose -f docker-compose.yml -p $(NAME)
 
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
 all: up
