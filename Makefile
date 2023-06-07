@@ -7,14 +7,23 @@ USER = $(shell whoami)
 # This lists docker volumes that match the given names
 VOLUMES = $(shell docker volume ls --filter name='^(db_volume|react_build)$') 
 
+# current working directory or folder where the project is intalled 
+CWD = $(shell dirname $(PWD))
+
+
 # This gets the ID of the running containers
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
 COMPOSE = docker-compose -f srcs/docker-compose.yml -p $(NAME)
-
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
-all: up
+all: update_env up 
+
+
+#updates .env file with current current working directory
+update_env:
+	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
+
 
 up: build
 	@printf "Starting the services...\n"
@@ -57,14 +66,6 @@ ps:
 images:
 	$(COMPOSE) images
 
-# This rule enters the container with an interactive bash shell. If no container is running, it gives a message.
-exec:
-	if [ -z "$(CONTAINER)" ]; then \
-		printf "There are no containers running\n"; \
-	else \
-		docker exec -it $(CONTAINER) /bin/bash; \
-	fi
-
 # This rule stops the services
 stop:
 	@printf "Stopping the services...\n"
@@ -97,4 +98,4 @@ prune:
 re: fclean all
 
 # A phony target is one that is not really the name of a file; typically it is just a name for a recipe to be executed when you make an explicit request
-.PHONY: all re up down build create ps exec start restart stop fclean images show_volumes check-docker
+.PHONY: all re up down build create ps start restart stop fclean images show_volumes check-docker update_env
