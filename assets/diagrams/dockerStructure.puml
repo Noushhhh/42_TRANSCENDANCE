@@ -1,0 +1,111 @@
+@startyaml
+
+<style>
+    .h1 {
+      BackGroundColor lightblue
+      FontColor white
+      FontStyle italic
+    }
+    .h2 {
+      BackGroundColor lightgreen
+      FontColor white
+      FontStyle italic
+    }
+
+    .h3 {
+      BackGroundColor red
+      FontColor white
+      FontStyle italic
+    }
+ 
+</style>
+
+#highlight "services" / "backend" <<h1>>
+#highlight "services" / "frontend" <<h2>>
+#highlight "volumes" <<h3>>
+
+version: '3'
+
+services:
+  db:
+    container_name: db_container
+    env_file:
+      - ./.env
+    image: postgres:15.3
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - app_network
+
+  backend:
+    container_name: backend_container
+    env_file:
+      - ./.env
+    build:
+      context: ./srcs/backend
+      dockerfile: Dockerfile
+    image: backend_image
+    volumes:
+      - backend_volume:/usr/src/app
+    ports:
+      - 4000:4000
+    networks:
+      - app_network
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend_container
+    build:
+      context: ./srcs/frontend
+      dockerfile: Dockerfile
+    image: frontend_image
+    volumes:
+      - frontend_volume:/app
+    ports:
+      - 8080:3000
+    networks:
+      - app_network
+
+  nginx:
+    container_name: nginx_container
+    build:
+      context: ./srcs/nginx
+      dockerfile: Dockerfile
+    image: nginx_image
+    ports:
+      - 8081:80
+    networks:
+      - app_network
+    depends_on:
+      - backend
+      - frontend
+    tty: true
+    stdin_open: true
+
+networks:
+  app_network:
+
+volumes:
+  db_volume:
+    name: db_volume
+  frontend_volume:
+    name: frontend_volume
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './srcs/frontend/app'
+  backend_volume:
+    name: backend_volume
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './srcs/backend'
+
+@endyaml
