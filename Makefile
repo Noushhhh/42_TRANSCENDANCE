@@ -15,14 +15,14 @@ CWD = $(shell dirname $(PWD))
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
-COMPOSE = docker-compose -f srcs/docker-compose.yml -p $(NAME)
+COMPOSE = docker-compose -f docker-compose.yml -p $(NAME)
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
 all: update_env up 
 
 
 #updates .env file with current current working directory
 update_env:
-	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
+	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' .env
 
 
 up: build
