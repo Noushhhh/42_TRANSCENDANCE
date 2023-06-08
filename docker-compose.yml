@@ -5,7 +5,7 @@ services:
   db:
     container_name: db_container # Set the container name
     env_file:
-      - ./.env # Set the environment file
+      - .env # Set the environment file
     image: postgres:15.3 # Set the image name and set up version
     volumes:
       - db_volume:/var/lib/postgresql/data # Mount the volume
@@ -20,7 +20,7 @@ services:
   backend:
     container_name: backend_container # Set the container name
     env_file:
-      - ./.env # Set the environment file
+      - .env # Set the environment file
     build:
       context: ./srcs/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile

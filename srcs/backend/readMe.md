@@ -23,6 +23,7 @@ This is the backend application for the project.
 
 ## Dependencies
 
+
 - "@nestjs/cli"
   - ✨ Utility: NestJS CLI - Development tool for generating and managing NestJS applications.
 

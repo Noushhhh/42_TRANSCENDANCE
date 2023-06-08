@@ -14,6 +14,7 @@ CWD = $(shell dirname $(PWD))
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
+
 COMPOSE = docker-compose -f ./docker-compose.yml -p $(NAME)
 
 # As we are using the command sed in the update_env rule, we need to be careful with sed as the syntax
@@ -26,7 +27,6 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
-
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
 all: update_env up 
 
@@ -34,8 +34,7 @@ all: update_env up
 #updates .env file with current current working directory
 update_env:
 	@$(SED_INPLACE) 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./.env
-
-
+  
 up: build
 	@printf "Starting the services...\n"
 	$(COMPOSE) up -d
