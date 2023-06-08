@@ -54,7 +54,7 @@ services:
   nginx:
     container_name: nginx_container # Set the container name
     build:
-      context: ./nginx # Set the build context
+      context: ./srcs/nginx # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: nginx_image # Set the image name
     ports:
