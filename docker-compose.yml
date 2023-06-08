@@ -5,7 +5,7 @@ services:
   db:
     container_name: db_container # Set the container name
     env_file:
-      - ./.env # Set the environment file
+      - .env # Set the environment file
     image: postgres:15.3 # Set the image name and set up version
     volumes:
       - db_volume:/var/lib/postgresql/data # Mount the volume
@@ -20,9 +20,9 @@ services:
   backend:
     container_name: backend_container # Set the container name
     env_file:
-      - ./.env # Set the environment file
+      - .env # Set the environment file
     build:
-      context: ./files/backend # Set the build context
+      context: ./srcs/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: backend_image # Set the image name
     ports:
@@ -36,7 +36,7 @@ services:
   frontend:
     container_name: frontend_container # Set the container name
     build:
-      context: ./files/frontend # Set the build context
+      context: ./srcs/frontend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: frontend_image # Set the image name
     volumes:
@@ -51,7 +51,7 @@ services:
   nginx:
     container_name: nginx_container # Set the container name
     build:
-      context: ./files/nginx # Set the build context
+      context: ./srcs/nginx # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: nginx_image # Set the image name
     volumes:
@@ -80,5 +80,5 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: './files/frontend/app'
+      device: './srcs/frontend/app'
     
