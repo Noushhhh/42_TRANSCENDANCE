@@ -7,9 +7,6 @@ UNAME_S := $(shell uname -s)
 # This gets the current user's username
 USER = $(shell whoami)
 
-# This lists docker volumes that match the given names
-VOLUMES = $(shell docker volume ls --filter name='^(db_volume|react_build)$') 
-
 # current working directory or folder where the project is intalled 
 CWD = $(shell dirname $(PWD))
 
@@ -17,7 +14,7 @@ CWD = $(shell dirname $(PWD))
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
-COMPOSE = docker-compose -f srcs/docker-compose.yml -p $(NAME)
+COMPOSE = docker-compose -f ./docker-compose.yml -p $(NAME)
 
 # As we are using the command sed in the update_env rule, we need to be careful with sed as the syntax
 # change taking into account the operating system
@@ -36,7 +33,7 @@ all: update_env up
 
 #updates .env file with current current working directory
 update_env:
-	@$(SED_INPLACE) 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
+	@$(SED_INPLACE) 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./.env
 
 
 up: build
@@ -57,10 +54,6 @@ check-docker: # print message if docker deamon running
 create: build
 	@printf "Creating the services...\n"
 	$(COMPOSE) create
-
-# This rule displays the volumes
-show_volumes:
-	$(VOLUMES)
 
 # This rule starts the services
 start:

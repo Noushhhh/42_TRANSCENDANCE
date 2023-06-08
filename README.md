@@ -32,7 +32,6 @@ Here is a brief description of the available commands:
 - `make volumes`: 📁 Creates directories for volume data.
 - `make check-docker`: ✅ Checks if Docker daemon is running.
 - `make create`: 🆕 Creates the services without starting them.
-- `make show_volumes`: 📋 Lists Docker volumes.
 - `make start`: ▶️ Starts the Docker Compose environment.
 - `make ps`: 📝 Lists the running Docker Compose processes.
 - `make images`: 🖼️ Lists the Docker images related to the Docker Compose environment.
