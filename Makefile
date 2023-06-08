@@ -33,7 +33,7 @@ all: update_env up
 
 #updates .env file with current current working directory
 update_env:
-	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./srcs/.env
+	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' .env
 
 
 up: build
