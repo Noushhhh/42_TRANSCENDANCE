@@ -23,57 +23,53 @@ This is the backend application for the project.
 
 ## Dependencies
 
-- "@nestjs/cli": "^9.0.0"
+
+- "@nestjs/cli"
   - ✨ Utility: NestJS CLI - Development tool for generating and managing NestJS applications.
 
-- "@nestjs/common": "^9.0.0"
+- "@nestjs/common"
   - ✨ Utility: Provides common utilities and decorators used in NestJS applications.
 
-- "@nestjs/core": "^9.0.0"
+- "@nestjs/core"
   - ✨ Utility: Core module of NestJS that provides the runtime engine and application context.
 
-- "@nestjs/platform-express": "^9.0.0"
+- "@nestjs/platform-express"
   - ✨ Utility: Integrates NestJS with Express, a popular web framework for Node.js.
 
-- "@nestjs/typeorm": "^9.0.1"
+- "@nestjs/typeorm"
   - ✨ Utility: NestJS integration with TypeORM, an Object-Relational Mapping (ORM) library for TypeScript and JavaScript.
 
-- "typeorm": "^0.3.15"
+- "typeorm"
   - ✨ Utility: Flexible and powerful ORM for TypeScript and JavaScript.
 
-- "pg": "^8.11.0"
+- "pg"
   - ✨ Utility: PostgreSQL client library for Node.js. Allows the application to connect to and interact with a PostgreSQL database.
 
-- "reflect-metadata": "^0.1.13"
+- "reflect-metadata"
   - ✨ Utility: Provides a way to add and read metadata to/from TypeScript classes and their properties.
 
-- "rxjs": "^7.8.1"
+- "rxjs": "7.8.1"
   - ✨ Utility: Reactive Extensions for JavaScript (RxJS) - Library for composing asynchronous and event-based programs.
 
-- "serve-static": "^1.14.1"
+- "serve-static"
   - ✨ Utility: Middleware for serving static files in Express applications.
+## devDependencies
+- "nodemon"
+  - ✨ Utility: Is a tool to develop node.js application by automatically restarting the node application when file changes are detected in the directory. 
+- "ts-node"
+  - ✨ Utility: Is a TypeScript execution engine, transforms TypeScript into javaScript, enabling you to directly execute TypeScript in node.js 
 
 ***
 
-# 🏗️ Structure
+## 🏗️ Structure
 
- Our project is structured in a feature-based fashion to make things as easy as possible. Here's what that means:  
+**Here's an overview of our main directories and files:**
 
-plaintext
+![Backend file structure](../../assets/images/backendStructure.png)
 
-    backend/
-    ├── Dockerfile-back
-    ├── package.json
-    ├── tsconfig.json
-    └── src/
-        ├── main.ts              # Entry point of our NestJS application.
-        ├── app.module.ts        # Root module of the application.
-        ├── app.service.ts
-        ├── app.controller.ts
-        ├── user/                # User feature module
-        ├── auth/                # Auth feature module
-        ├── products/            # Products feature module
-        └── shared/              # Shared code module
+* This file organization makes it clear where different types of files should be, making the project easier to navigate and maintain.
+
+**Our project is structured in a feature-based fashion to make things as easy as possible. Here's what that means:**  
 
 **User Module 👥**: All things related to users, such as registration and profile editing.
 

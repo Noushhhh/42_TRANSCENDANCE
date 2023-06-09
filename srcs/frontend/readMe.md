@@ -32,7 +32,8 @@ The `package.json` file contains metadata about your application and its depende
 
 **Here's an overview of our main directories and files:**
 
-    This information is pending as this project is evoluating
+
+![Frontend file structure](../../assets/images/frontendStructure.png)
 
 * This file organization makes it clear where different types of files should be, making the project easier to navigate and maintain.
 

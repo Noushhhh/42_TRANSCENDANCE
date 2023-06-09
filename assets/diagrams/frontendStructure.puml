@@ -1,0 +1,32 @@
+@startuml
+
+
+folder <<frontend>> #AliceBlue;line:Blue;line.bold {
+    [Dockerfile-front] as DockerfileFront
+    [package-front.json] as PackageFront
+    [entrypoint-front.sh] as EntryPointFront
+    folder app {
+        package "src-front" {
+            [index.tsx] as Index
+            [App.tsx] as AppTsx
+            [App.css] as AppCss
+            [index.css] as IndexCss
+            [react-app-env.d.ts] as reactAppEnv
+
+        }
+        package "public" {
+            [index.html] as IndexHtml
+        }
+    }
+}
+
+
+note top of PackageFront: Package configuration file for the frontend service.
+note top of AppTsx: Parent component of all other components.
+note top of AppCss: Styles for components in App.tsx file.
+note bottom of IndexCss: Styles that should be applied to the entire application
+note top of Index: The entry point file for the frontend service, where the application is initialized and started.
+note bottom of IndexHtml: The main HTML file for the frontend service, which serves as the entry point for the application.
+note bottom of reactAppEnv: It declares application-specific types, enables correct compilation by referencing react-scripts. 
+
+@enduml

@@ -3,80 +3,26 @@
 
 package "ft_Transcendance" {
 
-[Makefile] as Makefile
-
-package "srcs" {
+    [Makefile] as Makefile
     [docker-compose.yml] as DockerCompose
     [.env] as Env
 
-    package "files" {
-        folder <<backend>> #AntiqueWhite;line:GoldenRod;line.bold {
-            [Dockerfile-back] as DockerfileBack
-            [package-back.json] as PackageBack
-            [tsconfig.json] as Tsconfig
-            package "src-back" {
-                [app.controller.ts] as AppController
-                [app.module.ts] as AppModule
-                [app.service.ts] as AppService
-                [main.ts] as Main
-                folder user{
+    folder <<nginx>>  #Aquamarine;line:SkyBlue;line.bold{
+        [Dockerfile] as NginxDockerfile
+        [default.conf] as NginxConf
+    }
 
-                }
-                folder auth{
-
-                } 
-                folder product{
-
-                }
-                folder shared{
-
-                }
-            }
+    package "srcs" {
+        folder backend #AntiqueWhite;line:GoldenRod;line.bold {
         }
-        folder <<frontend>> #AliceBlue;line:Blue;line.bold {
-            [Dockerfile-front] as DockerfileFront
-            [package-front.json] as PackageFront
-            package "src-front" {
-                [index.tsx] as Index
-                folder components{
+        folder frontend #AliceBlue;line:Blue;line.bold {
+       }
 
-                }
-                folder utilities{
-
-                } 
-                folder hooks{
-
-                }
-                folder contextProviders{
-
-                }
-            }
-            package "public" {
-                [index.html] as IndexHtml
-            }
-        }
-        folder <<nginx>>  #Aquamarine;line:SkyBlue;line.bold{
-            [Dockerfile] as NginxDockerfile
-            [default.conf] as NginxConf
-        }
     }
 }
-}
 
-note bottom of Env: Environment file containing environment variables for the project.
-note bottom of PackageBack: Package configuration file for the backend service.
-note bottom of Tsconfig: TypeScript configuration file for the backend service.
-note top of AppController: Defines controllers that handle incoming requests and return responses for the backend service.
-note top of AppModule: Defines the root module of the backend service, where other modules, controllers, and providers are imported.
-note top of AppService: Defines services that handle the business logic for the backend service.
-note top of Main: The entry point file for the backend service, where the application is initialized and started.
-note top of PackageFront: Package configuration file for the frontend service.
-note bottom of Index: The entry point file for the frontend service, where the application is initialized and started.
-note bottom of IndexHtml: The main HTML file for the frontend service, which serves as the entry point for the application.
+note top of Env: Environment variables for the project.
 note bottom of NginxConf: Configuration file for NGINX, which defines how the server handles incoming requests.  
-note bottom of shared : Share code module 
-note top of user : User feature module 
-note top of auth: Auth feature module
-note top of product: Product feature module
+note top of Makefile: Execute all environement and docker scripts in an easy and fast way
 
 @enduml

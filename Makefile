@@ -1,30 +1,40 @@
 # This is the project name
 NAME = ft_transcendance
 
+# this is the currenty operating system
+UNAME_S := $(shell uname -s)
+
 # This gets the current user's username
 USER = $(shell whoami)
 
-# This lists docker volumes that match the given names
-VOLUMES = $(shell docker volume ls --filter name='^(db_volume|react_build)$') 
-
 # current working directory or folder where the project is intalled 
 CWD = $(shell dirname $(PWD))
-
 
 # This gets the ID of the running containers
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
-COMPOSE = docker-compose -f docker-compose.yml -p $(NAME)
+
+COMPOSE = docker-compose -f ./docker-compose.yml -p $(NAME)
+
+# As we are using the command sed in the update_env rule, we need to be careful with sed as the syntax
+# change taking into account the operating system
+ifeq ($(UNAME_S),Linux)
+    SED_INPLACE := sed -i
+endif
+ifeq ($(UNAME_S),Darwin)
+    SED_INPLACE := sed -i ''
+endif
+
+# ──────────────────────────────────────────────────────────────────────────────
 # The default rule (run when you type 'make' with no arguments). It will build the images and start the containers.
 all: update_env up 
 
 
 #updates .env file with current current working directory
 update_env:
-	@sed -i.bak 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' .env
-
-
+	@$(SED_INPLACE) 's#^STORAGE_PATH=.*#STORAGE_PATH=$(CWD)#' ./.env
+  
 up: build
 	@printf "Starting the services...\n"
 	$(COMPOSE) up -d
@@ -43,10 +53,6 @@ check-docker: # print message if docker deamon running
 create: build
 	@printf "Creating the services...\n"
 	$(COMPOSE) create
-
-# This rule displays the volumes
-show_volumes:
-	$(VOLUMES)
 
 # This rule starts the services
 start:
