@@ -17,12 +17,11 @@ model User {
 
     firstName String?
     lastName String?
- 
 }
 
 model Bookmark {
     id Int @id @default (autoincrement())
-    created DateTime @default(now())
+    createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     title String
