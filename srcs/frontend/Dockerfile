@@ -12,14 +12,9 @@ RUN apt-get update && apt-get install -y vim
 #COPY package*.json ./
 
 COPY app/package.json ./
-# Run npm install to install all dependencies defined in the package.json file"
-#CMD npm install
-# Copy everything from the current directory to the Docker container's working directory
 
-# Run npm run build to build the React application
 COPY entrypoint.sh .
-CMD chmod 777 entrypoint.sh
-# Start the application
-ENTRYPOINT ["sh", "./entrypoint.sh"]
 
-# CMD ["tail", "-f", "/dev/random"]
+CMD chmod 777 entrypoint.sh
+
+ENTRYPOINT ["sh", "./entrypoint.sh"]
