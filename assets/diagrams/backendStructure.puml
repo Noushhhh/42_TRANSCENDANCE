@@ -1,0 +1,37 @@
+@startuml
+
+
+folder <<backend>> #AntiqueWhite;line:GoldenRod;line.bold {
+    [Dockerfile-back] as DockerfileBack
+    [package-back.json] as PackageBack
+    [nodemon.json] as Nodemon 
+    [tsconfig.json] as Tsconfig
+    package "src-back" {
+        [app.controller.ts] as AppController
+        [app.module.ts] as AppModule
+        [app.service.ts] as AppService
+        [main.ts] as Main
+        folder user{
+
+        }
+        folder auth{
+
+        } 
+        folder product{
+
+        }
+        folder shared{
+
+        }
+    }
+}
+
+note top of PackageBack: Package configuration file for the backend service.
+note bottom of Nodemon:  tells nodemon to watch all .ts files in the src directory,\n ignore any .spec.ts files, and execute the application using ts-node.
+note bottom of Tsconfig: TypeScript configuration file for the backend service.
+note top of AppController: Defines controllers that handle incoming requests and return responses for the backend service.
+note top of AppModule: Defines the root module of the backend service, where other modules, controllers,\n and providers are imported.
+note bottom of AppService: Defines services that handle the business logic for the backend service.
+note bottom of Main: The entry point file for the backend service, where the application is initialized and started.
+
+@enduml

@@ -25,6 +25,8 @@ services:
       context: ./srcs/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: backend_image # Set the image name
+    volumes:
+      - backend_volume:/usr/src/app
     ports:
       - 4000:4000 # Map the container port to the host port
     networks:
@@ -40,7 +42,6 @@ services:
       dockerfile: Dockerfile # Set the Dockerfile
     image: frontend_image # Set the image name
     volumes:
-    - react_build:/app/build
     - frontend_volume:/app
     ports:
       - 8080:3000 # Map the container port to the host port
@@ -51,11 +52,9 @@ services:
   nginx:
     container_name: nginx_container # Set the container name
     build:
-      context: ./srcs/nginx # Set the build context
+      context: ./nginx # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
     image: nginx_image # Set the image name
-    volumes:
-      - react_build:/usr/share/nginx/html
     ports:
       - 8081:80 # Map the container port to the host port
     networks:
@@ -72,8 +71,6 @@ networks:
 volumes:
   db_volume: # Define the db volume
     name: db_volume # Set the volume name
-  react_build:  # Added name for the react_build volume
-    name: react_build
   frontend_volume:
     name: frontend_volume
     driver: local
@@ -81,4 +78,10 @@ volumes:
       type: 'none'
       o: 'bind'
       device: './srcs/frontend/app'
-    
+  backend_volume:
+    name: backend_volume
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './srcs/backend'
