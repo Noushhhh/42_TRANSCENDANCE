@@ -1,0 +1,9 @@
+
+.ContentMessage{
+    background-color: violet;
+    width: 100%;
+}
+
+.ContentMessage p {
+    text-align: left;
+}

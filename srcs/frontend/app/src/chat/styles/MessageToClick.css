@@ -1,0 +1,42 @@
+
+.MessageToClick{
+    display: flex;
+    height: 80px;
+    line-height: 0px;
+    text-align: left;
+}
+
+.MessageToClick .MessageToClickTitle{
+    color: #C7C7C7;
+    display: flex;
+    justify-content: space-between;
+}
+
+.MessageToClick:hover{
+    background-color: #384722;
+}
+
+.ContentMessageTitle .PreviewMessage{
+    color:#5A5E51;
+}
+
+.dateMessage {
+    text-align: right;
+    font-size: 12px;
+}
+
+.logoIsConnected{
+    width: 50px;
+    color:red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ContainerPreview{
+    padding: 10px;
+}
+
+.senderName{
+    font-size: 19px;
+}
