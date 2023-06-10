@@ -1,0 +1,8 @@
+.ScoreBoard {
+    position: absolute;
+    display: flex;
+    gap: 2rem;
+    font-size: 2rem;
+    top: 10%;
+    color: black;
+}
