@@ -10,6 +10,7 @@
     color: #C7C7C7;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .MessageToClick:hover{
@@ -27,7 +28,7 @@
 
 .logoIsConnected{
     width: 50px;
-    color:red;
+    color: #75786E;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -35,6 +36,9 @@
 
 .ContainerPreview{
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .senderName{

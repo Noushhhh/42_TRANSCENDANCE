@@ -1,0 +1,18 @@
+.HeaderChatBox{
+    display: flex;
+    justify-content: space-between;
+    height: 60px;
+    background-color: #3E3B38;
+    color:#C7C7C7;
+}
+
+.ContactName, .HeaderChatBoxLogo{
+    display: flex;
+    align-items: center;
+    margin:10px
+}
+
+.ContactName p {
+    font-size: 22px;
+    margin-left: 10px;
+}

@@ -6,6 +6,7 @@ function MessageSide() {
     return (
         <div className="MessageSide">
             <MessageToClick/>
+            <MessageToClick/>
         </div>
     )   
 }
