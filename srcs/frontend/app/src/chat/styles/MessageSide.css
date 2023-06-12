@@ -1,0 +1,12 @@
+
+.MessageSide{
+    background-color: #302E2C;
+    width: 450px;
+    height: 100%;
+}
+
+@media (max-width: 800px) {
+    .MessageSide {
+        width: 100%;
+    }
+}

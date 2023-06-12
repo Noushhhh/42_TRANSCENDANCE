@@ -1,0 +1,7 @@
+
+.ChatView{
+    background-color: #262421;
+    color: white;
+    height: 100%;
+    overflow: scroll;
+}
