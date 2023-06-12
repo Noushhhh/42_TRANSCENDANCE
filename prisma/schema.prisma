@@ -1,30 +1,28 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url = "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database?schema=public" 
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id Int @id @default (autoincrement())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    email String
-    hash String
-
-    firstName String?
-    lastName String?
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String
+  hash      String
+  firstName String?
+  lastName  String?
+  login     String?
 }
 
 model Bookmark {
-    id Int @id @default (autoincrement())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    title String
-    description String?
-    link String
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  title       String
+  description String?
+  link        String
 }
