@@ -1,0 +1,12 @@
+
+.ContentMessage{
+    background-color: violet;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ContentMessage p {
+    text-align: left;
+}

@@ -1,0 +1,52 @@
+
+.MessageToClick{
+    display: flex;
+    height: 80px;
+    line-height: 0px;
+    text-align: left;
+}
+
+.MessageToClick .MessageToClickTitle{
+    color: #C7C7C7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.MessageToClick:hover{
+    background-color: #384722;
+}
+
+.ContentMessageTitle .PreviewMessage{
+    color:#5A5E51;
+}
+
+.dateMessage {
+    text-align: right;
+    font-size: 12px;
+}
+
+.logoIsConnected{
+    width: 50px;
+    color: #75786E;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ContainerPreview{
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.senderName{
+    font-size: 19px;
+}
+
+@media (max-width: 800px) {
+    .ContainerPreview {
+        width: 100%;
+    }
+}
