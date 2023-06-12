@@ -13,3 +13,19 @@
     background-color: red;
     height: 100%;
 }
+
+@media (max-width: 1350px) {
+    .MessageContainer {
+        width: 100%;
+    }
+}
+
+@media (max-width: 800px) {
+    .MessageContainer {
+        flex-direction: column;
+    }
+
+    .ChatBoxContainer{
+        padding: 0px!important;
+    }
+}

@@ -18,7 +18,7 @@ function MessageToClick() {
                     <p className="dateMessage">4 semaines</p>
                 </div>
                 <div className="ContentMessageTitle">
-                    <p className="PreviewMessage">{message1.substring(0, 35)}...</p>
+                    <p className="PreviewMessage">{message1}</p>
                 </div>
             </div>
         </div>

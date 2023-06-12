@@ -41,7 +41,6 @@ function ChatView() {
             <Message contentMessage={message1} messageType={messageToType}/>
             <Message contentMessage={message2} messageType={messageFromType}/>
             <Message contentMessage={longMessage} messageType={messageToType}/>
-            <p>Chat View here</p>
         </div>
     )   
 }

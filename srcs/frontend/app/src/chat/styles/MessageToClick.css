@@ -44,3 +44,9 @@
 .senderName{
     font-size: 19px;
 }
+
+@media (max-width: 800px) {
+    .ContainerPreview {
+        width: 100%;
+    }
+}
