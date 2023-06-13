@@ -14,7 +14,6 @@ CWD = $(shell dirname $(PWD))
 CONTAINER = $(shell docker ps -q)
 
 # This is the command to run docker-compose with your specific .yml file and project name
-
 COMPOSE = docker-compose -f ./docker-compose.yml -p $(NAME)
 
 # As we are using the command sed in the update_env rule, we need to be careful with sed as the syntax
