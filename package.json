@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/express": "^4.17.17",
     "prisma": "^4.15.0"
   },
   "dependencies": {
