@@ -12,10 +12,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email             String
   login             String
   hashPassword      String
 
+  email     String?
   firstName String?
   lastName  String?
 }
