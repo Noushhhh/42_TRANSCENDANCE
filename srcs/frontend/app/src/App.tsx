@@ -8,8 +8,8 @@ function App() {
   return (
     <div className="App">
       <Navbar />
-      <GameContainer/>
-      {/* <ChatBoxContainer /> */}
+      <ChatBoxContainer/>
+      {/* <GameContainer /> */}
     </div>
   );
 }

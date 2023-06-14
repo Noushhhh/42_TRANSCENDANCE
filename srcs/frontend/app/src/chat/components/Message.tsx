@@ -10,7 +10,6 @@ function Message(props: MonComposantProps) {
     
     const updatedClassName = `${props.messageType}`;
     const updatedClassNameContainer = props.messageType + "Container";    
-    console.log(props.messageType);
     
     return (
         <div className={`Message Date ${updatedClassNameContainer}`}>
