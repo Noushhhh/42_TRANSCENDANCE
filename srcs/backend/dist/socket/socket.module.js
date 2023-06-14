@@ -6,13 +6,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppService = void 0;
+exports.SocketModule = void 0;
 const common_1 = require("@nestjs/common");
-let AppService = exports.AppService = class AppService {
-    getHello() {
-        return 'ft_transcendance with the best team!';
-    }
+const socketEvent_1 = require("./socketEvent");
+let SocketModule = exports.SocketModule = class SocketModule {
 };
-exports.AppService = AppService = __decorate([
-    (0, common_1.Injectable)() // Declare this class as an injectable service
-], AppService);
+exports.SocketModule = SocketModule = __decorate([
+    (0, common_1.Module)({
+        providers: [socketEvent_1.SocketEvents]
+    })
+], SocketModule);

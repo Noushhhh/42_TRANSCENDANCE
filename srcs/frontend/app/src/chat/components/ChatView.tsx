@@ -1,48 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/ChatView.css";
 import Message from "./Message";
 
 interface MonComposantProps {
-    contentMessage: string;
     messageType: string;
+    messages: string[];
 }
 
 function ChatView() {
 
-    const message1: string = "ceci est le contenu de mon message";
-    const message2: string = "mec ce chat est incroyable !!!!";
-    const longMessage: string = "mec ce chat est incroyable !!!!  mec ce chat est incroyable !!!! mec ce chat est incroyable !!!! mec ce chat est incroyable !!!!mec ce chat est incroyable !!!!mec ce chat est incroyable !!!! mec ce chat est incroyable !!!! mec ce chat est incroyable !!!! mec ce chat est incroyable !!!! mec ce chat est incroyable !!!! mec ce chat est incroyable !!!!";
-    const message3: string = "ok";
-    const date: string = "24/06/2022";
+    // const [message, setMessage] = useState([
+    //         { ContentMessage:"Ceci est un super message", MessageType:"MessageTo"},
+    //         {ContentMessage:"Ceci est un super message", MessageType:"MessageTo"},
+    //         {ContentMessage:"Ceci est un super message", MessageType:"MessageFrom"}
+    //     ]);
 
-    const dateType: string = "date";
-    const messageToType: string = "MessageTo";
-    const messageFromType: string = "MessageFrom";
+    // const message1: string = "ceci est le contenu de mon message";
+    // const date: string = "24/06/2022";
+
+    // const dateType: string = "date";
+    // const messageToType: string = "MessageTo";
+    // const messageFromType: string = "MessageFrom";
+
+    const [messages, setMessages] = useState<string[]>([]);
+
+    const handleSendMessage = (message: string) => {
+      setMessages([...messages, message]);
+    };
 
     return (
         <div className="ChatView">
-            <Message contentMessage={date} messageType={dateType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message2} messageType={messageFromType}/>
-            <Message contentMessage={message3} messageType={messageToType}/>
-            <Message contentMessage={date} messageType={dateType}/>
-            <Message contentMessage={longMessage} messageType={messageToType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message2} messageType={messageFromType}/>
-            <Message contentMessage={longMessage} messageType={messageToType}/>
-            <Message contentMessage={date} messageType={dateType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message2} messageType={messageFromType}/>
-            <Message contentMessage={message3} messageType={messageToType}/>
-            <Message contentMessage={date} messageType={dateType}/>
-            <Message contentMessage={longMessage} messageType={messageToType}/>
-            <Message contentMessage={message1} messageType={messageToType}/>
-            <Message contentMessage={message2} messageType={messageFromType}/>
-            <Message contentMessage={longMessage} messageType={messageToType}/>
+          {messages.map((message) => {
+            console.log('test');
+            return <Message contentMessage={message} messageType="MessageTo"/>; // Remplacez "Message" par le contenu souhaité
+          })}
         </div>
-    )   
+    );
 }
 
 export default ChatView;

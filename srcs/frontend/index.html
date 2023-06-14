@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" id="message">
+    <button onclick="sendMessage()">envoyer</button><br>
+    <div id="messages"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.2/socket.io.js "></script>
+    <script>
+        const socket = io("http://localhost:5555");
+        const message = document.getElementById('message');
+        const messages = document.getElementById('messages');
+        
+        socket.on('connect', ()=> {
+            console.log('connected');
+        });
+
+        socket.on('message', function(id, data){
+            messages.innerHTML += `<p> ${id}: ${data}</p>`;
+        })
+
+        function sendMessage(){
+            socket.emit('message', message.value);
+        }
+    </script>
+</body>
+</html>

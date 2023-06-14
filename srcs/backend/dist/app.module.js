@@ -10,25 +10,25 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const typeorm_1 = require("@nestjs/typeorm");
-let AppModule = class AppModule {
+const socket_module_1 = require("./socket/socket.module");
+let AppModule = exports.AppModule = class AppModule {
 };
-AppModule = __decorate([
+exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            typeorm_1.TypeOrmModule.forRoot({
-                type: 'postgres',
-                host: process.env.POSTGRES_HOST || 'localhost',
-                port: 5432,
-                username: process.env.POSTGRES_USER,
-                password: process.env.POSTGRES_PASSWORD,
-                database: process.env.POSTGRES_DB,
-                autoLoadEntities: true,
-                synchronize: true,
-            }),
-        ],
+        // imports: [
+        //   TypeOrmModule.forRoot({
+        //     type: 'postgres',
+        //     host: process.env.POSTGRES_HOST || 'localhost',
+        //     port: 5432,
+        //     username: process.env.POSTGRES_USER,
+        //     password: process.env.POSTGRES_PASSWORD,
+        //     database: process.env.POSTGRES_DB,
+        //     autoLoadEntities: true,
+        //     synchronize: true,
+        //   }),
+        // ],
+        imports: [socket_module_1.SocketModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
 ], AppModule);
-exports.AppModule = AppModule;
