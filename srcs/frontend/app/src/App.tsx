@@ -8,9 +8,10 @@ function App() {
   return (
     <div className="App">
       <Navbar />
-      <ChatBoxContainer />
+      <ChatBoxContainer/>
+      {/* <GameContainer /> */}
     </div>
   );
 }
 
-export default App;
+export default App; 

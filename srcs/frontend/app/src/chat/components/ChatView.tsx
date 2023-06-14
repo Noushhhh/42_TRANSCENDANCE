@@ -2,12 +2,11 @@ import React from "react";
 import "../styles/ChatView.css";
 import Message from "./Message";
 
-interface MonComposantProps {
-    contentMessage: string;
-    messageType: string;
+interface ChatViewProps{
+    messages: string[];
 }
 
-function ChatView() {
+function ChatView({messages}: ChatViewProps): JSX.Element {
 
     const message1: string = "ceci est le contenu de mon message";
     const message2: string = "mec ce chat est incroyable !!!!";
@@ -21,7 +20,10 @@ function ChatView() {
 
     return (
         <div className="ChatView">
-            <Message contentMessage={date} messageType={dateType}/>
+            {messages.map((message, index) => (
+                <Message key={index} contentMessage={message} messageType="MessageTo"/>
+            ))}
+            {/*<Message contentMessage={date} messageType={dateType}/>
             <Message contentMessage={message1} messageType={messageToType}/>
             <Message contentMessage={message1} messageType={messageToType}/>
             <Message contentMessage={message2} messageType={messageFromType}/>
@@ -40,7 +42,7 @@ function ChatView() {
             <Message contentMessage={longMessage} messageType={messageToType}/>
             <Message contentMessage={message1} messageType={messageToType}/>
             <Message contentMessage={message2} messageType={messageFromType}/>
-            <Message contentMessage={longMessage} messageType={messageToType}/>
+            <Message contentMessage={longMessage} messageType={messageToType}/>*/}
         </div>
     )   
 }
