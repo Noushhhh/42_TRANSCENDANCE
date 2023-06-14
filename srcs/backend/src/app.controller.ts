@@ -11,6 +11,6 @@ export class AppController {
   }
   @Get('status') // Handles GET requests to the root URL
   getStatus(): { status: string } {
-    return { status: 'ok' };
+    return { status: 'im here bro' };
   }
 }

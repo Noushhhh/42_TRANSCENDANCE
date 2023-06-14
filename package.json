@@ -3,6 +3,7 @@
     "prisma": "^4.15.0"
   },
   "dependencies": {
-    "@prisma/client": "^4.15.0"
+    "@prisma/client": "^4.15.0",
+    "@types/socket.io": "^3.0.2"
   }
 }

@@ -7,11 +7,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
+import { SocketModule } from './socket/SocketModule';
 // import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
+    // 14/06/2023 pmulin => Pour se connecter a la bdd,
+    // decommenter l'import du TYPEOrm,
+    // Je l'ai commente car il ne fonctionnait pas. a debugger
+
+    /*TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST || 'localhost',
       port: 5432,
@@ -20,7 +25,7 @@ import { BookmarkModule } from './bookmark/bookmark.module';
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
       synchronize: true,
-    }),
+    }),*/
     // imports: [
     //   ConfigModule.forRoot({
     //     isGlobal: true,
@@ -28,6 +33,7 @@ import { BookmarkModule } from './bookmark/bookmark.module';
     AuthModule,
     UserModule,
     BookmarkModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
