@@ -2,9 +2,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// example address : postgresql://user:password@localhost:5432/database
+
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://42_lyon:BornToCode@localhost:5434/db"
+  // url      = env("DBNAME")
 }
 
 model User {

@@ -11,12 +11,11 @@ import { SocketModule } from './socket/SocketModule';
 // import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
+  // 14/06/2023 pmulin => Pour se connecter a la bdd,
+  // decommenter l'import du TYPEOrm,
+  // Je l'ai commente car il ne fonctionnait pas. a debugger
   imports: [
-    // 14/06/2023 pmulin => Pour se connecter a la bdd,
-    // decommenter l'import du TYPEOrm,
-    // Je l'ai commente car il ne fonctionnait pas. a debugger
-
-    /*TypeOrmModule.forRoot({
+    TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST || 'localhost',
       port: 5432,
@@ -25,7 +24,7 @@ import { SocketModule } from './socket/SocketModule';
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
       synchronize: true,
-    }),*/
+    }),
     // imports: [
     //   ConfigModule.forRoot({
     //     isGlobal: true,
