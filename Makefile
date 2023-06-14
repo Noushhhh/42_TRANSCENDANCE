@@ -90,7 +90,7 @@ refresh:
 	@printf "Stop containers, delete volumes, rebuild containers.\n"
 	$(COMPOSE) stop frontend nginx backend 
 	$(COMPOSE) rm -f --volumes frontend nginx backend
-	docker volume rm react_build
+	# docker volume rm react_build
 	docker rmi -f frontend_image nginx_image backend_image
 	$(COMPOSE) build backend frontend nginx
 	$(COMPOSE) up -d backend frontend nginx
