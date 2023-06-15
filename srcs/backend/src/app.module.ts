@@ -15,20 +15,6 @@ import { SocketModule } from './socket/SocketModule';
   // decommenter l'import du TYPEOrm,
   // Je l'ai commente car il ne fonctionnait pas. a debugger
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST || 'localhost',
-      port: 5432,
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
-    // imports: [
-    //   ConfigModule.forRoot({
-    //     isGlobal: true,
-    //    }),
     AuthModule,
     UserModule,
     BookmarkModule,

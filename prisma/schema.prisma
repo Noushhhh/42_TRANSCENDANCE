@@ -1,13 +1,13 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// example address : postgresql://user:password@localhost:5432/database
-
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://42_lyon:BornToCode@localhost:5434/db"
-  // url      = env("DBNAME")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -32,3 +32,4 @@ model Bookmark {
   description String?
   link        String
 }
+
