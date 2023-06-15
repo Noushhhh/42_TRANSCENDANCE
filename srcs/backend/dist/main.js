@@ -16,7 +16,7 @@ function bootstrap() {
         // Create a new NestJS application instance
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
         app.setGlobalPrefix('api'); // set global route prefix
-        // Start the application and listen on port 3000
+        // Start the application and listen on port 4000
         yield app.listen(4000);
     });
 }
