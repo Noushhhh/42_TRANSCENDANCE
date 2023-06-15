@@ -5,28 +5,30 @@ import ChatPrompt from "./ChatPrompt";
 import { useState } from "react";
 import "../styles/ContentMessage.css";
 
+interface Message {
+    newMessage: string;
+    messageType: string;
+}
 
 function ContentMessage() {
 
-    const [messages, setMessages] = useState<string[]>([]);
-
-    const addMessage = (newMessage: string): void =>{
-        setMessages([...messages, newMessage]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    
+    const addMessage = (newMessage: string, messageType: string): void =>{
+        const message: Message = {
+            newMessage,
+            messageType,
+        }
+        setMessages([...messages, message]);
     }
 
     return (
         <div className="ContentMessage">
             <HeaderChatBox />
-            <ChatView messages={messages}/>
-            <ChatPrompt addMessage={addMessage}/>
+            <ChatView messages={messages} />
+            <ChatPrompt addMessage={addMessage} />
         </div>
     )   
 }
 
 export default ContentMessage;
-
-// declarer un useState dans le composant parent
-// declarer un setter dans le composant parent
-// passer le setter au composant prompt
-// utiliser le setter dans le composant prompt afin de passer la donnée au parents
-// renvoyer la donnée du parent au composant qui render les messages

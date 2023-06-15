@@ -1,9 +1,12 @@
 import React, { ChangeEvent, useState } from "react";
 import "../styles/ChatPrompt.css"
 import SendIcon from '@mui/icons-material/Send';
+import { io, Socket } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
 
 interface ChatPromptProps{
-  addMessage:(newMessage: string) => void;
+  addMessage:(newMessage: string, messageType: string) => void;
 }
 
 function ChatPrompt({addMessage}: ChatPromptProps): JSX.Element {
@@ -20,9 +23,17 @@ function ChatPrompt({addMessage}: ChatPromptProps): JSX.Element {
 
 	const handleEvent = () => {
 		if ( ! isWhitespace(message))
-			addMessage(message);
+			addMessage(message, "MessageTo");
+		socket.emit('message', message);
 		setMessage("");
 	}
+
+	socket.on('message', function(id, data){
+		if (socket.id == id || isWhitespace(data))
+			return ;
+		addMessage(data, "MessageFrom");
+		setMessage("");
+	})
 
     return (
         <div className="ChatPrompt">
