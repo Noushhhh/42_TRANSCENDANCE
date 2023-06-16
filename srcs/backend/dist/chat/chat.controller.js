@@ -9,35 +9,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = void 0;
+exports.ChatController = void 0;
 const common_1 = require("@nestjs/common");
-const auth_service_1 = require("./auth.service");
-let AuthController = exports.AuthController = class AuthController {
-    constructor(authService) {
-        this.authService = authService;
+const chat_service_1 = require("./chat.service");
+const common_2 = require("@nestjs/common");
+let ChatController = exports.ChatController = class ChatController {
+    constructor(chatService) {
+        this.chatService = chatService;
     }
-    // POST /auth/signup
-    signup() {
-        return this.authService.signup();
-    }
-    //POST /auth/signin
-    signin() {
-        return this.authService.signin();
+    ;
+    getTest() {
+        return 'ok mec on est laaaaa';
     }
 };
 __decorate([
-    (0, common_1.Post)('signup'),
+    (0, common_2.Get)('test'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "signup", null);
-__decorate([
-    (0, common_1.Post)('signin'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "signin", null);
-exports.AuthController = AuthController = __decorate([
-    (0, common_1.Controller)('auth'),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
-], AuthController);
+    __metadata("design:returntype", String)
+], ChatController.prototype, "getTest", null);
+exports.ChatController = ChatController = __decorate([
+    (0, common_1.Controller)('chat'),
+    __metadata("design:paramtypes", [chat_service_1.ChatService])
+], ChatController);

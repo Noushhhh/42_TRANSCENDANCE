@@ -36,5 +36,5 @@
   },
   "resolutions": {
     "@nestjs/config": "1.0.1"
-  }  
+  }
 }

@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 // import { User, Bookmark } from  '@prisma/client';
-let AuthService = class AuthService {
+let AuthService = exports.AuthService = class AuthService {
     signup() {
         return { msg: 'I have signed up' };
     }
@@ -17,7 +17,6 @@ let AuthService = class AuthService {
         return { msg: 'I have signed in' };
     }
 };
-AuthService = __decorate([
+exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)({})
 ], AuthService);
-exports.AuthService = AuthService;

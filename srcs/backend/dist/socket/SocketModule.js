@@ -9,12 +9,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketModule = void 0;
 const common_1 = require("@nestjs/common");
 const socketEvents_1 = require("./socketEvents");
-let SocketModule = class SocketModule {
+let SocketModule = exports.SocketModule = class SocketModule {
 };
-SocketModule = __decorate([
+exports.SocketModule = SocketModule = __decorate([
     (0, common_1.Module)({
         providers: [socketEvents_1.SocketEvents],
     })
 ], SocketModule);
-exports.SocketModule = SocketModule;
 ;
