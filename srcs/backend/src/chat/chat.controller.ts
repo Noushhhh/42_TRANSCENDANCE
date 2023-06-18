@@ -1,20 +1,35 @@
-import { Controller } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param } from "@nestjs/common";
 import { ChatService } from "./chat.service";
-import { Get, Post, Body } from "@nestjs/common";
+import './interfaces/chat.interface';
 
 @Controller('chat')
 export class ChatController{
 
     constructor(private chatService: ChatService) {};
 
-    @Get('test')
-    getTest(): string{
-        return 'ok mec on est laaaaa';
+    @Get('getAllConvFromId/:id')
+    getAllConvFromId(@Param('id')id: number){
+        return this.chatService.getAllConvFromId(id);
     }
 
-    // @Get('storemsg')
-    // gethello(){
-    //     this.chatService.storeMessage();
-    // }
+    @Post('addChannel')
+    async addChannel(){
+        await this.chatService.addChannel();
+    }
+
+    @Post('addMessage')
+    async addMessage(){
+        await this.chatService.addMessage();
+    }
+
+    @Get('getLastMsg/:id')
+    async getLastMessage(@Param('id')id: number){
+        return this.chatService.getLastMessage(id);
+    }
+
+    @Get('getChannelHeader/:id')
+    async getChannelHeadersFromUserId(@Param('id')id: number): Promise <ChannelType>{
+        return this.chatService.getChannelHeadersFromUserId(id);
+    }
 
 }

@@ -1,40 +1,175 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Channel, Message } from "@prisma/client";
 
 @Injectable()
-export class ChatService{
+export class ChatService {
 
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-    // async storeMessage(){
+  async getAllConvFromId(id: number) {
 
-    //   console.log('storeMessage here...');
+    const userId = Number(id);
 
-    //   await this.prisma.message.create({
-    //     data: {
-    //       content: 'BONJJJOUR',
-    //       sender: {
-    //         connect: {
-    //           id: 2
-    //         }
-    //       },
-    //       conversation: {
-    //         connect: {
-    //           id: 1
-    //         }
-    //       }
-    //     },
-    //     select: {
-    //       id: true,
-    //       content: true,
-    //       sender: true,
-    //       senderId: true,
-    //       conversation: true,
-    //       conversationId: true
-    //     }
-    //   });
-      
-    //     return 'first little things';
-    // }
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { conversations: true },
+    });
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+
+    const conversationIds = user.conversations.map((conversation) => conversation.id);
+    return conversationIds;
+  }
+
+  async getLastMessage(id: number): Promise<string | null> {
+
+    const channelId = Number(id);
+
+    const channel: Channel | null = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+    });
+
+    if (!channel) {
+      return null;
+    }
+
+    const lastMessage: Message | null = await this.prisma.message.findFirst({
+      where: {
+        channelId: channel.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!lastMessage) {
+      return null;
+    }
+
+    return lastMessage.content;
+  }
+
+  async getChannelHeadersFromUserId(id: number): Promise<ChannelType> {
+
+    const channelId = Number(id);
+
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id:channelId,
+      },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!channel)
+    {
+      throw new Error("getChannelHeadersFromUserId: channel doesnt exist");
+    }
+
+    const lastMessage = channel?.messages[0];
+    if (lastMessage) {
+      const lastMessageContent = lastMessage.content;
+      const lastMessageCreatedAt = lastMessage.createdAt;
+      // Faites ce que vous voulez avec les informations du dernier message
+    } else {
+      // Le canal n'a pas de message
+    }
     
+    const channelHeader: ChannelType = {
+      name: channel.name,
+      lastMsg: lastMessage ? lastMessage.content : '',
+      dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+    };
+
+    return channelHeader;
+  }
+
+  async addChannel() {
+
+    console.log('add Channel...');
+
+    await this.prisma.channel.create({
+      data: {
+        name: 'first one',
+        type: 'PUBLIC',
+        password: 'ok',
+        owner: {
+          connect: {
+            id: 1
+          }
+        },
+        admins: {
+          connect: [
+            {
+              id: 1
+            }
+          ]
+        },
+        participants: {
+          connect: [
+            {
+              id: 1
+            }
+          ]
+        },
+        messages: {},
+        bannedUsers: {},
+        mutedUsers: {}
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        password: true,
+        owner: true,
+        ownerId: true,
+        admins: true,
+        participants: true,
+        messages: true,
+        bannedUsers: true,
+        mutedUsers: true
+      }
+    })
+  }
+
+  async addMessage() {
+    console.log('add Channel...');
+
+    await this.prisma.message.create({
+      data: {
+        sender: {
+          connect: {
+            id: 1
+          }
+        },
+        channel: {
+          connect: {
+            id: 11
+          }
+        },
+        content: 'voila new msssg'
+      },
+      select: {
+        id: true,
+        sender: true,
+        senderId: true,
+        channel: true,
+        channelId: true,
+        content: true,
+        createdAt: true
+      }
+    });
+  }
+
 }

@@ -1,11 +1,26 @@
 import React from "react";
 import "../styles/MessageToClick.css";
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import TimeElapsed from "./TimeElapsed";
 
-function MessageToClick() {
+interface Channel{
+    name: string,
+    lastMsg : string,
+    dateLastMsg: Date,
+  }
 
-    const message1 = "Voici un message trop long qui va passer par substr pour le reduire";
-    const message2 = "Hey mec ! Comment ca va depuis le temps ?? enorme !!!!";
+
+  interface MessageToClickProps {
+    channel: Channel;
+  }
+
+function MessageToClick(props: MessageToClickProps) {
+
+    
+    const { channel } = props;
+    const dateObject = new Date(channel.dateLastMsg);
+    
+    console.log(typeof(channel.dateLastMsg));
 
     return (
         <div className="MessageToClick">
@@ -14,11 +29,11 @@ function MessageToClick() {
             </div>
             <div className="ContainerPreview">
                 <div className="MessageToClickTitle">
-                    <p className="senderName">John Doe</p>
-                    <p className="dateMessage">4 semaines</p>
+                    <p className="senderName">{channel.name}</p>
+                    <p className="dateMessage">{<TimeElapsed date={dateObject} />}</p>
                 </div>
                 <div className="ContentMessageTitle">
-                    <p className="PreviewMessage">{message1}</p>
+                    <p className="PreviewMessage">{channel.lastMsg}</p>
                 </div>
             </div>
         </div>
