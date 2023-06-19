@@ -29,7 +29,7 @@ export class ChatController{
 
     @Get('getChannelHeader/:id')
     async getChannelHeadersFromUserId(@Param('id')id: number): Promise <ChannelType>{
-        return this.chatService.getChannelHeadersFromUserId(id);
+        return this.chatService.getChannelHeadersFromId(id);
     }
 
 }

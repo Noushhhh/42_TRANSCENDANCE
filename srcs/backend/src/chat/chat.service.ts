@@ -54,7 +54,7 @@ export class ChatService {
     return lastMessage.content;
   }
 
-  async getChannelHeadersFromUserId(id: number): Promise<ChannelType> {
+  async getChannelHeadersFromId(id: number): Promise<ChannelType> {
 
     const channelId = Number(id);
 
@@ -74,22 +74,20 @@ export class ChatService {
 
     if (!channel)
     {
-      throw new Error("getChannelHeadersFromUserId: channel doesnt exist");
+      throw new Error("getChannelHeadersFromId: channel doesnt exist");
     }
 
     const lastMessage = channel?.messages[0];
     if (lastMessage) {
       const lastMessageContent = lastMessage.content;
       const lastMessageCreatedAt = lastMessage.createdAt;
-      // Faites ce que vous voulez avec les informations du dernier message
-    } else {
-      // Le canal n'a pas de message
     }
     
     const channelHeader: ChannelType = {
       name: channel.name,
       lastMsg: lastMessage ? lastMessage.content : '',
       dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+      channelId,
     };
 
     return channelHeader;
@@ -144,13 +142,13 @@ export class ChatService {
   }
 
   async addMessage() {
-    console.log('add Channel...');
+    console.log('add message...');
 
     await this.prisma.message.create({
       data: {
         sender: {
           connect: {
-            id: 1
+            id: 2
           }
         },
         channel: {
@@ -158,7 +156,7 @@ export class ChatService {
             id: 11
           }
         },
-        content: 'voila new msssg'
+        content: 'Mec je suis trop daccord'
       },
       select: {
         id: true,

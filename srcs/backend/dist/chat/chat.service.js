@@ -64,7 +64,7 @@ let ChatService = exports.ChatService = class ChatService {
             return lastMessage.content;
         });
     }
-    getChannelHeadersFromUserId(id) {
+    getChannelHeadersFromId(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const channelId = Number(id);
             const channel = yield this.prisma.channel.findUnique({
@@ -81,21 +81,18 @@ let ChatService = exports.ChatService = class ChatService {
                 },
             });
             if (!channel) {
-                throw new Error("getChannelHeadersFromUserId: channel doesnt exist");
+                throw new Error("getChannelHeadersFromId: channel doesnt exist");
             }
             const lastMessage = channel === null || channel === void 0 ? void 0 : channel.messages[0];
             if (lastMessage) {
                 const lastMessageContent = lastMessage.content;
                 const lastMessageCreatedAt = lastMessage.createdAt;
-                // Faites ce que vous voulez avec les informations du dernier message
-            }
-            else {
-                // Le canal n'a pas de message
             }
             const channelHeader = {
                 name: channel.name,
                 lastMsg: lastMessage ? lastMessage.content : '',
                 dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+                channelId,
             };
             return channelHeader;
         });
@@ -149,12 +146,12 @@ let ChatService = exports.ChatService = class ChatService {
     }
     addMessage() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('add Channel...');
+            console.log('add message...');
             yield this.prisma.message.create({
                 data: {
                     sender: {
                         connect: {
-                            id: 1
+                            id: 2
                         }
                     },
                     channel: {
@@ -162,7 +159,7 @@ let ChatService = exports.ChatService = class ChatService {
                             id: 11
                         }
                     },
-                    content: 'voila new msssg'
+                    content: 'Mec je suis trop daccord'
                 },
                 select: {
                     id: true,

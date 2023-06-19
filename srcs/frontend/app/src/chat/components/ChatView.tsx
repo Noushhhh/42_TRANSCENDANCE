@@ -7,16 +7,21 @@ interface MonComposantProps {
       newMessage: string;
       messageType: string;
     }>;
+    conversation: number;
+    channelId: number;
   }
 
-function ChatView(props: MonComposantProps): JSX.Element {
-
-    const { messages } = props;
+function ChatView({messages, conversation, channelId}: MonComposantProps): JSX.Element {
 
     return (
         <div className="ChatView">
             {messages.map((message, index) => (
-                <Message key={index} contentMessage={message.newMessage} messageType={message.messageType}/>
+                <Message 
+                key={index} 
+                contentMessage={message.newMessage} 
+                messageType={message.messageType}
+                conversation={conversation}
+                channelId={channelId}/>
             ))}
         </div>
     )   

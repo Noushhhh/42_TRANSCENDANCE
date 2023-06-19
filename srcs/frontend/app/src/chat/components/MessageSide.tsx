@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/MessageSide.css";
 import MessageToClick from "./MessageToClick";
 
@@ -6,35 +6,52 @@ interface Channel{
   name: string,
   lastMsg : string,
   dateLastMsg: Date,
+  channelId: number,
 }
 
-function MessageSide() {
-  const [channelId, setChannelsIds] = useState<string[]>([]);
+interface MessageSideProps {
+  onSelectConversation: React.Dispatch<React.SetStateAction<number>>;
+  setChannelId: React.Dispatch<React.SetStateAction<number>>;
+}
+
+function MessageSide( {onSelectConversation, setChannelId}: MessageSideProps ) {
+
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
+  const fetchBoolean = useRef(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    if (fetchBoolean.current === false)
+    {
+      const fetchUser = async () => {
       const userId = '123'; // Remplacez par l'ID de l'utilisateur que vous souhaitez récupérer
-
+        
       const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/1`);
-      const listChannelIdHeader = await response.json();
+      const listChannelId = await response.json();
 
-      setChannelsIds(prevState => [...prevState, ...listChannelIdHeader]);      // console.log(channelId);
-
-      listChannelIdHeader.map(async (id: string) => {
+      listChannelId.map(async (id: string) => {
         const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
-        const header = await response.json();
-        typeof(header.dateLastMsg);
-        setChannelHeader(prevState => [...prevState, header]);})
-    };
+        const header: Channel = await response.json();
+        setChannelHeader(prevState => [...prevState, header]);
+    })
+    }
+      fetchUser();
 
-    fetchUser();
+      return () => {
+        fetchBoolean.current = true;
+      }
+    }
   }, []);
+
+ 
 
   return (
     <div className="MessageSide">
       {channelHeader.map((channel, index) => {
-        return (<MessageToClick channel={channel} key={index}/>)
+        return (<MessageToClick 
+                onSelectConversation={onSelectConversation} 
+                channel={channel} 
+                setChannelId={setChannelId} 
+                key={index}/>)
       })}
     </div>
   );

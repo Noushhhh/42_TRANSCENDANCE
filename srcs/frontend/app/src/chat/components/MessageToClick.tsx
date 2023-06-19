@@ -3,27 +3,29 @@ import "../styles/MessageToClick.css";
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import TimeElapsed from "./TimeElapsed";
 
-interface Channel{
+interface Channel {
     name: string,
     lastMsg : string,
     dateLastMsg: Date,
-  }
+    channelId: number;
+}
 
-
-  interface MessageToClickProps {
+interface MessageToClickProps{
     channel: Channel;
-  }
+    onSelectConversation: (number: number) => void;
+    setChannelId: React.Dispatch<React.SetStateAction<number>>;
+}
 
-function MessageToClick(props: MessageToClickProps) {
+function MessageToClick({channel, onSelectConversation, setChannelId}: MessageToClickProps) {
 
-    
-    const { channel } = props;
     const dateObject = new Date(channel.dateLastMsg);
-    
-    console.log(typeof(channel.dateLastMsg));
+
+    const handleClick = () =>{
+        setChannelId(channel.channelId);
+    }
 
     return (
-        <div className="MessageToClick">
+        <div onClick={handleClick} className="MessageToClick">
             <div className="logoIsConnected">
                 <RadioButtonUncheckedIcon/>
             </div>

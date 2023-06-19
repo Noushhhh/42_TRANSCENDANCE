@@ -50,7 +50,7 @@ let ChatController = exports.ChatController = class ChatController {
     }
     getChannelHeadersFromUserId(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.chatService.getChannelHeadersFromUserId(id);
+            return this.chatService.getChannelHeadersFromId(id);
         });
     }
 };
