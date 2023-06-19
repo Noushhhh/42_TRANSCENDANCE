@@ -3,6 +3,7 @@
     background-color: #302E2C;
     width: 450px;
     height: 100%;
+    overflow: scroll;
 }
 
 @media (max-width: 800px) {
