@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-let SocketEvents = class SocketEvents {
+let SocketEvents = exports.SocketEvents = class SocketEvents {
     constructor() {
         this.messages = [{ message: "Message ok", name: "name" }];
     }
@@ -41,11 +41,10 @@ __decorate([
     __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleEvent", null);
-SocketEvents = __decorate([
+exports.SocketEvents = SocketEvents = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
             origin: '*',
         },
     })
 ], SocketEvents);
-exports.SocketEvents = SocketEvents;

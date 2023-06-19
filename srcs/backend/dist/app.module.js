@@ -16,9 +16,9 @@ const user_module_1 = require("./user/user.module");
 const bookmark_module_1 = require("./bookmark/bookmark.module");
 const SocketModule_1 = require("./socket/SocketModule");
 // import { PrismaModule } from './prisma/prisma.module';
-let AppModule = class AppModule {
+let AppModule = exports.AppModule = class AppModule {
 };
-AppModule = __decorate([
+exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         // 14/06/2023 pmulin => Pour se connecter a la bdd,
         // decommenter l'import du TYPEOrm,
@@ -33,4 +33,3 @@ AppModule = __decorate([
         providers: [app_service_1.AppService],
     })
 ], AppModule);
-exports.AppModule = AppModule;

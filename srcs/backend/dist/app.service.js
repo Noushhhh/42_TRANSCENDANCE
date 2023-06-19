@@ -8,12 +8,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
-let AppService = class AppService {
+let AppService = exports.AppService = class AppService {
     getHello() {
         return 'ft_transcendance with the best team!';
     }
 };
-AppService = __decorate([
+exports.AppService = AppService = __decorate([
     (0, common_1.Injectable)() // Declare this class as an injectable service
 ], AppService);
-exports.AppService = AppService;
