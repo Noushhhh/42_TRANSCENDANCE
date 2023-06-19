@@ -8,9 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookmarkModule = void 0;
 const common_1 = require("@nestjs/common");
-let BookmarkModule = class BookmarkModule {
+let BookmarkModule = exports.BookmarkModule = class BookmarkModule {
 };
-BookmarkModule = __decorate([
+exports.BookmarkModule = BookmarkModule = __decorate([
     (0, common_1.Module)({})
 ], BookmarkModule);
-exports.BookmarkModule = BookmarkModule;

@@ -10,7 +10,12 @@ interface Message {
     messageType: string;
 }
 
-function ContentMessage() {
+interface contentMessageProps{
+    conversation: number;
+    channelId: number;
+}
+
+function ContentMessage({conversation, channelId}: contentMessageProps) {
 
     const [messages, setMessages] = useState<Message[]>([]);
     
@@ -25,7 +30,7 @@ function ContentMessage() {
     return (
         <div className="ContentMessage">
             <HeaderChatBox />
-            <ChatView messages={messages} />
+            <ChatView conversation={conversation}  messages={messages} channelId={channelId}/>
             <ChatPrompt addMessage={addMessage} />
         </div>
     )   
