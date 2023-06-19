@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import GameContainer from "./game/components/GameContainer";
+import Game from "./game/index";
 // import Navbar from "./navbar/navbar";
 // import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 
@@ -8,8 +8,8 @@ function App() {
   return (
     <div className="App">
       {/* <Navbar />
-      <ChatBoxContainer /> */}
-      <GameContainer />
+      <ChatBoxContainer/> */}
+      <Game />
     </div>
   );
 }
