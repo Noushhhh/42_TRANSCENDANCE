@@ -21,7 +21,7 @@ function ChatPrompt({addMessage}: ChatPromptProps): JSX.Element {
 		return /^\s*$/.test(str);
 	}
 
-	const handleEvent = () => {
+	const sendMessage = () => {
 		if ( ! isWhitespace(message))
 			addMessage(message, "MessageTo");
 		socket.emit('message', message);
@@ -41,7 +41,7 @@ function ChatPrompt({addMessage}: ChatPromptProps): JSX.Element {
 					className="InputChatPrompt"
 					onChange={handleMessageChange} 
 					type="text"/>
-            <button className="SendIconPromptChat" onClick={handleEvent}>
+            <button className="SendIconPromptChat" onClick={sendMessage}>
             	<SendIcon/>
             </button>
         </div>

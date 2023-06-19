@@ -12,19 +12,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
-let PrismaService = class PrismaService extends client_1.PrismaClient {
+let PrismaService = exports.PrismaService = class PrismaService extends client_1.PrismaClient {
     constructor() {
         super({
             datasources: {
                 db: {
-                    url: "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database",
-                }
-            }
+                    url: "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database"
+                },
+            },
         });
     }
 };
-PrismaService = __decorate([
+exports.PrismaService = PrismaService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [])
 ], PrismaService);
-exports.PrismaService = PrismaService;
