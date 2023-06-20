@@ -1,6 +1,13 @@
-import { Get, Post, Body, Controller, Param } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
 import { ChatService } from "./chat.service";
+import { Message, Channel } from "@prisma/client";
 import './interfaces/chat.interface';
+
+interface MessageToStore{
+    channelId: number;
+      content: string;
+      senderId: number;
+  }
 
 @Controller('chat')
 export class ChatController{
@@ -30,6 +37,27 @@ export class ChatController{
     @Get('getChannelHeader/:id')
     async getChannelHeadersFromUserId(@Param('id')id: number): Promise <ChannelType>{
         return this.chatService.getChannelHeadersFromId(id);
+    }
+
+    @Get('getAllMessagesByChannelId/:id')
+    async getAllMessagesByChannelId(@Param('id')id: number): Promise<Message[]>{
+        try {
+            const messages = this.chatService.getAllMessagesByChannelId(id);
+            return messages;
+        } catch(error) {
+            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Post('addMessageToChannel/:id')
+    async addMessageToChannelId(
+        @Param('id')id: number,
+        @Body() message: MessageToStore){
+        try {
+            return this.chatService.addMessageToChannelId(id, message);
+        } catch (error) {
+            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
+        }
     }
 
 }

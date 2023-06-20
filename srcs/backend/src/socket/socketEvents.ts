@@ -1,5 +1,6 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Socket, Server } from 'socket.io';
+import { Message } from "@prisma/client";
 
 @WebSocketGateway({
     cors:{
@@ -7,8 +8,6 @@ import { Socket, Server } from 'socket.io';
     },
 })
 export class SocketEvents {
-
-    messages = [{message:"Message ok", name:"name"}];
     
     @WebSocketServer()
     server!: Server;
@@ -22,7 +21,7 @@ export class SocketEvents {
     }
 
     @SubscribeMessage('message')
-    handleEvent(@MessageBody() data: string, @ConnectedSocket() client: Socket){
+    handleEvent(@MessageBody() data: Message, @ConnectedSocket() client: Socket){
         this.server.emit('message', client.id, data);
     }
 }

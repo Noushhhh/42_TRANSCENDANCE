@@ -10,11 +10,13 @@ interface Channel{
 }
 
 interface MessageSideProps {
-  onSelectConversation: React.Dispatch<React.SetStateAction<number>>;
+  socket: any;
+  channelId: number;
+  simulatedUserId: number;
   setChannelId: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function MessageSide( {onSelectConversation, setChannelId}: MessageSideProps ) {
+function MessageSide( { setChannelId, simulatedUserId, channelId, socket }: MessageSideProps ) {
 
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const fetchBoolean = useRef(false);
@@ -22,10 +24,15 @@ function MessageSide( {onSelectConversation, setChannelId}: MessageSideProps ) {
   useEffect(() => {
     if (fetchBoolean.current === false)
     {
+      socket.on('message', function (id: any, data: Message) {
+        setChannelHeader([]);
+        fetchUser();
+        console.log("booleaned");
+      })
       const fetchUser = async () => {
-      const userId = '123'; // Remplacez par l'ID de l'utilisateur que vous souhaitez récupérer
-        
-      const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/1`);
+        console.log("fetching data...");
+
+      const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${simulatedUserId}`);
       const listChannelId = await response.json();
 
       listChannelId.map(async (id: string) => {
@@ -42,16 +49,15 @@ function MessageSide( {onSelectConversation, setChannelId}: MessageSideProps ) {
     }
   }, []);
 
- 
 
   return (
     <div className="MessageSide">
       {channelHeader.map((channel, index) => {
-        return (<MessageToClick 
-                onSelectConversation={onSelectConversation} 
+        return (<MessageToClick
                 channel={channel} 
-                setChannelId={setChannelId} 
-                key={index}/>)
+                setChannelId={setChannelId}
+                key={index}
+                channelId={channelId}/>)
       })}
     </div>
   );

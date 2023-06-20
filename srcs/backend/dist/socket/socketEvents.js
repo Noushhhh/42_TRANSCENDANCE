@@ -16,9 +16,6 @@ exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 let SocketEvents = exports.SocketEvents = class SocketEvents {
-    constructor() {
-        this.messages = [{ message: "Message ok", name: "name" }];
-    }
     handleConnection(client) {
         console.log(`client connected: ${client.id}`);
     }
@@ -38,7 +35,7 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleEvent", null);
 exports.SocketEvents = SocketEvents = __decorate([

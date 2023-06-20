@@ -53,6 +53,27 @@ let ChatController = exports.ChatController = class ChatController {
             return this.chatService.getChannelHeadersFromId(id);
         });
     }
+    getAllMessagesByChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const messages = this.chatService.getAllMessagesByChannelId(id);
+                return messages;
+            }
+            catch (error) {
+                throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
+            }
+        });
+    }
+    addMessageToChannelId(id, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return this.chatService.addMessageToChannelId(id, message);
+            }
+            catch (error) {
+                throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
+            }
+        });
+    }
 };
 __decorate([
     (0, common_1.Get)('getAllConvFromId/:id'),
@@ -87,6 +108,21 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getChannelHeadersFromUserId", null);
+__decorate([
+    (0, common_1.Get)('getAllMessagesByChannelId/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getAllMessagesByChannelId", null);
+__decorate([
+    (0, common_1.Post)('addMessageToChannel/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "addMessageToChannelId", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])

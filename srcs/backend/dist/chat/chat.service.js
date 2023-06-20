@@ -173,6 +173,30 @@ let ChatService = exports.ChatService = class ChatService {
             });
         });
     }
+    getAllMessagesByChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const channelId = Number(id);
+            const channel = yield this.prisma.channel.findUnique({
+                where: {
+                    id: channelId,
+                },
+                include: {
+                    messages: true, // Inclure les messages associés au canal
+                },
+            });
+            if (!channel) {
+                throw new Error('getAllMessageFromChannelId: cant find channel');
+            }
+            return channel.messages;
+        });
+    }
+    addMessageToChannelId(channId, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.message.create({
+                data: message,
+            });
+        });
+    }
 };
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),

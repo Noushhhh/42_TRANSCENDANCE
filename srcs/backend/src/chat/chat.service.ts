@@ -1,6 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message } from "@prisma/client";
+import { error } from "console";
+
+interface MessageToStore{
+  channelId: number;
+	content: string;
+	senderId: number;
+}
 
 @Injectable()
 export class ChatService {
@@ -170,4 +177,31 @@ export class ChatService {
     });
   }
 
+  async getAllMessagesByChannelId(id: number): Promise<Message[]>{
+
+    const channelId = Number(id);
+
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+      include: {
+        messages: true, // Inclure les messages associés au canal
+      },
+    });
+
+    if (!channel)
+    {
+      throw new Error('getAllMessageFromChannelId: cant find channel');
+    }
+  
+    return channel.messages;
+  }
+
+  async addMessageToChannelId(channId: number, message: MessageToStore){
+
+    await this.prisma.message.create({
+      data: message,
+    })
+  }
 }

@@ -11,12 +11,12 @@ interface Channel {
 }
 
 interface MessageToClickProps{
+    channelId: number;
     channel: Channel;
-    onSelectConversation: (number: number) => void;
     setChannelId: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function MessageToClick({channel, onSelectConversation, setChannelId}: MessageToClickProps) {
+function MessageToClick({channel, setChannelId, channelId }: MessageToClickProps) {
 
     const dateObject = new Date(channel.dateLastMsg);
 
