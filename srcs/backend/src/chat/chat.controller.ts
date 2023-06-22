@@ -1,6 +1,6 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
 import { ChatService } from "./chat.service";
-import { Message, Channel } from "@prisma/client";
+import { Message, Channel, User } from "@prisma/client";
 import './interfaces/chat.interface';
 
 interface MessageToStore{
@@ -58,6 +58,11 @@ export class ChatController{
         } catch (error) {
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Get('getUsersFromChannelId/:id')
+    async getUsersFromChannelId(@Param('id')id: number): Promise<User[]>{
+        return this.chatService.getUsersFromChannelId(id);
     }
 
 }

@@ -78,18 +78,16 @@ let ChatService = exports.ChatService = class ChatService {
                         },
                         take: 1,
                     },
+                    participants: {}
                 },
             });
             if (!channel) {
                 throw new Error("getChannelHeadersFromId: channel doesnt exist");
             }
             const lastMessage = channel === null || channel === void 0 ? void 0 : channel.messages[0];
-            if (lastMessage) {
-                const lastMessageContent = lastMessage.content;
-                const lastMessageCreatedAt = lastMessage.createdAt;
-            }
+            const numberParticipants = channel.participants.length;
             const channelHeader = {
-                name: channel.name,
+                name: numberParticipants > 2 ? channel.name : "",
                 lastMsg: lastMessage ? lastMessage.content : '',
                 dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
                 channelId,
@@ -195,6 +193,22 @@ let ChatService = exports.ChatService = class ChatService {
             yield this.prisma.message.create({
                 data: message,
             });
+        });
+    }
+    getUsersFromChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const channelId = Number(id);
+            try {
+                const users = yield this.prisma.channel.findUnique({
+                    where: { id: channelId },
+                }).participants();
+                if (!users)
+                    return [];
+                return users;
+            }
+            catch (error) {
+                throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
+            }
         });
     }
 };

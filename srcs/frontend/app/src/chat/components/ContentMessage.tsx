@@ -14,16 +14,18 @@ interface contentMessageProps{
     userId: number;
 }
 
-function ContentMessage({conversation, channelId, simulatedUserId, socket, userId }: contentMessageProps) {
+function ContentMessage( { conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
 
+    // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
 
-    // each time the user change channel, we want to reset
-    // all messages are they are now store in the database
+    // each time the user change channel (click to a new one), we want to reset
+    // all messages from the socket are they are now store in the database.
     useEffect(() => {
         setMessages([]);
     }, ([channelId]));
-    
+
+
     const addMessage = (newMessage: Message, messageType: string): void =>{
         newMessage.messageType = messageType;
         setMessages([...messages, newMessage]);

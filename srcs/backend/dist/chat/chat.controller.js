@@ -74,6 +74,11 @@ let ChatController = exports.ChatController = class ChatController {
             }
         });
     }
+    getUsersFromChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.getUsersFromChannelId(id);
+        });
+    }
 };
 __decorate([
     (0, common_1.Get)('getAllConvFromId/:id'),
@@ -123,6 +128,13 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addMessageToChannelId", null);
+__decorate([
+    (0, common_1.Get)('getUsersFromChannelId/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getUsersFromChannelId", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])

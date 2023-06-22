@@ -17,12 +17,24 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 let SocketEvents = exports.SocketEvents = class SocketEvents {
     handleConnection(client) {
-        console.log(`client connected: ${client.id}`);
+        console.log(" co");
+        this.server.emit('connection');
     }
     handleDisconnect(client) {
-        console.log(`client disconnected: ${client.id}`);
+        console.log(`"serveur, client disconnected: "`);
+        this.server.emit('disconnection');
     }
-    handleEvent(data, client) {
+    //   handleDisconnect(@ConnectedSocket() client: Socket) {
+    //     if (client && client.id) {
+    //     //   this.server.emit('disconnect');
+    //       console.log(`Client déconnecté: ${client.id}`);
+    //     }
+    //   }
+    //   handleConnectionClient(@ConnectedSocket() client: Socket) {
+    //     console.log('Client connecté - Partie serveur');
+    //     this.server.emit('connection');
+    //   }
+    handleMessage(data, client) {
         this.server.emit('message', client.id, data);
     }
 };
@@ -37,7 +49,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
-], SocketEvents.prototype, "handleEvent", null);
+], SocketEvents.prototype, "handleMessage", null);
 exports.SocketEvents = SocketEvents = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

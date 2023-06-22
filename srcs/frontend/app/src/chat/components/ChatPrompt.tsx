@@ -63,6 +63,8 @@ function ChatPrompt({ addMessage, channelId, simulatedUserId, socket }: ChatProm
 	}
 
 	socket.on('message', function (id: any, data: Message) {
+		if (!data)
+			return;
 		if (socket.id == id || isWhitespace(data.content))
 			return;
 		addMessage(data, "MessageFrom");

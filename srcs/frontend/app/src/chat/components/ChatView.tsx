@@ -23,9 +23,14 @@ function ChatView({ messages, conversation, channelId, userId }: MonComposantPro
 
   const [conversationFetched, setConversationFetched] = useState<Message[]>([]);
   const fetchBoolean = useRef(false);
+  const chatView = useRef<HTMLDivElement>(null);
 
   const addMsgToFetchedConversation = (message: Message) => {
     setConversationFetched(prevState => [...prevState, message]);
+  }
+
+  if (chatView.current) {
+    chatView.current.scrollTop = chatView.current.scrollHeight;
   }
 
   useEffect(() => {
@@ -42,7 +47,7 @@ function ChatView({ messages, conversation, channelId, userId }: MonComposantPro
   }, ([channelId]));
 
   return (
-    <div className="ChatView">
+    <div className="ChatView" ref={chatView}>
       {conversationFetched.map((message: Message, index: number) => {
         return (
           <MessageComponent
@@ -54,9 +59,6 @@ function ChatView({ messages, conversation, channelId, userId }: MonComposantPro
         );
       })}
       {messages.map((message, index) => {
-        if (channelId == message.channelId) {
-          console.log("senderId:");
-          console.log(message.senderId);
           return (
             <MessageComponent
               key={index}
@@ -65,7 +67,6 @@ function ChatView({ messages, conversation, channelId, userId }: MonComposantPro
               channelId={channelId} 
               />
           )
-        }
       })}
     </div>
   );

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Channel, Message } from "@prisma/client";
+import { Channel, Message, User } from "@prisma/client";
 import { error } from "console";
 
 interface MessageToStore{
@@ -76,6 +76,7 @@ export class ChatService {
           },
           take: 1,
         },
+        participants:{}
       },
     });
 
@@ -85,13 +86,11 @@ export class ChatService {
     }
 
     const lastMessage = channel?.messages[0];
-    if (lastMessage) {
-      const lastMessageContent = lastMessage.content;
-      const lastMessageCreatedAt = lastMessage.createdAt;
-    }
     
+    const numberParticipants = channel.participants.length;
+
     const channelHeader: ChannelType = {
-      name: channel.name,
+      name: numberParticipants > 2 ? channel.name : "",
       lastMsg: lastMessage ? lastMessage.content : '',
       dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
       channelId,
@@ -149,6 +148,7 @@ export class ChatService {
   }
 
   async addMessage() {
+
     console.log('add message...');
 
     await this.prisma.message.create({
@@ -204,4 +204,24 @@ export class ChatService {
       data: message,
     })
   }
+
+  async getUsersFromChannelId(id: number): Promise<User[]>{
+    
+    const channelId = Number(id);
+
+    try {
+      const users = await this.prisma.channel.findUnique({
+        where: {id: channelId},
+      }).participants();
+
+      if (!users)
+        return [];
+
+      return users;
+
+    } catch (error) {
+      throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
+    }
+  }
 }
+

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/MessageToClick.css";
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import Brightness1Icon from '@mui/icons-material/Brightness1';
 import TimeElapsed from "./TimeElapsed";
 
 interface Channel {
@@ -11,12 +12,13 @@ interface Channel {
 }
 
 interface MessageToClickProps{
+    socket: any;
     channelId: number;
     channel: Channel;
     setChannelId: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function MessageToClick({channel, setChannelId, channelId }: MessageToClickProps) {
+function MessageToClick({channel, setChannelId, channelId, socket }: MessageToClickProps) {
 
     const dateObject = new Date(channel.dateLastMsg);
 

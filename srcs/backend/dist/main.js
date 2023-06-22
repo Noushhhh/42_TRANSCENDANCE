@@ -16,8 +16,11 @@ function bootstrap() {
         // Create a new NestJS application instance
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
         const corsOptions = {
-            origin: 'http://localhost:3000',
-            optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
+            origin: true,
+            // origin: 'http://localhost:3000',
+            optionsSuccessStatus: 200,
+            credentials: true,
+            methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         };
         // Activez CORS pour toutes les routes de l'application
         app.enableCors(corsOptions);
