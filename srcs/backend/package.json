@@ -21,11 +21,13 @@
     "@prisma/client": "^4.15.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "cors": "^2.8.5",
     "pg": "^8.11.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "serve-static": "^1.15.0",
     "socket.io": "^4.6.2",
+    "socket.io-parser": "^4.2.4",
     "typeorm": "^0.3.16"
   },
   "devDependencies": {

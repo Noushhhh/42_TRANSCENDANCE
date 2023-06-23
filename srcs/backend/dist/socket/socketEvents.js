@@ -16,24 +16,11 @@ exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 let SocketEvents = exports.SocketEvents = class SocketEvents {
-    handleConnection(client) {
-        console.log(" co");
-        this.server.emit('connection');
+    handleConnection(simulatedUserId, client) {
+        console.log('Client connected: ');
+        console.log(simulatedUserId);
+        this.server.emit('simulatedUserId', simulatedUserId);
     }
-    handleDisconnect(client) {
-        console.log(`"serveur, client disconnected: "`);
-        this.server.emit('disconnection');
-    }
-    //   handleDisconnect(@ConnectedSocket() client: Socket) {
-    //     if (client && client.id) {
-    //     //   this.server.emit('disconnect');
-    //       console.log(`Client déconnecté: ${client.id}`);
-    //     }
-    //   }
-    //   handleConnectionClient(@ConnectedSocket() client: Socket) {
-    //     console.log('Client connecté - Partie serveur');
-    //     this.server.emit('connection');
-    //   }
     handleMessage(data, client) {
         this.server.emit('message', client.id, data);
     }
@@ -42,6 +29,13 @@ __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
 ], SocketEvents.prototype, "server", void 0);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('connection'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], SocketEvents.prototype, "handleConnection", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('message'),
     __param(0, (0, websockets_1.MessageBody)()),

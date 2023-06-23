@@ -4,30 +4,26 @@ import "../styles/ChatBoxContainer.css";
 import MessageSide from "./MessageSide";
 import ContentMessage from "./ContentMessage";
 import SimulateUserId from "./SimulateUserId";
+import { Socket } from "socket.io-client";
 import "../types/type.Message";
 
 const socket = io("http://localhost:4000");
 
 function ChatBoxContainer() {
 
-    const [simulatedUserId, setSimulatedUserId] = useState<number>(1);
+    const [simulatedUserId, setSimulatedUserId] = useState<number>(2);
     const [selectedConversation, setConversationList] = useState<number>(1);
     const [channelId, setChannelId] = useState<number>(11);
 
-    // console.log("user id: ");
-    // console.log(simulatedUserId);
-
-    // send to server the actual userId. The server can then send backj
-    socket.emit('connection', simulatedUserId);
-
-    socket.on('connection', () => {
-        console.log("client connected");
-    })
-
-    socket.on("disconnection", () => {
-        console.log('Disconnection :');
-        // socket.emit("disconnection", simulatedUserId);
+    socket.on('connect', () => {
+        console.log("before emitting :");
+        console.log(simulatedUserId);
+        socket.emit('connection', simulatedUserId);
     });
+
+    socket.on('simulatedUserId', (simulatedUserId) => {
+        console.log('Received simulatedUserId:', simulatedUserId);
+      });
 
     return (
         <div>
