@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-// import { ConfigModule } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+// import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
@@ -22,9 +22,9 @@ import { BookmarkModule } from './bookmark/bookmark.module';
     //   synchronize: true,
     // }),
     // imports: [
-    //   ConfigModule.forRoot({
-    //     isGlobal: true,
-    //    }),
+      ConfigModule.forRoot({
+        isGlobal: true,
+       }),
     AuthModule,
     UserModule,
     BookmarkModule,
