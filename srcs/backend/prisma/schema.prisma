@@ -27,7 +27,7 @@ model User {
 
   adminOfChannels   Channel[]    @relation("Admins")
 
-  login         String
+  login         String @unique
   hashPassword  String
 
   email         String?
