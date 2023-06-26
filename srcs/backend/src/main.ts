@@ -9,8 +9,8 @@ async function bootstrap() {
   const corsOptions: CorsOptions = {
     origin: true, // Allow requests from any origin
     // origin: 'http://localhost:3000',
-    optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
-    credentials: true, // Allow sending cookies from the frontend
+    // optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
+    // credentials: true, // Allow sending cookies from the frontend
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   };
 

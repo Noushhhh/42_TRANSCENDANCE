@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import "../styles/MessageToClick.css";
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import Brightness1Icon from '@mui/icons-material/Brightness1';
 import TimeElapsed from "./TimeElapsed";
+import IsConnected from "./isConnected";
 
 interface Channel {
     name: string,
@@ -16,9 +15,10 @@ interface MessageToClickProps{
     channelId: number;
     channel: Channel;
     setChannelId: React.Dispatch<React.SetStateAction<number>>;
+    isConnected: boolean;
 }
 
-function MessageToClick({channel, setChannelId, channelId, socket }: MessageToClickProps) {
+function MessageToClick({channel, setChannelId, channelId, socket, isConnected }: MessageToClickProps) {
 
     const dateObject = new Date(channel.dateLastMsg);
 
@@ -26,11 +26,10 @@ function MessageToClick({channel, setChannelId, channelId, socket }: MessageToCl
         setChannelId(channel.channelId);
     }
 
+
     return (
         <div onClick={handleClick} className="MessageToClick">
-            <div className="logoIsConnected">
-                <RadioButtonUncheckedIcon/>
-            </div>
+            <IsConnected isConnected={isConnected} />
             <div className="ContainerPreview">
                 <div className="MessageToClickTitle">
                     <p className="senderName">{channel.name}</p>

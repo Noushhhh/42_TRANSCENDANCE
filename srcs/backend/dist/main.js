@@ -18,8 +18,8 @@ function bootstrap() {
         const corsOptions = {
             origin: true,
             // origin: 'http://localhost:3000',
-            optionsSuccessStatus: 200,
-            credentials: true,
+            // optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
+            // credentials: true, // Allow sending cookies from the frontend
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         };
         // Activez CORS pour toutes les routes de l'application
