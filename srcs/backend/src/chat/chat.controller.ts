@@ -65,4 +65,9 @@ export class ChatController{
         return this.chatService.getUsersFromChannelId(id);
     }
 
+    @Get('getLoginsFromSubstring/:substring')
+    async getLoginsFromSubstring(@Param('substring')substring: string): Promise<string[]>{
+        return this.chatService.getLoginsFromSubstring(substring)
+    }
+
 }

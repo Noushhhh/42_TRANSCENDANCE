@@ -79,6 +79,11 @@ let ChatController = exports.ChatController = class ChatController {
             return this.chatService.getUsersFromChannelId(id);
         });
     }
+    getLoginsFromSubstring(substring) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.getLoginsFromSubstring(substring);
+        });
+    }
 };
 __decorate([
     (0, common_1.Get)('getAllConvFromId/:id'),
@@ -135,6 +140,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getUsersFromChannelId", null);
+__decorate([
+    (0, common_1.Get)('getLoginsFromSubstring/:substring'),
+    __param(0, (0, common_1.Param)('substring')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getLoginsFromSubstring", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])

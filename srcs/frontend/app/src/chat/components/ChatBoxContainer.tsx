@@ -21,7 +21,6 @@ function ChatBoxContainer() {
     const [channelId, setChannelId] = useState<number>(11);
 
     socket.on('connect', () => {
-        console.log(`client connected : ${simulatedUserId}`);
         socket.emit('setNewUserConnected', simulatedUserId);
     });
 

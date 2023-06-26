@@ -27,7 +27,6 @@ export class SocketEvents {
         this.listUserConnected.set(userId, client.id);
         this.server.emit("changeConnexionState");
         this.readMap(this.listUserConnected);
-        //this.readMap(this.listUserConnected);
     }
 
     @SubscribeMessage('isUserConnected')

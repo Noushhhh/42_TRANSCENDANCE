@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../styles/MessageSide.css";
 import MessageToClick from "./MessageToClick";
+import SearchBar from "./SearchBar";
+import SearchBarResults from "./SearchBarResults";
 
 interface Channel {
   name: string;
@@ -27,6 +29,8 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
+  const [displayResults, setDisplayResults] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState<string>("");
   const fetchBoolean = useRef(false);
 
   function findChannelById(channelId: number): Channel | undefined {
@@ -40,7 +44,6 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
       });
     });
   }
-  
 
   socket.on('message', function (id: any, data: Message) {
     if (!data)
@@ -79,13 +82,9 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
 
   socket.on("changeConnexionState", () => {
     needReload == false ? setNeedReload(true) : setNeedReload(false);
-    console.log("on listening : needReload == ");
-    console.log(needReload);
   })
 
   useEffect(() => {
-    console.log("fetching...");
-    console.log(needReload);
   
     const fetchUser = async () => {
       setChannelHeader([]);
@@ -122,6 +121,8 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
 
   return (
     <div className="MessageSide">
+      <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults}/>
       {channelHeader
         .sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);
@@ -129,8 +130,6 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
           return dateB.getTime() - dateA.getTime();
         })
         .map((channel, index) => {
-          //console.log("isconnected in map ??");
-          //console.log(channel.isConnected);
           if (channel.channelId === previewLastMessage?.channelId)
             channel.lastMsg = previewLastMessage.content;
           return (

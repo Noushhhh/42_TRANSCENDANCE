@@ -29,7 +29,6 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
         this.listUserConnected.set(userId, client.id);
         this.server.emit("changeConnexionState");
         this.readMap(this.listUserConnected);
-        //this.readMap(this.listUserConnected);
     }
     handleIsUserConnected(userId, client) {
         const socketId = this.listUserConnected.get(userId); // get the socketId from userId

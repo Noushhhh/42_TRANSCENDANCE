@@ -211,6 +211,26 @@ let ChatService = exports.ChatService = class ChatService {
             }
         });
     }
+    getLoginsFromSubstring(substring) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!substring) {
+                console.log("secured");
+                return [];
+            }
+            const users = yield this.prisma.user.findMany({
+                where: {
+                    username: {
+                        startsWith: substring
+                    }
+                },
+                select: {
+                    username: true,
+                }
+            });
+            const logins = users.map(user => user.username);
+            return logins;
+        });
+    }
 };
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),

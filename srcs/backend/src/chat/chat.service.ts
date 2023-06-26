@@ -223,5 +223,28 @@ export class ChatService {
       throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
     }
   }
+
+  async getLoginsFromSubstring(substring: string): Promise<string[]>{
+
+    if (!substring)
+    {
+      console.log("secured");
+      return [];
+    }
+    
+    const users: {username: string}[] = await this.prisma.user.findMany({
+      where: {
+        username: {
+          startsWith: substring
+        }
+      },
+      select: {
+        username: true,
+      }
+    })
+    const logins = users.map(user => user.username);
+    return logins;
+  }
+
 }
 

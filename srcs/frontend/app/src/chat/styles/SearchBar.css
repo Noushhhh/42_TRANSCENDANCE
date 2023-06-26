@@ -1,0 +1,47 @@
+
+
+.searchBar{
+    height: 60px;
+    background-color: #3E3B38;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.searchBar input{
+    background-color: #262421;
+    color: #C7c7c7;
+    border: 1px solid #c7c7c7;
+    height: 30px;
+    width: 70%;
+    border-radius: 25px;
+    font-size: 16px;
+    padding: 0px 0px 0px 20px;
+}
+
+.searchBar input:focus{
+    outline:none;
+}
+
+.SearchBarResults{
+    height: auto;
+    display: none;
+}
+
+.HideSearchBarResults{
+    display: none;
+}
+
+.DisplaySearchBarResults{
+    display: block;
+}
+
+.userListSearched{
+    list-style: none;
+    padding: 0;
+}
+
+.userListSearched li{
+    cursor: pointer;
+}
