@@ -55,7 +55,7 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
     foundChannel.dateLastMsg = data.createdAt;
   })
 
-  const setHeaderNameWhenTwoUsers = async (channelId: string, channel: Channel): Promise<isChannelNameConnected> => {
+  const setHeaderNameWhenTwoUsers = async (channelId: string): Promise<isChannelNameConnected> => {
     const channelInfo: isChannelNameConnected = {
       name: '',
       isConnected: false,
@@ -102,7 +102,7 @@ function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: Messa
         };
   
         if (header.name === '') {
-          channelInfo = await setHeaderNameWhenTwoUsers(id, header);
+          channelInfo = await setHeaderNameWhenTwoUsers(id);
           header.name = channelInfo.name;
         }
         header.isConnected = channelInfo.isConnected;

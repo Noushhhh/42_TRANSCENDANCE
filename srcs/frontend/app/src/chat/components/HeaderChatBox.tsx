@@ -1,10 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/HeaderChatBox.css"
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
-function HeaderChatBox() {
+interface HeaderChatBoxProps {
+    channelId: number;
+}
+
+function HeaderChatBox( {channelId}: HeaderChatBoxProps ) {
+
+    const [channelName, setChannelName] = useState<string>("");
+
+    console.log(channelId);
+
     return (
         <div className="HeaderChatBox">
             <div className="ContactName">

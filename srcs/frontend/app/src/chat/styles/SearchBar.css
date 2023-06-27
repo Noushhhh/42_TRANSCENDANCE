@@ -45,3 +45,7 @@
 .userListSearched li{
     cursor: pointer;
 }
+
+.userListSearched li p{
+    margin:0px;
+}

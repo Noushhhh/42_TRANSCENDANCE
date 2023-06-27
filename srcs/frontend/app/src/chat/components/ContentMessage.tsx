@@ -25,7 +25,6 @@ function ContentMessage( { conversation, channelId, simulatedUserId, socket, use
         setMessages([]);
     }, ([channelId]));
 
-
     const addMessage = (newMessage: Message, messageType: string): void =>{
         newMessage.messageType = messageType;
         setMessages([...messages, newMessage]);
@@ -33,7 +32,7 @@ function ContentMessage( { conversation, channelId, simulatedUserId, socket, use
 
     return (
         <div className="ContentMessage">
-            <HeaderChatBox />
+            <HeaderChatBox channelId={channelId} />
             <ChatView userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
             <ChatPrompt socket={socket} simulatedUserId={simulatedUserId} channelId={channelId} addMessage={addMessage} />
         </div>

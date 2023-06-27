@@ -27,8 +27,6 @@ function SearchBarResults({ inputValue, displayResults }: SearchBarResultsProps)
             fetchUsers();
     }, ([inputValue]))
 
-    console.log(inputValue);
-
     return (
         <div className={`SearchBarResults ${displayState}`}>
             <ul className="userListSearched">
