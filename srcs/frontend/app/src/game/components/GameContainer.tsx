@@ -51,14 +51,9 @@ function GameContainer() {
       setIsPaused(false);
     });
 
-    // socket.on("updateGameState", (gameState) => {
-      
-    // })
-
     return () => {
       socket.off("play");
       socket.off("pause");
-      // socket.off("updateGameState");
     };
   }, []);
 
