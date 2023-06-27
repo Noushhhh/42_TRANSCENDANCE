@@ -18,7 +18,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   });
   const ballPosRef = useRef<Vector2d>({
     x: data.KONVA_WIDTH / 2,
-    y: data.KONVA_WIDTH / 2,
+    y: data.KONVA_HEIGHT / 2,
   });
 
   return (

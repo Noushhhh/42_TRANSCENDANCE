@@ -14,6 +14,7 @@ import { ChatService } from './chat/chat.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ChatModule } from './chat/chat.module';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { ChatModule } from './chat/chat.module';
     SocketModule,
     GatewayModule,
     ChatModule,
-    PrismaModule
+    PrismaModule,
+    GameModule
   ],
   controllers: [AppController, ChatController],
   providers: [AppService, ChatService, PrismaService],
