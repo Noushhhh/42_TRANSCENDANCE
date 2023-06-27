@@ -246,5 +246,12 @@ export class ChatService {
     return logins;
   }
 
+  async addChannelToUser(ownerId: number, listParticipants: number[]){
+    
+    await this.prisma.channel.create({
+
+    })
+  }
+
 }
 

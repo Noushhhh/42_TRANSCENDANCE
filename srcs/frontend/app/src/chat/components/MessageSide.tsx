@@ -3,14 +3,7 @@ import "../styles/MessageSide.css";
 import MessageToClick from "./MessageToClick";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
-
-interface Channel {
-  name: string;
-  lastMsg: string;
-  dateLastMsg: Date;
-  channelId: number;
-  isConnected: boolean;
-}
+import "../types/channel.type";
 
 interface isChannelNameConnected{
   isConnected: boolean;
@@ -18,15 +11,17 @@ interface isChannelNameConnected{
 }
 
 interface MessageSideProps {
+  channelHeader: Channel[];
+  setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>;
   socket: any;
   channelId: number;
   simulatedUserId: number;
   setChannelId: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function MessageSide({ setChannelId, simulatedUserId, channelId, socket }: MessageSideProps) {
+function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedUserId, channelId, socket }: MessageSideProps) {
 
-  const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
+  //const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);

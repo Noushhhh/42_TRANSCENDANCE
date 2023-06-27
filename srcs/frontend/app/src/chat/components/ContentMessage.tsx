@@ -7,6 +7,7 @@ import "../styles/ContentMessage.css";
 import "../types/type.Message";
 
 interface contentMessageProps{
+    channelHeader: Channel[];
     socket: any;
     simulatedUserId: number;
     conversation: number;
@@ -14,7 +15,7 @@ interface contentMessageProps{
     userId: number;
 }
 
-function ContentMessage( { conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
+function ContentMessage( { channelHeader, conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
 
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
@@ -32,7 +33,7 @@ function ContentMessage( { conversation, channelId, simulatedUserId, socket, use
 
     return (
         <div className="ContentMessage">
-            <HeaderChatBox channelId={channelId} />
+            <HeaderChatBox channelHeader={channelHeader} channelId={channelId} />
             <ChatView userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
             <ChatPrompt socket={socket} simulatedUserId={simulatedUserId} channelId={channelId} addMessage={addMessage} />
         </div>

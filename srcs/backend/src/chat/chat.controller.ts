@@ -1,4 +1,4 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, Query } from "@nestjs/common";
 import { ChatService } from "./chat.service";
 import { Message, Channel, User } from "@prisma/client";
 import './interfaces/chat.interface';
@@ -68,6 +68,18 @@ export class ChatController{
     @Get('getLoginsFromSubstring/:substring')
     async getLoginsFromSubstring(@Param('substring')substring: string): Promise<string[]>{
         return this.chatService.getLoginsFromSubstring(substring)
+    }
+
+    @Post('addChannelToUser/:ownerId')
+    async addChannelToUser( @Param('ownerId')ownerId: number,
+                            @Body() listParticipants: number[])
+    {
+        try {
+            return this.chatService.addChannelToUser(ownerId, listParticipants);
+        } catch (error) {
+            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
+        }
+
     }
 
 }

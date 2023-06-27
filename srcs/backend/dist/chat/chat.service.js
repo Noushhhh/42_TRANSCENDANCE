@@ -231,6 +231,11 @@ let ChatService = exports.ChatService = class ChatService {
             return logins;
         });
     }
+    addChannelToUser(ownerId, listParticipants) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.channel.create({});
+        });
+    }
 };
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),
