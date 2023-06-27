@@ -28,10 +28,12 @@ export interface GamePhysicsProps {
   setP1Score: React.Dispatch<React.SetStateAction<number>>;
   setP2Score: React.Dispatch<React.SetStateAction<number>>;
   isPaused: boolean;
+  // @ts-ignore
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 }
 
 export interface PaddleProps {
+  // @ts-ignore
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   isPaused: boolean;
   p1Pos: React.MutableRefObject<Vector2d>;
@@ -39,6 +41,7 @@ export interface PaddleProps {
 }
 
 export interface BallProps {
+  // @ts-ignore
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   isPaused: boolean;
   ballPosRef: React.MutableRefObject<Vector2d>;
