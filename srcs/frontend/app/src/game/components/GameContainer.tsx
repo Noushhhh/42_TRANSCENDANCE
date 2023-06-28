@@ -6,33 +6,31 @@ import { io } from "socket.io-client";
 
 const socket = io("http://localhost:4000");
 
-const p1Direction = {
-  up: Boolean,
-  down: Boolean,
-};
+// const p1Direction = {
+//   up: Boolean,
+//   down: Boolean,
+// };
 
-const p2Direction = {
-  up: Boolean,
-  down: Boolean,
-};
+// const p2Direction = {
+//   up: Boolean,
+//   down: Boolean,
+// };
 
-const ballDirection = {
-  right: Boolean,
-  left: Boolean,
-};
+// const ballDirection = {
+//   right: Boolean,
+//   left: Boolean,
+// };
 
-const isPausedStatus = {
-  isPaused: Boolean,
-};
+// const isPausedStatus = {
+//   isPaused: Boolean,
+// };
 
-const ScoreBoardStatus = {
-  p1ScoreIncrement: Boolean,
-  p2ScoreIncrement: Boolean,
-};
+// const ScoreBoardStatus = {
+//   p1ScoreIncrement: Boolean,
+//   p2ScoreIncrement: Boolean,
+// };
 
 function GameContainer() {
-  const [p1Score, setP1Score] = useState(0);
-  const [p2Score, setP2Score] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
 
   socket.on("connect", () => {
@@ -51,14 +49,9 @@ function GameContainer() {
       setIsPaused(false);
     });
 
-    // socket.on("updateGameState", (gameState) => {
-      
-    // })
-
     return () => {
       socket.off("play");
       socket.off("pause");
-      // socket.off("updateGameState");
     };
   }, []);
 
@@ -93,11 +86,9 @@ function GameContainer() {
 
   return (
     <div className="GameContainer">
-      <ScoreBoard p1Score={p1Score} p2Score={p2Score} />
+      <ScoreBoard socket={socket}/>
       <GamePhysics
         socket={socket}
-        setP1Score={setP1Score}
-        setP2Score={setP2Score}
         isPaused={isPaused}
       />
       <button

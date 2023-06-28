@@ -24,12 +24,6 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
             x: KONVA_WIDTH / 2,
             y: KONVA_HEIGHT / 2,
         };
-        this.ballState = {
-            ballDirection: 'left',
-            ballDX: 0,
-            ballDY: 0,
-            ballPos: this.ballPos,
-        };
         this.gameState = {
             p1pos: {
                 x: 10,
@@ -49,13 +43,23 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
                 p2Score: 0,
             },
         };
+        this.ballState = {
+            ballDirection: 'left',
+            ballDX: 0,
+            ballDY: 0,
+            ballPos: this.ballPos,
+            scoreBoard: this.gameState.score
+        };
         this.updateGameState = () => {
             this.gatewayOut.updateGameState(this.gameState);
         };
         this.updateBall = () => {
+            var _a, _b;
             if (this.ballState) {
-                this.ballState = this.gameLogicService.ballMove(this.ballState.ballDirection, this.ballState.ballPos, this.gameState.p1pos, this.gameState.p2pos, this.ballState.ballDX, this.ballState.ballDY);
+                this.ballState = this.gameLogicService.ballMove(this.ballState.ballDirection, this.ballState.ballPos, this.gameState.p1pos, this.gameState.p2pos, this.ballState.ballDX, this.ballState.ballDY, this.gameState.score);
             }
+            if ((_a = this.ballState) === null || _a === void 0 ? void 0 : _a.scoreBoard)
+                this.gameState.score = (_b = this.ballState) === null || _b === void 0 ? void 0 : _b.scoreBoard;
             if (this.ballState)
                 this.gameState.ballPos = this.ballState.ballPos;
             return this.gatewayOut.sendBallPos(this.gameState.ballPos);
