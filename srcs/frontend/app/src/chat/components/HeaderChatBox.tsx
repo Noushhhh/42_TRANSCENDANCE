@@ -13,16 +13,12 @@ interface HeaderChatBoxProps {
 
 function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
 
-    console.log(channelId);
-
     var i: number = 0;
     for (; i < channelHeader.length; i++) {
         if (channelHeader[i].channelId === channelId) {
             break;
         }
     }
-
-    console.log(channelHeader[i]);
 
     if (channelHeader[i] === undefined) {
         return (

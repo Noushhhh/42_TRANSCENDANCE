@@ -11,3 +11,32 @@
 .User:hover{
     background-color: #2F3621;
 }
+
+.settingsMenu{
+    height: auto;
+    width: 100%;
+    transition: all 2s linear;
+}
+
+.displaySettingsMenu{
+    display: block;
+}
+
+.hideSettingsMenu{
+    display: none;
+}
+
+.settingsMenu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.settingsMenu ul li {
+    background-color: #3E3B38;
+    color: #C7C7C7;
+}
+
+.settingsMenu ul li:hover{
+    background-color: #2F3621;
+}

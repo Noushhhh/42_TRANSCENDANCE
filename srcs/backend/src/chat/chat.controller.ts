@@ -3,6 +3,14 @@ import { ChatService } from "./chat.service";
 import { Message, Channel, User } from "@prisma/client";
 import './interfaces/chat.interface';
 
+interface channelToAdd{
+    name: string,
+    password: string
+    ownerId: number,
+    participants: number[],
+    type: string,
+}
+
 interface MessageToStore{
     channelId: number;
       content: string;
@@ -35,7 +43,7 @@ export class ChatController{
     }
 
     @Get('getChannelHeader/:id')
-    async getChannelHeadersFromUserId(@Param('id')id: number): Promise <ChannelType>{
+    async getChannelHeadersFromUserId(@Param('id')id: number): Promise <ChannelLight>{
         return this.chatService.getChannelHeadersFromId(id);
     }
 
@@ -66,20 +74,18 @@ export class ChatController{
     }
 
     @Get('getLoginsFromSubstring/:substring')
-    async getLoginsFromSubstring(@Param('substring')substring: string): Promise<string[]>{
+    async getLoginsFromSubstring(@Param('substring')substring: string): Promise<{username: string, id:number}[]>{
         return this.chatService.getLoginsFromSubstring(substring)
     }
 
-    @Post('addChannelToUser/:ownerId')
-    async addChannelToUser( @Param('ownerId')ownerId: number,
-                            @Body() listParticipants: number[])
+    @Post('addChannelToUser')
+    async addChannelToUser(@Body() channelInfo: channelToAdd)
     {
+        console.log("addChannelToUser called");
         try {
-            return this.chatService.addChannelToUser(ownerId, listParticipants);
+            return this.chatService.addChannelToUser(channelInfo);
         } catch (error) {
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
         }
-
     }
-
 }

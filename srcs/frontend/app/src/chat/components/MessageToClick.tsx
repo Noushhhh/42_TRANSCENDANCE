@@ -26,7 +26,6 @@ function MessageToClick({channel, setChannelId, channelId, socket, isConnected }
         setChannelId(channel.channelId);
     }
 
-
     return (
         <div onClick={handleClick} className="MessageToClick">
             <IsConnected isConnected={isConnected} />

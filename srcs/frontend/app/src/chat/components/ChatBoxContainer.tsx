@@ -18,7 +18,7 @@ const socket = io("http://localhost:4000");
 
 function ChatBoxContainer() {
 
-    const [simulatedUserId, setSimulatedUserId] = useState<number>(1);
+    const [simulatedUserId, setSimulatedUserId] = useState<number>(6);
     const [selectedConversation, setConversationList] = useState<number>(1);
     const [channelId, setChannelId] = useState<number>(11);
     const [channelHeader, setChannelHeader] = useState<Channel[]>([]);

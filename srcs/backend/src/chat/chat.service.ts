@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Channel, Message, User } from "@prisma/client";
+import { Channel, Message, User, ChannelType } from "@prisma/client";
 import { error } from "console";
 
 interface MessageToStore{
@@ -8,6 +8,15 @@ interface MessageToStore{
 	content: string;
 	senderId: number;
 }
+
+interface channelToAdd{
+  name: string,
+  password: string
+  ownerId: number,
+  participants: number[],
+  type: string,
+}
+
 
 @Injectable()
 export class ChatService {
@@ -61,7 +70,7 @@ export class ChatService {
     return lastMessage.content;
   }
 
-  async getChannelHeadersFromId(id: number): Promise<ChannelType> {
+  async getChannelHeadersFromId(id: number): Promise<ChannelLight> {
 
     const channelId = Number(id);
 
@@ -89,7 +98,7 @@ export class ChatService {
     
     const numberParticipants = channel.participants.length;
 
-    const channelHeader: ChannelType = {
+    const channelHeader: ChannelLight = {
       name: numberParticipants > 2 ? channel.name : "",
       lastMsg: lastMessage ? lastMessage.content : '',
       dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
@@ -224,15 +233,9 @@ export class ChatService {
     }
   }
 
-  async getLoginsFromSubstring(substring: string): Promise<string[]>{
+  async getLoginsFromSubstring(substring: string): Promise<{username: string, id: number}[]>{
 
-    if (!substring)
-    {
-      console.log("secured");
-      return [];
-    }
-    
-    const users: {username: string}[] = await this.prisma.user.findMany({
+    const users: {username: string, id: number}[] = await this.prisma.user.findMany({
       where: {
         username: {
           startsWith: substring
@@ -240,18 +243,33 @@ export class ChatService {
       },
       select: {
         username: true,
+        id: true,
       }
     })
-    const logins = users.map(user => user.username);
-    return logins;
+    // const logins = users.map(user => user.username);
+    return users;
   }
 
-  async addChannelToUser(ownerId: number, listParticipants: number[]){
-    
-    await this.prisma.channel.create({
-
-    })
-  }
+  async addChannelToUser(channelInfo: channelToAdd){
+      
+      try {
+        const newChannel = await this.prisma.channel.create({
+          data: {
+            name: channelInfo.name,
+            password: channelInfo.password,
+            ownerId: channelInfo.ownerId,
+            type: ChannelType[channelInfo.type as keyof typeof ChannelType],
+            participants: {
+              connect: channelInfo.participants.map(userId => ({ id: userId })),
+            },
+          },
+        });
+      } catch (error){
+        console.error('addChannelToUser:', error);
+        throw error;
+      }
+    }
 
 }
+
 

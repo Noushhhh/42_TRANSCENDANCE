@@ -84,10 +84,11 @@ let ChatController = exports.ChatController = class ChatController {
             return this.chatService.getLoginsFromSubstring(substring);
         });
     }
-    addChannelToUser(ownerId, listParticipants) {
+    addChannelToUser(channelInfo) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("addChannelToUser called");
             try {
-                return this.chatService.addChannelToUser(ownerId, listParticipants);
+                return this.chatService.addChannelToUser(channelInfo);
             }
             catch (error) {
                 throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
@@ -158,11 +159,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getLoginsFromSubstring", null);
 __decorate([
-    (0, common_1.Post)('addChannelToUser/:ownerId'),
-    __param(0, (0, common_1.Param)('ownerId')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)('addChannelToUser'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Array]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addChannelToUser", null);
 exports.ChatController = ChatController = __decorate([

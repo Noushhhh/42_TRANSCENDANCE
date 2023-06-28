@@ -32,7 +32,7 @@ model User {
   email         String?
   firstName     String?
   lastName      String?
-  bannedFromChannel Channel[]      @relation("BannedUsers")
+  bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
 }

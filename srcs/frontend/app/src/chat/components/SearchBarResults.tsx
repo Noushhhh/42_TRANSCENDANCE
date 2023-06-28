@@ -6,21 +6,21 @@ import "../styles/SearchBar.css"
 interface SearchBarResultsProps {
     inputValue: string;
     displayResults: boolean;
+    showUserMenu: boolean;
+    addUserToList: (user: {username: string, id: number}) => void;
 }
 
-function SearchBarResults({ inputValue, displayResults }: SearchBarResultsProps) {
+function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList }: SearchBarResultsProps) {
 
-    const [listUsersSearched, setListUsersSearched] = useState<string[]>([]);
+    const [listUsersSearched, setListUsersSearched] = useState<{username: string, id: number}[]>([]);
 
     const displayState = `${displayResults ? "DisplaySearchBarResults" : "HideSearchBarResults"}`;
 
     useEffect(() => {
         const fetchUsers = async () => {
-            console.log("fetching...");
             setListUsersSearched([]);
             const response = await fetch(`http://localhost:4000/api/chat/getLoginsFromSubstring/${inputValue}`);
             const listUsers = await response.json();
-            console.log(listUsers);
             setListUsersSearched(listUsers);
         }
         if (inputValue.length > 2)
@@ -32,7 +32,7 @@ function SearchBarResults({ inputValue, displayResults }: SearchBarResultsProps)
             <ul className="userListSearched">
                 {listUsersSearched.map((user, index) => {
                     return <li key={index}>
-                        <User username={user}/>
+                        <User user={user} showUserMenu={showUserMenu} addUserToList={addUserToList}/>
                     </li>
                 })}
             </ul>

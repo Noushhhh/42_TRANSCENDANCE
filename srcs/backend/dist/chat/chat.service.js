@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const client_1 = require("@prisma/client");
 let ChatService = exports.ChatService = class ChatService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -213,10 +214,6 @@ let ChatService = exports.ChatService = class ChatService {
     }
     getLoginsFromSubstring(substring) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!substring) {
-                console.log("secured");
-                return [];
-            }
             const users = yield this.prisma.user.findMany({
                 where: {
                     username: {
@@ -225,15 +222,32 @@ let ChatService = exports.ChatService = class ChatService {
                 },
                 select: {
                     username: true,
+                    id: true,
                 }
             });
-            const logins = users.map(user => user.username);
-            return logins;
+            // const logins = users.map(user => user.username);
+            return users;
         });
     }
-    addChannelToUser(ownerId, listParticipants) {
+    addChannelToUser(channelInfo) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.channel.create({});
+            try {
+                const newChannel = yield this.prisma.channel.create({
+                    data: {
+                        name: channelInfo.name,
+                        password: channelInfo.password,
+                        ownerId: channelInfo.ownerId,
+                        type: client_1.ChannelType[channelInfo.type],
+                        participants: {
+                            connect: channelInfo.participants.map(userId => ({ id: userId })),
+                        },
+                    },
+                });
+            }
+            catch (error) {
+                console.error('addChannelToUser:', error);
+                throw error;
+            }
         });
     }
 };

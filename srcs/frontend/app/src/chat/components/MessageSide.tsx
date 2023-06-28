@@ -3,6 +3,9 @@ import "../styles/MessageSide.css";
 import MessageToClick from "./MessageToClick";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
+import "../styles/SearchBar.css";
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CreateChannelPopup from "./CreateChannelPopup";
 import "../types/channel.type";
 
 interface isChannelNameConnected{
@@ -21,12 +24,18 @@ interface MessageSideProps {
 
 function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedUserId, channelId, socket }: MessageSideProps) {
 
-  //const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
+  const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
   const fetchBoolean = useRef(false);
+
+  const displayState = `${displayPopupChannelCreation ? "showPopup" : "hidePopup"}`;
+
+  const handleClick = () => {
+      displayPopupChannelCreation === false ? setdisplayPopupChannelCreation(true) : setdisplayPopupChannelCreation(false);
+  }
 
   function findChannelById(channelId: number): Channel | undefined {
     return channelHeader.find((channel) => channel.channelId === channelId);
@@ -79,6 +88,8 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
     needReload == false ? setNeedReload(true) : setNeedReload(false);
   })
 
+  const dummyFunction = () => {};
+
   useEffect(() => {
   
     const fetchUser = async () => {
@@ -116,8 +127,12 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
 
   return (
     <div className="MessageSide">
-      <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults}/>
+      <div className="containerSearchBar">
+        <AddCircleOutlineIcon onClick={handleClick} className="createChannel"/>
+        <CreateChannelPopup simulatedUserId={simulatedUserId} displayState={displayState} />
+        <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
+      </div>
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction}/>
       {channelHeader
         .sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);

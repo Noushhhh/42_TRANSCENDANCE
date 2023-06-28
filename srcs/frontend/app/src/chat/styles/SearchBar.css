@@ -15,7 +15,7 @@
     border: 1px solid #c7c7c7;
     height: 30px;
     width: 70%;
-    border-radius: 25px;
+    border-radius: 5px;
     font-size: 16px;
     padding: 0px 0px 0px 20px;
 }
@@ -48,4 +48,11 @@
 
 .userListSearched li p{
     margin:0px;
+}
+
+.createChannel{
+    padding-left: 20px;
+    font-size: 30px!important;
+    color: white;
+    cursor: pointer;
 }

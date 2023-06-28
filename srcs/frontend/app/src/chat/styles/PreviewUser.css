@@ -1,0 +1,12 @@
+.PreviewUser{
+    color: black;
+    border-radius: 20px;
+    background-color: white;
+    width: fit-content;
+    padding: 3px 5px;
+    margin: 0px 3px;
+}
+
+.PreviewUser button {
+    padding: 0;
+}
