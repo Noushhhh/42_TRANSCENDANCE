@@ -15,7 +15,6 @@ const auth_module_1 = require("./auth/auth.module");
 const user_module_1 = require("./user/user.module");
 const bookmark_module_1 = require("./bookmark/bookmark.module");
 const SocketModule_1 = require("./socket/SocketModule");
-const gateway_module_1 = require("./game/gateway/gateway.module");
 // import { PrismaModule } from './prisma/prisma.module';
 const chat_controller_1 = require("./chat/chat.controller");
 const chat_service_1 = require("./chat/chat.service");
@@ -32,7 +31,6 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             bookmark_module_1.BookmarkModule,
             SocketModule_1.SocketModule,
-            gateway_module_1.GatewayModule,
             chat_module_1.ChatModule,
             prisma_module_1.PrismaModule,
             game_module_1.GameModule

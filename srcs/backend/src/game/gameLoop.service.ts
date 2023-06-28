@@ -22,13 +22,7 @@ export class GameLoopService {
     y: KONVA_HEIGHT / 2,
   }
 
-  private ballState?= {
-    ballDirection: 'left',
-    ballDX: 0,
-    ballDY: 0,
-    ballPos: this.ballPos,
-  };
-
+  
   private gameState = {
     p1pos: {
       x: 10,
@@ -47,6 +41,14 @@ export class GameLoopService {
       p1Score: 0,
       p2Score: 0,
     },
+  };
+
+  private ballState?= {
+    ballDirection: 'left',
+    ballDX: 0,
+    ballDY: 0,
+    ballPos: this.ballPos,
+    scoreBoard: this.gameState.score
   };
 
   constructor(
@@ -118,8 +120,10 @@ export class GameLoopService {
         this.gameState.p2pos,
         this.ballState.ballDX,
         this.ballState.ballDY,
+        this.gameState.score,
       );
     }
+    if (this.ballState?.scoreBoard) this.gameState.score = this.ballState?.scoreBoard;
     if (this.ballState) this.gameState.ballPos = this.ballState.ballPos;
     return this.gatewayOut.sendBallPos(this.gameState.ballPos);
   };

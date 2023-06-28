@@ -15,36 +15,6 @@ interface Vector2d {
 
 @Injectable()
 export class GameLogicService {
-  ballState = {
-    ballDirection: 'left',
-    ballDX: 0,
-    ballDY: 0,
-    ballPos: {
-      x: KONVA_WIDTH / 2,
-      y: KONVA_HEIGHT / 2,
-    },
-  };
-
-  gameState = {
-    p1pos: {
-      x: 10,
-      y: 310,
-    },
-    p2pos: {
-      x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
-      y: 310,
-    },
-    ballPos: {
-      x: KONVA_WIDTH / 2,
-      y: KONVA_HEIGHT / 2,
-    },
-    isPaused: true,
-    score: {
-      p1Score: 0,
-      p2Score: 0,
-    },
-  };
-
   ballMove = (
     ballDirection: string,
     ballPos: Vector2d,
@@ -52,6 +22,7 @@ export class GameLogicService {
     p2Pos: Vector2d,
     ballDX: number,
     ballDY: number,
+    scoreBoard: { p1Score: number, p2Score: number },
   ) => {
     if (ballDirection === 'left') {
       // Touch left paddle condition
@@ -68,7 +39,7 @@ export class GameLogicService {
         ballDY = -Math.sin(velocity) * 4;
 
         ballDirection = 'right';
-        return { ballDirection, ballDX, ballDY, ballPos };
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
       // Touch top condition
       else if (ballPos.y < 0 + 10) {
@@ -79,12 +50,13 @@ export class GameLogicService {
       }
       // If the ball go after the left paddle
       if (ballPos.x < 0) {
-        // right paddle scored
+        // left paddle scored
         ballPos.x = KONVA_WIDTH / 2;
         ballPos.y = KONVA_HEIGHT / 2;
         ballDX = 0;
         ballDY = 0;
-        return { ballDirection, ballDX, ballDY, ballPos };
+        scoreBoard.p1Score += 1;
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
         // Normal move to left condition
       } else {
         const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
@@ -93,10 +65,10 @@ export class GameLogicService {
           ballDX *= scalingFactor;
           ballDY *= scalingFactor;
         }
-        
+
         ballPos.x = ballPos.x - ballSpeed - Math.abs(ballDX);
         ballPos.y = ballPos.y - ballDY;
-        return { ballDirection, ballDX, ballDY, ballPos };
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
     } else if (ballDirection === 'right') {
       // Touch left paddle condition
@@ -113,7 +85,7 @@ export class GameLogicService {
         ballDY = -Math.sin(velocity) * 4;
 
         ballDirection = 'left';
-        return { ballDirection, ballDX, ballDY, ballPos };
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
       // Touch top condition
       else if (ballPos.y < 0 + 10) {
@@ -129,7 +101,8 @@ export class GameLogicService {
         ballPos.y = KONVA_HEIGHT / 2;
         ballDX = 0;
         ballDY = 0;
-        return { ballDirection, ballDX, ballDY, ballPos };
+        scoreBoard.p2Score += 1;
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
         // Normal move to left condition
       } else {
         const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
@@ -141,7 +114,7 @@ export class GameLogicService {
 
         ballPos.x = ballPos.x + ballSpeed + Math.abs(ballDX);
         ballPos.y = ballPos.y + ballDY;
-        return { ballDirection, ballDX, ballDY, ballPos };
+        return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
     }
   };

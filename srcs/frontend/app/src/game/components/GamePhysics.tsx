@@ -6,8 +6,6 @@ import Paddles from "./Paddles";
 import Ball from "./Ball";
 
 const GamePhysics: FC<data.GamePhysicsProps> = ({
-  setP1Score,
-  setP2Score,
   isPaused = true,
   socket,
 }) => {
@@ -41,8 +39,6 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
           ballPosRef={ballPosRef}
           p1Pos={p1Pos}
           p2Pos={p2Pos}
-          setP1Score={setP1Score}
-          setP2Score={setP2Score}
         />
       </Layer>
     </Stage>
