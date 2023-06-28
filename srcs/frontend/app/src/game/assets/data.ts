@@ -32,16 +32,11 @@ export interface GamePhysicsProps {
 export interface PaddleProps {
   socket: Socket;
   isPaused: boolean;
-  p1Pos: React.MutableRefObject<Vector2d>;
-  p2Pos: React.MutableRefObject<Vector2d>;
 }
 
 export interface BallProps {
   socket: Socket;
-  isPaused: boolean;
   ballPosRef: React.MutableRefObject<Vector2d>;
-  p1Pos: React.MutableRefObject<Vector2d>;
-  p2Pos: React.MutableRefObject<Vector2d>;
 }
 
 export interface ScoreBoardProps {

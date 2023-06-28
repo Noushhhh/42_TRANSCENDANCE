@@ -7,8 +7,6 @@ import { Vector2d } from "konva/lib/types";
 const Paddles: FC<data.PaddleProps> = ({
   socket,
   isPaused = false,
-  p1Pos,
-  p2Pos,
 }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
   const rect2Ref = useRef<Konva.Rect>(null);
@@ -32,7 +30,6 @@ const Paddles: FC<data.PaddleProps> = ({
     requestAnimationFrame(() => {
       rect1.position({ x: pos.x, y: pos.y });
     });
-    p1Pos.current = rect1.position();
   };
 
   const updateP2pos = (pos: Vector2d) => {
@@ -42,7 +39,6 @@ const Paddles: FC<data.PaddleProps> = ({
     requestAnimationFrame(() => {
       rect2.position({ x: pos.x, y: pos.y });
     });
-    p2Pos.current = rect2.position();
   };
 
   useEffect(() => {
