@@ -32,11 +32,3 @@
     padding: 0;
 }
 
-.settingsMenu ul li {
-    background-color: #3E3B38;
-    color: #C7C7C7;
-}
-
-.settingsMenu ul li:hover{
-    background-color: #2F3621;
-}

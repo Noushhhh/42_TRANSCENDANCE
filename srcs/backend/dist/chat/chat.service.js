@@ -231,6 +231,8 @@ let ChatService = exports.ChatService = class ChatService {
     }
     addChannelToUser(channelInfo) {
         return __awaiter(this, void 0, void 0, function* () {
+            const participants = channelInfo.participants.map(userId => ({ id: userId }));
+            participants.push({ id: channelInfo.ownerId });
             try {
                 const newChannel = yield this.prisma.channel.create({
                     data: {
@@ -239,7 +241,7 @@ let ChatService = exports.ChatService = class ChatService {
                         ownerId: channelInfo.ownerId,
                         type: client_1.ChannelType[channelInfo.type],
                         participants: {
-                            connect: channelInfo.participants.map(userId => ({ id: userId })),
+                            connect: participants,
                         },
                     },
                 });

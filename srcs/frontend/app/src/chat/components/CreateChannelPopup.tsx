@@ -8,14 +8,14 @@ import "../types/channel.type";
 import SimulateUserId from "./SimulateUserId";
 
 interface CreateChannelPopupProps{
+    fetchUser: () => Promise<void>;
     displayState: string;
     simulatedUserId: number;
 }
 
-function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPopupProps) {
+function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: CreateChannelPopupProps) {
 
     const [userListChannel, setUserListChannel] = useState<{username: string, id: number}[]>([]);
-    // const [userIdToAdd, setUserIdToAdd] = useState<number[]>([]);
     const [channelName, setChannelName] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -75,6 +75,7 @@ function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPop
         try {
           const response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
           console.log('Channel created successfully');
+          fetchUser();
           // Traitez la réponse du backend ici si nécessaire
         } catch (error) {
           console.error('Error creating channel:', error);

@@ -90,36 +90,35 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
 
   const dummyFunction = () => {};
 
+  const fetchUser = async () => {
+    setChannelHeader([]);
+
+    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${simulatedUserId}`);
+    const listChannelId = await response.json();
+
+    const fetchChannelHeaders = listChannelId.map(async (id: string) => {
+      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
+      const header: Channel = await response.json();
+
+      let channelInfo: isChannelNameConnected = {
+        name: '',
+        isConnected: false,
+      };
+
+      if (header.name === '') {
+        channelInfo = await setHeaderNameWhenTwoUsers(id);
+        header.name = channelInfo.name;
+      }
+      header.isConnected = channelInfo.isConnected;
+
+      return header;
+    });
+    const channelHeaders = await Promise.all(fetchChannelHeaders);
+    setChannelHeader(channelHeaders);
+  };
+
   useEffect(() => {
-  
-    const fetchUser = async () => {
-      setChannelHeader([]);
-  
-      const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${simulatedUserId}`);
-      const listChannelId = await response.json();
-  
-      const fetchChannelHeaders = listChannelId.map(async (id: string) => {
-        const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
-        const header: Channel = await response.json();
-  
-        let channelInfo: isChannelNameConnected = {
-          name: '',
-          isConnected: false,
-        };
-  
-        if (header.name === '') {
-          channelInfo = await setHeaderNameWhenTwoUsers(id);
-          header.name = channelInfo.name;
-        }
-        header.isConnected = channelInfo.isConnected;
-  
-        return header;
-      });
-      const channelHeaders = await Promise.all(fetchChannelHeaders);
-      setChannelHeader(channelHeaders);
-    };
     fetchUser();
-  
     return () => {
       fetchBoolean.current = true;
     };
@@ -129,7 +128,7 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
     <div className="MessageSide">
       <div className="containerSearchBar">
         <AddCircleOutlineIcon onClick={handleClick} className="createChannel"/>
-        <CreateChannelPopup simulatedUserId={simulatedUserId} displayState={displayState} />
+        <CreateChannelPopup fetchUser={fetchUser} simulatedUserId={simulatedUserId} displayState={displayState} />
         <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
       </div>
       <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction}/>
