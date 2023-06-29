@@ -1,23 +1,21 @@
 import * as React from 'react';
-import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
-import PreviewUser from './PreviewUser';
 
-interface FadeMenuProps{
+interface FadeMenuProps {
   user: { username: string; id: number; };
+  // child: React.Component;
 }
 
-export default function FadeMenu( {user}: FadeMenuProps ) {
+export default function FadeMenu({ user }: FadeMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const menu: string[] = ["Profil", "Message prive", "Jouer", "Bloquer"];
-  
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -25,12 +23,10 @@ export default function FadeMenu( {user}: FadeMenuProps ) {
 
   return (
     <div>
-      <p  id="fade-button"
-          aria-controls={open ? 'fade-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? 'true' : undefined}
-          onClick={handleClick}>
-      {user.username}</p>
+      <p
+        onClick={handleClick}
+        className="User">
+        {user.username}</p>
       <Menu
         id="fade-menu"
         MenuListProps={{
@@ -41,9 +37,9 @@ export default function FadeMenu( {user}: FadeMenuProps ) {
         onClose={handleClose}
         TransitionComponent={Fade}
       >
-      {menu.map((item, index) => {
-        return (<MenuItem key={index} onClick={handleClose}>{item}</MenuItem>)
-      })}
+        {menu.map((item, index) => {
+          return (<MenuItem key={index} onClick={handleClose}>{item}</MenuItem>)
+        })}
       </Menu>
     </div>
   );

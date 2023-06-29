@@ -12,23 +12,3 @@
     background-color: #2F3621;
 }
 
-.settingsMenu{
-    height: auto;
-    width: 100%;
-    transition: all 2s linear;
-}
-
-.displaySettingsMenu{
-    display: block;
-}
-
-.hideSettingsMenu{
-    display: none;
-}
-
-.settingsMenu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-

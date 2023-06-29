@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import "../styles/HeaderChatBox.css"
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IsConnected from "./isConnected";
 import "../types/channel.type";
+import SettingsIcon from '@mui/icons-material/Settings';
 
 interface HeaderChatBoxProps {
     channelHeader: Channel[];
@@ -12,6 +12,10 @@ interface HeaderChatBoxProps {
 }
 
 function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
+
+    const handleSettingsClick = () => {
+        console.log("clicked");
+    }
 
     var i: number = 0;
     for (; i < channelHeader.length; i++) {
@@ -29,14 +33,12 @@ function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
                     <p>loading...</p>
                 </div>
                 <div className="HeaderChatBoxLogo">
-                    <DeleteOutlineIcon />
+                    <SettingsIcon />
                 </div>
             </div>
         )
     }
     else {
-
-
         return (
             <div className="HeaderChatBox">
                 <div className="ContactName">
@@ -45,7 +47,7 @@ function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
                     <p>{channelHeader[i].name}</p>
                 </div>
                 <div className="HeaderChatBoxLogo">
-                    <DeleteOutlineIcon />
+                    <button className="settingsButton" onClick={handleSettingsClick}><SettingsIcon/></button>
                 </div>
             </div>
         )
