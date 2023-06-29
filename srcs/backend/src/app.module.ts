@@ -7,7 +7,6 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { SocketModule } from './socket/SocketModule';
-import { GatewayModule } from './game/gateway/gateway.module';
 // import { PrismaModule } from './prisma/prisma.module';
 import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
@@ -22,7 +21,6 @@ import { GameModule } from './game/game.module';
     UserModule,
     BookmarkModule,
     SocketModule,
-    GatewayModule,
     ChatModule,
     PrismaModule,
     GameModule

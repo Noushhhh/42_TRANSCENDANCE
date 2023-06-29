@@ -25,28 +25,55 @@ export const p2Props = {
 };
 
 export interface GamePhysicsProps {
-  setP1Score: React.Dispatch<React.SetStateAction<number>>;
-  setP2Score: React.Dispatch<React.SetStateAction<number>>;
   isPaused: boolean;
-  // @ts-ignore
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+  socket: Socket;
 }
 
 export interface PaddleProps {
-  // @ts-ignore
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+  socket: Socket;
   isPaused: boolean;
-  p1Pos: React.MutableRefObject<Vector2d>;
-  p2Pos: React.MutableRefObject<Vector2d>;
 }
 
 export interface BallProps {
-  // @ts-ignore
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
-  isPaused: boolean;
+  socket: Socket;
   ballPosRef: React.MutableRefObject<Vector2d>;
-  p1Pos: React.MutableRefObject<Vector2d>;
-  p2Pos: React.MutableRefObject<Vector2d>;
-  setP1Score: React.Dispatch<React.SetStateAction<number>>;
-  setP2Score: React.Dispatch<React.SetStateAction<number>>;
+}
+
+export interface ScoreBoardProps {
+  socket: Socket;
+}
+
+export interface GameState {
+  p1pos: {
+    x: number;
+    y: number;
+  };
+  p2pos: {
+    x: number;
+    y: number;
+  };
+  ballState: {
+    ballDirection: string,
+    ballDX: number,
+    ballDY: number,
+    ballPos: {
+      x: number;
+      y: number;
+    },
+  },
+  ballRay: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  },
+  isPaused: boolean;
+  score: {
+    p1Score: number;
+    p2Score: number;
+  };
+}
+
+export interface RayProps {
+  socket: Socket;
 }

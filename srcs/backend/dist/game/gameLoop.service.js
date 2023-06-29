@@ -16,6 +16,9 @@ const gatewayOut_1 = require("./gatewayOut");
 const KONVA_WIDTH = 1200;
 const KONVA_HEIGHT = 800;
 const PADDLE_WIDTH = 25;
+// const PADDLE_HEIGHT = 10;
+// const ballSpeed = 2;
+const RAY_LENGHT = 15 + 20;
 let GameLoopService = exports.GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
         this.gameLogicService = gameLogicService;
@@ -23,12 +26,6 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
         this.ballPos = {
             x: KONVA_WIDTH / 2,
             y: KONVA_HEIGHT / 2,
-        };
-        this.ballState = {
-            ballDirection: 'left',
-            ballDX: 0,
-            ballDY: 0,
-            ballPos: this.ballPos,
         };
         this.gameState = {
             p1pos: {
@@ -39,9 +36,20 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
                 x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
                 y: 310,
             },
-            ballPos: {
-                x: KONVA_WIDTH / 2,
-                y: KONVA_HEIGHT / 2,
+            ballState: {
+                ballDirection: 'left',
+                ballDX: 0,
+                ballDY: 0,
+                ballPos: {
+                    x: KONVA_WIDTH / 2,
+                    y: KONVA_HEIGHT / 2,
+                },
+            },
+            ballRay: {
+                x1: KONVA_WIDTH / 2,
+                y1: KONVA_HEIGHT / 2,
+                x2: KONVA_WIDTH / 2 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
+                y2: KONVA_HEIGHT / 2 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
             },
             isPaused: true,
             score: {
@@ -49,16 +57,40 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
                 p2Score: 0,
             },
         };
+        this.ballState = {
+            ballDirection: 'left',
+            ballDX: 0,
+            ballDY: 0,
+            ballPos: this.ballPos,
+            scoreBoard: this.gameState.score
+        };
         this.updateGameState = () => {
             this.gatewayOut.updateGameState(this.gameState);
         };
-        this.updateBall = () => {
-            if (this.ballState) {
-                this.ballState = this.gameLogicService.ballMove(this.ballState.ballDirection, this.ballState.ballPos, this.gameState.p1pos, this.gameState.p2pos, this.ballState.ballDX, this.ballState.ballDY);
+        this.updateRay = () => {
+            this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
+            this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
+            if (this.gameState.ballState.ballDirection === 'right') {
+                this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+                this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+                return;
             }
-            if (this.ballState)
-                this.gameState.ballPos = this.ballState.ballPos;
-            return this.gatewayOut.sendBallPos(this.gameState.ballPos);
+            this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+            this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+        };
+        this.updateBall = () => {
+            var _a, _b;
+            if (this.ballState) {
+                this.ballState = this.gameLogicService.ballMove(this.ballState.ballDirection, this.ballState.ballPos, this.gameState.p1pos, this.gameState.p2pos, this.ballState.ballDX, this.ballState.ballDY, this.gameState.score, this.gameState.ballRay);
+            }
+            if ((_a = this.ballState) === null || _a === void 0 ? void 0 : _a.scoreBoard)
+                this.gameState.score = (_b = this.ballState) === null || _b === void 0 ? void 0 : _b.scoreBoard;
+            if (this.ballState) {
+                this.gameState.ballState.ballPos = this.ballState.ballPos;
+                this.gameState.ballState = this.ballState;
+            }
+            this.updateRay();
+            return this.gatewayOut.sendBallPos(this.gameState.ballState.ballPos);
         };
         this.gameLoopRunning = false;
     }
