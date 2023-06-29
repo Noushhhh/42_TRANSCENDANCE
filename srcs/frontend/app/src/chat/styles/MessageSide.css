@@ -11,3 +11,10 @@
         width: 100%;
     }
 }
+
+.containerSearchBar{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #3E3B38;
+}

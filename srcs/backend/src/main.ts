@@ -10,7 +10,7 @@ async function bootstrap() {
     whitelist: true,
   }));
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:8080',
     optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
   };
 
