@@ -16,7 +16,7 @@ const ballSpeed = 11;
 // Have to implement a calculator between ball and paddle like a ray
 let GameLogicService = exports.GameLogicService = class GameLogicService {
     constructor() {
-        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard) => {
+        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay) => {
             if (ballDirection === 'left') {
                 // Touch left paddle condition
                 if (ballPos.x > 10 + PADDLE_WIDTH &&

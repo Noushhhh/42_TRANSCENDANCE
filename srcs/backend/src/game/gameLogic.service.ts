@@ -23,6 +23,7 @@ export class GameLogicService {
     ballDX: number,
     ballDY: number,
     scoreBoard: { p1Score: number, p2Score: number },
+    ballRay: { x1: number, y1: number, x2: number, y2: number },
   ) => {
     if (ballDirection === 'left') {
       // Touch left paddle condition
@@ -65,7 +66,6 @@ export class GameLogicService {
           ballDX *= scalingFactor;
           ballDY *= scalingFactor;
         }
-
         ballPos.x = ballPos.x - ballSpeed - Math.abs(ballDX);
         ballPos.y = ballPos.y - ballDY;
         return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };

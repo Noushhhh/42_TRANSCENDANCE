@@ -7,9 +7,20 @@ export interface GameState {
     x: number;
     y: number;
   },
-  ballPos: {
-    x: number;
-    y: number;
+  ballState: {
+    ballDirection: string,
+    ballDX: number,
+    ballDY: number,
+    ballPos: {
+      x: number;
+      y: number;
+    },
+  },
+  ballRay: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
   },
   isPaused: boolean;
   score: {

@@ -1,6 +1,6 @@
 import "../styles/ScoreBoard.css";
 import React, { FC, useEffect, useState } from "react";
-import { ScoreBoardProps, gameState } from "../assets/data";
+import { ScoreBoardProps, GameState } from "../assets/data";
 
 const ScoreBoard: FC<ScoreBoardProps> = ({
   socket,
@@ -9,7 +9,7 @@ const ScoreBoard: FC<ScoreBoardProps> = ({
   const [p2Score, setP2Score] = useState(0);
 
   useEffect(() => {
-    socket.on("updateGameState", (gameState: gameState) => {
+    socket.on("updateGameState", (gameState: GameState) => {
       setP1Score(gameState.score.p1Score);
       setP2Score(gameState.score.p2Score);
     });

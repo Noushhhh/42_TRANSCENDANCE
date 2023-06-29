@@ -43,7 +43,7 @@ export interface ScoreBoardProps {
   socket: Socket;
 }
 
-export interface gameState {
+export interface GameState {
   p1pos: {
     x: number;
     y: number;
@@ -52,13 +52,28 @@ export interface gameState {
     x: number;
     y: number;
   };
-  ballPos: {
-    x: number;
-    y: number;
-  };
+  ballState: {
+    ballDirection: string,
+    ballDX: number,
+    ballDY: number,
+    ballPos: {
+      x: number;
+      y: number;
+    },
+  },
+  ballRay: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  },
   isPaused: boolean;
   score: {
     p1Score: number;
     p2Score: number;
   };
+}
+
+export interface RayProps {
+  socket: Socket;
 }

@@ -4,6 +4,7 @@ import { Vector2d } from "konva/lib/types";
 import * as data from "../assets/data";
 import Paddles from "./Paddles";
 import Ball from "./Ball";
+import Ray from "./Ray";
 
 const GamePhysics: FC<data.GamePhysicsProps> = ({
   isPaused = true,
@@ -22,14 +23,9 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
       height={data.KONVA_HEIGHT}
     >
       <Layer>
-        <Paddles
-          socket={socket}
-          isPaused={isPaused}
-        />
-        <Ball
-          socket={socket}
-          ballPosRef={ballPosRef}
-        />
+        <Paddles socket={socket} isPaused={isPaused} />
+        <Ball socket={socket} ballPosRef={ballPosRef} />
+        <Ray socket={socket} />
       </Layer>
     </Stage>
   );

@@ -13,7 +13,7 @@ const Paddles: FC<data.PaddleProps> = ({
   const keyState = useRef<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    socket.on("updateGameState", (gameState: data.gameState) => {
+    socket.on("updateGameState", (gameState: data.GameState) => {
       updateP1pos(gameState.p1pos);
       updateP2pos(gameState.p2pos);
     });
