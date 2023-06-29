@@ -1,6 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Channel, Message } from "@prisma/client";
+import { Channel, Message, User, ChannelType } from "@prisma/client";
+import { error } from "console";
+
+interface MessageToStore{
+  channelId: number;
+	content: string;
+	senderId: number;
+}
+
+interface channelToAdd{
+  name: string,
+  password: string
+  ownerId: number,
+  participants: number[],
+  type: string,
+}
+
 
 @Injectable()
 export class ChatService {
@@ -54,7 +70,7 @@ export class ChatService {
     return lastMessage.content;
   }
 
-  async getChannelHeadersFromId(id: number): Promise<ChannelType> {
+  async getChannelHeadersFromId(id: number): Promise<ChannelLight> {
 
     const channelId = Number(id);
 
@@ -69,6 +85,7 @@ export class ChatService {
           },
           take: 1,
         },
+        participants:{}
       },
     });
 
@@ -78,13 +95,11 @@ export class ChatService {
     }
 
     const lastMessage = channel?.messages[0];
-    if (lastMessage) {
-      const lastMessageContent = lastMessage.content;
-      const lastMessageCreatedAt = lastMessage.createdAt;
-    }
     
-    const channelHeader: ChannelType = {
-      name: channel.name,
+    const numberParticipants = channel.participants.length;
+
+    const channelHeader: ChannelLight = {
+      name: numberParticipants > 2 ? channel.name : "",
       lastMsg: lastMessage ? lastMessage.content : '',
       dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
       channelId,
@@ -142,6 +157,7 @@ export class ChatService {
   }
 
   async addMessage() {
+
     console.log('add message...');
 
     await this.prisma.message.create({
@@ -170,4 +186,93 @@ export class ChatService {
     });
   }
 
+  async getAllMessagesByChannelId(id: number): Promise<Message[]>{
+
+    const channelId = Number(id);
+
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+      include: {
+        messages: true, // Inclure les messages associés au canal
+      },
+    });
+
+    if (!channel)
+    {
+      throw new Error('getAllMessageFromChannelId: cant find channel');
+    }
+  
+    return channel.messages;
+  }
+
+  async addMessageToChannelId(channId: number, message: MessageToStore){
+
+    await this.prisma.message.create({
+      data: message,
+    })
+  }
+
+  async getUsersFromChannelId(id: number): Promise<User[]>{
+    
+    const channelId = Number(id);
+
+    try {
+      const users = await this.prisma.channel.findUnique({
+        where: {id: channelId},
+      }).participants();
+
+      if (!users)
+        return [];
+
+      return users;
+
+    } catch (error) {
+      throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
+    }
+  }
+
+  async getLoginsFromSubstring(substring: string): Promise<{username: string, id: number}[]>{
+
+    const users: {username: string, id: number}[] = await this.prisma.user.findMany({
+      where: {
+        username: {
+          startsWith: substring
+        }
+      },
+      select: {
+        username: true,
+        id: true,
+      }
+    })
+    // const logins = users.map(user => user.username);
+    return users;
+  }
+
+  async addChannelToUser(channelInfo: channelToAdd){
+
+    const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
+    participants.push({id: channelInfo.ownerId});
+      
+      try {
+        const newChannel = await this.prisma.channel.create({
+          data: {
+            name: channelInfo.name,
+            password: channelInfo.password,
+            ownerId: channelInfo.ownerId,
+            type: ChannelType[channelInfo.type as keyof typeof ChannelType],
+            participants: {
+              connect: participants,
+            },
+          },
+        });
+      } catch (error){
+        console.error('addChannelToUser:', error);
+        throw error;
+      }
+    }
+
 }
+
+

@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const client_1 = require("@prisma/client");
 let ChatService = exports.ChatService = class ChatService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -78,18 +79,16 @@ let ChatService = exports.ChatService = class ChatService {
                         },
                         take: 1,
                     },
+                    participants: {}
                 },
             });
             if (!channel) {
                 throw new Error("getChannelHeadersFromId: channel doesnt exist");
             }
             const lastMessage = channel === null || channel === void 0 ? void 0 : channel.messages[0];
-            if (lastMessage) {
-                const lastMessageContent = lastMessage.content;
-                const lastMessageCreatedAt = lastMessage.createdAt;
-            }
+            const numberParticipants = channel.participants.length;
             const channelHeader = {
-                name: channel.name,
+                name: numberParticipants > 2 ? channel.name : "",
                 lastMsg: lastMessage ? lastMessage.content : '',
                 dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
                 channelId,
@@ -171,6 +170,86 @@ let ChatService = exports.ChatService = class ChatService {
                     createdAt: true
                 }
             });
+        });
+    }
+    getAllMessagesByChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const channelId = Number(id);
+            const channel = yield this.prisma.channel.findUnique({
+                where: {
+                    id: channelId,
+                },
+                include: {
+                    messages: true, // Inclure les messages associés au canal
+                },
+            });
+            if (!channel) {
+                throw new Error('getAllMessageFromChannelId: cant find channel');
+            }
+            return channel.messages;
+        });
+    }
+    addMessageToChannelId(channId, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.message.create({
+                data: message,
+            });
+        });
+    }
+    getUsersFromChannelId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const channelId = Number(id);
+            try {
+                const users = yield this.prisma.channel.findUnique({
+                    where: { id: channelId },
+                }).participants();
+                if (!users)
+                    return [];
+                return users;
+            }
+            catch (error) {
+                throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
+            }
+        });
+    }
+    getLoginsFromSubstring(substring) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const users = yield this.prisma.user.findMany({
+                where: {
+                    username: {
+                        startsWith: substring
+                    }
+                },
+                select: {
+                    username: true,
+                    id: true,
+                }
+            });
+            // const logins = users.map(user => user.username);
+            return users;
+        });
+    }
+    addChannelToUser(channelInfo) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const participants = channelInfo.participants.map(userId => ({ id: userId }));
+            participants.push({ id: channelInfo.ownerId });
+            try {
+                const newChannel = yield this.prisma.channel.create({
+                    data: {
+                        name: channelInfo.name,
+                        password: channelInfo.password,
+                        ownerId: channelInfo.ownerId,
+                        type: client_1.ChannelType[channelInfo.type],
+                        participants: {
+                            connect: participants,
+                        },
+                    },
+                });
+            }
+            catch (error) {
+                console.error('addChannelToUser:', error);
+                throw error;
+            }
         });
     }
 };

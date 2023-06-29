@@ -1,5 +1,12 @@
-import { IsInt } from "class-validator";
+import { IsInt, IsString } from 'class-validator';
 
-export class ChatDto {
+// export class CreateMessageDto {
+//   @IsInt()
+//   senderId: number
 
-}
+//   @IsInt()
+//   channelId: number
+
+//   @IsString()
+//   content: string
+// }

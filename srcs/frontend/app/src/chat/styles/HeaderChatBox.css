@@ -21,6 +21,19 @@
     display: none;
 }
 
+
+.settingsButton {
+  background-color: rgba(0,0,0,0);
+  color: white;
+  transition: 0.6s all ease;
+  border-color: rgba(0,0,0,0);
+}
+
+.settingsButton:hover {
+    background-color: #262421;
+    transition: 0.6s all ease;
+}
+
 @media (max-width: 800px){
     .ArrowBackPhone{
         display: block;
