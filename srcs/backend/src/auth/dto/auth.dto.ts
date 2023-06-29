@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString }from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class AuthDto {
     @IsString()
@@ -13,4 +13,4 @@ export class AuthDto {
         this.login = login;
         this.password = password;
     }
-} 
+}

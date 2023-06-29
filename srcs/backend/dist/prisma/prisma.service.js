@@ -17,7 +17,9 @@ let PrismaService = exports.PrismaService = class PrismaService extends client_1
         super({
             datasources: {
                 db: {
-                    url: "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database"
+                    url: "postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance_database?schema=public"
+                    // url: "postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance_database"
+
                 },
             },
         });
