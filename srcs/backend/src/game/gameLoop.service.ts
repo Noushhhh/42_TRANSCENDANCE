@@ -23,7 +23,6 @@ export class GameLoopService {
     y: KONVA_HEIGHT / 2,
   }
 
-
   private gameState = {
     p1pos: {
       x: 10,
