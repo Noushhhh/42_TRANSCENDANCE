@@ -72,6 +72,8 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
     var userIndex: number = -1;
   
     simulatedUserId === users[0].id ? userIndex = 1 : userIndex = 0;
+
+    console.log(userIndex);
   
     await isUserConnected(users[userIndex].id)
     .then((response: boolean) => {

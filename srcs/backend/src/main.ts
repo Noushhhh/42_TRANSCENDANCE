@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:8080',
+    origin: 'http://localhost:3000',
     optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
   };
 
