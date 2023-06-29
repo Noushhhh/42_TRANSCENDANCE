@@ -4,18 +4,19 @@ import "../styles/Message.css";
 interface MonComposantProps {
     contentMessage: string;
     messageType: string;
+    channelId: number;
 }
 
-function Message(props: MonComposantProps) {
-    
+function MessageComponent(props: MonComposantProps) {
+
     const updatedClassName = `${props.messageType}`;
-    const updatedClassNameContainer = props.messageType + "Container";    
+    const updatedClassNameContainer = props.messageType + "Container";
     
     return (
         <div className={`Message Date ${updatedClassNameContainer}`}>
-            <p className={`MessageComposant DateComposant ${updatedClassName}`}>{props.contentMessage}</p>
+            <p className={`MessageComposant DateComposant ${updatedClassName}`}>{props.channelId}{props.contentMessage}</p>
         </div>
     )
 }
 
-export default Message;
+export default MessageComponent;

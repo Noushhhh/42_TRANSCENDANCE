@@ -7,9 +7,11 @@ WORKDIR /usr/src/app
 # This line copies the package.json and package-lock.json (if available) files from your local directory to the Docker container's working directory.
 COPY package*.json ./  
 
+# Copy prisma file in working directory
+COPY /prisma /usr/src/app 
 
 # This line tells Docker to listen on port 4000 at runtime. This is the port that your application will be available on.
-EXPOSE 4000  
+EXPOSE 4000
 
 # # This line runs the npm install command which installs all the dependencies defined in the package.json file. 
 # RUN npm install  

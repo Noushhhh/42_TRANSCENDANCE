@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// commentaire de pmulin :
+// Si vous souhaitez utiliser la cmd npx prisma generate, utilisew
+// ce flag =
+// prisma generate --schema=./path/to/your/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int          @id @default(autoincrement())
+  username          String       @unique
+
+  channelsOwned     Channel[]    @relation("Owner")
+  blockedUsers      User[]       @relation("BlockedUsers")
+  blockedBy         User[]       @relation("BlockedUsers")
+  conversations     Channel[]    @relation("Participant")
+
+  adminOfChannels   Channel[]    @relation("Admins")
+
+  login         String @unique
+  hashPassword  String
+
+  email         String?
+  firstName     String?
+  lastName      String?
+  bannedFromChannel Channel[]    @relation("BannedUsers")
+  sentMessages      Message[]    @relation("MessagesSent")
+  mutedInChannels   Channel[]    @relation("MutedUsers")
+}
+
+model Channel {
+  id               Int             @id @default(autoincrement())
+
+  name             String
+  type             ChannelType     @default(PUBLIC)
+  password         String?         @default("")
+
+  owner            User            @relation("Owner", fields: [ownerId], references: [id])
+  ownerId          Int
+  admins           User[]          @relation("Admins")
+
+  participants     User[]          @relation("Participant")
+  messages         Message[]       @relation("Channel")
+  bannedUsers      User[]          @relation("BannedUsers")
+  mutedUsers       User[]          @relation("MutedUsers")
+}
+
+model Message {
+  id               Int             @id @default(autoincrement())
+  sender           User            @relation("MessagesSent", fields: [senderId], references: [id])
+  senderId         Int
+  channel          Channel         @relation("Channel", fields: [channelId], references: [id])
+  channelId        Int
+  content          String
+  createdAt        DateTime        @default(now())
+}
+
+model Bookmark {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  title       String
+  description String?
+  link        String
+}
+
+enum ChannelType {
+  PUBLIC
+  PRIVATE
+  PASSWORD_PROTECTED
+}
+

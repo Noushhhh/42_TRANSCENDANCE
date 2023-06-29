@@ -17,6 +17,11 @@
     background-color: #384722;
 }
 
+.ContentMessageTitle{
+    max-width: 230px;
+    overflow-x: clip;
+}
+
 .ContentMessageTitle .PreviewMessage{
     color:#5A5E51;
 }
@@ -35,6 +40,7 @@
 }
 
 .ContainerPreview{
+    width: 100%;
     padding: 10px;
     display: flex;
     flex-direction: column;

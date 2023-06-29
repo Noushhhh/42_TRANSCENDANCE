@@ -14,12 +14,13 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 let PrismaService = exports.PrismaService = class PrismaService extends client_1.PrismaClient {
     constructor() {
+        console.log(process.env);
         super({
             datasources: {
                 db: {
-                    url: "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database",
-                }
-            }
+                    url: process.env.DATABASE_URL
+                },
+            },
         });
     }
 };
