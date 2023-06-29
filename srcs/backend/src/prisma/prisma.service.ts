@@ -8,9 +8,7 @@ export class PrismaService extends PrismaClient {
         super({
             datasources: {
                 db: {
-                    // url: process.env.DATABASE_URL
-                    url: "postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance_database?schema=public"
-                },
+                    url: process.env.DATABASE_URL                },
             },
         });
     }
