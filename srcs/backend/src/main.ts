@@ -13,7 +13,7 @@ async function bootstrap() {
     origin: 'http://localhost:8080',
     optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
   };
-
+  app.setGlobalPrefix("api");
   // Activez CORS pour toutes les routes de l'application
   app.enableCors(corsOptions);
 
