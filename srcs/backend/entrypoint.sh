@@ -6,10 +6,19 @@ npm install
 npm install --save-dev nodemon ts-node
 
 # This line updates all the dependencies defined in the package.json file 
-npm update  
+npm update
+# shouldnt update at each start can crash if versions not compatible  
 
 # This line runs the TypeScript compiler to build your application.
-npm run prestart
+# npm run prestart
+# doesnt exist 
+
+# Generate database 
+npx prisma generate
+
+# Update database migration 
+npx prisma migrate dev
 
 # This line provides the default command to run when the Docker container starts. In this case, it's starting the Node.js application.
 npm start
+

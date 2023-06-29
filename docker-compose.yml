@@ -1,4 +1,4 @@
-version: '3' # Define the version of the Compose file
+version: '3.8' # Define the version of the Compose file
 services:
 
   # Database Service
@@ -6,9 +6,11 @@ services:
     container_name: db_container # Set the container name
     env_file:
       - .env # Set the environment file
+      - ./srcs/backend/prisma/.env # Set the environment file
+
     image: postgres:15.3 # Set the image name and set up version
     ports:
-      - 5434:5432
+      - 5432
     volumes:
       - db_volume:/var/lib/postgresql/data # Mount the volume
     environment:
@@ -23,6 +25,7 @@ services:
     container_name: backend_container # Set the container name
     env_file:
       - .env # Set the environment file
+      - ./srcs/backend/prisma/.env
     build:
       context: ./srcs/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
