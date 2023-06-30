@@ -20,19 +20,6 @@ services:
     networks:
       - app_network # Connect to the app network
 
-  prisma-studio:
-    container_name: prisma_studio
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: npx prisma studio --schema=srcs/backend/prisma/schema.prisma
-    ports:
-      - 5555:5555
-    depends_on:
-      - db
-    networks:
-      - app_network
-
   # Backend Service
   backend:
     container_name: backend_container # Set the container name
