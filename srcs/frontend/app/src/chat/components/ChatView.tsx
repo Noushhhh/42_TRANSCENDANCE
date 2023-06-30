@@ -38,6 +38,8 @@ function ChatView({ messages, conversation, channelId, userId }: MonComposantPro
     const fetchConversation = async () => {
       const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId/${channelId}`);
       const messageList = await response.json();
+      console.log("messagelist === ");
+      console.log(messageList);
       messageList.map((message: Message) => {
         userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
         addMsgToFetchedConversation(message)
