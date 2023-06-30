@@ -7,11 +7,11 @@ import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 function App() {
   return (
     <div className="App">
-      {/* <Navbar /> */}
-      {/* <ChatBoxContainer /> */}
-      <GameContainer />
+      <Navbar />
+      {/* <GameContainer /> */}
+        <ChatBoxContainer />
     </div>
   );
 }
 
-export default App;
+export default App; 
