@@ -3,55 +3,27 @@ import GamePhysics from "./GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./ScoreBoard";
 import { io } from "socket.io-client";
+import { GameState } from "../assets/data";
 
 const socket = io("http://localhost:4000");
 
-// const p1Direction = {
-//   up: Boolean,
-//   down: Boolean,
-// };
-
-// const p2Direction = {
-//   up: Boolean,
-//   down: Boolean,
-// };
-
-// const ballDirection = {
-//   right: Boolean,
-//   left: Boolean,
-// };
-
-// const isPausedStatus = {
-//   isPaused: Boolean,
-// };
-
-// const ScoreBoardStatus = {
-//   p1ScoreIncrement: Boolean,
-//   p2ScoreIncrement: Boolean,
-// };
-
 function GameContainer() {
   const [isPaused, setIsPaused] = useState(true);
-
-  socket.on("connect", () => {
-    console.log("Well connected to socket server");
-  });
 
   /* ----------------------------- */
   //     PLAY/PAUSE SOCKET LOGIC
   /* ----------------------------- */
   useEffect(() => {
-    socket.on("play", () => {
-      setIsPaused(true);
+    socket.on("connect", () => {
+      console.log("Well connected to socket server");
     });
-
-    socket.on("pause", () => {
-      setIsPaused(false);
+    socket.on("updateGameState", (gameState: GameState) => {
+      setIsPaused(gameState.isPaused);
     });
 
     return () => {
-      socket.off("play");
-      socket.off("pause");
+      socket.off("connect");
+      socket.off("updateGameState");
     };
   }, []);
 
@@ -86,11 +58,8 @@ function GameContainer() {
 
   return (
     <div className="GameContainer">
-      <ScoreBoard socket={socket}/>
-      <GamePhysics
-        socket={socket}
-        isPaused={isPaused}
-      />
+      <ScoreBoard socket={socket} />
+      <GamePhysics socket={socket} isPaused={isPaused} />
       <button
         style={{ position: "absolute", top: "5%", right: "15%" }}
         onClick={() => handlePlayPause()}
