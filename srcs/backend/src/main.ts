@@ -10,7 +10,7 @@ async function bootstrap() {
     whitelist: true,
   }));
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:8080',
     optionsSuccessStatus: 200, // Ajoutez ce code d'état pour les réponses pré-vol (preflight)
   };
 
@@ -18,7 +18,7 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
 
-  // app.setGlobalPrefix('api'); // set global route prefix
+  app.setGlobalPrefix('api'); // set global route prefix
   // Start the application and listen on port 4000
   await app.listen(4000);
 }

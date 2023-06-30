@@ -32,19 +32,22 @@ model User {
   email         String?
   firstName     String?
   lastName      String?
-  bannedFromChannel Channel[]      @relation("BannedUsers")
+  bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
 }
 
 model Channel {
   id               Int             @id @default(autoincrement())
+
   name             String
   type             ChannelType     @default(PUBLIC)
   password         String?         @default("")
+
   owner            User            @relation("Owner", fields: [ownerId], references: [id])
   ownerId          Int
   admins           User[]          @relation("Admins")
+
   participants     User[]          @relation("Participant")
   messages         Message[]       @relation("Channel")
   bannedUsers      User[]          @relation("BannedUsers")

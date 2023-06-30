@@ -4,11 +4,10 @@ import "../styles/Message.css";
 interface MonComposantProps {
     contentMessage: string;
     messageType: string;
-    conversation: number;
     channelId: number;
 }
 
-function Message(props: MonComposantProps) {
+function MessageComponent(props: MonComposantProps) {
 
     const updatedClassName = `${props.messageType}`;
     const updatedClassNameContainer = props.messageType + "Container";
@@ -20,4 +19,4 @@ function Message(props: MonComposantProps) {
     )
 }
 
-export default Message;
+export default MessageComponent;
