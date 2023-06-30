@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.22",
-    "prisma": "4.15.0",
+    "prisma": "^4.15.0",
     "ts-node": "^10.9.1"
   },
   "prisma": {
