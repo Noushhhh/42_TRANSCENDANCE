@@ -75,11 +75,13 @@ export class GameLoopService {
     }
 
     this.gameLoopRunning = true;
+    this.gameState.isPaused = false;
     this.gameLoop();
   }
 
   stopGameLoop() {
     this.gameLoopRunning = false;
+    this.gameState.isPaused = true;
     return;
   }
 
