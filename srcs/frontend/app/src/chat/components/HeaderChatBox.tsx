@@ -7,14 +7,16 @@ import "../types/channel.type";
 import SettingsIcon from '@mui/icons-material/Settings';
 
 interface HeaderChatBoxProps {
+    channelInfo: boolean;
+    setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
     channelHeader: Channel[];
     channelId: number;
 }
 
-function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
+function HeaderChatBox({ channelInfo, setChannelInfo, channelHeader, channelId }: HeaderChatBoxProps) {
 
     const handleSettingsClick = () => {
-        console.log("clicked");
+        channelInfo === true ? setChannelInfo(false) : setChannelInfo(true);
     }
 
     var i: number = 0;

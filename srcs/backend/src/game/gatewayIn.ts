@@ -17,11 +17,18 @@ export class GatewayIn implements OnModuleInit {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly gameLoop: GameLoopService) {}
+  connectedClients = [
+    {
+      clientId: "",
+    }
+  ]
+
+  constructor(private readonly gameLoop: GameLoopService) { }
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
       console.log(socket.id);
+      this.connectedClients.push({ clientId: socket.id })
       console.log('connected');
     });
   }

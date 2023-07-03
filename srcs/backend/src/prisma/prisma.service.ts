@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient {
     constructor() {
+        console.log("teeeeeeeeest icicicicicicicicicici");
+        console.log(process.env.DATABASE_URL);
         super({
             datasources: {
                 db: {
-                    url: "postgresql://42_lyon:BornToCode@localhost:5434/ft_transcendance_database"
-                },
+                    url: process.env.DATABASE_URL},
             },
         });
     }

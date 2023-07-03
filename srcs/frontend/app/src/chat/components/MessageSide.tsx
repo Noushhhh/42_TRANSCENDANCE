@@ -73,8 +73,6 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
   
     simulatedUserId === users[0].id ? userIndex = 1 : userIndex = 0;
 
-    console.log(userIndex);
-  
     await isUserConnected(users[userIndex].id)
     .then((response: boolean) => {
       channelInfo.isConnected = response;
@@ -97,6 +95,9 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
 
     const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${simulatedUserId}`);
     const listChannelId = await response.json();
+
+    console.log("conv du 1 ==");
+    console.log(listChannelId);
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
       const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);

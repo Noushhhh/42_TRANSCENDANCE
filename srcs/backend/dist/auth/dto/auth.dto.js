@@ -9,22 +9,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PrismaService = void 0;
-const common_1 = require("@nestjs/common");
-const client_1 = require("@prisma/client");
-let PrismaService = exports.PrismaService = class PrismaService extends client_1.PrismaClient {
-    constructor() {
-        console.log(process.env);
-        super({
-            datasources: {
-                db: {
-                    url: process.env.DATABASE_URL
-                },
-            },
-        });
+exports.AuthDto = void 0;
+const class_validator_1 = require("class-validator");
+class AuthDto {
+    constructor(login, password) {
+        this.login = login;
+        this.password = password;
     }
-};
-exports.PrismaService = PrismaService = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
-], PrismaService);
+}
+exports.AuthDto = AuthDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], AuthDto.prototype, "login", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], AuthDto.prototype, "password", void 0);

@@ -10,7 +10,6 @@
 .MessageContainer{
     display: flex;
     width: 80%;
-    background-color: red;
     height: 100%;
 }
 

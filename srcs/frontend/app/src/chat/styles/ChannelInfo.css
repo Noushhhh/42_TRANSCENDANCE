@@ -1,0 +1,65 @@
+
+.ChannelInfo{
+    color: #2F4F4F;
+}
+
+.ContainerChannelInfoisDisplay{
+    width: 100%;
+    background-color: #F0F2F5;
+    height: 100%;
+    transition: 0.24s all ease;
+    opacity: 1;
+}
+
+.ContainerChannelInfoisReduce{
+    width: 0%;
+    transition: 0.24s all ease;
+    opacity: 0;
+}
+
+.HeaderChannelInfo{
+    background-color: #3E3B38;
+    height: 42px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid grey;
+}
+
+.ChannelInfoCard{
+    background-color: white;
+    padding: 10px;
+    margin: 20px 0px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0px 0px 3px black;
+}
+
+.HeaderChannelInfo h3 {
+    margin: 0px;
+}
+
+.ChannelInfoCard > * {
+    margin: 6px;
+    padding: 0;
+}
+
+.ChannelName{
+    flex-direction: column;
+}
+
+.SettingsButton h4{
+    display: flex;
+    align-items: center;
+}
+
+.ChannelInfoCard .icon{
+    font-size: 22px;
+    color: #C7C7C7;
+    margin: 0px 8px;
+}
+
+.clickable{
+    cursor: pointer;
+}

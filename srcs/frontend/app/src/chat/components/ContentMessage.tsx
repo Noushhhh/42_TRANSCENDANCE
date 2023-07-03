@@ -20,6 +20,8 @@ function ContentMessage( { channelHeader, conversation, channelId, simulatedUser
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
 
+    const [channelInfo, setChannelInfo] = useState<boolean>(false);
+    
     // each time the user change channel (click to a new one), we want to reset
     // all messages from the socket are they are now store in the database.
     useEffect(() => {
@@ -33,8 +35,8 @@ function ContentMessage( { channelHeader, conversation, channelId, simulatedUser
 
     return (
         <div className="ContentMessage">
-            <HeaderChatBox channelHeader={channelHeader} channelId={channelId} />
-            <ChatView userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
+            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo} channelHeader={channelHeader} channelId={channelId} />
+            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
             <ChatPrompt socket={socket} simulatedUserId={simulatedUserId} channelId={channelId} addMessage={addMessage} />
         </div>
     )   
