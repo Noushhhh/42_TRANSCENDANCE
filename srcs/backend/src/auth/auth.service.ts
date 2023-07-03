@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User, Bookmark } from  '@prisma/client';
+// import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
@@ -15,14 +15,13 @@ export class AuthService {
         // save user in db
         const user = await this.prisma.user.create({
             data: {
-                username: "default",
-                login: dto.login,
+                username: dto.username,
                 hashPassword,
             },
         });
         // return saved user
         return user;
-        // return { msg: 'I have signed up' };
+        return { msg: 'I have signed up' };
     }
 
     signin() {
