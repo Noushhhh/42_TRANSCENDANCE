@@ -45,7 +45,6 @@ function ChatView({ isChannelInfoDisplay, messages, conversation, channelId, use
   }, ([channelId]));
 
   return (
-
     <div className="ChatViewContainer">
       <div className={`ChatView ${widthChatView}`}>
         {conversationFetched.map((message: Message, index: number) => {

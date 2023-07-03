@@ -7,14 +7,14 @@
     width: 100%;
     background-color: #F0F2F5;
     height: 100%;
-    transition: 0.24s all ease;
+    display: block;
     opacity: 1;
 }
 
 .ContainerChannelInfoisReduce{
     width: 0%;
-    transition: 0.24s all ease;
     opacity: 0;
+    display: none;
 }
 
 .HeaderChannelInfo{
@@ -61,5 +61,5 @@
 }
 
 .clickable{
-    cursor: pointer;
+    cursor: pointer
 }

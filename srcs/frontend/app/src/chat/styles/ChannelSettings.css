@@ -25,11 +25,11 @@
     cursor: pointer;
 }
 
-.isDisplay{
+.isDisplaySettings{
     visibility: visible;
 }
 
-.isReduce{
+.isReduceSettings{
     visibility: hidden;
 }
 

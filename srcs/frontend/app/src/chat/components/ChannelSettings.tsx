@@ -28,7 +28,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel }: ChannelSetting
         { title: "New admin", icon: "AddIcon" },
       ];
 
-    let isDisplay: string = settingsChannel ? 'isDisplay' : 'isReduce';
+    let isDisplay: string = settingsChannel ? 'isDisplaySettings' : 'isReduceSettings';
 
     const backInfoMenu = () => {
         if (settingsChannel === true)
