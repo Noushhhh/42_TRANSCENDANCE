@@ -45,8 +45,8 @@ function ChannelSettings({ settingsChannel, setSettingsChannel }: ChannelSetting
             </div>
             <div className="ContentChannelSettings">
                 {
-                    menuItems.map((item) => (
-                        <div className="ChannelInfoCard">
+                    menuItems.map((item, index) => (
+                        <div key={index} className="ChannelInfoCard">
                             <h4>{item.title}</h4>
                         </div>
                     ))
