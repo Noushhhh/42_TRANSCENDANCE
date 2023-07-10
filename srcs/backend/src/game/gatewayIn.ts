@@ -1,36 +1,31 @@
-import { OnModuleInit } from '@nestjs/common';
 import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  OnGatewayDisconnect
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
+import { GameLobbyService } from './gameLobby.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class GatewayIn implements OnModuleInit {
+export class GatewayIn implements OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  connectedClients = [
-    {
-      clientId: "",
-    }
-  ]
+  constructor(
+    private readonly gameLoop: GameLoopService,
+    private readonly gameLobby: GameLobbyService,
+  ) { }
 
-  constructor(private readonly gameLoop: GameLoopService) { }
-
-  onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      this.connectedClients.push({ clientId: socket.id })
-      console.log('connected');
-    });
+  handleDisconnect(socket: Socket) {
+    console.log('client disconnected', socket.id);
+    this.gameLobby.removePlayerFromLobby(socket.id);
   }
 
   @SubscribeMessage('getP1Pos')

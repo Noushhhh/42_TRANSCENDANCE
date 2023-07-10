@@ -1,7 +1,4 @@
-import { OnModuleInit } from '@nestjs/common';
 import {
-  MessageBody,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -18,16 +15,9 @@ interface Vector2d {
     origin: '*',
   },
 })
-export class GatewayOut implements OnModuleInit {
+export class GatewayOut {
   @WebSocketServer()
   server!: Server;
-
-  onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      console.log('connected');
-    });
-  }
 
   sendBallPos(pos: Vector2d) {
     this.server.emit('updateBallPos', pos);
@@ -35,5 +25,9 @@ export class GatewayOut implements OnModuleInit {
 
   updateGameState(gameState: GameState) {
     this.server.emit('updateGameState', gameState);
+  }
+
+  isInLobby(isInLobby: boolean, clientId: string) {
+    this.server.emit('isOnLobby', isInLobby, clientId);
   }
 }
