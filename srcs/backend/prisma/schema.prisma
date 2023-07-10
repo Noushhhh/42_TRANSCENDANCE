@@ -35,6 +35,8 @@ model User {
   bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
+
+  @@map("User")
 }
 
 model Channel {
