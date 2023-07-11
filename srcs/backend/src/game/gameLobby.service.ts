@@ -1,20 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { GatewayOut } from './gatewayOut';
+import { Lobby, lobbies } from './lobbies';
 
-interface Lobby {
-  player1?: string | null;
-  player2?: string | null;
-}
+// class Lobby {
+//   player1?: string | null;
+//   player2?: string | null = null;
+//   gameState = new GameState();
+
+//   constructor(player1: string) {
+//     this.player1 = player1;
+//   }
+// }
 
 @Injectable()
 export class GameLobbyService {
 
-  private lobbies: Map<number, Lobby> = new Map();
+  // public lobbies: Map<number, Lobby> = new Map();
 
   constructor(private readonly gatewayOut: GatewayOut) { }
 
   private printLobbies() {
-    this.lobbies.forEach((value: Lobby, key: number, map: Map<number, Lobby>) => {
+    lobbies.forEach((value: Lobby, key: number) => {
       console.log("------------------")
       console.log("|", value, "|  ", key, "|")
       console.log("------------------")
@@ -27,7 +33,7 @@ export class GameLobbyService {
       return;
     }
 
-    for (const [key, value] of this.lobbies) {
+    for (const [key, value] of lobbies) {
       if (!value.player1 || !value.player2) {
         if (!value.player1) {
           value.player1 = player;
@@ -40,18 +46,15 @@ export class GameLobbyService {
       }
     }
 
-    const lobby = {
-      player1: player,
-      player2: null,
-    }
-    this.lobbies.set(this.lobbies.size, lobby);
+    const lobby = new Lobby(player);
+    lobbies.set(lobbies.size, lobby);
     this.printLobbies();
     this.gatewayOut.isInLobby(true, player);
   }
 
   removePlayerFromLobby(clientId: string) {
-    for (const [key, value] of this.lobbies) {
-      const lobby = this.lobbies.get(key);
+    for (const [key, value] of lobbies) {
+      const lobby = lobbies.get(key);
       if (value.player1 === clientId) {
         if (lobby) {
           lobby.player1 = null;
@@ -72,7 +75,7 @@ export class GameLobbyService {
   }
 
   private isInLobby(clientId: string): boolean {
-    for (const [key, value] of this.lobbies) {
+    for (const [key, value] of lobbies) {
       if (value.player1 === clientId)
         return true;
       if (value.player2 === clientId)

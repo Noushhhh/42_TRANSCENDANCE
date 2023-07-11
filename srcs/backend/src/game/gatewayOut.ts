@@ -4,6 +4,7 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { GameState } from './types'
+import { lobbies } from './lobbies';
 
 interface Vector2d {
   x: number;
@@ -24,6 +25,7 @@ export class GatewayOut {
   }
 
   updateGameState(gameState: GameState) {
+    
     this.server.emit('updateGameState', gameState);
   }
 

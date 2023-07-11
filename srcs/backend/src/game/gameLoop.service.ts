@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GameLogicService } from './gameLogic.service';
 import { GatewayOut } from './gatewayOut';
+import { lobbies } from './lobbies';
 
 const KONVA_WIDTH = 1200;
 const KONVA_HEIGHT = 800;
@@ -100,25 +101,50 @@ export class GameLoopService {
     this.gatewayOut.updateGameState(this.gameState);
   };
 
-  updateP1Pos(direction: string) {
+  private findPlayerLobby(playerId: string): number {
+    for (const [key, value] of lobbies) {
+      if (playerId === value.player1 || playerId === value.player2)
+        return key;
+    }
+    return -1;
+  }
+
+  updateP1Pos(direction: string, playerId: string) {
+    const lobbyId = this.findPlayerLobby(playerId);
+    const lobby = lobbies.get(lobbyId);
+    if (!lobby)
+      return;
     if (direction === 'up') {
-      if (this.gameState.p1pos.y > 0) {
+      if (lobby.gameState.gameState.p1pos.y > 0) {
         this.gameState.p1pos.y -= 6;
       }
+      // if (this.gameState.p1pos.y > 0) {
+      //   this.gameState.p1pos.y -= 6;
+      // }
     } else if (direction === 'down') {
-      if (this.gameState.p1pos.y < KONVA_HEIGHT - 150) {
+      if (lobby.gameState.gameState.p1pos.y < KONVA_HEIGHT - 150) {
         this.gameState.p1pos.y += 6;
       }
+      // if (this.gameState.p1pos.y < KONVA_HEIGHT - 150) {
+      //   this.gameState.p1pos.y += 6;
+      // }
     }
   }
 
-  updateP2Pos(direction: string) {
+  updateP2Pos(direction: string, playerId: string) {
+    const lobbyId = this.findPlayerLobby(playerId);
+    const lobby = lobbies.get(lobbyId);
+    if (!lobby)
+      return;
     if (direction === 'up') {
-      if (this.gameState.p2pos.y > 0) {
+      if (lobby.gameState.gameState.p2pos.y > 0) {
         this.gameState.p2pos.y -= 6;
       }
+      // if (this.gameState.p2pos.y > 0) {
+      //   this.gameState.p2pos.y -= 6;
+      // }
     } else if (direction === 'down') {
-      if (this.gameState.p2pos.y < KONVA_HEIGHT - 150) {
+      if (lobby.gameState.gameState.p2pos.y < KONVA_HEIGHT - 150) {
         this.gameState.p2pos.y += 6;
       }
     }

@@ -1,6 +1,5 @@
 import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { GameLobbyService } from '../game/gameLobby.service';
 
 @Injectable()
 export class SocketService {

@@ -3,7 +3,8 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayDisconnect
+  OnGatewayDisconnect,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
@@ -29,13 +30,13 @@ export class GatewayIn implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getP1Pos')
-  getP1Pos(@MessageBody() direction: string) {
-    this.gameLoop.updateP1Pos(direction);
+  getP1Pos(@MessageBody() direction: string, @ConnectedSocket() socket: Socket) {
+    this.gameLoop.updateP1Pos(direction, socket.id);
   }
 
   @SubscribeMessage('getP2Pos')
-  getP2Pos(@MessageBody() direction: string) {
-    this.gameLoop.updateP2Pos(direction);
+  getP2Pos(@MessageBody() direction: string, @ConnectedSocket() socket: Socket) {
+    this.gameLoop.updateP2Pos(direction, socket.id);
   }
 
   @SubscribeMessage('getIsPaused')
