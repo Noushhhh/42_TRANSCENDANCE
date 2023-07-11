@@ -3,14 +3,14 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class AuthDto {
     @IsString()
     @IsNotEmpty()
-    login!: string;
+    username!: string;
 
     @IsString()
     @IsNotEmpty()
     password!: string;
 
-    constructor(login: string, password: string) {
-        this.login = login;
+    constructor(username: string, password: string) {
+        this.username = username;
         this.password = password;
     }
 }

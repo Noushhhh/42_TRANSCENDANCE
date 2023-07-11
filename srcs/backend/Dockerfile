@@ -1,6 +1,9 @@
 # This line sets the base image for the Docker container. In this case, we're using the official Node.js image with the tag of 16, which is the version of Node.js.
 FROM node:lts
 
+RUN apt-get update -y
+RUN apt-get upgrade -y
+
 # This line sets the working directory inside the Docker container. Any command that follows in the Dockerfile will be run in this directory.
 WORKDIR /usr/src/app 
 

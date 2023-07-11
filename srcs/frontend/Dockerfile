@@ -2,6 +2,9 @@
 # Set base image
 FROM node:lts
 
+RUN apt-get update -y
+RUN apt-get upgrade -y
+
 # Set working directory inside the Docker container
 WORKDIR /app
 
