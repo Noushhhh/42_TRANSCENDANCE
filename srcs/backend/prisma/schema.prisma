@@ -36,7 +36,7 @@ model User {
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
 
-  @@map("User")
+  @@map("users")
 }
 
 model Channel {
@@ -81,4 +81,3 @@ enum ChannelType {
   PRIVATE
   PASSWORD_PROTECTED
 }
-

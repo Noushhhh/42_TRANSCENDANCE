@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 // import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -29,13 +29,16 @@ export class AuthService {
             // return saved user
             return user;
         }
-        catch (error: unknown) {
+        catch (error: unknown) 
+        {
             // handle parsing errors
             if (
                 error instanceof PrismaClientKnownRequestError &&
-                error.code === 'P2002'
-            ) {
-                throw new Error('Username already in use');
+                error.code === 'P2002' // try to create new record with unique field
+            ) 
+            {
+                // throw new Error('Username already in use');
+                throw new ForbiddenException("Username already in use")
             }
     
             // handle other errors
@@ -43,7 +46,28 @@ export class AuthService {
         }
     }
 
-    signin() {
-        return { msg: 'I have signed in' };
+    async signin(dto: AuthDto) 
+    {
+        // find user with username
+        const user = await this.prisma.user.findUnique({
+            where: {
+                username: dto.username,
+            }
+        });
+        // if user not found throw exception
+        if (!user)
+            throw new ForbiddenException('Username not found',);
+        
+        // compare password
+        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+        
+        // if password wrong throw exception
+        if (!passwordMatch)
+            throw new ForbiddenException('Incorrect password',);
+
+        // send back the user
+        // delete user.hashPassword
+            return user ;
+
     }
 }
