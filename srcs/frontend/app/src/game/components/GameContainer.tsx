@@ -38,22 +38,11 @@ function GameContainer() {
     socket.emit("getIsPaused", !isPaused);
     setIsPaused(!isPaused);
     if (isPaused === true) start();
-    else stop();
+    // else stop();
   };
 
   const start = () => {
     fetch("http://localhost:4000/api/game/play")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
-  const stop = () => {
-    fetch("http://localhost:4000/api/game/stop")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);

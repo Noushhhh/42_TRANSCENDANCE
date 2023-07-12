@@ -27,11 +27,6 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
         this.socketService.setSocket(clientId, socket);
     }
 
-    handleDisconnect(socket: Socket) {
-        const clientId = socket.id;
-        this.socketService.removeSocket(clientId);
-    }
-
     listUserConnected = new Map<number, string>();
 
     readMap(map: Map<number, string>): void {
@@ -57,13 +52,16 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
         return connectedSockets.has(socketId); // is the socketId of our clients is in this map ?
     }
 
-    // handleDisconnect(@ConnectedSocket() client: Socket) {
-    //     for (const [key, value] of this.listUserConnected.entries()) {
-    //         if (client.id === value)
-    //             this.listUserConnected.delete(key);
-    //     }
-    //     this.server.emit("changeConnexionState");
-    // }
+    handleDisconnect(@ConnectedSocket() client: Socket) {
+        for (const [key, value] of this.listUserConnected.entries()) {
+            if (client.id === value)
+                this.listUserConnected.delete(key);
+        }
+        this.server.emit("changeConnexionState");
+
+        const clientId = client.id;
+        this.socketService.removeSocket(clientId);
+    }
 
     @SubscribeMessage('message')
     handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {

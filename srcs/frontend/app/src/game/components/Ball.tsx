@@ -8,8 +8,8 @@ const Ball: FC<data.BallProps> = ({ socket }) => {
   const circleRef = useRef<Konva.Circle>(null);
 
   useEffect(() => {
-    socket.on("updateBallPos", (res: Vector2d) => {
-      updateBallPos(res);
+    socket.on("updateGameState", (gameState: data.GameState) => {
+      updateBallPos(gameState.ballState.ballPos);
     });
 
     return () => {

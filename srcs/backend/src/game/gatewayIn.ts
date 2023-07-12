@@ -24,28 +24,18 @@ export class GatewayIn implements OnGatewayDisconnect {
     private readonly gameLobby: GameLobbyService,
   ) { }
 
-  handleDisconnect(socket: Socket) {
-    console.log('client disconnected', socket.id);
-    this.gameLobby.removePlayerFromLobby(socket.id);
+  handleDisconnect(client: Socket) {
+    console.log('client disconnected', client.id);
+    this.gameLobby.removePlayerFromLobby(client);
   }
 
-  @SubscribeMessage('getP1Pos')
-  getP1Pos(@MessageBody() direction: string, @ConnectedSocket() socket: Socket) {
-    console.log('zaluut')
-    this.gameLoop.updateP1Pos(direction, socket.id);
-  }
-
-  @SubscribeMessage('getP2Pos')
-  getP2Pos(@MessageBody() direction: string, @ConnectedSocket() socket: Socket) {
-    this.gameLoop.updateP2Pos(direction, socket.id);
+  @SubscribeMessage('getPlayerPos')
+  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {
+    this.gameLoop.updatePlayerPos(direction, client);
   }
 
   @SubscribeMessage('getIsPaused')
-  setPause(@MessageBody() isPaused: boolean) {
-    if (isPaused === true) {
-      this.server.emit('play');
-    } else if (isPaused === false) {
-      this.server.emit('pause');
-    }
+  setPause(@MessageBody() isPaused: boolean, @ConnectedSocket() client: Socket) {
+    this.gameLobby.isPaused(client, isPaused);
   }
 }

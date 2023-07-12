@@ -7,8 +7,18 @@ const PADDLE_WIDTH = 25;
 // const ballSpeed = 2;
 const RAY_LENGHT = 15 + 20;
 
+interface Vector2d {
+  x: number;
+  y: number;
+}
+
 @Injectable()
 export class GameState {
+  private ballPos: Vector2d = {
+    x: KONVA_WIDTH / 2,
+    y: KONVA_HEIGHT / 2,
+  }
+
   gameState = {
     p1pos: {
       x: 10,
@@ -38,5 +48,13 @@ export class GameState {
       p1Score: 0,
       p2Score: 0,
     },
+  };
+
+  ballState = {
+    ballDirection: 'left',
+    ballDX: 0,
+    ballDY: 0,
+    ballPos: this.ballPos,
+    scoreBoard: this.gameState.score
   };
 }
