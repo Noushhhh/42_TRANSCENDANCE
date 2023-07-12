@@ -14,6 +14,7 @@ const Paddles: FC<data.PaddleProps> = ({
 
   useEffect(() => {
     socket.on("updateGameState", (gameState: data.GameState) => {
+      console.log(gameState);
       updateP1pos(gameState.p1pos);
       updateP2pos(gameState.p2pos);
     });

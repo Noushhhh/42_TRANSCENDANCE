@@ -98,7 +98,8 @@ export class GameLoopService {
   }
 
   private updateGameState = () => {
-    this.gatewayOut.updateGameState(this.gameState);
+    this.gatewayOut.updateLobbiesGameState();
+    // this.gatewayOut.updateGameState(this.gameState);
   };
 
   private findPlayerLobby(playerId: string): number {
@@ -110,20 +111,21 @@ export class GameLoopService {
   }
 
   updateP1Pos(direction: string, playerId: string) {
+    console.log('hello');
     const lobbyId = this.findPlayerLobby(playerId);
     const lobby = lobbies.get(lobbyId);
     if (!lobby)
       return;
     if (direction === 'up') {
       if (lobby.gameState.gameState.p1pos.y > 0) {
-        this.gameState.p1pos.y -= 6;
+        lobby.gameState.gameState.p1pos.y -= 6;
       }
       // if (this.gameState.p1pos.y > 0) {
       //   this.gameState.p1pos.y -= 6;
       // }
     } else if (direction === 'down') {
       if (lobby.gameState.gameState.p1pos.y < KONVA_HEIGHT - 150) {
-        this.gameState.p1pos.y += 6;
+        lobby.gameState.gameState.p1pos.y += 6;
       }
       // if (this.gameState.p1pos.y < KONVA_HEIGHT - 150) {
       //   this.gameState.p1pos.y += 6;
@@ -138,14 +140,14 @@ export class GameLoopService {
       return;
     if (direction === 'up') {
       if (lobby.gameState.gameState.p2pos.y > 0) {
-        this.gameState.p2pos.y -= 6;
+        lobby.gameState.gameState.p2pos.y -= 6;
       }
       // if (this.gameState.p2pos.y > 0) {
       //   this.gameState.p2pos.y -= 6;
       // }
     } else if (direction === 'down') {
       if (lobby.gameState.gameState.p2pos.y < KONVA_HEIGHT - 150) {
-        this.gameState.p2pos.y += 6;
+        lobby.gameState.gameState.p2pos.y += 6;
       }
     }
   }

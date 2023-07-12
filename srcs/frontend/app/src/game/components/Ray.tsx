@@ -9,12 +9,13 @@ const Ray: FC<RayProps> = ({ socket }) => {
 
   useEffect(() => {
     socket.on("updateGameState", (gameState: GameState) => {
-      setLinePoints([
-        gameState.ballRay.x1,
-        gameState.ballRay.y1,
-        gameState.ballRay.x2,
-        gameState.ballRay.y2,
-      ]);
+      console.log('ici');
+      // setLinePoints([
+      //   gameState.ballRay.x1,
+      //   gameState.ballRay.y1,
+      //   gameState.ballRay.x2,
+      //   gameState.ballRay.y2,
+      // ]);
     });
 
     return () => {

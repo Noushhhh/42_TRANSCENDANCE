@@ -31,6 +31,7 @@ export class GatewayIn implements OnGatewayDisconnect {
 
   @SubscribeMessage('getP1Pos')
   getP1Pos(@MessageBody() direction: string, @ConnectedSocket() socket: Socket) {
+    console.log('zaluut')
     this.gameLoop.updateP1Pos(direction, socket.id);
   }
 

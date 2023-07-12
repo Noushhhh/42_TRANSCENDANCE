@@ -23,6 +23,8 @@ export class GameLobbyService {
     lobbies.forEach((value: Lobby, key: number) => {
       console.log("------------------")
       console.log("|", value, "|  ", key, "|")
+      console.log("|", value.gameState.gameState.score.p1Score, "|")
+      console.log("|", value.gameState.gameState.score.p2Score, "|")
       console.log("------------------")
     })
   }
