@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 // import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { PrismaClient, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +12,7 @@ export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwt: JwtService,
+        // private config: ConfigService
     ) {}
 
     async signup(dto: AuthDto) 
@@ -25,11 +26,12 @@ export class AuthService {
                 username: dto.username,
                 hashPassword,
               },
-              select: {
-                username: true,
-              },
+            //   select: {
+            //     username: true,
+            //   },
             });
-            return user;
+            return this.signToken(user.id, user.username);
+            // return user;
           } catch (error) 
           {
               if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -61,37 +63,33 @@ export class AuthService {
         if (!passwordMatch)
             throw new ForbiddenException('Incorrect password',);
 
-        // send back the user
-        // delete user.hashPassword;
-        return user ;
+        // send back the token
+        return this.signToken(user.id, user.username);
 
     }
 
-//     async signToken() 
-//     {
-//         // find user with username
-//         const user = await this.prisma.user.findUnique({
-//             where: {
-//                 username: dto.username,
-//             }
-//         });
-//         // if user not found throw exception
-//         if (!user)
-//             throw new ForbiddenException('Username not found',);
-        
-//         // compare password
-//         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-        
-//         // if password wrong throw exception
-//         if (!passwordMatch)
-//             throw new ForbiddenException('Incorrect password',);
+    async signToken(
+        userId: number,
+        email: string,
+        ): Promise < { access_token: string} > 
+    {
+        const payload = { 
+            sub: userId,
+            email,
+        };
+        // const secret = this.config.get('JWT_SECRET');
+        const secret = process.env.JWT_SECRET
+        const token = await this.jwt.signAsync(
+            payload, 
+            {
+                expiresIn: '15m',
+                secret: secret,
+            },
+        );
 
-//         // send back the user
-//         // delete user.hashPassword;
-//         return user ;
-
-
-
-// }
+        return {
+            access_token: token,
+        };
+    }
 
 }
