@@ -6,7 +6,7 @@ import { Socket } from "socket.io";
 export class Lobby {
   player1?: Socket | undefined | null;
   player2?: Socket | undefined | null = null;
-  spectators?: Socket[] | undefined[] | null
+  spectators?: Socket[] | null = [];
   gameState = new GameState();
   ballState = this.gameState.gameState.ballState;
 

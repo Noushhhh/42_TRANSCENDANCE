@@ -30,12 +30,22 @@ export class GatewayIn implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getPlayerPos')
-  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {
+  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {  
     this.gameLoop.updatePlayerPos(direction, client);
   }
 
   @SubscribeMessage('getIsPaused')
   setPause(@MessageBody() isPaused: boolean, @ConnectedSocket() client: Socket) {
     this.gameLobby.isPaused(client, isPaused);
+  }
+
+  @SubscribeMessage('requestLobbies')
+  requestLobbie(@ConnectedSocket() client: Socket) {
+    this.gameLobby.sendLobbies(client);
+  }
+
+  @SubscribeMessage('setIntoLobby')
+  setIntoLobby(@MessageBody() lobbyName: string, @ConnectedSocket() client: Socket) {
+    this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
   }
 }

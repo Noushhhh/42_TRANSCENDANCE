@@ -1,7 +1,7 @@
 import React, { FC, useRef, useEffect } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
-import * as data from "../assets/data";
+import * as data from "../../assets/data";
 import { Vector2d } from "konva/lib/types";
 
 const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
@@ -18,7 +18,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
     return () => {
       socket.off("updateGameState");
     };
-  }, []);
+  }, [socket]);
 
   const updateP1pos = (pos: Vector2d) => {
     const rect1 = rect1Ref.current;
@@ -39,7 +39,6 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   };
 
   useEffect(() => {
-    console.log("salut ca va");
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       keyState.current[event.key] = true;
     };
@@ -78,7 +77,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isPaused]);
+  }, [isPaused, socket]);
 
   return (
     <>

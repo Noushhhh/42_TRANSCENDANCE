@@ -42,16 +42,6 @@ export class GatewayOut {
 
   updateLobbiesGameState() {
     for (const [key, value] of lobbies) {
-      // let p1Id: string;
-      // let p2Id: string;
-      // if (typeof value.player1 === 'string') {
-      //   p1Id = value.player1;
-      //   this.emitToUser(p1Id, 'updateGameState', value.gameState.gameState);
-      // }
-      // if (typeof value.player2 === 'string') {
-      //   p2Id = value.player2;
-      //   this.emitToUser(p2Id, 'updateGameState', value.gameState.gameState);
-      // }
       this.emitToRoom(key, 'updateGameState', value.gameState.gameState);
     }
   }
