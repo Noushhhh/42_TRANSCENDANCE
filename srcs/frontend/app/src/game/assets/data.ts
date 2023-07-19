@@ -72,8 +72,34 @@ export interface GameState {
     p1Score: number;
     p2Score: number;
   };
+  isLobbyFull: boolean;
 }
 
+export interface BallState {
+  ballDirection: string;
+  ballDX: number;
+  ballDY: number;
+  ballPos: {
+    x: number;
+    y: number;
+  },
+  scoreBoard: {
+    p1Score: number;
+    p2Score: number;
+  };
+};
+
 export interface RayProps {
+  socket: Socket;
+}
+
+export interface SpectateGameProps {
+  socket: Socket;
+}
+
+export interface LobbyProps {
+  lobbyName: string;
+  player1Id: string | undefined;
+  player2Id: string | undefined;
   socket: Socket;
 }

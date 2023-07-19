@@ -1,15 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
-import GamePhysics from "./GamePhysics";
+import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
-import ScoreBoard from "./ScoreBoard";
+import ScoreBoard from "./gameNetwork/ScoreBoard";
 import { io } from "socket.io-client";
 import { GameState } from "../assets/data";
+import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
+import Button from "./common/Button";
+import GameMenu from "./GameMenu";
 
 const socket = io("http://localhost:4000");
+
+const buttonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "5%",
+  right: "15%",
+};
 
 function GameContainer() {
   const [isPaused, setIsPaused] = useState(true);
   const [isInLobby, setIsInLobby] = useState(false);
+  const [isLobbyFull, setIsLobbyFull] = useState(false);
   const clientId = useRef<string>("");
 
   useEffect(() => {
@@ -26,11 +36,15 @@ function GameContainer() {
         setIsInLobby(isOnLobby);
       }
     });
+    socket.on("isLobbyFull", (isLobbyFull: boolean) => {
+      setIsLobbyFull(isLobbyFull);
+    });
 
     return () => {
       socket.off("connect");
       socket.off("updateGameState");
       socket.off("isOnLobby");
+      socket.off("isLobbyFull");
     };
   }, []);
 
@@ -52,46 +66,25 @@ function GameContainer() {
       });
   };
 
-  const lobby = () => {
-    fetch(`http://localhost:4000/api/game/lobby?clientId=${clientId.current}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
   if (isInLobby === true) {
-    return (
-      <div className="GameContainer">
-        <ScoreBoard socket={socket} />
-        <GamePhysics socket={socket} isPaused={isPaused} />
-        <button
-          style={{ position: "absolute", top: "5%", right: "15%" }}
-          onClick={() => handlePlayPause()}
-        >
-          {isPaused ? "Play" : "Pause"}
-        </button>
-        {/* <button
-          style={{ position: "absolute", top: "5%", right: "25%" }}
-          onClick={() => lobby()}
-        >
-          Join Lobby
-        </button> */}
-      </div>
-    );
+
+    if (isLobbyFull === false) {
+      return <WaitingForPlayer />;
+
+    } else {
+      return (
+        <div className="GameContainer">
+          <ScoreBoard socket={socket} />
+          <GamePhysics socket={socket} isPaused={isPaused} />
+          <Button onClick={handlePlayPause} style={buttonStyle}>
+            {isPaused ? "Play" : "Pause"}
+          </Button>
+        </div>
+      );
+    }
+  
   } else if (isInLobby === false) {
-    return (
-      <>
-        <button
-          style={{ position: "absolute",top: "25%", right: "50%", fontSize: "3rem" }}
-          onClick={() => lobby()}
-        >
-          Join Lobby
-        </button>
-      </>
-    );
+    return <GameMenu socket={socket}/>;
   }
 }
 
