@@ -7,6 +7,8 @@ import "../styles/ContentMessage.css";
 import "../types/type.Message";
 
 interface contentMessageProps{
+    channelInfo: boolean;
+    setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
     channelHeader: Channel[];
     socket: any;
     simulatedUserId: number;
@@ -15,12 +17,12 @@ interface contentMessageProps{
     userId: number;
 }
 
-function ContentMessage( { channelHeader, conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
+function ContentMessage( { channelInfo, setChannelInfo, channelHeader, conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
 
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
 
-    const [channelInfo, setChannelInfo] = useState<boolean>(false);
+    // const [channelInfo, setChannelInfo] = useState<boolean>(false);
     
     // each time the user change channel (click to a new one), we want to reset
     // all messages from the socket are they are now store in the database.

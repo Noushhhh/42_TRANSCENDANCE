@@ -4,6 +4,7 @@ import "../styles/ChatBoxContainer.css";
 import MessageSide from "./MessageSide";
 import ContentMessage from "./ContentMessage";
 import SimulateUserId from "./SimulateUserId";
+import ChannelInfo from "./ChannelInfo";
 import { Socket } from "socket.io-client";
 import "../types/type.Message";
 import "../types/channel.type";
@@ -22,6 +23,7 @@ function ChatBoxContainer() {
     const [selectedConversation, setConversationList] = useState<number>(1);
     const [channelId, setChannelId] = useState<number>(11);
     const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
+    const [channelInfo, setChannelInfo] = useState<boolean>(false);
 
     socket.on('connect', () => {
         socket.emit('setNewUserConnected', simulatedUserId);
@@ -35,7 +37,8 @@ function ChatBoxContainer() {
             <div className="ChatBoxContainer">
                 <div className="MessageContainer">
                     <MessageSide channelHeader={channelHeader} setChannelHeader={setChannelHeader} simulatedUserId={simulatedUserId} setChannelId={setChannelId} channelId={channelId} socket={socket} />
-                    <ContentMessage channelHeader={channelHeader} userId={simulatedUserId} socket={socket} simulatedUserId={simulatedUserId} conversation={selectedConversation} channelId={channelId} />
+                    <ContentMessage channelInfo={channelInfo} setChannelInfo={setChannelInfo} channelHeader={channelHeader} userId={simulatedUserId} socket={socket} simulatedUserId={simulatedUserId} conversation={selectedConversation} channelId={channelId} />
+                    <ChannelInfo isChannelInfoDisplay={channelInfo} />
                 </div>
             </div>
         </div>
