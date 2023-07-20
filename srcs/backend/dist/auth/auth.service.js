@@ -56,7 +56,6 @@ let AuthService = exports.AuthService = class AuthService {
             // save user in db
             const user = yield this.prisma.user.create({
                 data: {
-                    username: "default",
                     login: dto.login,
                     hashPassword,
                 },

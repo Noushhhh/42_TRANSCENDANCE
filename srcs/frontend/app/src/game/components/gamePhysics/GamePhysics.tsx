@@ -1,7 +1,7 @@
 import { Stage, Layer } from "react-konva";
 import React, { FC, useRef } from "react";
 import { Vector2d } from "konva/lib/types";
-import * as data from "../assets/data";
+import * as data from "../../assets/data";
 import Paddles from "./Paddles";
 import Ball from "./Ball";
 import Ray from "./Ray";
