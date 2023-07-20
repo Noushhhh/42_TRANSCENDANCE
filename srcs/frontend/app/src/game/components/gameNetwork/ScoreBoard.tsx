@@ -1,10 +1,8 @@
-import "../styles/ScoreBoard.css";
+import "../../styles/ScoreBoard.css";
 import React, { FC, useEffect, useState } from "react";
-import { ScoreBoardProps, GameState } from "../assets/data";
+import { ScoreBoardProps, GameState } from "../../assets/data";
 
-const ScoreBoard: FC<ScoreBoardProps> = ({
-  socket,
-}) => {
+const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const [p1Score, setP1Score] = useState(0);
   const [p2Score, setP2Score] = useState(0);
 
@@ -13,7 +11,10 @@ const ScoreBoard: FC<ScoreBoardProps> = ({
       setP1Score(gameState.score.p1Score);
       setP2Score(gameState.score.p2Score);
     });
-  })
+    return () => {
+      socket.off("updateGameState");
+    };
+  }, [socket]);
 
   return (
     <div className="ScoreBoard">

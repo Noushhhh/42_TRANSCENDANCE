@@ -7,7 +7,6 @@ services:
     env_file:
       - .env # Set the environment file
       - ./srcs/backend/prisma/.env # Set the environment file
-
     image: postgres:15.3 # Set the image name and set up version
     ports:
       - 5432
@@ -19,6 +18,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # Set the environment variable
     networks:
       - app_network # Connect to the app network
+
 
   # Backend Service
   backend:
@@ -33,7 +33,9 @@ services:
     volumes:
       - backend_volume:/usr/src/app
     ports:
-      - 4000:4000 # Map the container port to the host port
+      - 4000:4000 
+      - 5555:5555 # Map the container port to the host port
+    # restart: unless-stopped
     networks:
       - app_network # Connect to the app network
     depends_on:

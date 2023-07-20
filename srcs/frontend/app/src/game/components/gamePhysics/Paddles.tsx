@@ -1,13 +1,10 @@
 import React, { FC, useRef, useEffect } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
-import * as data from "../assets/data";
+import * as data from "../../assets/data";
 import { Vector2d } from "konva/lib/types";
 
-const Paddles: FC<data.PaddleProps> = ({
-  socket,
-  isPaused = false,
-}) => {
+const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
   const rect2Ref = useRef<Konva.Rect>(null);
   const keyState = useRef<{ [key: string]: boolean }>({});
@@ -21,7 +18,7 @@ const Paddles: FC<data.PaddleProps> = ({
     return () => {
       socket.off("updateGameState");
     };
-  }, []);
+  }, [socket]);
 
   const updateP1pos = (pos: Vector2d) => {
     const rect1 = rect1Ref.current;
@@ -54,18 +51,18 @@ const Paddles: FC<data.PaddleProps> = ({
 
     const updateRect = () => {
       if (isPaused) return;
-
+      
       if (keyState.current["w"]) {
-        socket.emit("getP1Pos", "up");
+        socket.emit("getPlayerPos", "up");
       }
       if (keyState.current["s"]) {
-        socket.emit("getP1Pos", "down");
+        socket.emit("getPlayerPos", "down");
       }
       if (keyState.current["ArrowUp"]) {
-        socket.emit("getP2Pos", "up");
+        socket.emit("getPlayerPos", "up");
       }
       if (keyState.current["ArrowDown"]) {
-        socket.emit("getP2Pos", "down");
+        socket.emit("getPlayerPos", "down");
       }
       animRequest = requestAnimationFrame(updateRect);
     };
@@ -80,7 +77,7 @@ const Paddles: FC<data.PaddleProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isPaused]);
+  }, [isPaused, socket]);
 
   return (
     <>

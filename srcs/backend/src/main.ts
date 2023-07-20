@@ -7,7 +7,7 @@ async function bootstrap() {
   // Create a new NestJS application instance
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
+    whitelist: true, // check if whitelist needed or only restrain fields to login and password
   }));
   const corsOptions: CorsOptions = {
     origin: 'http://localhost:8080',

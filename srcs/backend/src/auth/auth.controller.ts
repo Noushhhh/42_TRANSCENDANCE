@@ -14,10 +14,10 @@ export class AuthController {
     }
 
     //POST /auth/signin
-    @Post('signin')
-    signin() {
-        return this.authService.signin();
-    }
+    // @Post('signin')
+    // signin(@Body() dto: AuthDto) {
+    //     return this.authService.signin(dto);
+    // }
 
     @Post('test')
     test() {

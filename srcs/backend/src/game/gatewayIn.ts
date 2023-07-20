@@ -1,54 +1,51 @@
-import { OnModuleInit } from '@nestjs/common';
 import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  OnGatewayDisconnect,
+  ConnectedSocket,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
+import { GameLobbyService } from './gameLobby.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class GatewayIn implements OnModuleInit {
+export class GatewayIn implements OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  connectedClients = [
-    {
-      clientId: "",
-    }
-  ]
+  constructor(
+    private readonly gameLoop: GameLoopService,
+    private readonly gameLobby: GameLobbyService,
+  ) { }
 
-  constructor(private readonly gameLoop: GameLoopService) { }
-
-  onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      this.connectedClients.push({ clientId: socket.id })
-      console.log('connected');
-    });
+  handleDisconnect(client: Socket) {
+    console.log('client disconnected', client.id);
+    this.gameLobby.removePlayerFromLobby(client);
   }
 
-  @SubscribeMessage('getP1Pos')
-  getP1Pos(@MessageBody() direction: string) {
-    this.gameLoop.updateP1Pos(direction);
-  }
-
-  @SubscribeMessage('getP2Pos')
-  getP2Pos(@MessageBody() direction: string) {
-    this.gameLoop.updateP2Pos(direction);
+  @SubscribeMessage('getPlayerPos')
+  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {  
+    this.gameLoop.updatePlayerPos(direction, client);
   }
 
   @SubscribeMessage('getIsPaused')
-  setPause(@MessageBody() isPaused: boolean) {
-    if (isPaused === true) {
-      this.server.emit('play');
-    } else if (isPaused === false) {
-      this.server.emit('pause');
-    }
+  setPause(@MessageBody() isPaused: boolean, @ConnectedSocket() client: Socket) {
+    this.gameLobby.isPaused(client, isPaused);
+  }
+
+  @SubscribeMessage('requestLobbies')
+  requestLobbie(@ConnectedSocket() client: Socket) {
+    this.gameLobby.sendLobbies(client);
+  }
+
+  @SubscribeMessage('setIntoLobby')
+  setIntoLobby(@MessageBody() lobbyName: string, @ConnectedSocket() client: Socket) {
+    this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
   }
 }
