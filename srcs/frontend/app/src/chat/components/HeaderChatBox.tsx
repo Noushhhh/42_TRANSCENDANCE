@@ -16,6 +16,7 @@ interface HeaderChatBoxProps {
 function HeaderChatBox({ channelInfo, setChannelInfo, channelHeader, channelId }: HeaderChatBoxProps) {
 
     const handleSettingsClick = () => {
+        console.log('oklkkkkkkkkkkkkkk');
         channelInfo === true ? setChannelInfo(false) : setChannelInfo(true);
     }
 

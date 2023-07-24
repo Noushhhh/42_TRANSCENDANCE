@@ -29,6 +29,7 @@ export class ChatController{
 
     @Post('addChannel')
     async addChannel(){
+        console.log('add channel...');
         await this.chatService.addChannel();
     }
 

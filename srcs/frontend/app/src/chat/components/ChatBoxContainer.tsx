@@ -33,7 +33,7 @@ function ChatBoxContainer() {
 
     return (
         <div>
-            <SimulateUserId setSimulatedUserId={setSimulatedUserId} />
+            {/* <SimulateUserId setSimulatedUserId={setSimulatedUserId} /> */}
             <div className="ChatBoxContainer">
                 <div className="MessageContainer">
                     <MessageSide channelHeader={channelHeader} setChannelHeader={setChannelHeader} simulatedUserId={simulatedUserId} setChannelId={setChannelId} channelId={channelId} socket={socket} />

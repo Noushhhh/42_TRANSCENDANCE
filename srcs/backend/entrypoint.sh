@@ -16,7 +16,7 @@ npm update
 # Generate database 
 npx prisma generate
 
-# Update database migration 
+# Update database migration
 npx prisma migrate dev
 
 # Push to database last changes

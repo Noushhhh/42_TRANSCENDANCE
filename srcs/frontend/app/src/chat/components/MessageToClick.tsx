@@ -22,7 +22,7 @@ function MessageToClick({channel, setChannelId, channelId, socket, isConnected }
 
     const dateObject = new Date(channel.dateLastMsg);
 
-    const handleClick = () =>{
+    const handleClick = () => {
         setChannelId(channel.channelId);
     }
 
