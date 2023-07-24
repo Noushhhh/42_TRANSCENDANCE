@@ -14,13 +14,17 @@ npm update
 # doesnt exist 
 
 # Generate database 
-npx prisma generate
+# npx prisma generate
 
-# Update database migration
-npx prisma migrate dev
+# Update database migration 
+# npx prisma migrate dev
 
 # Push to database last changes
-npx prisma db push
+# npx prisma db push
+
+npx prisma migrate deploy
+
+npx prisma studio &
 
 # Give permissions to use xdg open for prisma studio
 chmod +x /usr/src/app/node_modules/prisma/build/xdg-open
