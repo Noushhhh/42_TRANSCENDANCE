@@ -1,7 +1,12 @@
-// import React from "react";
+import React from "react";
+import AuthContainer from "./components/AuthContainer";
 
-// function MyButton() {
-//     return (
-//       <button>I'm a button</button>
-//     );
-//   }
+  function Auth() {
+    return (
+      <>
+        <AuthContainer />
+      </>
+    );
+  }
+
+export default Auth;
