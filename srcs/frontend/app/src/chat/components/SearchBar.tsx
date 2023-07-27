@@ -22,7 +22,7 @@ function SearchBar( {setDisplayResults, inputValue, setInputValue}: SearchBarPro
 
     return (
          <div className="searchBar">
-            <input value={inputValue} onChange={handleChange} onKeyDown={handleInputValue} type="text" placeholder="Search/create new channel"/>
+            <input value={inputValue} onChange={handleChange} onKeyDown={handleInputValue} type="text" placeholder="Search a user"/>
          </div>
     )
 }

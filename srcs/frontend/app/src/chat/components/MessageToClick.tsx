@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../styles/MessageToClick.css";
 import TimeElapsed from "./TimeElapsed";
 import IsConnected from "./isConnected";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface Channel {
     name: string,
@@ -11,14 +12,13 @@ interface Channel {
 }
 
 interface MessageToClickProps{
-    socket: any;
-    channelId: number;
     channel: Channel;
-    setChannelId: React.Dispatch<React.SetStateAction<number>>;
     isConnected: boolean;
 }
 
-function MessageToClick({channel, setChannelId, channelId, socket, isConnected }: MessageToClickProps) {
+function MessageToClick({channel, isConnected }: MessageToClickProps) {
+
+    const setChannelId = useSetChannelIdContext();
 
     const dateObject = new Date(channel.dateLastMsg);
 

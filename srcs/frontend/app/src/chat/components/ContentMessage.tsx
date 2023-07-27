@@ -5,28 +5,30 @@ import ChatPrompt from "./ChatPrompt";
 import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
+import { ChannelIdContext, useChannelIdContext } from "../contexts/channelIdContext";
+import { useSocketContext } from "../contexts/socketContext";
 
 interface contentMessageProps{
     channelInfo: boolean;
     setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
-    channelHeader: Channel[];
-    socket: any;
     simulatedUserId: number;
-    conversation: number;
-    channelId: number;
     userId: number;
 }
 
-function ContentMessage( { channelInfo, setChannelInfo, channelHeader, conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
+function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId } : contentMessageProps) {
 
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
+    
+    const channelId = useChannelIdContext;
+    const socket = useSocketContext();
 
     // const [channelInfo, setChannelInfo] = useState<boolean>(false);
     
     // each time the user change channel (click to a new one), we want to reset
     // all messages from the socket are they are now store in the database.
     useEffect(() => {
+        console.log("set to empty array");
         setMessages([]);
     }, ([channelId]));
 
@@ -37,9 +39,9 @@ function ContentMessage( { channelInfo, setChannelInfo, channelHeader, conversat
 
     return (
         <div className="ContentMessage">
-            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo} channelHeader={channelHeader} channelId={channelId} />
-            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
-            <ChatPrompt socket={socket} simulatedUserId={simulatedUserId} channelId={channelId} addMessage={addMessage} />
+            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo} />
+            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} />
+            <ChatPrompt simulatedUserId={simulatedUserId} addMessage={addMessage} />
         </div>
     )   
 }

@@ -40,6 +40,7 @@ export class ChatController{
 
     @Get('getLastMsg/:id')
     async getLastMessage(@Param('id')id: number){
+        console.log('getLastMsg is called...');
         return this.chatService.getLastMessage(id);
     }
 

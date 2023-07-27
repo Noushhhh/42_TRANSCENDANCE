@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
 // import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -91,5 +92,30 @@ export class AuthService {
         return {
             access_token: token,
         };
+    }
+
+    async getUsernameFromId(id: number): Promise<string | undefined>{
+
+        const userId = Number(id);
+
+        try {
+            const user: { username: string; } | null = await this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    username: true,
+                }
+            })
+            if (user){
+                console.log(user.username);
+                return user.username;
+            }
+            else{
+                return undefined;
+            }
+        } catch (error){
+            throw error;
+        }
     }
 }

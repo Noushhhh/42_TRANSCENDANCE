@@ -23,7 +23,7 @@ export class ChatService {
 
   constructor(private prisma: PrismaService) { }
 
-  async getAllConvFromId(id: number) {
+  async getAllConvFromId(id: number): Promise<number[]> {
 
     const userId = Number(id);
 
@@ -251,6 +251,8 @@ export class ChatService {
   }
 
   async addChannelToUser(channelInfo: channelToAdd){
+
+    console.log("add channel to user called");
 
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({id: channelInfo.ownerId});

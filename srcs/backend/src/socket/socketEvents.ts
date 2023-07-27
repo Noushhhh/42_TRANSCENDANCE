@@ -36,11 +36,11 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('setNewUserConnected')
     handleSetNewUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket) {
-        console.log("user conneted");
-        console.log(userId);
+        // console.log("user conneted");
+        // console.log(userId);
         this.listUserConnected.set(userId, client.id);
         this.server.emit("changeConnexionState");
-        this.readMap(this.listUserConnected);
+        // this.readMap(this.listUserConnected);
     }
 
     @SubscribeMessage('isUserConnected')

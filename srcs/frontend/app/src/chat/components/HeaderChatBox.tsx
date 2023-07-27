@@ -5,18 +5,21 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IsConnected from "./isConnected";
 import "../types/channel.type";
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface HeaderChatBoxProps {
     channelInfo: boolean;
     setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
-    channelHeader: Channel[];
-    channelId: number;
 }
 
-function HeaderChatBox({ channelInfo, setChannelInfo, channelHeader, channelId }: HeaderChatBoxProps) {
+function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
+
+    const channelHeader = useChannelHeaderContext();
+
+    const channelId = useChannelIdContext();
 
     const handleSettingsClick = () => {
-        console.log('oklkkkkkkkkkkkkkk');
         channelInfo === true ? setChannelInfo(false) : setChannelInfo(true);
     }
 

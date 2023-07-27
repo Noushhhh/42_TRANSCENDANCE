@@ -3,17 +3,17 @@ import "../styles/CreateChannelPopup.css";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import PreviewUser from "./PreviewUser";
-import axios from "axios";
 import "../types/channel.type";
-import SimulateUserId from "./SimulateUserId";
+import { createChannel } from "./ChannelUtils";
+import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
+import { useSocketContext } from "../contexts/socketContext";
 
 interface CreateChannelPopupProps{
-    fetchUser: () => Promise<void>;
     displayState: string;
     simulatedUserId: number;
 }
 
-function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: CreateChannelPopupProps) {
+function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPopupProps) {
 
     const [userListChannel, setUserListChannel] = useState<{username: string, id: number}[]>([]);
     const [channelName, setChannelName] = useState<string>("");
@@ -23,11 +23,13 @@ function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: Creat
     const [inputValue, setInputValue] = useState<string>("");
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
 
+    const socket = useSocketContext();
+
+    const setChannelHeader = useSetChannelHeaderContext();
+
     const handleChannelName = (event: ChangeEvent<HTMLInputElement>) => {
         setChannelName(event.target.value);
     }
-
-    console.log(channelType);
 
     const handleChannelTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {
         setChannelType(event.target.value);
@@ -62,25 +64,8 @@ function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: Creat
       );
     }
 
-    const createChannel = async () => {
-
-        const channelToAdd  = {
-            name: channelName,
-            password,
-            ownerId: simulatedUserId,
-            participants: userListChannel.map(user => user.id),
-            type: channelType,
-        };
-
-        try {
-          const response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
-          console.log('Channel created successfully');
-          fetchUser();
-          // Traitez la réponse du backend ici si nécessaire
-        } catch (error) {
-          console.error('Error creating channel:', error);
-          // Gérez l'erreur ici
-        }
+    const callCreateChannel = async () => {
+        createChannel(channelName, password, simulatedUserId, userListChannel, channelType, setChannelHeader, simulatedUserId, socket);
       };
 
     return (
@@ -107,7 +92,7 @@ function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: Creat
             </div>
         ) : null}
             <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
-            <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={false} addUserToList={addUserToList}/>
+            <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={false} addUserToList={addUserToList} simulatedUserId={simulatedUserId} />
             <h3>User List</h3>
             <div className="userList">
                 {userListChannel.map((user, index) => {
@@ -127,9 +112,8 @@ function CreateChannelPopup( { fetchUser, displayState, simulatedUserId }: Creat
             </div>
             ) : null
         }
-            <button onClick={createChannel}>Create</button>
+            <button onClick={callCreateChannel}>Create</button>
         </div>
     )   
 }
-
 export default CreateChannelPopup;

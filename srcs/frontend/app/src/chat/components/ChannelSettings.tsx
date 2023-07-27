@@ -11,9 +11,10 @@ import AddIcon from '@mui/icons-material/Add';
 interface ChannelSettingsProps {
     settingsChannel: boolean;
     setSettingsChannel: React.Dispatch<React.SetStateAction<boolean>>;
+    setdisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function ChannelSettings({ settingsChannel, setSettingsChannel }: ChannelSettingsProps): JSX.Element {
+function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }: ChannelSettingsProps): JSX.Element {
 
     interface MenuItem {
         title: string;
@@ -33,9 +34,8 @@ function ChannelSettings({ settingsChannel, setSettingsChannel }: ChannelSetting
     const backInfoMenu = () => {
         if (settingsChannel === true)
             setSettingsChannel(false);
+        setdisplayMenu(true);
     }
-
-    console.log(settingsChannel);
 
     return (
         <div className={`ChannelSettings ${isDisplay}`}>

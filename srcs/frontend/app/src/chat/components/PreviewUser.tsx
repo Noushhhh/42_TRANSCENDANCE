@@ -15,8 +15,6 @@ function PreviewUser( { user, removeUserFromList }: PreviewUserProps): JSX.Eleme
         removeUserFromList(user);
     }
 
-    console.log(user);
-
     return (
         <div className="PreviewUser">
             {user.username} <button onClick={()=> removeUser(user)}>X</button>

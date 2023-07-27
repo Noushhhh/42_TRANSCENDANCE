@@ -63,3 +63,11 @@
 .clickable{
     cursor: pointer
 }
+
+.ContainerIsDisplay{
+    display: block;
+}
+
+.ContainerIsReduce{
+    display: none;
+}

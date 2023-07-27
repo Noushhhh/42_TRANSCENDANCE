@@ -8,9 +8,10 @@ interface SearchBarResultsProps {
     displayResults: boolean;
     showUserMenu: boolean;
     addUserToList: (user: {username: string, id: number}) => void;
+    simulatedUserId: number;
 }
 
-function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList }: SearchBarResultsProps) {
+function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList, simulatedUserId }: SearchBarResultsProps) {
 
     const [listUsersSearched, setListUsersSearched] = useState<{username: string, id: number}[]>([]);
 
@@ -20,8 +21,9 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
         const fetchUsers = async () => {
             setListUsersSearched([]);
             const response = await fetch(`http://localhost:4000/api/chat/getLoginsFromSubstring/${inputValue}`);
-            const listUsers = await response.json();
-            setListUsersSearched(listUsers);
+            const listUsers: {username: string, id:number}[] = await response.json();
+            const filteredListUsers = listUsers.filter((user:{username: string, id:number}) => user.id !== simulatedUserId);
+            setListUsersSearched(filteredListUsers);
         }
         if (inputValue.length > 2)
             fetchUsers();
@@ -32,7 +34,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
             <ul className="userListSearched">
                 {listUsersSearched.map((user, index) => {
                     return <li key={index}>
-                        <User user={user} showUserMenu={showUserMenu} addUserToList={addUserToList}/>
+                        <User user={user} showUserMenu={showUserMenu} addUserToList={addUserToList} simulatedUserId={simulatedUserId}/>
                     </li>
                 })}
             </ul>

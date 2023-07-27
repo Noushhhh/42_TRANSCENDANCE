@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "../styles/ChatView.css";
 import MessageComponent from "./Message";
 import ChannelInfo from "./ChannelInfo";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface Message {
   id: number
@@ -15,14 +16,14 @@ interface Message {
 interface MonComposantProps {
   isChannelInfoDisplay: boolean;
   messages: Message[];
-  conversation: number;
-  channelId: number;
   userId: number;
 }
 
-function ChatView({ isChannelInfoDisplay, messages, conversation, channelId, userId }: MonComposantProps): JSX.Element {
+function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps): JSX.Element {
 
   const [conversationFetched, setConversationFetched] = useState<Message[]>([]);
+  const channelId = useChannelIdContext();
+
   let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
 
   const addMsgToFetchedConversation = (message: Message) => {
@@ -30,16 +31,17 @@ function ChatView({ isChannelInfoDisplay, messages, conversation, channelId, use
   }
 
   useEffect(() => {
+    console.log("will reload conversation from backend");
     setConversationFetched([]);
     const fetchConversation = async () => {
-      const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId/${channelId}`);
-      const messageList = await response.json();
-      console.log("messagelist === ");
-      console.log(messageList);
-      messageList.map((message: Message) => {
-        userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
-        addMsgToFetchedConversation(message)
-      })
+      if (channelId !== -1){
+        const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId/${channelId}`);
+        const messageList = await response.json();
+        messageList.map((message: Message) => {
+          userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
+          addMsgToFetchedConversation(message)
+        })
+      }
     }
     fetchConversation();
   }, ([channelId]));

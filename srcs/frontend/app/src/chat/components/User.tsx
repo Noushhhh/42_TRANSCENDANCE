@@ -10,9 +10,10 @@ interface UserProps {
     }
     showUserMenu: boolean;
     addUserToList: (user: { username: string, id: number }) => void;
+    simulatedUserId: number;
 }
 
-function User({ user, showUserMenu, addUserToList }: UserProps) {
+function User({ user, showUserMenu, addUserToList, simulatedUserId }: UserProps) {
 
     const addUser = (user: { username: string, id: number }) => {
         addUserToList(user);
@@ -27,7 +28,7 @@ function User({ user, showUserMenu, addUserToList }: UserProps) {
     }
     else {
         return (
-            <FadeMenu user={user} />
+            <FadeMenu user={user} simulatedUserId={simulatedUserId} />
         )
     }
 }

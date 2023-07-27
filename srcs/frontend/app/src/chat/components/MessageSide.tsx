@@ -7,22 +7,16 @@ import "../styles/SearchBar.css";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CreateChannelPopup from "./CreateChannelPopup";
 import "../types/channel.type";
-
-interface isChannelNameConnected{
-  isConnected: boolean;
-  name: string;
-}
+import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
+import { fetchUser } from "./ChannelUtils"
+import { useChannelIdContext } from "../contexts/channelIdContext";
+import { useSocketContext } from "../contexts/socketContext";
 
 interface MessageSideProps {
-  channelHeader: Channel[];
-  setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>;
-  socket: any;
-  channelId: number;
   simulatedUserId: number;
-  setChannelId: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedUserId, channelId, socket }: MessageSideProps) {
+function MessageSide({ simulatedUserId }: MessageSideProps) {
 
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
@@ -31,22 +25,21 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
   const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
   const fetchBoolean = useRef(false);
 
+  const socket = useSocketContext();
+
+  const channelId = useChannelIdContext();
+
+  const channelHeader = useChannelHeaderContext();
+  const setChannelHeader = useSetChannelHeaderContext();
+
   const displayState = `${displayPopupChannelCreation ? "showPopup" : "hidePopup"}`;
 
   const handleClick = () => {
-      displayPopupChannelCreation === false ? setdisplayPopupChannelCreation(true) : setdisplayPopupChannelCreation(false);
+    displayPopupChannelCreation === false ? setdisplayPopupChannelCreation(true) : setdisplayPopupChannelCreation(false);
   }
 
   function findChannelById(channelId: number): Channel | undefined {
     return channelHeader.find((channel) => channel.channelId === channelId);
-  }
-
-  function isUserConnected(userId: number): Promise<boolean> {
-    return new Promise((resolve) => {
-      socket.emit('isUserConnected', userId, (response: boolean) => {
-        resolve(response);
-      });
-    });
   }
 
   socket.on('message', function (id: any, data: Message) {
@@ -59,69 +52,14 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
     foundChannel.dateLastMsg = data.createdAt;
   })
 
-  const setHeaderNameWhenTwoUsers = async (channelId: string): Promise<isChannelNameConnected> => {
-    const channelInfo: isChannelNameConnected = {
-      name: '',
-      isConnected: false,
-    };
-  
-    const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
-    const users: User[] = await response.json();
-    //if (!users)
-    //  return "fetch error";
-    var userIndex: number = -1;
-  
-    simulatedUserId === users[0].id ? userIndex = 1 : userIndex = 0;
-
-    await isUserConnected(users[userIndex].id)
-    .then((response: boolean) => {
-      channelInfo.isConnected = response;
-    })
-    .catch((error) => {
-      // Gérer les erreurs, si nécessaire
-    });
-    channelInfo.name = users[userIndex].username;
-    return channelInfo;
-  }
-
   socket.on("changeConnexionState", () => {
     needReload == false ? setNeedReload(true) : setNeedReload(false);
   })
 
-  const dummyFunction = () => {};
-
-  const fetchUser = async () => {
-    setChannelHeader([]);
-
-    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${simulatedUserId}`);
-    const listChannelId = await response.json();
-
-    console.log("conv du 1 ==");
-    console.log(listChannelId);
-
-    const fetchChannelHeaders = listChannelId.map(async (id: string) => {
-      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
-      const header: Channel = await response.json();
-
-      let channelInfo: isChannelNameConnected = {
-        name: '',
-        isConnected: false,
-      };
-
-      if (header.name === '') {
-        channelInfo = await setHeaderNameWhenTwoUsers(id);
-        header.name = channelInfo.name;
-      }
-      header.isConnected = channelInfo.isConnected;
-
-      return header;
-    });
-    const channelHeaders = await Promise.all(fetchChannelHeaders);
-    setChannelHeader(channelHeaders);
-  };
+  const dummyFunction = () => { };
 
   useEffect(() => {
-    fetchUser();
+    fetchUser(setChannelHeader, simulatedUserId, socket);
     return () => {
       fetchBoolean.current = true;
     };
@@ -130,11 +68,11 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
   return (
     <div className="MessageSide">
       <div className="containerSearchBar">
-        <AddCircleOutlineIcon onClick={handleClick} className="createChannel"/>
-        <CreateChannelPopup fetchUser={fetchUser} simulatedUserId={simulatedUserId} displayState={displayState} />
+        <AddCircleOutlineIcon onClick={handleClick} className="createChannel" />
+        <CreateChannelPopup simulatedUserId={simulatedUserId} displayState={displayState} />
         <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
       </div>
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction}/>
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} simulatedUserId={simulatedUserId} />
       {channelHeader
         .sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);
@@ -147,10 +85,7 @@ function MessageSide({ channelHeader, setChannelHeader, setChannelId, simulatedU
           return (
             <MessageToClick
               channel={channel}
-              setChannelId={setChannelId}
               key={index}
-              channelId={channelId}
-              socket={socket}
               isConnected={channel.isConnected}
             />
           );
