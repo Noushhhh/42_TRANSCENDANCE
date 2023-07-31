@@ -17,7 +17,6 @@ interface channelToAdd{
   type: string,
 }
 
-
 @Injectable()
 export class ChatService {
 
@@ -253,12 +252,13 @@ export class ChatService {
   async addChannelToUser(channelInfo: channelToAdd){
 
     console.log("add channel to user called");
+    console.log(channelInfo.type);
 
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({id: channelInfo.ownerId});
       
       try {
-        const newChannel = await this.prisma.channel.create({
+        const newChannel: Channel = await this.prisma.channel.create({
           data: {
             name: channelInfo.name,
             password: channelInfo.password,
@@ -273,6 +273,69 @@ export class ChatService {
         console.error('addChannelToUser:', error);
         throw error;
       }
+    }
+
+    async isUserIsChannelAdmin(usrId: number, channlId: number): Promise<boolean>{
+
+      const channelId = Number(channlId);
+      const userId = Number(usrId);
+
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: channelId },
+        include: { admins: true},
+      });
+
+      if (!channel){
+        return false;
+      }
+
+      return channel.admins.some((element) => element.id === userId);
+    }
+    
+    async kickUserFromChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
+
+      const userId = Number(userIdStr);
+      const channelId = Number(channelIdStr);
+
+      if (isNaN(userId) || isNaN(channelId))
+        return false;
+
+      const response: Channel = await this.prisma.channel.update({
+        where: { id: channelId },
+        data: { participants: {
+          disconnect: { id: userId }
+        } }
+      })
+
+      if (!response)
+        return false;
+
+      return true;
+    }
+
+    async banUserFromChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
+
+      const userId = Number(userIdStr);
+      const channelId = Number(channelIdStr);
+
+      if (isNaN(userId) || isNaN(channelId))
+        return false;
+
+      this.kickUserFromChannel(userId, channelId);
+
+      const response = await this.prisma.channel.update({
+        where: { id: channelId },
+        data: {
+          bannedUsers:{
+            connect:{
+              id: userId,
+            }
+          }
+        }
+      })
+
+      return true;
+
     }
 
 }

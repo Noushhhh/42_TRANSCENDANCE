@@ -90,4 +90,26 @@ export class ChatController{
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
         }
     }
+
+    @Get('isUserIsChannelAdmin/:userId/:channelId')
+    async isUserIsChannelAdmin(
+        @Param('userId')userId: number,
+        @Param('channelId')channelId: number): Promise<boolean>{
+            return this.chatService.isUserIsChannelAdmin(userId, channelId);
+    }
+
+    @Post('kickUserFromChannel/:userId/:channelId')
+    async kickUserFromChannel(
+        @Param('userId')userId: number,
+        @Param('channelId')channelId: number): Promise<boolean>{
+            console.log("kickUserFromChannel called");
+            return this.chatService.kickUserFromChannel(userId, channelId);
+        }
+
+    @Post('banUserFromChannel/:userId/:channelId')
+    async banUserFromChannel(
+        @Param('userId')userId: number,
+        @Param('channelId')channelId: number): Promise<boolean>{
+            return this.chatService.banUserFromChannel(userId, channelId);
+        }
 }
