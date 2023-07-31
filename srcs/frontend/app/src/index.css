@@ -29,6 +29,7 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
+  
 }
 
 h1 {
@@ -67,3 +68,10 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* .font-link {
+  font-family: 'Press Start 2P', cursive;
+}
+ */
+
+ 

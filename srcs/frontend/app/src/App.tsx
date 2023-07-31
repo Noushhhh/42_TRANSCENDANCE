@@ -11,9 +11,9 @@ function App() {
     <div className="App">
       {/* <Navbar /> */}
       {/* <ChatBoxContainer /> */}
-        <div className="Game">
-          <GameContainer />
-        </div>
+        {/* <div className="Game"> */}
+          {/* <GameContainer /> */}
+        {/* </div> */}
         <div className="Auth"> 
           < AuthContainer />
         </div>

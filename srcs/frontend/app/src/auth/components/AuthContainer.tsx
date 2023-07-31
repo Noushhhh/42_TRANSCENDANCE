@@ -15,20 +15,33 @@ function AuthContainer() {
   }
 
   return (
-    <div className="AuthContainer">
-      <button onClick={redirectApi42}>Sign in</button>
-      <h1>{user.name}</h1>
-      <img
-        className="avatar"
-        src={user.imageUrl}
-        alt={`Photo of ${user.name}`}
-        style={{
-          width: user.imageSize,
-          height: user.imageSize
-        }}
-      />
-    </div>
+    <div>
+      <div className="AuthContainer">
+        
+        <button onClick={redirectApi42}>Sign in</button>
+        <h1>{user.name}</h1>
+        <img
+          className="avatar"
+          src={user.imageUrl}
+          alt={`Photo of ${user.name}`}
+          style={{
+            width: user.imageSize,
+            height: user.imageSize
+          }}
+        />
+      </div>
+
+        <div className="card">
+          <span className="font-link">
+              This is with Font Link. We are linking the fonts from the Google Fonts.
+          </span>
+        </div>
+      </div>
+    
   );
 }
 
+<div> </div>
+
 export default AuthContainer;
+

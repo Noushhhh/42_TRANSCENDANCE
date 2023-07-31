@@ -26,74 +26,76 @@ export class AuthController {
         return this.authService.signin(dto);
     }
 
-  @Get('token')
-  async token(@Req() req: any) {
-    const code = req.query['code'];
-    const token = await this.exchangeCodeForToken(code);
-    if (token) {
-      const userInfo = await this.getUserInfo(token);
-      console.log('User Info:', userInfo);
-      // Handle the response data here, such as saving the user info or other data.
-    } else {
-      console.error('Failed to fetch access token');
-      // Handle errors here
+    @Get('token')
+    async token(@Req() req: any) {
+        return this.authService.signToken42(req);
     }
-  }
+//     const code = req.query['code'];
+//     const token = await this.exchangeCodeForToken(code);
+//     if (token) {
+//       const userInfo = await this.getUserInfo(token);
+//       console.log('User Info:', userInfo);
+//       // Handle the response data here, such as saving the user info or other data.
+//     } else {
+//       console.error('Failed to fetch access token');
+//       // Handle errors here
+//     }
+//   }
 
-  private async exchangeCodeForToken(code: string): Promise<string | null> {
-    try {
-      const response = await axios.post('https://api.intra.42.fr/oauth/token', null, {
-        params: {
-          grant_type: 'authorization_code',
-          client_id: process.env.UID_42,
-          client_secret: process.env.SECRET_42,
-          code: code,
-          redirect_uri: 'http://localhost:4000/api/auth/token',
-        },
-      });
-      return response.data.access_token;
-    } catch (error) {
-      console.error('Error fetching access token:', error);
-      return null;
-    }
-  }
+//   private async exchangeCodeForToken(code: string): Promise<string | null> {
+//     try {
+//       const response = await axios.post('https://api.intra.42.fr/oauth/token', null, {
+//         params: {
+//           grant_type: 'authorization_code',
+//           client_id: process.env.UID_42,
+//           client_secret: process.env.SECRET_42,
+//           code: code,
+//           redirect_uri: 'http://localhost:4000/api/auth/token',
+//         },
+//       });
+//       return response.data.access_token;
+//     } catch (error) {
+//       console.error('Error fetching access token:', error);
+//       return null;
+//     }
+//   }
 
-  private async getUserInfo(token: string): Promise<any> {
-    try {
-      const response = await axios.get('https://api.intra.42.fr/v2/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      throw error;
-    }
-  }
+//   private async getUserInfo(token: string): Promise<any> {
+//     try {
+//       const response = await axios.get('https://api.intra.42.fr/v2/me', {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+//     //   return response.data;
+//     // if ()
+//     this.saveUserToDatabase(response.data);
+//     } catch (error) {
+//       console.error('Error fetching user info:', error);
+//       throw error;
+//     }
+//   }
 
-
-  
-  // Function to save user information in the database
-    // async saveUserToDatabase(userInfo: any): Promise<void> {
-    //     // const prisma = new PrismaClient();
-    // try {
-    //     const user = await this.prisma.user.create({
-    //         data: {
-    //         id: userInfo.id,
-    //         username: userInfo.login,
-    //         email: userInfo.email,
-    //         firstName: userInfo.first_name,
-    //         lastName: userInfo.last_name,
-    //         // profilePic: userInfo.image.link,
-    //     },
-    //     });
-    // } catch (error) {
-    //     console.error('Error saving user information to database:', error);
-    //     throw error;
-    // }
-    // }
+//   // Function to save user information in the database
+//     async saveUserToDatabase(userInfo: any): Promise<void> {
+//         // const prisma = new PrismaClient();
+//     try {
+//         const user = await this.prisma.user.create({
+//             data: {
+//             id: userInfo.id,
+//             hashPassword: 'x',
+//             username: userInfo.login,
+//             email: userInfo.email,
+//             firstName: userInfo.first_name,
+//             lastName: userInfo.last_name,
+//             // profilePic: userInfo.image.link,
+//         },
+//     });
+//          console.log(user);
+//     } catch (error) {
+//         console.error('Error saving user information to database:', error);
+//         throw error;
+//     }
+//     }
 }
-
-
 
