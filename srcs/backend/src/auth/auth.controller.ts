@@ -1,7 +1,13 @@
-import { Controller, Post, Body, Req, Get } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { 
+            Controller, 
+            Post, 
+            Body, 
+            Req, 
+            Get,
+} from '@nestjs/common';
+// import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto';
+import { SignUpDto, SignInDto } from './dto';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -16,13 +22,13 @@ export class AuthController {
     
    // POST /auth/signup
     @Post('signup')
-    signup(@Body() dto: AuthDto) {
+    signup(@Body() dto: SignUpDto) {
         return this.authService.signup(dto);
     }
 
     // POST /auth/signin
     @Post('signin')
-    signin(@Body() dto: AuthDto) {
+    signin(@Body() dto: SignInDto) {
         return this.authService.signin(dto);
     }
 

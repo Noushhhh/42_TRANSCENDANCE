@@ -18,11 +18,21 @@ datasource db {
 model User {
   id                Int          @id @default(autoincrement())
   username          String       @unique
+
+  createdAt	DateTime	@default(now())
+	updatedAt	DateTime	@updatedAt
  
   email         String?
   firstName     String?
   lastName      String?
-  profilePic    String?
+  avatar        String?
+
+  gamesWon      Int    @default(0)
+  gamesLost     Int    @default(0)
+  gamesPlayed   Int    @default(0)
+  playTime      Int    @default(0)
+  level         Int    @default(0)
+  rank          Int?
 
   channelsOwned     Channel[]    @relation("Owner")
   blockedUsers      User[]       @relation("BlockedUsers")
@@ -31,14 +41,15 @@ model User {
 
   adminOfChannels   Channel[]    @relation("Admins")
 
-  // login         String @unique
   hashPassword  String
 
   bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
 
+
   @@map("users")
+  @@unique([id, username])
 }
 
 model Channel {
