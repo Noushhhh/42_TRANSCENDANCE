@@ -13,6 +13,7 @@ exports.GameLoopService = void 0;
 const common_1 = require("@nestjs/common");
 const gameLogic_service_1 = require("./gameLogic.service");
 const gatewayOut_1 = require("./gatewayOut");
+const lobbies_1 = require("./lobbies");
 const KONVA_WIDTH = 1200;
 const KONVA_HEIGHT = 800;
 const PADDLE_WIDTH = 25;
@@ -23,74 +24,32 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
         this.gameLogicService = gameLogicService;
         this.gatewayOut = gatewayOut;
-        this.ballPos = {
-            x: KONVA_WIDTH / 2,
-            y: KONVA_HEIGHT / 2,
-        };
-        this.gameState = {
-            p1pos: {
-                x: 10,
-                y: 310,
-            },
-            p2pos: {
-                x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
-                y: 310,
-            },
-            ballState: {
-                ballDirection: 'left',
-                ballDX: 0,
-                ballDY: 0,
-                ballPos: {
-                    x: KONVA_WIDTH / 2,
-                    y: KONVA_HEIGHT / 2,
-                },
-            },
-            ballRay: {
-                x1: KONVA_WIDTH / 2,
-                y1: KONVA_HEIGHT / 2,
-                x2: KONVA_WIDTH / 2 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: KONVA_HEIGHT / 2 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
-            },
-            isPaused: true,
-            score: {
-                p1Score: 0,
-                p2Score: 0,
-            },
-        };
-        this.ballState = {
-            ballDirection: 'left',
-            ballDX: 0,
-            ballDY: 0,
-            ballPos: this.ballPos,
-            scoreBoard: this.gameState.score
-        };
         this.updateGameState = () => {
-            this.gatewayOut.updateGameState(this.gameState);
+            this.gatewayOut.updateLobbiesGameState();
         };
-        this.updateRay = () => {
-            this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
-            this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
-            if (this.gameState.ballState.ballDirection === 'right') {
-                this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-                this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-                return;
-            }
-            this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-            this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-        };
+        // private updateRay = () => {
+        //   this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
+        //   this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
+        //   if (this.gameState.ballState.ballDirection === 'right') {
+        //     this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+        //     this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+        //     return;
+        //   }
+        //   this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+        //   this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+        // }
         this.updateBall = () => {
-            var _a, _b;
-            if (this.ballState) {
-                this.ballState = this.gameLogicService.ballMove(this.ballState.ballDirection, this.ballState.ballPos, this.gameState.p1pos, this.gameState.p2pos, this.ballState.ballDX, this.ballState.ballDY, this.gameState.score, this.gameState.ballRay);
+            for (const [key, lobby] of lobbies_1.lobbies) {
+                if (lobby.gameState.gameState.isPaused === true)
+                    continue;
+                const ballState = this.gameLogicService.ballMove(lobby.gameState.gameState.ballState.ballDirection, lobby.gameState.gameState.ballState.ballPos, lobby.gameState.gameState.p1pos, lobby.gameState.gameState.p2pos, lobby.gameState.gameState.ballState.ballDX, lobby.gameState.gameState.ballState.ballDY, lobby.gameState.gameState.score, lobby.gameState.gameState.ballRay);
+                if (ballState) {
+                    lobby.gameState.gameState.ballState = ballState;
+                }
+                const score = ballState === null || ballState === void 0 ? void 0 : ballState.scoreBoard;
+                if (score)
+                    lobby.gameState.gameState.score = score;
             }
-            if ((_a = this.ballState) === null || _a === void 0 ? void 0 : _a.scoreBoard)
-                this.gameState.score = (_b = this.ballState) === null || _b === void 0 ? void 0 : _b.scoreBoard;
-            if (this.ballState) {
-                this.gameState.ballState.ballPos = this.ballState.ballPos;
-                this.gameState.ballState = this.ballState;
-            }
-            this.updateRay();
-            return this.gatewayOut.sendBallPos(this.gameState.ballState.ballPos);
         };
         this.gameLoopRunning = false;
     }
@@ -114,29 +73,47 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
             }, 1000 / 60);
         }
     }
-    updateP1Pos(direction) {
-        if (direction === 'up') {
-            if (this.gameState.p1pos.y > 0) {
-                this.gameState.p1pos.y -= 6;
-            }
+    findPlayerLobby(player) {
+        var _a, _b;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (player.id === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || player.id === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id))
+                return key;
         }
-        else if (direction === 'down') {
-            if (this.gameState.p1pos.y < KONVA_HEIGHT - 150) {
-                this.gameState.p1pos.y += 6;
-            }
-        }
+        return '-1';
     }
-    updateP2Pos(direction) {
-        if (direction === 'up') {
-            if (this.gameState.p2pos.y > 0) {
-                this.gameState.p2pos.y -= 6;
+    updatePlayerPos(direction, player) {
+        var _a;
+        const lobbyId = this.findPlayerLobby(player);
+        const lobby = lobbies_1.lobbies.get(lobbyId);
+        if ((lobby === null || lobby === void 0 ? void 0 : lobby.gameState.gameState.isPaused) === true)
+            return;
+        if (!lobby)
+            return;
+        if (player.id === ((_a = lobby.player1) === null || _a === void 0 ? void 0 : _a.id)) {
+            if (direction === 'up') {
+                if (lobby.gameState.gameState.p1pos.y > 0) {
+                    lobby.gameState.gameState.p1pos.y -= 6;
+                }
+            }
+            else if (direction === 'down') {
+                if (lobby.gameState.gameState.p1pos.y < KONVA_HEIGHT - 150) {
+                    lobby.gameState.gameState.p1pos.y += 6;
+                }
             }
         }
-        else if (direction === 'down') {
-            if (this.gameState.p2pos.y < KONVA_HEIGHT - 150) {
-                this.gameState.p2pos.y += 6;
+        else {
+            if (direction === 'up') {
+                if (lobby.gameState.gameState.p2pos.y > 0) {
+                    lobby.gameState.gameState.p2pos.y -= 6;
+                }
+            }
+            else if (direction === 'down') {
+                if (lobby.gameState.gameState.p2pos.y < KONVA_HEIGHT - 150) {
+                    lobby.gameState.gameState.p2pos.y += 6;
+                }
             }
         }
+        lobby.printPlayersPos();
     }
 };
 exports.GameLoopService = GameLoopService = __decorate([

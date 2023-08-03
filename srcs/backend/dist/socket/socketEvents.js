@@ -15,9 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
+const socket_service_1 = require("./socket.service");
 let SocketEvents = exports.SocketEvents = class SocketEvents {
-    constructor() {
+    constructor(socketService) {
+        this.socketService = socketService;
         this.listUserConnected = new Map();
+    }
+    onModuleInit() {
+        this.server.on('connection', (socket) => {
+            console.log('client connected', socket.id);
+        });
+    }
+    handleConnection(socket) {
+        const clientId = socket.id;
+        this.socketService.setSocket(clientId, socket);
     }
     readMap(map) {
         console.log('readmap:');
@@ -43,6 +54,8 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
                 this.listUserConnected.delete(key);
         }
         this.server.emit("changeConnexionState");
+        const clientId = client.id;
+        this.socketService.removeSocket(clientId);
     }
     handleMessage(data, client) {
         this.server.emit('message', client.id, data);
@@ -87,5 +100,6 @@ exports.SocketEvents = SocketEvents = __decorate([
         cors: {
             origin: '*',
         },
-    })
+    }),
+    __metadata("design:paramtypes", [socket_service_1.SocketService])
 ], SocketEvents);

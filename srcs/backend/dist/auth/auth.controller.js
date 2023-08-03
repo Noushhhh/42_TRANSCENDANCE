@@ -25,9 +25,17 @@ let AuthController = exports.AuthController = class AuthController {
     signup(dto) {
         return this.authService.signup(dto);
     }
-    //POST /auth/signin
-    signin() {
-        return this.authService.signin();
+    // POST /auth/signin
+    signin(dto) {
+        return this.authService.signin(dto);
+    }
+    // @Post('test')
+    // test() {
+    //     return 'hello test';
+    // }
+    // @Get('token')
+    token(req) {
+        console.log(req.query['code']);
     }
 };
 __decorate([
@@ -39,10 +47,18 @@ __decorate([
 ], AuthController.prototype, "signup", null);
 __decorate([
     (0, common_1.Post)('signin'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [dto_1.AuthDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "signin", null);
+__decorate([
+    (0, common_1.Get)('token'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "token", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

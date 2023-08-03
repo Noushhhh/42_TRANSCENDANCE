@@ -6,13 +6,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserModule = void 0;
+exports.SocketService = void 0;
 const common_1 = require("@nestjs/common");
-const user_controller_1 = require("./user.controller");
-let UserModule = exports.UserModule = class UserModule {
+let SocketService = exports.SocketService = class SocketService {
+    constructor() {
+        this.socketMap = new Map();
+    }
+    setSocket(clientId, socket) {
+        this.socketMap.set(clientId, socket);
+    }
+    getSocket(clientId) {
+        return this.socketMap.get(clientId);
+    }
+    removeSocket(clientId) {
+        this.socketMap.delete(clientId);
+    }
 };
-exports.UserModule = UserModule = __decorate([
-    (0, common_1.Module)({
-        controllers: [user_controller_1.UserController],
-    })
-], UserModule);
+exports.SocketService = SocketService = __decorate([
+    (0, common_1.Injectable)()
+], SocketService);
