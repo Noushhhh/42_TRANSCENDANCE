@@ -1,0 +1,41 @@
+
+.Message {
+    display: flex;
+}
+
+.MessageComposant{
+    color: #94979A;
+    background-color: #28353F;
+    border-radius: 10px;
+    padding: 4px 8px;
+    font-size: 15px;
+    word-wrap: break-word;
+}
+
+.Date{
+    justify-content: center;
+}
+
+.MessageFrom{
+    background-color: #3D3220;
+}
+
+.MessageTo{
+    background-color: #2F3621;
+}
+
+.MessageFrom, .MessageTo {
+    max-width: 500px;
+    padding: 6px 12px;
+}
+
+.MessageFromContainer{
+    justify-content: flex-start;
+    padding-left: 12px;
+}
+
+.MessageToContainer {
+    justify-content: flex-end;
+    padding: 0px 12px;
+
+}
