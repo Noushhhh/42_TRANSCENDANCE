@@ -1,18 +1,30 @@
 .PreviewUser{
-    border-radius: 15px;
+    display: flex;
+    height: 25px;
     width: fit-content;
     margin: 0px 3px;
     font-size: 15px;
     padding: 0px 7px;
     display: flex;
-    background-color: #E9EDEF;
-    font-weight: initial;
+    font-weight: 400;
     color: grey;
 }
 
-.PreviewUser button {
-    padding: 0;
+.PreviewUser .icon{
+    cursor: pointer;
+    padding-left: 4px;
+    padding-right: 7px;
+}
+
+.previewUserAvatar{
+    border-radius: 14px;
+    margin-right: 6px;
+    top: -2px;
+    position: relative;
+}
+
+.PreviewUser span{
     background-color: #E9EDEF;
-    font-size: 11px;
-    margin-left: 7px;
+    display: flex;
+    border-radius: 13px;
 }

@@ -1,38 +1,20 @@
 .ChannelSettings{
     height: 100%;
-    background-color: #F0F2F5;
     visibility: hidden;
     display: flex;
     flex-direction: column;
 }
 
-.HeaderChannelSettings{
-    justify-content: flex-start!important;
-}
-
-.HeaderChannelSettings h4{
-    width: 100%;
-    justify-content: center;
-    padding-right: 16px;
-}
-
-.HeaderChannelSettings .icon {
-    padding-left: 8px;
-    cursor: pointer;
-}
-
 .isDisplaySettings{
+    display: block;
     visibility: visible;
 }
 
 .isReduceSettings{
+    display: none;
     visibility: hidden;
 }
 
-.HeaderChannelInfo h4 {
-    display: flex;
-}
-
-.ContentChannelSettings{
+/* .ContentChannelSettings{
     background-color: #F0F2F5;
-}
+} */

@@ -5,7 +5,7 @@ import ChatPrompt from "./ChatPrompt";
 import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
-import { ChannelIdContext, useChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useSocketContext } from "../contexts/socketContext";
 
 interface contentMessageProps{
@@ -21,7 +21,6 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     const [messages, setMessages] = useState<Message[]>([]);
     
     const channelId = useChannelIdContext;
-    const socket = useSocketContext();
 
     // const [channelInfo, setChannelInfo] = useState<boolean>(false);
     

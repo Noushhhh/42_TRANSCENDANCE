@@ -1,28 +1,27 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import { useState } from 'react';
 import axios from 'axios';
-import { isChannelExist, createChannel, fetchUser } from './ChannelUtils';
-import { ChannelIdContext, useChannelIdContext, useSetChannelIdContext } from '../contexts/channelIdContext';
+import { isChannelExist, fetchUser } from './ChannelUtils';
+import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
+import { useUserIdContext } from '../contexts/userIdContext';
 
 interface FadeMenuProps {
-  user: { username: string; id: number; };
-  simulatedUserId: number;
+  user: User;
 }
 
-export default function FadeMenu({ user, simulatedUserId }: FadeMenuProps) {
+export default function FadeMenu({ user }: FadeMenuProps) {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
-  const socket = useSocketContext();
 
-  // const [idOfParticipants, setIdOfParticipants] = useState<number[]>([]);
+  const socket = useSocketContext();
+  const userId = useUserIdContext();
 
   const open = Boolean(anchorEl);
   const menu: string[] = ["Profile", "Private message", "Play", "Block"];
@@ -42,9 +41,8 @@ export default function FadeMenu({ user, simulatedUserId }: FadeMenuProps) {
 
   const handlePrivateMessageClick = async () => {
     console.log("Message prive clicked!");
-    const response = await isChannelExist([simulatedUserId, user.id]);
-    if (response !== -1)
-    {
+    const response = await isChannelExist([userId, user.id]);
+    if (response !== -1) {
       setChannelId(response);
     } else {
       // creer channel puis fetch
@@ -53,12 +51,12 @@ export default function FadeMenu({ user, simulatedUserId }: FadeMenuProps) {
         {
           name: "",
           password: "",
-          ownerId: simulatedUserId,
-          participants: [simulatedUserId, user.id],
+          ownerId: userId,
+          participants: [userId, user.id],
           type: 0,
         }
       );
-      fetchUser(setChannelHeader, simulatedUserId, socket);
+      fetchUser(setChannelHeader, userId, socket);
     }
   };
 
@@ -84,7 +82,8 @@ export default function FadeMenu({ user, simulatedUserId }: FadeMenuProps) {
       <p
         onClick={handleClick}
         className="User">
-        {user.username}</p>
+        {user.username}
+      </p>
       <Menu
         id="fade-menu"
         MenuListProps={{

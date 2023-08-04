@@ -9,14 +9,10 @@ import CreateChannelPopup from "./CreateChannelPopup";
 import "../types/channel.type";
 import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { fetchUser } from "./ChannelUtils"
-import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useSocketContext } from "../contexts/socketContext";
+import { useUserIdContext } from "../contexts/userIdContext";
 
-interface MessageSideProps {
-  simulatedUserId: number;
-}
-
-function MessageSide({ simulatedUserId }: MessageSideProps) {
+function MessageSide() {
 
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
@@ -25,9 +21,9 @@ function MessageSide({ simulatedUserId }: MessageSideProps) {
   const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
   const fetchBoolean = useRef(false);
 
-  const socket = useSocketContext();
+  const userId = useUserIdContext();
 
-  const channelId = useChannelIdContext();
+  const socket = useSocketContext();
 
   const channelHeader = useChannelHeaderContext();
   const setChannelHeader = useSetChannelHeaderContext();
@@ -59,7 +55,7 @@ function MessageSide({ simulatedUserId }: MessageSideProps) {
   const dummyFunction = () => { };
 
   useEffect(() => {
-    fetchUser(setChannelHeader, simulatedUserId, socket);
+    fetchUser(setChannelHeader, userId, socket);
     return () => {
       fetchBoolean.current = true;
     };
@@ -69,10 +65,10 @@ function MessageSide({ simulatedUserId }: MessageSideProps) {
     <div className="MessageSide">
       <div className="containerSearchBar">
         <AddCircleOutlineIcon onClick={handleClick} className="createChannel" />
-        <CreateChannelPopup simulatedUserId={simulatedUserId} displayState={displayState} />
+        <CreateChannelPopup displayState={displayState} />
         <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
       </div>
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} simulatedUserId={simulatedUserId} />
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false}/>
       {channelHeader
         .sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);
@@ -80,7 +76,9 @@ function MessageSide({ simulatedUserId }: MessageSideProps) {
           return dateB.getTime() - dateA.getTime();
         })
         .map((channel, index) => {
-          if (channel.channelId === previewLastMessage?.channelId)
+          console.log("channel ===");
+          console.log(channel);
+          if (previewLastMessage && channel.channelId === previewLastMessage?.channelId)
             channel.lastMsg = previewLastMessage.content;
           return (
             <MessageToClick

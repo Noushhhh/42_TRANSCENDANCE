@@ -67,12 +67,17 @@ function ChatPrompt({ addMessage, simulatedUserId }: ChatPromptProps): JSX.Eleme
 	socket.on('message', function (id: any, data: Message) {
 		if (!data)
 			return;
-		if (socket.id == id || isWhitespace(data.content))
+		if (socket.id === id || isWhitespace(data.content))
 			return;
 		addMessage(data, "MessageFrom");
 		setMessage("");
 	})
 
+	if (channelId === -1){
+		return (
+			<div></div>
+		)
+	}
 	return (
 		<div className="ChatPrompt">
 			<input value={message}

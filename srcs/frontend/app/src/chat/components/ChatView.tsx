@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/ChatView.css";
 import MessageComponent from "./Message";
-import ChannelInfo from "./ChannelInfo";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface Message {

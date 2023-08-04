@@ -1,5 +1,4 @@
-import React, { useState, SetStateAction, Dispatch } from "react";
-import { TextField } from "@mui/material";
+import React, { SetStateAction, Dispatch } from "react";
 
 interface SearchBarProps{
     setDisplayResults: Dispatch<SetStateAction<boolean>>;
@@ -8,6 +7,7 @@ interface SearchBarProps{
 }
 
 function SearchBar( {setDisplayResults, inputValue, setInputValue}: SearchBarProps ){
+
     const handleInputValue = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter')
         {

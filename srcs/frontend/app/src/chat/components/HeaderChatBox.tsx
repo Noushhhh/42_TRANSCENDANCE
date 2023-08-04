@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/HeaderChatBox.css"
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IsConnected from "./isConnected";
 import "../types/channel.type";
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
+import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface HeaderChatBoxProps {
@@ -35,11 +34,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
             <div className="HeaderChatBox">
                 <div className="ContactName">
                     <span className="ArrowBackPhone"><ArrowBackIosIcon /></span>
-                    <RadioButtonUncheckedIcon />
-                    <p>loading...</p>
-                </div>
-                <div className="HeaderChatBoxLogo">
-                    <SettingsIcon />
+                    <p>Select a channel...</p>
                 </div>
             </div>
         )

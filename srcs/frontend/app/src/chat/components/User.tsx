@@ -1,34 +1,46 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import FadeMenu from "./FadeMenu";
+import { useUserIdContext } from "../contexts/userIdContext";
+import avatar from "./avatar_tdeville.jpeg"
 
 interface UserProps {
-    user: {
-        username: string,
-        id: number,
-    }
+    user: User;
     showUserMenu: boolean;
-    addUserToList: (user: { username: string, id: number }) => void;
-    simulatedUserId: number;
+    addUserToList: (user: User) => void;
 }
 
-function User({ user, showUserMenu, addUserToList, simulatedUserId }: UserProps) {
+function User({ user, showUserMenu, addUserToList }: UserProps) {
 
-    const addUser = (user: { username: string, id: number }) => {
+    const userId = useUserIdContext();
+
+    const addUser = (user: User) => {
         addUserToList(user);
     }
 
     if (!showUserMenu) {
         return (
-            <p className="User" onClick={() => { addUser(user) }}>
-                {user.username}
-            </p>
+            <div className="User User1" onClick={() => { addUser(user) }}>
+                <div className="Container_avatar">
+                    <img className="avatar_image" src={avatar} alt="" width={49} height={49}/>
+                </div>
+                <div className="username">
+                    {user.username}
+                </div>
+            </div>
         )
     }
     else {
         return (
-            <FadeMenu user={user} simulatedUserId={simulatedUserId} />
+            <div className="User User2">
+                <div>
+                    <img className="avatar_image" src={avatar} alt="" width={49} height={49}/>
+                </div>
+                <div className="username">
+                    <FadeMenu user={user}/>
+                </div>
+            </div>
         )
     }
 }

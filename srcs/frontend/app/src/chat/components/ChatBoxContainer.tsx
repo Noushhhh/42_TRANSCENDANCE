@@ -7,12 +7,13 @@ import ChannelInfo from "./ChannelInfo";
 import { ChannelIdContext } from "../contexts/channelIdContext";
 import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { SocketContext } from "../contexts/socketContext";
+import { UserIdContext } from "../contexts/userIdContext";
 
 const socket = io("http://localhost:4000");
 
 function ChatBoxContainer() {
 
-    const [simulatedUserId, setSimulatedUserId] = useState<number>(1);
+    const [simulatedUserId] = useState<number>(1);
     const [channelId, setChannelId] = useState<number>(-1);
     const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
     const [channelInfo, setChannelInfo] = useState<boolean>(false);
@@ -29,12 +30,14 @@ function ChatBoxContainer() {
                     <ChannelIdContext.Provider value={{ channelId, setChannelId }}>
                     <SocketContext.Provider value={socket}>
                     <ChannelHeaderContext.Provider value={{ channelHeader, setChannelHeader }}>
-                        <MessageSide simulatedUserId={simulatedUserId} />
+                    <UserIdContext.Provider value={simulatedUserId}>
+                        <MessageSide />
                         <ContentMessage channelInfo={channelInfo} setChannelInfo={setChannelInfo} userId={simulatedUserId} simulatedUserId={simulatedUserId} />
+                        <ChannelInfo isChannelInfoDisplay={channelInfo} />
+                    </UserIdContext.Provider>
                     </ChannelHeaderContext.Provider>
                     </SocketContext.Provider>
                     </ChannelIdContext.Provider>
-                    <ChannelInfo isChannelInfoDisplay={channelInfo} />
                 </div>
             </div>
         </div>

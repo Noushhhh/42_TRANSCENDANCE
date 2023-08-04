@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/MessageToClick.css";
 import TimeElapsed from "./TimeElapsed";
 import IsConnected from "./isConnected";
-import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
+import { useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface Channel {
     name: string,

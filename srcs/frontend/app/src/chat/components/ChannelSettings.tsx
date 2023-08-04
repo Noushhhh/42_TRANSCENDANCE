@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import "../styles/ChannelSettings.css"
 import "../styles/ChannelInfo.css"
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import LockIcon from '@mui/icons-material/Lock';
-import BlockIcon from '@mui/icons-material/Block';
-import BackHandIcon from '@mui/icons-material/BackHand';
-import AddIcon from '@mui/icons-material/Add';
+import HandleSettingsMenu from "./HandleSettingsMenu";
+import HeaderChannelInfo from "./HeaderChannelInfo";
 
 interface ChannelSettingsProps {
     settingsChannel: boolean;
@@ -14,22 +10,38 @@ interface ChannelSettingsProps {
     setdisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }: ChannelSettingsProps): JSX.Element {
+interface MenuItem {
+    childTitle: string;
+    title: string;
+    icon: string;
+    function: (item: MenuItem) => void;
+    isSearchBarNeeded: boolean;
+    onlySearchInChannel: boolean;
+    action: string;
+}
 
-    interface MenuItem {
-        title: string;
-        icon: string;
-      }
-      
-    const menuItems: MenuItem[] = [
-        { title: "Add member", icon: "PersonAddIcon" },
-        { title: "Password", icon: "LockIcon" },
-        { title: "Kick someone", icon: "BlockIcon" },
-        { title: "Ban someone", icon: "BackHandIcon" },
-        { title: "New admin", icon: "AddIcon" },
-      ];
+function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }: ChannelSettingsProps): JSX.Element {
+    
+    const [isSettingsMenuDisplay, setisSettingsMenuDisplay] = useState<boolean>(false);
+    const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
+
+    console.log(selectedMenu);
 
     let isDisplay: string = settingsChannel ? 'isDisplaySettings' : 'isReduceSettings';
+
+    const goToSubmenu = (item: MenuItem) =>{
+        setSettingsChannel(false);
+        setisSettingsMenuDisplay(true);
+        setSelectedMenu(item);
+    }
+
+    const menuItems: MenuItem[] = [
+        {childTitle: "Add a member", title: "Add member", icon: "PersonAddIcon", function: goToSubmenu, isSearchBarNeeded: true, onlySearchInChannel: false, action: "add"},
+        {childTitle: "Manage Password", title: "Password", icon: "LockIcon", function: goToSubmenu, isSearchBarNeeded: false, onlySearchInChannel: false, action: "psswd"},
+        {childTitle: "Kick someone", title: "Kick someone", icon: "BlockIcon", function: goToSubmenu, isSearchBarNeeded: true, onlySearchInChannel: true, action: "kick"},
+        {childTitle: "Ban someone", title: "Ban someone", icon: "BackHandIcon", function: goToSubmenu, isSearchBarNeeded: true, onlySearchInChannel: true, action: "ban"},
+        {childTitle: "Manage administrators", title: "New admin", icon: "AddIcon", function: goToSubmenu, isSearchBarNeeded: true, onlySearchInChannel: true, action: "admin"},
+      ];
 
     const backInfoMenu = () => {
         if (settingsChannel === true)
@@ -38,20 +50,27 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }
     }
 
     return (
-        <div className={`ChannelSettings ${isDisplay}`}>
-            <div className="HeaderChannelInfo HeaderChannelSettings">
-                <ArrowBackIcon className="icon" onClick={backInfoMenu} />
-                <h4>Parametres du groupe</h4>
+        <div>
+            <div className={`ChannelSettings ${isDisplay}`}>
+                <HeaderChannelInfo handleClick={backInfoMenu} title={"Group settings"}/>
+                <div className="ContentChannelSettings">
+                    {
+                        menuItems.map((item, index) => (
+                            <div key={index} onClick={() => item.function(item)} className="ChannelInfoCard">
+                                <h4>{item.title}</h4>
+                            </div>
+                        ))
+                    }
+                </div>
             </div>
-            <div className="ContentChannelSettings">
-                {
-                    menuItems.map((item, index) => (
-                        <div key={index} className="ChannelInfoCard">
-                            <h4>{item.title}</h4>
-                        </div>
-                    ))
-                }
-            </div>
+            {selectedMenu?.childTitle && <HandleSettingsMenu
+                                        isSettingsMenuDisplay={isSettingsMenuDisplay} 
+                                        setisSettingsMenuDisplay={setisSettingsMenuDisplay} 
+                                        title={selectedMenu?.childTitle} 
+                                        setSettingsChannel={setSettingsChannel}
+                                        isSearchBarNeeded={selectedMenu.isSearchBarNeeded}
+                                        onlySearchInChannel={selectedMenu.onlySearchInChannel}
+                                        action={selectedMenu.action} />}
         </div>
     );
 } export default ChannelSettings;

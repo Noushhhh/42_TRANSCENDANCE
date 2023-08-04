@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState, useEffect } from "react";
+import React, { ChangeEvent, useState } from "react";
 import "../styles/CreateChannelPopup.css";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
@@ -7,15 +7,15 @@ import "../types/channel.type";
 import { createChannel } from "./ChannelUtils";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
+import { useUserIdContext } from "../contexts/userIdContext";
 
 interface CreateChannelPopupProps{
     displayState: string;
-    simulatedUserId: number;
 }
 
-function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPopupProps) {
+function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
 
-    const [userListChannel, setUserListChannel] = useState<{username: string, id: number}[]>([]);
+    const [userListChannel, setUserListChannel] = useState<User[]>([]);
     const [channelName, setChannelName] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -24,6 +24,7 @@ function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPop
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
 
     const socket = useSocketContext();
+    const userId = useUserIdContext();
 
     const setChannelHeader = useSetChannelHeaderContext();
 
@@ -52,20 +53,22 @@ function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPop
         return false;
       }
 
-    const addUserToList = (user: {username: string, id: number}) => {
+    const addUserToList = (user: User) => {
         if (checkIfAlreadyInList(user.username))
             return ;
         setUserListChannel(prevState => [...prevState, user]);
     }
 
-    const removeUserFromList = (input: {username: string, id: number}) => {
+    const removeUserFromList = (input: User) => {
         setUserListChannel((prevUserListChannel) =>
         prevUserListChannel.filter((username) => username !== input)
       );
     }
 
     const callCreateChannel = async () => {
-        createChannel(channelName, password, simulatedUserId, userListChannel, channelType, setChannelHeader, simulatedUserId, socket);
+        console.log("channel type ==");
+        console.log(channelType);
+        createChannel(channelName, password, userListChannel, channelType, setChannelHeader, userId, socket);
       };
 
     return (
@@ -75,11 +78,11 @@ function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPop
                 <label>Type de channel:</label>
                 <select value={channelType} onChange={handleChannelTypeChange} name="" id="">
                     <option value="PUBLIC">PUBLIC</option>
-                    <option value="PROTECTED">PROTECTED</option>
+                    <option value="PASSWORD_PROTECTED">PASSWORD_PROTECTED</option>
                     <option value="PRIVATE">PRIVATE</option>
                 </select>
             </div>
-            {channelType === 'PROTECTED' || channelType === 'PRIVATE' ? (
+            {channelType === 'PASSWORD_PROTECTED' || channelType === 'PRIVATE' ? (
             <div>
                 <div className="flex">
                     <h5>Password</h5>
@@ -92,13 +95,13 @@ function CreateChannelPopup( { displayState, simulatedUserId }: CreateChannelPop
             </div>
         ) : null}
             <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
-            <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={false} addUserToList={addUserToList} simulatedUserId={simulatedUserId} />
             <h3>User List</h3>
             <div className="userList">
                 {userListChannel.map((user, index) => {
                     return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
                 })}
             </div>
+            <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={false} addUserToList={addUserToList} onlySearchInChannel={false}/>
             {
                 password !== confirmPassword ? (
                     <p>Passwords doesn't match</p>

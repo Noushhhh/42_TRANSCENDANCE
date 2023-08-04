@@ -1,5 +1,3 @@
-
-
 .searchBar{
     height: 60px;
     background-color: #3E3B38;
@@ -47,6 +45,7 @@
 
 .userListSearched li{
     cursor: pointer;
+    width: 100%;
 }
 
 .userListSearched li p{

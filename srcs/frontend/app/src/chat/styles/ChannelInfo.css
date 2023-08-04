@@ -1,11 +1,12 @@
 
 .ChannelInfo{
+    background-color: #302E2C;
     color: #2F4F4F;
+    position: relative;
 }
 
 .ContainerChannelInfoisDisplay{
-    width: 100%;
-    background-color: #F0F2F5;
+    width: 650px;
     height: 100%;
     display: block;
     opacity: 1;
@@ -19,12 +20,11 @@
 
 .HeaderChannelInfo{
     background-color: #3E3B38;
-    height: 42px;
+    height: 60px;
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-top: 1px solid grey;
 }
 
 .ChannelInfoCard{
@@ -34,6 +34,7 @@
     display: flex;
     justify-content: center;
     box-shadow: 0px 0px 3px black;
+    cursor: pointer;
 }
 
 .HeaderChannelInfo h3 {
@@ -70,4 +71,9 @@
 
 .ContainerIsReduce{
     display: none;
+}
+
+.leaveChannel{
+    color: red;
+    fill:red;
 }

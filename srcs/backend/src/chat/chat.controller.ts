@@ -75,8 +75,15 @@ export class ChatController{
         return this.chatService.getUsersFromChannelId(id);
     }
 
+    @Get('getLoginsInChannelFromSubstring/:channelId/:substring')
+    async getLoginsInChannelFromSubstring(
+        @Param('substring')substring: string,
+        @Param('channelId')channelId: number): Promise<User[]>{
+        return this.chatService.getLoginsInChannelFromSubstring(channelId, substring)
+    }
+
     @Get('getLoginsFromSubstring/:substring')
-    async getLoginsFromSubstring(@Param('substring')substring: string): Promise<{username: string, id:number}[]>{
+    async getLoginsFromSubstring(@Param('substring')substring: string): Promise<User[]>{
         return this.chatService.getLoginsFromSubstring(substring)
     }
 
@@ -91,11 +98,11 @@ export class ChatController{
         }
     }
 
-    @Get('isUserIsChannelAdmin/:userId/:channelId')
-    async isUserIsChannelAdmin(
+    @Get('isAdmin/:userId/:channelId')
+    async isAdmin(
         @Param('userId')userId: number,
         @Param('channelId')channelId: number): Promise<boolean>{
-            return this.chatService.isUserIsChannelAdmin(userId, channelId);
+            return this.chatService.isAdmin(userId, channelId);
     }
 
     @Post('kickUserFromChannel/:userId/:channelId')
@@ -106,10 +113,39 @@ export class ChatController{
             return this.chatService.kickUserFromChannel(userId, channelId);
         }
 
-    @Post('banUserFromChannel/:userId/:channelId')
+    @Post('banUserFromChannel/:userId/:channelId/:callerId')
     async banUserFromChannel(
         @Param('userId')userId: number,
+        @Param('channelId')channelId: number,
+        @Param('callerId')callerId :number): Promise<boolean>{
+            return this.chatService.banUserFromChannel(userId, channelId, callerId);
+        }
+
+    @Post('leaveChannel/:userId/:channelId')
+    async leaveChannel(
+        @Param('userId')userId: number,
         @Param('channelId')channelId: number): Promise<boolean>{
-            return this.chatService.banUserFromChannel(userId, channelId);
+           return this.chatService.leaveChannel(userId, channelId);
+    }
+    
+    @Get('getNumberUsersInChannel/:channelId')
+    async getNumberUsersInChannel(
+        @Param('channlId')channelId: number): Promise<number>{
+        return this.chatService.getNumberUsersInChannel(channelId);
+    }
+
+    @Get('isUserIsInChannel/:userId/:channelId')
+    async isUserIsInChannel(
+        @Param('userId')userId: number,
+        @Param('channelId')channelId: number): Promise<boolean>{
+        return this.chatService.isUserIsInChannel(userId, channelId);
+    }
+
+    @Post('addAdminToChannel/:inviterId/:invitedId/:channelId')
+    async addAdminToChannel(
+        @Param('inviterId')inviterId: number,
+        @Param('invitedId')invitedId: number,
+        @Param('channelId')channelId: number): Promise<boolean>{
+            return this.chatService.addAdminToChannel(inviterId, invitedId, channelId);
         }
 }
