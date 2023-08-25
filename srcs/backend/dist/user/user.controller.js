@@ -17,12 +17,13 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 // import { JwtGuard } from '../guard/jwt.guard';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
-let UserController = exports.UserController = class UserController {
+let UserController = class UserController {
     // constructor (private UserService: User)
     getMe(req) {
         return req.user;
     }
 };
+exports.UserController = UserController;
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)('me'),

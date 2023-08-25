@@ -17,8 +17,9 @@ const gatewayOut_1 = require("./gatewayOut");
 const SocketModule_1 = require("../socket/SocketModule");
 const socketEvents_1 = require("../socket/socketEvents");
 const socket_service_1 = require("../socket/socket.service");
-let GameModule = exports.GameModule = class GameModule {
+let GameModule = class GameModule {
 };
+exports.GameModule = GameModule;
 exports.GameModule = GameModule = __decorate([
     (0, common_1.Module)({
         providers: [gameLogic_service_1.GameLogicService, gameLoop_service_1.GameLoopService, gameLobby_service_1.GameLobbyService, gatewayIn_1.GatewayIn, gatewayOut_1.GatewayOut, socketEvents_1.SocketEvents, socket_service_1.SocketService],

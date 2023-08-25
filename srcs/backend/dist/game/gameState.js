@@ -14,7 +14,7 @@ const PADDLE_WIDTH = 25;
 // const PADDLE_HEIGHT = 10;
 // const ballSpeed = 2;
 const RAY_LENGHT = 15 + 20;
-let GameState = exports.GameState = class GameState {
+let GameState = class GameState {
     constructor() {
         this.ballPos = {
             x: KONVA_WIDTH / 2,
@@ -60,6 +60,7 @@ let GameState = exports.GameState = class GameState {
         };
     }
 };
+exports.GameState = GameState;
 exports.GameState = GameState = __decorate([
     (0, common_1.Injectable)()
 ], GameState);

@@ -1,0 +1,52 @@
+
+@font-face {
+  font-family: 'PressStart2P';
+  src: url('./fonts/PressStart2P-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --main-font: 'PressStart2P', cursive;
+}
+
+.skeleton-wrapper {
+  font-family: var(--main-font);
+  padding: 20px;
+  width: 300px;
+  background-color: #f7f7f7;
+  border-radius: 5px;
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0, #e0e0e0, #f0f0f0);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  height: 30px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 60%;
+}
+
+.skeleton-line {
+  width: 100%;
+}
+
+.skeleton-line.shorter {
+  width: 80%;
+}
+
+@keyframes shimmer {
+  0% {
+      background-position: -200% 0;
+  }
+  100% {
+      background-position: 200% 0;
+  }
+}

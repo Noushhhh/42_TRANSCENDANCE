@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.lobbies = exports.Lobby = void 0;
 const common_1 = require("@nestjs/common");
 const gameState_1 = require("./gameState");
-let Lobby = exports.Lobby = class Lobby {
+let Lobby = class Lobby {
     constructor(player) {
         this.player2 = null;
         this.spectators = [];
@@ -25,6 +25,7 @@ let Lobby = exports.Lobby = class Lobby {
         console.log(this.gameState.gameState.p2pos);
     }
 };
+exports.Lobby = Lobby;
 exports.Lobby = Lobby = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [Object])

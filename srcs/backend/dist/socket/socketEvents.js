@@ -16,7 +16,7 @@ exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const socket_service_1 = require("./socket.service");
-let SocketEvents = exports.SocketEvents = class SocketEvents {
+let SocketEvents = class SocketEvents {
     constructor(socketService) {
         this.socketService = socketService;
         this.listUserConnected = new Map();
@@ -61,6 +61,7 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
         this.server.emit('message', client.id, data);
     }
 };
+exports.SocketEvents = SocketEvents;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)

@@ -20,7 +20,7 @@ const PADDLE_WIDTH = 25;
 // const PADDLE_HEIGHT = 10;
 // const ballSpeed = 2;
 const RAY_LENGHT = 15 + 20;
-let GameLoopService = exports.GameLoopService = class GameLoopService {
+let GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
         this.gameLogicService = gameLogicService;
         this.gatewayOut = gatewayOut;
@@ -116,6 +116,7 @@ let GameLoopService = exports.GameLoopService = class GameLoopService {
         lobby.printPlayersPos();
     }
 };
+exports.GameLoopService = GameLoopService;
 exports.GameLoopService = GameLoopService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gameLogic_service_1.GameLogicService,

@@ -2,7 +2,10 @@
 
 # This line runs the npm install command which installs all the dependencies defined in the package.json file.
 echo "Installing all the dependencies from package.json"
-npm install
+if [ ! -d "node_modules" ]; then
+    npm install
+fi
+
 
 # Install nodemon and ts-node as dev dependencies
 echo "Installing nodemon and ts-node as dev dependencies"

@@ -15,7 +15,7 @@ const socket_io_1 = require("socket.io");
 const lobbies_1 = require("./lobbies");
 const socket_service_1 = require("../socket/socket.service");
 const socketEvents_1 = require("../socket/socketEvents");
-let GatewayOut = exports.GatewayOut = class GatewayOut {
+let GatewayOut = class GatewayOut {
     constructor(socketMap, io) {
         this.socketMap = socketMap;
         this.io = io;
@@ -42,6 +42,7 @@ let GatewayOut = exports.GatewayOut = class GatewayOut {
         this.server.emit('isOnLobby', isInLobby, player === null || player === void 0 ? void 0 : player.id);
     }
 };
+exports.GatewayOut = GatewayOut;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)

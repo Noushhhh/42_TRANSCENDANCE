@@ -8,7 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketService = void 0;
 const common_1 = require("@nestjs/common");
-let SocketService = exports.SocketService = class SocketService {
+let SocketService = class SocketService {
     constructor() {
         this.socketMap = new Map();
     }
@@ -22,6 +22,7 @@ let SocketService = exports.SocketService = class SocketService {
         this.socketMap.delete(clientId);
     }
 };
+exports.SocketService = SocketService;
 exports.SocketService = SocketService = __decorate([
     (0, common_1.Injectable)()
 ], SocketService);

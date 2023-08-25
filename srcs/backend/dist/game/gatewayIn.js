@@ -17,7 +17,7 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
-let GatewayIn = exports.GatewayIn = class GatewayIn {
+let GatewayIn = class GatewayIn {
     constructor(gameLoop, gameLobby) {
         this.gameLoop = gameLoop;
         this.gameLobby = gameLobby;
@@ -39,6 +39,7 @@ let GatewayIn = exports.GatewayIn = class GatewayIn {
         this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
     }
 };
+exports.GatewayIn = GatewayIn;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)

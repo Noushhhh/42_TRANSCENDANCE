@@ -18,7 +18,7 @@ const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
 const socket_service_1 = require("../socket/socket.service");
 const common_2 = require("@nestjs/common");
-let GameController = exports.GameController = class GameController {
+let GameController = class GameController {
     constructor(gameLoopService, gameLobby, socket) {
         this.gameLoopService = gameLoopService;
         this.gameLobby = gameLobby;
@@ -36,6 +36,7 @@ let GameController = exports.GameController = class GameController {
         return { msg: 'stopped' };
     }
 };
+exports.GameController = GameController;
 __decorate([
     (0, common_1.Get)('lobby'),
     __param(0, (0, common_2.Query)('clientId')),
