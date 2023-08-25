@@ -36,7 +36,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         // even if the token status is determined quickly.
         const loadingTimeout = setTimeout(() => {
             setShowLoader(false);
-            console.log("passing by first useEffect\n");
+            // console.log("passing by first useEffect\n");
         }, MIN_LOADING_TIME);
 
         // Cleanup function: Clears the timer if the component is unmounted to prevent potential issues.
@@ -44,7 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }, []);
 
     // If the loader state is active, render the SkeletonLoader.
-    if (showLoader) {
+    if (showLoader || tokenExpired == null) {
         return <SkeletonLoader />;
     }
 

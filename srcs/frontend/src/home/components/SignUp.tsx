@@ -44,7 +44,8 @@ const signUpAPI = async (email: string, password: string) => {
 
     if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || `Server responded with status: ${response.status}`);
+        console.log(data);
+        throw new Error(`${data?.message} | Server responded with status: ${response.status}`);
     }
 
     return response.json();
