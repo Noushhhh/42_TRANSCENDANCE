@@ -43,33 +43,87 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
+// import { User, Bookmark } from  '@prisma/client';
 const prisma_service_1 = require("../prisma/prisma.service");
+const client_1 = require("@prisma/client");
 const argon = __importStar(require("argon2"));
-let AuthService = exports.AuthService = class AuthService {
-    constructor(prisma) {
+const jwt_1 = require("@nestjs/jwt");
+// import { ConfigService } from '@nestjs/config';
+let AuthService = class AuthService {
+    constructor(prisma, jwt) {
         this.prisma = prisma;
+        this.jwt = jwt;
     }
     signup(dto) {
         return __awaiter(this, void 0, void 0, function* () {
             // generate password hash
             const hashPassword = yield argon.hash(dto.password);
             // save user in db
-            const user = yield this.prisma.user.create({
-                data: {
-                    login: dto.login,
-                    hashPassword,
-                },
-            });
-            // return saved user
-            return user;
-            // return { msg: 'I have signed up' };
+            try {
+                const user = yield this.prisma.user.create({
+                    data: {
+                        username: dto.username,
+                        hashPassword,
+                    },
+                    //   select: {
+                    //     username: true,
+                    //   },
+                });
+                return this.signToken(user.id, user.username);
+                // return user;
+            }
+            catch (error) {
+                if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
+                    console.log(error);
+                    if (error.code === 'P2002') {
+                        throw new common_1.ForbiddenException('Credentials taken');
+                    }
+                }
+                throw error; // throw error code Nest httpException
+            }
         });
     }
-    signin() {
-        return { msg: 'I have signed in' };
+    signin(dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // find user with username
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    username: dto.username,
+                }
+            });
+            // if user not found throw exception
+            if (!user)
+                throw new common_1.ForbiddenException('Username not found');
+            // compare password
+            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
+            // if password wrong throw exception
+            if (!passwordMatch)
+                throw new common_1.ForbiddenException('Incorrect password');
+            // send back the token
+            return this.signToken(user.id, user.username);
+        });
+    }
+    signToken(userId, email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = {
+                sub: userId,
+                email,
+            };
+            // const secret = this.config.get('JWT_SECRET');
+            const secret = process.env.JWT_SECRET;
+            const token = yield this.jwt.signAsync(payload, {
+                expiresIn: '15m',
+                secret: secret,
+            });
+            return {
+                access_token: token,
+            };
+        });
     }
 };
+exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        jwt_1.JwtService])
 ], AuthService);
