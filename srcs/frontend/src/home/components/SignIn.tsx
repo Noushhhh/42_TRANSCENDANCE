@@ -44,7 +44,7 @@ const signInAPI = async (email: string, password: string) => {
 
     if (!response.ok) {
         const data = await response.json();
-        throw new Error(`${data?.message} | Server responded with status: ${response.status}`);
+        throw new Error(`${data?.message}` || `Server responded with status: ${response.status}`);
     }
 
     return response.json();
@@ -83,7 +83,7 @@ const SignIn: React.FC = () => {
                 if (error.message.includes('403')) {
                     setErrorMessage('Wrong credentials. Please try again.');
                 } else {
-                    setErrorMessage('An unexpected error occurred. Please try again later.');
+                    setErrorMessage(`${error?.message} Please try again`);
                 }
                 console.error("There was an error:", error.message);
             } else {

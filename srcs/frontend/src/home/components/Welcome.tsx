@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import '../styles/generalStyles.css';
 
-// Inline style for the container to override general CSS
+// Inline styles to override or complement general CSS classes
 const containerStyle = {
     height: '100vh',
     width: '100vw',
@@ -18,8 +18,10 @@ const btnElement = {
     fontSize: '1.5vw'
 }
 
-// Header component
-// Displays the main title of the application
+/**
+ * Header Component
+ * Represents the main title of the application.
+ */
 const Header: React.FC = () => (
     <header className="header">
         <h1 className="title" style={{ color: 'purple', flexWrap: 'wrap', textAlign: 'center' }}>
@@ -28,26 +30,30 @@ const Header: React.FC = () => (
     </header>
 );
 
-// Props interface for the Features component
+// Types for the props of Features component
 interface FeaturesProps {
-    handleFunction: () => void;  // Function to be called on button click
+    handleFunction: () => void;  // Callback to be executed on button click
 }
 
-// Features component
-// Displays instruction and a start button. On button click, it triggers the passed handleFunction
+/**
+ * Features Component
+ * Contains instructions and a start button. When clicked, it triggers the provided handleFunction.
+ */
 const Features: React.FC<FeaturesProps> = ({ handleFunction }) => (
     <div>
         <button style={btnElement} className="button" onClick={handleFunction}>start</button>
     </div>
 );
 
-// Welcome component
-// Acts as the main component, containing both Header and Features components.
-// Uses the useNavigate hook for programmatic navigation.
+/**
+ * Welcome Component
+ * Represents the main welcome page. Displays the Header and Features components.
+ * Uses the useNavigate hook from 'react-router-dom' for programmatic navigation.
+ */
 const Welcome: React.FC = () => {
     const navigate = useNavigate();
 
-    // Handles the button click, navigating to the '/AuthChoise' route.
+    // Handler for the start button. When clicked, navigates the user to the '/AuthChoise' page.
     const handleStart = () => {
         navigate('/AuthChoise');
     }
