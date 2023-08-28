@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1692687409076" clover="3.2.0">
+  <project timestamp="1692687409077" name="All files">
+    <metrics statements="17" coveredstatements="17" conditionals="29" coveredconditionals="22" methods="2" coveredmethods="2" elements="48" coveredelements="41" complexity="0" loc="17" ncloc="17" packages="2" files="2" classes="2"/>
+    <package name="dist.auth.dto">
+      <metrics statements="13" coveredstatements="13" conditionals="29" coveredconditionals="22" methods="2" coveredmethods="2"/>
+      <file name="auth.dto.js" path="/usr/src/app/dist/auth/dto/auth.dto.js">
+        <metrics statements="13" coveredstatements="13" conditionals="29" coveredconditionals="22" methods="2" coveredmethods="2"/>
+        <line num="21" count="1" type="cond" truecount="3" falsecount="0"/>
+        <line num="22" count="2" type="cond" truecount="2" falsecount="2"/>
+        <line num="23" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="24" count="6" type="cond" truecount="6" falsecount="2"/>
+        <line num="25" count="2" type="cond" truecount="2" falsecount="1"/>
+        <line num="27" count="1" type="cond" truecount="3" falsecount="0"/>
+        <line num="28" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.auth.dto">
+      <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="auth.dto.ts" path="/usr/src/app/src/auth/dto/auth.dto.ts">
+        <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
