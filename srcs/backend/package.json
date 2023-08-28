@@ -8,6 +8,8 @@
     "prisma:studio": "npx prisma studio &",
     "start:dev": "nest start --watch",
     "start": "nodemon",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
