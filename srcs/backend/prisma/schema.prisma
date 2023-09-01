@@ -17,7 +17,8 @@ datasource db {
 
 model User {
   id                Int          @id @default(autoincrement())
-  username          String       @unique
+  username          String       @unique // we will have a unique user, and it will be optional during creation ?
+  profileName       String?      @unique // The name the user will show publictly
 
   channelsOwned     Channel[]    @relation("Owner")
   blockedUsers      User[]       @relation("BlockedUsers")
@@ -30,7 +31,7 @@ model User {
   hashPassword  String
   refresToken RefreshToken[]
 
-  email         String?
+  email         String? 
   firstName     String?
   lastName      String?
   bannedFromChannel Channel[]    @relation("BannedUsers")
@@ -97,5 +98,3 @@ model RefreshToken {
   createdAt   DateTime @default(now())
   expiresAt   DateTime 
 }
-
-

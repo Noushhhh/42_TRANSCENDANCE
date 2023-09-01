@@ -2,7 +2,8 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import {
     Welcome, SignIn, SignUp, AuthChoise, HomePage, Settings,
-    ProtectedRoute, Friends, Stats, ErrorComponent, useActivityLogout
+    ProtectedRoute, Friends, Stats, ErrorComponent, useActivityLogout,
+    ProfileSetup
 } from './home/components/index';
 import GameContainer from "./game/components/GameContainer";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
@@ -16,9 +17,10 @@ const App: React.FC = () => {
             <Route path="/" element={<Welcome />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/authchoise" element={<AuthChoise />} />
+            <Route path="/authchoise" element={<AuthChoise  />} />
+            <Route path="/profilesetup" element={<ProfileSetup  email = "tengo@gmail.com"/>} />
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
-                <Route path="chat" element={<ChatBoxContainer />} />
+                <Route path="chat" element={<ChatBoxContainer />} /> 
                 <Route path="friends" element={<Friends />} />
                 <Route path="stats" element={<Stats />} />
                 <Route path="settings" element={<Settings />} />
