@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
-let PrismaService = exports.PrismaService = class PrismaService extends client_1.PrismaClient {
+let PrismaService = class PrismaService extends client_1.PrismaClient {
     constructor() {
         console.log(process.env);
         super({
@@ -24,6 +24,7 @@ let PrismaService = exports.PrismaService = class PrismaService extends client_1
         });
     }
 };
+exports.PrismaService = PrismaService;
 exports.PrismaService = PrismaService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [])

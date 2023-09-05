@@ -71,6 +71,8 @@ services:
       - frontend
     tty: true
     stdin_open: true
+    restart: unless-stopped
+    
 
 networks:
   app_network:
@@ -86,7 +88,7 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: './srcs/frontend/app'
+      device: './srcs/frontend/'
   backend_volume:
     name: backend_volume
     driver: local
