@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Req } from '@nestjs/common';
+import { ForbiddenException, Injectable, Req, Redirect } from '@nestjs/common';
 // import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client'
@@ -7,8 +7,8 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+// import { Redirect } from '@nestjs/redirect';
 
-// import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +18,7 @@ export class AuthService {
         // private config: ConfigService
     ) {}
 
+    // @Redirect('/')
     async signup(dto: SignUpDto) : Promise <AuthTokenDto>
     {
         const { email, username, password } = dto;
@@ -61,7 +62,7 @@ export class AuthService {
           throw new ForbiddenException('Username not found',);
       
       // compare password
-      const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+      const passwordMatch = await argon.verify(user.hashPassword, password,);
       
       // if password wrong throw exception
       if (!passwordMatch)
@@ -69,7 +70,6 @@ export class AuthService {
       // handle if 2FA
       // send back the token
       return this.signJwtToken(user.id, user.username);
-
     }
 
     async signJwtToken(
@@ -102,6 +102,7 @@ export class AuthService {
         if (token) {
           const userInfo = await this.getUserInfo(token);
           console.log('User Info:', userInfo);
+          // redirect to homepage 
           // Handle the response data here, such as saving the user info or other data.
         } else {
           console.error('Failed to fetch access token');
@@ -134,10 +135,9 @@ export class AuthService {
               Authorization: `Bearer ${token}`,
             },
           });
-        //   return response.data;
-        // if ()
+          console.log(response)
         
-        this.saveUserToDatabase(response.data);
+        this.createUser(response.data);
         } catch (error) {
           console.error('Error fetching user info:', error);
           throw error;
@@ -145,7 +145,7 @@ export class AuthService {
       }
       
       // Function to save user information in the database
-      async saveUserToDatabase(userInfo: any): Promise<void> {
+      async createUser(userInfo: any): Promise<void> {
         const existingUser = await this.prisma.user.findUnique({
             where: {
                 id: userInfo.id,
@@ -157,17 +157,15 @@ export class AuthService {
             console.log('User already exists:', existingUser);
             return;
         }
-        const prisma = new PrismaClient();
+        // const prisma = new PrismaClient();
         try {
             const user = await this.prisma.user.create({
                 data: {
                 id: userInfo.id,
-                hashPassword: 'x',
+                hashPassword: 'x', // random password? 
                 username: userInfo.login,
                 email: userInfo.email,
-                firstName: userInfo.first_name,
-                lastName: userInfo.last_name,
-                profilePic: userInfo.image_link,
+                avatar: userInfo.image.link,
             },
         });
              console.log(user);
@@ -176,5 +174,4 @@ export class AuthService {
             throw error;
         }
         }
-
 }
