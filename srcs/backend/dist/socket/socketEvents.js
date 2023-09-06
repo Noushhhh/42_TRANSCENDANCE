@@ -15,9 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-let SocketEvents = exports.SocketEvents = class SocketEvents {
-    constructor() {
+const socket_service_1 = require("./socket.service");
+let SocketEvents = class SocketEvents {
+    constructor(socketService) {
+        this.socketService = socketService;
         this.listUserConnected = new Map();
+    }
+    onModuleInit() {
+        this.server.on('connection', (socket) => {
+            console.log('client connected', socket.id);
+        });
+    }
+    handleConnection(socket) {
+        const clientId = socket.id;
+        this.socketService.setSocket(clientId, socket);
     }
     readMap(map) {
         console.log('readmap:');
@@ -31,11 +42,11 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
         this.readMap(this.listUserConnected);
     }
     handleIsUserConnected(userId, client) {
-        const socketId = this.listUserConnected.get(userId); // get the socketId from userId
+        const socketId = this.listUserConnected.get(userId);
         if (!socketId)
             return false;
-        const connectedSockets = this.server.sockets.sockets; // get a map of connected sockets
-        return connectedSockets.has(socketId); // is the socketId of our clients is in this map ?
+        const connectedSockets = this.server.sockets.sockets;
+        return connectedSockets.has(socketId);
     }
     handleDisconnect(client) {
         for (const [key, value] of this.listUserConnected.entries()) {
@@ -43,11 +54,14 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
                 this.listUserConnected.delete(key);
         }
         this.server.emit("changeConnexionState");
+        const clientId = client.id;
+        this.socketService.removeSocket(clientId);
     }
     handleMessage(data, client) {
         this.server.emit('message', client.id, data);
     }
 };
+exports.SocketEvents = SocketEvents;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
@@ -87,5 +101,7 @@ exports.SocketEvents = SocketEvents = __decorate([
         cors: {
             origin: '*',
         },
-    })
+    }),
+    __metadata("design:paramtypes", [socket_service_1.SocketService])
 ], SocketEvents);
+//# sourceMappingURL=socketEvents.js.map

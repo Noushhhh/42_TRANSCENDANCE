@@ -12,12 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GatewayOut = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-let GatewayOut = exports.GatewayOut = class GatewayOut {
-    onModuleInit() {
-        this.server.on('connection', (socket) => {
-            console.log(socket.id);
-            console.log('connected');
-        });
+const lobbies_1 = require("./lobbies");
+const socket_service_1 = require("../socket/socket.service");
+const socketEvents_1 = require("../socket/socketEvents");
+let GatewayOut = class GatewayOut {
+    constructor(socketMap, io) {
+        this.socketMap = socketMap;
+        this.io = io;
     }
     sendBallPos(pos) {
         this.server.emit('updateBallPos', pos);
@@ -25,7 +26,23 @@ let GatewayOut = exports.GatewayOut = class GatewayOut {
     updateGameState(gameState) {
         this.server.emit('updateGameState', gameState);
     }
+    emitToRoom(roomName, event, data) {
+        this.io.server.to(roomName).emit(event, data);
+    }
+    emitToUser(userId, event, data) {
+        var _a;
+        (_a = this.socketMap.getSocket(userId)) === null || _a === void 0 ? void 0 : _a.emit(event, data);
+    }
+    updateLobbiesGameState() {
+        for (const [key, value] of lobbies_1.lobbies) {
+            this.emitToRoom(key, 'updateGameState', value.gameState.gameState);
+        }
+    }
+    isInLobby(isInLobby, player) {
+        this.server.emit('isOnLobby', isInLobby, player === null || player === void 0 ? void 0 : player.id);
+    }
 };
+exports.GatewayOut = GatewayOut;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
@@ -35,5 +52,7 @@ exports.GatewayOut = GatewayOut = __decorate([
         cors: {
             origin: '*',
         },
-    })
+    }),
+    __metadata("design:paramtypes", [socket_service_1.SocketService, socketEvents_1.SocketEvents])
 ], GatewayOut);
+//# sourceMappingURL=gatewayOut.js.map

@@ -25,7 +25,7 @@ exports.ChatController = void 0;
 const common_1 = require("@nestjs/common");
 const chat_service_1 = require("./chat.service");
 require("./interfaces/chat.interface");
-let ChatController = exports.ChatController = class ChatController {
+let ChatController = class ChatController {
     constructor(chatService) {
         this.chatService = chatService;
     }
@@ -96,6 +96,7 @@ let ChatController = exports.ChatController = class ChatController {
         });
     }
 };
+exports.ChatController = ChatController;
 __decorate([
     (0, common_1.Get)('getAllConvFromId/:id'),
     __param(0, (0, common_1.Param)('id')),
@@ -169,3 +170,4 @@ exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])
 ], ChatController);
+//# sourceMappingURL=chat.controller.js.map

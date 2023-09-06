@@ -13,12 +13,10 @@ const KONVA_HEIGHT = 800;
 const PADDLE_WIDTH = 25;
 const PADDLE_HEIGHT = 150;
 const ballSpeed = 11;
-// Have to implement a calculator between ball and paddle like a ray
-let GameLogicService = exports.GameLogicService = class GameLogicService {
+let GameLogicService = class GameLogicService {
     constructor() {
         this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay) => {
             if (ballDirection === 'left') {
-                // Touch left paddle condition
                 if (ballPos.x > 10 + PADDLE_WIDTH &&
                     ballPos.x < 10 + PADDLE_WIDTH + 25 &&
                     ballPos.y > p1Pos.y &&
@@ -31,24 +29,19 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
                     ballDirection = 'right';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
-                // Touch top condition
                 else if (ballPos.y < 0 + 10) {
                     ballDY = -ballDY;
-                    // Touch bot condition
                 }
                 else if (ballPos.y > KONVA_HEIGHT - 10) {
                     ballDY = -ballDY;
                 }
-                // If the ball go after the left paddle
                 if (ballPos.x < 0) {
-                    // left paddle scored
                     ballPos.x = KONVA_WIDTH / 2;
                     ballPos.y = KONVA_HEIGHT / 2;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p1Score += 1;
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
-                    // Normal move to left condition
                 }
                 else {
                     const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
@@ -63,7 +56,6 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
                 }
             }
             else if (ballDirection === 'right') {
-                // Touch left paddle condition
                 if (ballPos.x > KONVA_WIDTH - PADDLE_WIDTH - 30 &&
                     ballPos.x < KONVA_WIDTH - PADDLE_WIDTH - 10 &&
                     ballPos.y > p2Pos.y &&
@@ -76,24 +68,19 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
                     ballDirection = 'left';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
-                // Touch top condition
                 else if (ballPos.y < 0 + 10) {
                     ballDY = -ballDY;
-                    // Touch bot condition
                 }
                 else if (ballPos.y > KONVA_HEIGHT - 10) {
                     ballDY = -ballDY;
                 }
-                // If the ball go after the left paddle
                 if (ballPos.x > KONVA_WIDTH) {
-                    // right paddle scored
                     ballPos.x = KONVA_WIDTH / 2;
                     ballPos.y = KONVA_HEIGHT / 2;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p2Score += 1;
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
-                    // Normal move to left condition
                 }
                 else {
                     const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
@@ -110,6 +97,8 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
         };
     }
 };
+exports.GameLogicService = GameLogicService;
 exports.GameLogicService = GameLogicService = __decorate([
     (0, common_1.Injectable)()
 ], GameLogicService);
+//# sourceMappingURL=gameLogic.service.js.map

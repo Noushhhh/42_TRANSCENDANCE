@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from './dto';
 import axios from 'axios';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('auth')

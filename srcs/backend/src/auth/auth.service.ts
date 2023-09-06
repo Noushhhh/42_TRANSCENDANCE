@@ -2,11 +2,11 @@ import { ForbiddenException, Injectable, Req, Redirect } from '@nestjs/common';
 // import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client'
-import { Auth42Dto, AuthTokenDto, SignUpDto, SignInDto } from './dto';
+import { AuthTokenDto, SignUpDto, SignInDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 // import { Redirect } from '@nestjs/redirect';
 
 
@@ -68,10 +68,10 @@ export class AuthService {
       if (!passwordMatch)
           throw new ForbiddenException('Incorrect password',);
       // handle if 2FA
-      if (user.TwoFA = true)
-      {
+      // if (user.TwoFA = true)
+      // {
         
-      }
+      // }
       // send back the token
       return this.signJwtToken(user.id, user.username);
     }
@@ -169,7 +169,7 @@ export class AuthService {
                 hashPassword: 'x', // random password? 
                 username: userInfo.login,
                 email: userInfo.email,
-                avatar: userInfo.image.link,
+                // avatar: userInfo.image.link,
             },
         });
              console.log(user);

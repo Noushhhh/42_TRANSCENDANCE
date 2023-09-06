@@ -16,61 +16,72 @@ exports.GatewayIn = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const gameLoop_service_1 = require("./gameLoop.service");
-let GatewayIn = exports.GatewayIn = class GatewayIn {
-    constructor(gameLoop) {
+const gameLobby_service_1 = require("./gameLobby.service");
+let GatewayIn = class GatewayIn {
+    constructor(gameLoop, gameLobby) {
         this.gameLoop = gameLoop;
+        this.gameLobby = gameLobby;
     }
-    onModuleInit() {
-        this.server.on('connection', (socket) => {
-            console.log(socket.id);
-            console.log('connected');
-        });
+    handleDisconnect(client) {
+        console.log('client disconnected', client.id);
+        this.gameLobby.removePlayerFromLobby(client);
     }
-    getP1Pos(direction) {
-        this.gameLoop.updateP1Pos(direction);
+    getPlayerPos(direction, client) {
+        this.gameLoop.updatePlayerPos(direction, client);
     }
-    getP2Pos(direction) {
-        this.gameLoop.updateP2Pos(direction);
+    setPause(isPaused, client) {
+        this.gameLobby.isPaused(client, isPaused);
     }
-    setPause(isPaused) {
-        if (isPaused === true) {
-            this.server.emit('play');
-        }
-        else if (isPaused === false) {
-            this.server.emit('pause');
-        }
+    requestLobbie(client) {
+        this.gameLobby.sendLobbies(client);
+    }
+    setIntoLobby(lobbyName, client) {
+        this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
     }
 };
+exports.GatewayIn = GatewayIn;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
 ], GatewayIn.prototype, "server", void 0);
 __decorate([
-    (0, websockets_1.SubscribeMessage)('getP1Pos'),
+    (0, websockets_1.SubscribeMessage)('getPlayerPos'),
     __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
-], GatewayIn.prototype, "getP1Pos", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('getP2Pos'),
-    __param(0, (0, websockets_1.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], GatewayIn.prototype, "getP2Pos", null);
+], GatewayIn.prototype, "getPlayerPos", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('getIsPaused'),
     __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Boolean]),
+    __metadata("design:paramtypes", [Boolean, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "setPause", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('requestLobbies'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "requestLobbie", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('setIntoLobby'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "setIntoLobby", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService])
+    __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
+        gameLobby_service_1.GameLobbyService])
 ], GatewayIn);
+//# sourceMappingURL=gatewayIn.js.map

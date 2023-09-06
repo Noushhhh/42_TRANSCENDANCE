@@ -8,8 +8,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookmarkModule = void 0;
 const common_1 = require("@nestjs/common");
-let BookmarkModule = exports.BookmarkModule = class BookmarkModule {
+let BookmarkModule = class BookmarkModule {
 };
+exports.BookmarkModule = BookmarkModule;
 exports.BookmarkModule = BookmarkModule = __decorate([
     (0, common_1.Module)({})
 ], BookmarkModule);
+//# sourceMappingURL=bookmark.module.js.map

@@ -22,7 +22,7 @@ exports.ChatService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-let ChatService = exports.ChatService = class ChatService {
+let ChatService = class ChatService {
     constructor(prisma) {
         this.prisma = prisma;
     }
@@ -180,7 +180,7 @@ let ChatService = exports.ChatService = class ChatService {
                     id: channelId,
                 },
                 include: {
-                    messages: true, // Inclure les messages associés au canal
+                    messages: true,
                 },
             });
             if (!channel) {
@@ -225,7 +225,6 @@ let ChatService = exports.ChatService = class ChatService {
                     id: true,
                 }
             });
-            // const logins = users.map(user => user.username);
             return users;
         });
     }
@@ -253,7 +252,9 @@ let ChatService = exports.ChatService = class ChatService {
         });
     }
 };
+exports.ChatService = ChatService;
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], ChatService);
+//# sourceMappingURL=chat.service.js.map
