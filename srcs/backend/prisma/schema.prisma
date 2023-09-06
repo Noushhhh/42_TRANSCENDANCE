@@ -28,7 +28,7 @@ model User {
 
   // login         String @unique
   hashPassword  String
-  refresToken RefreshToken[]
+  refreshToken RefreshToken[]
 
   email         String?
   firstName     String?
