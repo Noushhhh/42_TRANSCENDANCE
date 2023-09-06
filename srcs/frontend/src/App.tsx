@@ -23,7 +23,8 @@ const App: React.FC = () => {
                 <Route path="/" element={<Welcome />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/authchoise" element={<AuthChoise />} />
+                {/* correct auth instead of authchoise */}
+                <Route path="/authchoise" element={<AuthChoise />} /> 
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
                     <Route path="chat" element={<ChatBoxContainer />} />
                     <Route path="friends" element={<Friends />} />

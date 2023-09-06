@@ -51,6 +51,11 @@ let AuthController = class AuthController {
             return this.authService.signout(res);
         });
     }
+    token(req) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.authService.signToken42(req);
+        });
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -86,6 +91,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
+__decorate([
+    (0, common_1.Get)('token'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "token", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

@@ -3,6 +3,9 @@ import React from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import '../styles/generalStyles.css';
 
+
+const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-18a39bac72b776af2fd5f62fa678fe5a734e9e5d8c4fe99f2ff1c7041a1d990a&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
+
 // Create a functional component named AuthChoise.
 const AuthChoise: React.FC = () => {
 
@@ -18,6 +21,10 @@ const AuthChoise: React.FC = () => {
     const handleSignUpNav = () => {
         navigate('/signup');
     };
+
+    async function signin42() {
+        window.location.href = authorizeUrl;
+      }
 
     // Return the JSX for the component.
     return (
@@ -35,8 +42,9 @@ const AuthChoise: React.FC = () => {
                 <button className="button" onClick={handleSignUpNav}>SignUp</button>
             </div>
 
-            {/* NavLink for 42 student authentication */}
-            <NavLink to='42api' className='nav-link'> I am a 42 student</NavLink>
+            {/* Button for 42 student authentication */}
+            <button className="button" onClick={signin42}>Sign in with 42</button>
+            {/* <NavLink to='42api' className='nav-link'> I am a 42 student</NavLink> */}
         </div>
     );
 }

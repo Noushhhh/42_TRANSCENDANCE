@@ -30,4 +30,9 @@ export class AuthController {
     async signout(@Res() res: Response){
         return this.authService.signout(res);
     }
+
+    @Get('token')
+    async token(@Req() req: any) {
+        return this.authService.signToken42(req);
+    }
 }

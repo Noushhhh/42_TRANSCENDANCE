@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Req, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client'
 import { AuthDto } from './dto';
@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -154,4 +155,82 @@ export class AuthService {
            return res.status(401).send({message: "Cookie not found"});
         }
     }
+
+    async signToken42(@Req() req: any) {
+        const code = req.query['code'];
+        const token = await this.exchangeCodeForToken(code);
+        if (token) {
+          const userInfo = await this.getUserInfo(token);
+          console.log('User Info:', userInfo);
+          // redirect to homepage 
+          // Handle the response data here, such as saving the user info or other data.
+        } else {
+          console.error('Failed to fetch access token');
+          // Handle errors here
+        }
+      }
+
+      private async exchangeCodeForToken(code: string): Promise<string | null> {
+        try {
+          const response = await axios.post('https://api.intra.42.fr/oauth/token', null, {
+            params: {
+              grant_type: 'authorization_code',
+              client_id: process.env.UID_42,
+              client_secret: process.env.SECRET_42,
+              code: code,
+              redirect_uri: 'http://localhost:4000/api/auth/token',
+            },
+          });
+          return response.data.access_token;
+        } catch (error) {
+          console.error('Error fetching access token:', error);
+          return null;
+        }
+      }
+
+      private async getUserInfo(token: string): Promise<any> {
+        try {
+          const response = await axios.get('https://api.intra.42.fr/v2/me', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log(response)
+        
+        this.createUser(response.data);
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+          throw error;
+        }
+      }
+
+      // Function to save user information in the database
+      async createUser(userInfo: any): Promise<void> {
+        const existingUser = await this.prisma.user.findUnique({
+            where: {
+                id: userInfo.id,
+            },
+        });
+
+        // If user already exists, don't create a new one
+        if (existingUser) {
+            console.log('User already exists:', existingUser);
+            return;
+        }
+        try {
+            const user = await this.prisma.user.create({
+                data: {
+                id: userInfo.id,
+                hashPassword: 'x', // random password? 
+                username: userInfo.login,
+                email: userInfo.email,
+                // avatar: userInfo.image.link,
+            },
+        });
+             console.log(user);
+        } catch (error) {
+            console.error('Error saving user information to database:', error);
+            throw error;
+        }
+        }
 }
