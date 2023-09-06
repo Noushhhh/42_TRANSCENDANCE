@@ -68,6 +68,10 @@ export class AuthService {
       if (!passwordMatch)
           throw new ForbiddenException('Incorrect password',);
       // handle if 2FA
+      if (user.TwoFA = true)
+      {
+        
+      }
       // send back the token
       return this.signJwtToken(user.id, user.username);
     }
