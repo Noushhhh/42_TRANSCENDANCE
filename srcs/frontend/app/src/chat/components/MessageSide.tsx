@@ -19,6 +19,7 @@ function MessageSide() {
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
+  const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
   const fetchBoolean = useRef(false);
 
   const userId = useUserIdContext();
@@ -68,7 +69,7 @@ function MessageSide() {
         <CreateChannelPopup displayState={displayState} />
         <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
       </div>
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false}/>
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched}/>
       {channelHeader
         .sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);
@@ -76,8 +77,6 @@ function MessageSide() {
           return dateB.getTime() - dateA.getTime();
         })
         .map((channel, index) => {
-          console.log("channel ===");
-          console.log(channel);
           if (previewLastMessage && channel.channelId === previewLastMessage?.channelId)
             channel.lastMsg = previewLastMessage.content;
           return (

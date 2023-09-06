@@ -1,6 +1,9 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType } from "@prisma/client";
+import { connect } from "rxjs";
+import { SocketService } from "../socket/socket.service";
+import { SocketEvents } from "../socket/SocketEvents";
 
 interface MessageToStore{
   channelId: number;
@@ -19,7 +22,12 @@ interface channelToAdd{
 @Injectable()
 export class ChatService {
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService,
+              // "private" to keep utilisation of the service inside the class
+              // "readonly" to be sure that socketService can't be substitute with
+              // others services (security)
+              private readonly socketEvents: SocketEvents
+              ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
 
@@ -335,16 +343,22 @@ export class ChatService {
       return (channel.participants.length);
     }
     
-    async kickUserFromChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
+    async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerId: number): Promise<boolean>{
 
       const userId = Number(userIdStr);
       const channelId = Number(channelIdStr);
 
-      if (isNaN(userId) || isNaN(channelId))
-        return false;
+      if (isNaN(userId) || isNaN(channelId) || isNaN(callerId) || userId <= 0 || channelId <= 0 || callerId <=0){
+        throw new Error("Invalid arguments");
+      }
 
       if (await this.isAdmin(userId, channelId) === true){
         throw new HttpException("You can't kick a channel Admin",
+        HttpStatus.FORBIDDEN);
+      }
+
+      if (await this.isAdmin(callerId, channelId) === false){
+        throw new HttpException("Only administrator can ban users",
         HttpStatus.FORBIDDEN);
       }
 
@@ -354,6 +368,7 @@ export class ChatService {
         await this.prisma.channel.delete({
           where: { id: channelId },
         })
+        this.socketEvents.alertChannelDeleted(userId, channelId);
         return true;
       }
 
@@ -386,13 +401,9 @@ export class ChatService {
       const userId = Number(userIdStr);
       const channelId = Number(channelIdStr);
       const callerId = Number(callerIdStr);
-
-      console.log("====================================");
       
-      const nbrUser: number = await this.getNumberUsersInChannel(channelId)
-      
-      console.log(`banUserFromChannel called server side with ${nbrUser} participants`);
-      
+      const nbrUser: number = await this.getNumberUsersInChannel(channelId);
+            
       try {
 
         if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0){
@@ -405,7 +416,7 @@ export class ChatService {
         }
 
         if (await this.isAdmin(userId, channelId) === true){
-          throw new HttpException("You can't kick a channel Admin",
+          throw new HttpException("You can't ban a channel Admin",
           HttpStatus.FORBIDDEN);
         }
         
@@ -413,12 +424,13 @@ export class ChatService {
           console.log(`channel need to be deleted: ${channelId}`);
           await this.deleteAllMessagesInChannel(channelId);
           await this.prisma.channel.delete({
-          where: { id: channelId },
-        })
-        return true;
+            where: { id: channelId },
+          })
+          this.socketEvents.alertChannelDeleted(userId, channelId);
+          return true;
       }
       
-      await this.kickUserFromChannel(userId, channelId);
+      await this.kickUserFromChannel(userId, channelId, callerId);
       
       const response = await this.prisma.channel.update({
         where: { id: channelId },
@@ -447,11 +459,11 @@ export class ChatService {
         return false;
 
       if (await this.getNumberUsersInChannel(channelId) === 2){
-        console.log("channel need to be deleted");
         this.deleteAllMessagesInChannel(channelId);
         await this.prisma.channel.delete({
           where: { id: channelId },
         })
+        this.socketEvents.alertChannelDeleted(userId, channelId);
         return true;
       }
 
@@ -540,6 +552,63 @@ export class ChatService {
         return true;
       }
 
+      async removeAdminFromChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean>{
+
+        console.log("removeAdminFromChannel called");
+  
+        try{
+  
+          const inviterId: number = Number(inviterIdStr);
+          const invitedId: number = Number(invitedIdStr);
+          const channelId: number = Number(channelIdStr);
+  
+          if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)){
+            throw new Error("Wrong parameters passed to addAdminToChannel");
+          }
+
+          if (inviterId === invitedId){
+            throw new Error("You can't kick yourself");
+          }
+  
+          if (await this.isAdmin(inviterId, channelId) === false){
+          throw new HttpException("Only admins can remove others admins",
+            HttpStatus.FORBIDDEN);
+          }
+
+          if (await this.isAdmin(invitedId, channelId) === false){
+            throw new HttpException(`user: ${invitedId} is not admin in this channel`,
+              HttpStatus.FORBIDDEN);
+            }
+  
+          if (await this.isUserIsInChannel(invitedIdStr, channelId) === false){
+            throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
+          }
+  
+          const userToAdd = await this.prisma.user.findUnique({
+            where: { id: invitedId }
+          })
+          
+          if (!userToAdd)
+            return false;
+  
+          const response = await this.prisma.channel.update({
+            where: { id: channelId },
+            data: {
+              admins: {
+                disconnect: {
+                  id: invitedId,
+                }
+              }
+            }
+          })
+          if (!response)
+            throw new Error("removeAdmin: error posting data");
+        } catch(error) {
+          throw new Error("Error in removeAdminFromChannel");
+        }
+          return true;
+        }
+
       async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string, ): Promise<User[]>{
 
         const channelId: number = Number(channelIdStr);
@@ -560,6 +629,54 @@ export class ChatService {
         const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
 
         return users;
+      }
+
+      async getAdmins(channelIdStr: number): Promise<User[]>{
+
+        try{
+
+          const channelId: number = Number(channelIdStr);
+
+          if (isNaN(channelId) || channelId <= 0){
+            throw new Error("Invalid arguments");
+          }
+
+          const channel = await this.prisma.channel.findUnique({
+            where: { id: channelId },
+            include: { 
+              admins: true
+             }
+          })
+
+          if (!channel){
+            throw new Error("Error fetching data");
+          }
+
+          return channel.admins;
+
+        } catch(error){
+          throw new Error("Error fetching data");
+        }
+      }
+
+      async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<void>{
+        try{
+
+          const userId: number = Number(userIdStr);
+          const channelId: number = Number(channelIdStr);
+
+          const response = await this.prisma.channel.update({
+            where: { id: channelId },
+            data: {
+              participants: {
+                connect: { id: userId }
+              }
+            }
+          })
+
+        } catch (error){
+          throw new Error("Error updating database");
+        }
       }
       
     }

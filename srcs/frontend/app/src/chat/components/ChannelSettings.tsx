@@ -3,6 +3,9 @@ import "../styles/ChannelSettings.css"
 import "../styles/ChannelInfo.css"
 import HandleSettingsMenu from "./HandleSettingsMenu";
 import HeaderChannelInfo from "./HeaderChannelInfo";
+import { useSocketContext } from "../contexts/socketContext";
+import { Socket } from "socket.io-client";
+import { useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface ChannelSettingsProps {
     settingsChannel: boolean;
@@ -24,15 +27,25 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }
     
     const [isSettingsMenuDisplay, setisSettingsMenuDisplay] = useState<boolean>(false);
     const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
+    // const [eventChannelDeleted, setEventChannelDeleted] = useState<boolean>(false);
 
-    console.log(selectedMenu);
+    const socket: Socket = useSocketContext();
+    const setChannelId = useSetChannelIdContext();
 
     let isDisplay: string = settingsChannel ? 'isDisplaySettings' : 'isReduceSettings';
+
+    console.log(`socket id = ${socket.id}`);
+
+    socket.on("channelDeleted", (channelId: number)=>{
+        console.log(`ping received client-side with id: ${channelId}`);
+        setChannelId(-1);
+    })
 
     const goToSubmenu = (item: MenuItem) =>{
         setSettingsChannel(false);
         setisSettingsMenuDisplay(true);
         setSelectedMenu(item);
+        console.log(`selected menu action = ${item.action}`)
     }
 
     const menuItems: MenuItem[] = [

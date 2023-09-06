@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
@@ -7,7 +7,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import "../styles/SettingsMenu.css";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { banUserList, fetchUser } from "./ChannelUtils";
+import { banUserList, fetchUser, kickUserList, fetchUserAdminTable, manageAdminsToChannel, addUserListToChannel } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { Socket } from "socket.io-client";
@@ -27,6 +27,9 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const [searchBarResults, setSearchBarResults] = useState<boolean>(false);
     const [userList, setUserList] = useState<User[]>([]);
     const [inputValue, setInputValue] = useState<string>("");
+    const [listUserAdmin, setListUserAdmin] = useState<{user: User, isAdmin: boolean}[]>([]);
+    const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const channelId: number = useChannelIdContext();
     const userId: number = useUserIdContext();
@@ -35,16 +38,63 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
 
     let isItDisplay: string = isSettingsMenuDisplay ? "isDisplay" : "isNotDisplay";
 
+    const updateUserAdminList = (user: User): void => {
+        const updatedList: {user: User, isAdmin: boolean}[] = listUserAdmin.map(userAdmin => {
+            if (userAdmin.user.id === user.id) {
+                return { ...userAdmin, isAdmin: !userAdmin.isAdmin };
+            }
+            return userAdmin;
+        });
+        setListUserAdmin(updatedList);
+    }
+
     const backMenu = () => {
+        console.log(`action in gobackmenu = ${action}`);
         setInputValue("");
         setSearchBarResults(false);
         setisSettingsMenuDisplay(false);
         setSettingsChannel(true);
+        setUserList([]);
+        setListUsersSearched([])
     }
 
+    const fetchDataAdmins = async () => {
+        if (action === "admin"){
+            try {
+                const userAdminTable: {user: User, isAdmin: boolean}[] = await fetchUserAdminTable(channelId);
+                setListUserAdmin(userAdminTable);
+                listUserAdmin.forEach((item) => {
+                    console.log(item);
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+    }
+      // Utilisez useEffect avec un tableau vide en tant que deuxième argument
+      // pour appeler fetchDataAdmins une seule fois au rendu initial du composant.
+      useEffect(() => {
+        fetchDataAdmins();
+      }, []);
+
     const callAction = async () => {
+        try {
+
         if (action === "ban") {
+            console.log("va ban");
+            // lorsque le channel fait 2 users et qu'on ban l'un des 2
+            // le client essaie de ban les 2 users mais le channel a deja
+            // ete detruit car il comportait plus que 1 user a la fin du 1er ban
             await banUserList(userList, channelId, userId);
+        }
+        else if (action === "kick"){
+            await kickUserList(userList, channelId, userId);
+        }
+        else if (action === "admin"){
+            await manageAdminsToChannel(listUserAdmin, channelId, userId);
+        }
+        else if (action === "add"){
+            await addUserListToChannel(userList, channelId);
         }
         else {
             console.log("WIP");
@@ -53,6 +103,13 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         setInputValue("");
         setUserList([]);
         await fetchUser(setChannelHeader, userId, socket);
+    }
+    catch (error: any){
+        const errorMessage = error.message;
+        setError(error.message);
+        console.log(errorMessage);
+        console.log("EER")
+    }
     }
 
     function checkIfAlreadyInList(usernameToCheck: string) {
@@ -65,12 +122,20 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const addUserToList = (user: User) => {
-        if (checkIfAlreadyInList(user.username))
+        if (action === "admin")
             return;
+        if (checkIfAlreadyInList(user.username)){
+            removeUserFromList(user);
+            return;
+        }
         setUserList(prevState => [...prevState, user]);
     }
 
     const removeUserFromList = (input: User) => {
+        if (action === "admin"){
+            updateUserAdminList(input);
+            return ;
+        }
         setUserList((prevUserList) =>
             prevUserList.filter((username) => username !== input)
         );
@@ -87,12 +152,32 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     else {
         return (
             <div className={`${isItDisplay}`}>
+                { error }
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} />
-                {userList.map((user, index) => {
-                    return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
-                })}
-                <SearchBarResults inputValue={inputValue} displayResults={searchBarResults} showUserMenu={false} addUserToList={addUserToList} onlySearchInChannel={onlySearchInChannel} />
+                <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} action={action} />
+                <div className="ContainerPreviewUser">
+                    { action === "admin" ?
+                    listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => {
+                        return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user.user} />
+                    })
+                        : 
+                    (userList.map((user, index) => {
+                        return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
+                    }))}
+                </div>
+               {<SearchBarResults 
+                    inputValue={inputValue}
+                    displayResults={searchBarResults}
+                    showUserMenu={false}
+                    addUserToList={addUserToList}
+                    onlySearchInChannel={onlySearchInChannel}
+                    listUserAdmin={listUserAdmin}
+                    action={action}
+                    setSearchBarResults={setSearchBarResults}
+                    updateUserAdminList={updateUserAdminList} 
+                    fetchDataAdmins={fetchDataAdmins}
+                    listUsersSearched={listUsersSearched}
+                    setListUsersSearched={setListUsersSearched}/>}
                 <div className="userList">
                 </div>
                 <h4>hande Settings Menu</h4>

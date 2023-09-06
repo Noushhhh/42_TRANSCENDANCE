@@ -6,7 +6,7 @@ import { Server, Socket } from 'socket.io';
 import { GameState } from './types'
 import { lobbies } from './lobbies';
 import { SocketService } from '../socket/socket.service';
-import { SocketEvents } from '../socket/socketEvents';
+import { SocketEvents } from '../socket/SocketEvents';
 
 interface Vector2d {
   x: number;

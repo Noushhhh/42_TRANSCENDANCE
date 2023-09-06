@@ -29,6 +29,9 @@ function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
         }
     }
 
+    if (channelHeader[i])
+        console.log(`channelId == ${channelHeader[i].channelId}`);
+
     if (channelHeader[i] === undefined) {
         return (
             <div className="HeaderChatBox">

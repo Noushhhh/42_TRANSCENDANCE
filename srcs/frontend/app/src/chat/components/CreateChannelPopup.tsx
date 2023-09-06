@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import "../styles/CreateChannelPopup.css";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
@@ -22,9 +22,18 @@ function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
     const [displayResults, setDisplayResults] = useState<boolean>(false);
     const [inputValue, setInputValue] = useState<string>("");
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
+    const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
 
     const socket = useSocketContext();
     const userId = useUserIdContext();
+
+    useEffect(() => {
+
+        if (displayState === "hidePopup"){
+            setListUsersSearched([]);
+            setInputValue("");
+        }
+    }, [displayState])
 
     const setChannelHeader = useSetChannelHeaderContext();
 
@@ -101,7 +110,14 @@ function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
                     return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
                 })}
             </div>
-            <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={false} addUserToList={addUserToList} onlySearchInChannel={false}/>
+            <SearchBarResults
+                inputValue={inputValue}
+                displayResults={displayResults}
+                showUserMenu={false}
+                addUserToList={addUserToList}
+                onlySearchInChannel={false}
+                listUsersSearched={listUsersSearched}
+                setListUsersSearched={setListUsersSearched}/>
             {
                 password !== confirmPassword ? (
                     <p>Passwords doesn't match</p>

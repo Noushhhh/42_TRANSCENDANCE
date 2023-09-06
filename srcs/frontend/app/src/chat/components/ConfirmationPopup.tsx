@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import "../styles/ChannelInfo.css"
 import { useUserIdContext } from '../contexts/userIdContext';
-import { useChannelIdContext } from '../contexts/channelIdContext';
+import { useChannelIdContext, useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
 
@@ -22,6 +22,7 @@ export default function ConfirmationPopup( {Action}: ConfirmationPopup ) {
 
   const userId = useUserIdContext();
   const channelId = useChannelIdContext();
+  const setChannelId = useSetChannelIdContext();
   const setChannelHeader = useSetChannelHeaderContext();
   const socket = useSocketContext();
 
@@ -34,9 +35,9 @@ export default function ConfirmationPopup( {Action}: ConfirmationPopup ) {
   };
 
   const handleAgree = () => {
-    console.log('called');
     try{
       Action(userId, channelId, setChannelHeader, socket);
+      setChannelId(-1);
     } catch (error){
       console.log("Error while leaving channel");
       // NOTIFICATIONS ERROR

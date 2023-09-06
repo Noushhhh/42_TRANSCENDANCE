@@ -46,6 +46,7 @@
 .userListSearched li{
     cursor: pointer;
     width: 100%;
+    display: flex;
 }
 
 .userListSearched li p{
@@ -57,4 +58,8 @@
     font-size: 30px!important;
     color: white;
     cursor: pointer;
+}
+
+.checkboxSearchBar{
+    transform: scale(1.3);
 }

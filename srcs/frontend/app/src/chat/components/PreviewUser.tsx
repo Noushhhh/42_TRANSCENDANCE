@@ -15,7 +15,7 @@ function PreviewUser({ user, removeUserFromList }: PreviewUserProps): JSX.Elemen
     }
 
     return (
-        <div className="PreviewUser">
+        <div className="PreviewUser fadeIn">
             <span>
                 <img className="previewUserAvatar" src={avatar} alt="" width={29} height={29} />
                 {user.username} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />

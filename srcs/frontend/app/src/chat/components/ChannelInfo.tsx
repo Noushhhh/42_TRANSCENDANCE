@@ -6,16 +6,18 @@ import ChannelSettings from "./ChannelSettings";
 import ConfirmationPopup from "./ConfirmationPopup";
 import { leaveChannel } from "./ChannelUtils";
 import HeaderChannelInfo from "./HeaderChannelInfo";
-//import Message from "../../../../../backend/node_modules/prisma/prisma-client";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface MonComposantProps {
     isChannelInfoDisplay: boolean;
 }
 
-function ChannelInfo({ isChannelInfoDisplay }: MonComposantProps): JSX.Element {
+function ChannelInfo({ isChannelInfoDisplay }: MonComposantProps): JSX.Element | null {
 
     const [settingsChannel, setSettingsChannel] = useState<boolean>(false);
     const [displayMenu, setdisplayMenu] = useState<boolean>(true);
+
+    const channelId: number = useChannelIdContext();
 
     let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
     let isContainerDisplay: string | null = displayMenu ? 'IsDisplay' : 'IsReduce';
@@ -25,8 +27,8 @@ function ChannelInfo({ isChannelInfoDisplay }: MonComposantProps): JSX.Element {
         displayMenu ? setdisplayMenu(false) : setdisplayMenu(true);
     }
 
-    return (
-        <div className={`ChannelInfo ${'ContainerChannelInfo' + widthChatView}`}>
+        return channelId !== -1 ? (
+            <div className={`ChannelInfo ${'ContainerChannelInfo' + widthChatView}`}>
             <div className={`${'Container' + isContainerDisplay}`}>
                <HeaderChannelInfo handleClick={()=>{}} title={"Groups information"}/>
                 <div className="ChannelInfoCard ChannelName">
@@ -42,5 +44,7 @@ function ChannelInfo({ isChannelInfoDisplay }: MonComposantProps): JSX.Element {
             </div>
             <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} />
         </div>
-    );
+    ) 
+        : null;
+
 } export default ChannelInfo;

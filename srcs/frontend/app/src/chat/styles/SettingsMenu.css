@@ -25,3 +25,7 @@
 .validationButton .icon{
     font-size: 34px;
 }
+
+.ContainerPreviewUser {
+    display: flex;
+}

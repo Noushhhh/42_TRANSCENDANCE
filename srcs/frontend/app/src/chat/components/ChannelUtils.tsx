@@ -163,9 +163,10 @@ export const kickUserFromChannel = async (
   userId: number,
   channelId: number,
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
-  socket: Socket): Promise<boolean> => {
+  socket: Socket,
+  callerId: number): Promise<boolean> => {
 
-  if (isNaN(channelId) || channelId <= 0 || isNaN(userId) || userId <= 0) {
+  if (isNaN(channelId) || channelId <= 0 || isNaN(userId) || userId <= 0  || isNaN(callerId) || callerId <= 0){
     throw new Error("Invalid parameters");
   }
 
@@ -177,7 +178,7 @@ export const kickUserFromChannel = async (
     body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
   };
 
-  const response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${userId}/${channelId}`, requestOptions);
+  const response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${userId}/${channelId}/${callerId}`, requestOptions);
   if (!response)
     return false;
 
@@ -255,7 +256,7 @@ export const getUsernamesInChannelFromSubstring = async (
   }
 }
 
-export const banUserList = async (userList: User[], channelId: number, callerId: number) => {
+export const banUserList = async (userList: User[], channelId: number, callerId: number): Promise<void> => {
   try {
     const requestOptions: RequestInit = {
       method: "POST",
@@ -271,8 +272,139 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
       }
     }
 
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+export const kickUserList = async (userList: User[], channelId: number, callerId: number) => {
+  try {
+    const requestOptions: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    for (const user of userList) {
+      const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
+      if (!response.ok) {
+        throw new Error("Error updating database");
+      }
+    }
+
   } catch (error) {
     console.log("error");
     throw error;
   }
 };
+
+export const fetchChannelUsers = async (channelId: number): Promise<User[]> => {
+
+  try {
+
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
+    if (!response.ok){
+      throw new Error("Error fetching data");
+    }
+    const users: User[] = await response.json();
+
+    return users;
+
+  } catch (error){
+    throw new Error("Error fetching data");
+  }
+
+}
+
+
+export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => {
+
+  try {
+
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getAdmins/${channelId}`);
+    if (!response.ok){
+      throw new Error("Error fetching data");
+    }
+    const admins: User[] = await response.json();
+
+    return admins;
+
+  } catch (error){
+    throw new Error("Error fetching data");
+  }
+
+}
+
+export const fetchUserAdminTable = async (channelId: number): Promise<{user: User, isAdmin: boolean}[]> => {
+
+  try {
+
+    const users: User[] = await fetchChannelUsers(channelId);
+    const admins: User[] = await fetchChannelAdmins(channelId);
+
+    const userAdminTable: {user: User, isAdmin: boolean}[] = users.map((user) => ({
+      user,
+      isAdmin: admins.some((admin) => admin.id === user.id)
+    }))
+
+    return userAdminTable;
+
+  } catch (error) {
+    throw new Error("Error fetching data");
+  }
+
+}
+
+export const manageAdminsToChannel = async (userList: {user: User, isAdmin: boolean}[], channelId: number, inviterId: number): Promise<void> => {
+
+  try {
+
+    const requestOptions: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    for (const user of userList) {
+      const response: Response = new Response();
+      if (user.isAdmin === true){
+        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+      } else {
+        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+      }
+      if (!response.ok) {
+        throw new Error("Error updating database");
+      }
+    }
+
+  } catch(error){
+    throw new Error("Error posting data");
+  }
+
+}
+
+export const addUserListToChannel = async (userList: User[], channelId: number): Promise<void[] | Response[]> => {
+
+  try {
+
+    const requestOptions: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const responses: Promise<Response>[] = [];
+    userList.map((user) => {
+      let response = fetch(`http://localhost:4000/api/chat/addUserToChannel/${user.id}/${channelId}`, requestOptions);
+      responses.push(response);
+    })
+
+    return Promise.all(responses).then((data) => data);
+  } catch (error) {
+    throw new Error("Error posting data");
+  }
+
+}

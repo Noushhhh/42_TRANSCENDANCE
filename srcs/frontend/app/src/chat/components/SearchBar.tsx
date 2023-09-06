@@ -1,12 +1,13 @@
-import React, { SetStateAction, Dispatch } from "react";
+import React, { SetStateAction, Dispatch, useEffect } from "react";
 
 interface SearchBarProps{
     setDisplayResults: Dispatch<SetStateAction<boolean>>;
     inputValue: string;
     setInputValue: Dispatch<SetStateAction<string>>;
+    action?: string;
 }
 
-function SearchBar( {setDisplayResults, inputValue, setInputValue}: SearchBarProps ){
+function SearchBar( { setDisplayResults, inputValue, setInputValue, action }: SearchBarProps ){
 
     const handleInputValue = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter')
