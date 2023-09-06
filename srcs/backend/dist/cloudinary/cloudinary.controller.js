@@ -6,18 +6,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserModule = void 0;
+exports.CloudinaryController = void 0;
 const common_1 = require("@nestjs/common");
-const user_controller_1 = require("./user.controller");
-const user_service_1 = require("./user.service");
-const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
-let UserModule = class UserModule {
+let CloudinaryController = class CloudinaryController {
 };
-exports.UserModule = UserModule;
-exports.UserModule = UserModule = __decorate([
-    (0, common_1.Module)({
-        imports: [cloudinary_module_1.CloudinaryModule],
-        controllers: [user_controller_1.UserController],
-        providers: [user_service_1.UserService]
-    })
-], UserModule);
+exports.CloudinaryController = CloudinaryController;
+exports.CloudinaryController = CloudinaryController = __decorate([
+    (0, common_1.Controller)('profile-setup')
+], CloudinaryController);

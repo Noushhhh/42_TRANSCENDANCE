@@ -37,6 +37,7 @@ let AuthController = class AuthController {
     }
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(res);
             return this.authService.signin(dto, res);
         });
     }

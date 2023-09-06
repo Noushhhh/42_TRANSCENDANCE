@@ -19,7 +19,7 @@ const isTokenExpired = async (): Promise<boolean> => {
     try {
         const response = await fetch(API_CHECK_TOKEN_VALIDITY, {
             method: 'GET',
-            credentials: 'include',
+            credentials: 'include', // here creadentials will be added automaticcaly in cookies
             signal: controller.signal  // Signal to possibly abort the fetch
         });
 

@@ -92,8 +92,9 @@ html {
 }
 
 img {
-  max-width: 15%;
+  max-width: 10%;
   height: auto;
+  /* border-radius: 50%; */
 }
 
 @media (max-width: 768px) {

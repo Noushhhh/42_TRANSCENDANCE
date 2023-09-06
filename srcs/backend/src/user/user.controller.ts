@@ -1,19 +1,19 @@
-import {Controller, Get, Req, UseGuards} from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
-// import { JwtGuard } from '../guard/jwt.guard';
-// import { JwtStrategy } from '../strategy/jwt.strategy';
+import { Controller, Post, UseInterceptors, UploadedFile, Request as NestRequest } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserService } from './user.service';
+import { Request as ExpressRequest } from 'express';
 
+@Controller('user')
+export class UserController {
+    
+    constructor(private readonly userService: UserService) {}
 
+    @Post('update')
+    @UseInterceptors(FileInterceptor('profileImage'))
+    async createOrUpdateProfile(@UploadedFile() profileImage: Express.Multer.File, @NestRequest() req: ExpressRequest) {
+        const { profileName } = req.body;
+        const userCookie = req.cookies['token'];
 
-@Controller ('users')
-export class UserController 
-{
-    // constructor (private UserService: User)
-    @UseGuards(AuthGuard('jwt'))
-    @Get ('me')
-    getMe(@Req() req: Request) 
-    {
-        return req.user;
+        return this.userService.handleProfileSetup(userCookie, profileName, profileImage);
     }
 }

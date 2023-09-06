@@ -11,27 +11,43 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
-// import { JwtGuard } from '../guard/jwt.guard';
-// import { JwtStrategy } from '../strategy/jwt.strategy';
+const platform_express_1 = require("@nestjs/platform-express");
+const user_service_1 = require("./user.service");
 let UserController = class UserController {
-    // constructor (private UserService: User)
-    getMe(req) {
-        return req.user;
+    constructor(userService) {
+        this.userService = userService;
+    }
+    createOrUpdateProfile(profileImage, req) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { profileName } = req.body;
+            const userCookie = req.cookies['token'];
+            return this.userService.handleProfileSetup(userCookie, profileName, profileImage);
+        });
     }
 };
 exports.UserController = UserController;
 __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    (0, common_1.Get)('me'),
-    __param(0, (0, common_1.Req)()),
+    (0, common_1.Post)('update'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('profileImage')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], UserController.prototype, "getMe", null);
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "createOrUpdateProfile", null);
 exports.UserController = UserController = __decorate([
-    (0, common_1.Controller)('users')
+    (0, common_1.Controller)('user'),
+    __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);

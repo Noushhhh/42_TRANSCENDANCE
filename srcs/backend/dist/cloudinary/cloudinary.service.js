@@ -41,64 +41,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserService = void 0;
+exports.CloudinaryService = void 0;
 const common_1 = require("@nestjs/common");
-const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
-const prisma_service_1 = require("../prisma/prisma.service");
-const jwt = __importStar(require("jsonwebtoken"));
-let UserService = class UserService {
-    constructor(prisma, cloudinaryService) {
-        this.prisma = prisma;
-        this.cloudinaryService = cloudinaryService;
-        this.JWT_SECRET = process.env.JWT_SECRET;
-        if (!this.JWT_SECRET) {
-            throw new Error("JWT_SECRET environment variable not set!");
-        }
+const cloudinary = __importStar(require("cloudinary"));
+let CloudinaryService = class CloudinaryService {
+    constructor() { }
+    onModuleInit() {
+        cloudinary.v2.config({
+            cloud_name: process.env.CLOUD_NAME,
+            api_key: process.env.API_KEY,
+            api_secret: process.env.YOUR_API_SECRET,
+        });
     }
-    handleProfileSetup(userCookie, profileName, profileImage) {
+    uploadImage(file) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Decode the token to get user's info
-            console.log("passing by beginning handleProfileSetup\n");
-            console.log(userCookie + "\n");
-            console.log(this.JWT_SECRET + "\n");
-            let decodedToken;
-            try {
-                decodedToken = jwt.verify(userCookie, this.JWT_SECRET);
+            const result = yield cloudinary.v2.uploader.upload(file.path);
+            if (!result || !result.url) {
+                throw new Error('Failed to upload image to Cloudinary');
             }
-            catch (error) {
-                throw new Error('Invalid token.');
-            }
-            let resultEmail;
-            if (typeof decodedToken === 'object' && decodedToken !== null) {
-                resultEmail = decodedToken.email;
-            }
-            else {
-                throw new Error('Invalid token format backend(handleProfileSetup).\n');
-            }
-            // Fetch user from the database
-            const user = yield this.prisma.user.findUnique({ where: { username: resultEmail } });
-            if (!user) {
-                throw new Error('User not found.');
-            }
-            console.log(user);
-            console.log(profileImage);
-            // Upload image to Cloudinary
-            // const result = await this.cloudinaryService.uploadImage(profileImage)
-            // Check if the user already has a profile set up. If yes, update; if no, create.
-            // const userProfile = await this.prisma.user.update({
-            //     where: { id: userId },
-            //     data: {
-            //         username: profileName, // assuming this maps to the username column in your Prisma model
-            //         profileImageUrl: result, // URL from Cloudinary
-            //     },
-            // });
-            // return userProfile;
+            return result.url;
         });
     }
 };
-exports.UserService = UserService;
-exports.UserService = UserService = __decorate([
+exports.CloudinaryService = CloudinaryService;
+exports.CloudinaryService = CloudinaryService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        cloudinary_service_1.CloudinaryService])
-], UserService);
+    __metadata("design:paramtypes", [])
+], CloudinaryService);

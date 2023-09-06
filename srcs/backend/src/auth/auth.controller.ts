@@ -17,6 +17,7 @@ export class AuthController {
     @Public()
     @Post('signin')
     async signin(@Body() dto: AuthDto, @Res() res: Response) {
+        console.log(res);
         return this.authService.signin(dto, res);
     }
 

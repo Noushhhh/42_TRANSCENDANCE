@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import useTokenExpired from "../tools/hooks/useTokenExpired";
 import SkeletonLoader from "../tools/SkeletonLoader";
+import { useSignOut } from "../tools/hooks/useSignOut";
 
 /**
  * This interface defines the expected props for the ProtectedRoute component.
@@ -28,6 +29,10 @@ const MIN_LOADING_TIME = 2000;
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     // Using a custom hook to check whether the token has expired or not.
     const tokenExpired = useTokenExpired();
+
+    // Custom hook to logout user if token expired
+    const handleSignOut = useSignOut();
+
     // State to manage the visibility of the skeleton loader.
     const [showLoader, setShowLoader] = useState(true);
 
@@ -50,6 +55,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     // If the token has expired, redirect the user to the sign-in page.
     if (tokenExpired) {
+        handleSignOut();
         return <Navigate to='/signin' />;
     }
 

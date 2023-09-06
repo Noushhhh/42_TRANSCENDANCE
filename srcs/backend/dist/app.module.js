@@ -22,6 +22,7 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const prisma_service_1 = require("./prisma/prisma.service");
 const chat_module_1 = require("./chat/chat.module");
 const game_module_1 = require("./game/game.module");
+const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,7 +36,8 @@ exports.AppModule = AppModule = __decorate([
             SocketModule_1.SocketModule,
             chat_module_1.ChatModule,
             prisma_module_1.PrismaModule,
-            game_module_1.GameModule
+            game_module_1.GameModule,
+            cloudinary_module_1.CloudinaryModule
         ],
         controllers: [app_controller_1.AppController, chat_controller_1.ChatController],
         providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService],

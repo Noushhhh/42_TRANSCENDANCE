@@ -31,9 +31,10 @@ model User {
   hashPassword  String
   refresToken RefreshToken[]
 
-  email         String? 
-  firstName     String?
-  lastName      String?
+  email             String? 
+  firstName         String?
+  lastName          String?
+  profileImageUrl   String?
   bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
