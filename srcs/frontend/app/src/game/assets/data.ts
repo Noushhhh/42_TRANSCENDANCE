@@ -1,25 +1,60 @@
 import { Vector2d } from "konva/lib/types";
 import { Socket } from "socket.io-client";
+import { gameConfig } from "./gameConfig";
 
-export const KONVA_WIDTH = 1200;
-export const KONVA_HEIGHT = 800;
-export const PADDLE_HEIGHT = 150;
-export const PADDLE_WIDTH = 25;
+// export const gameConfig.konvaWidth = 800;
+// export const gameConfig.konvaHeight = 400;
+// export const gameConfig.paddleHeight = 150;
+// export const gameConfig.paddleWidth = 25;
+
+export class GameConfig {
+  public setKonvaWidth(size: number) {
+    gameConfig.konvaWidth = size;
+  }
+
+  public setKonvaHeight(size: number) {
+    gameConfig.konvaHeight = size;
+  }
+
+  public setPaddleHeight(size: number) {
+    gameConfig.paddleHeight = size;
+  }
+
+  public setPaddleWidth(size: number) {
+    gameConfig.paddleWidth = size;
+  }
+
+  public getKonvaWidth() {
+    return gameConfig.konvaWidth;
+  }
+
+  public getKonvaHeight() {
+    return gameConfig.konvaHeight;
+  }
+
+  public getPaddleWidth() {
+    return gameConfig.paddleWidth;
+  }
+
+  public getPaddleHeight() {
+    return gameConfig.paddleHeight;
+  }
+}
 
 export const p1Props = {
   x: 10,
-  y: 310,
-  width: PADDLE_WIDTH,
-  height: PADDLE_HEIGHT,
+  y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+  width: gameConfig.paddleWidth,
+  height: gameConfig.paddleHeight,
   fill: "red",
   draggable: false,
 };
 
 export const p2Props = {
-  x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
-  y: 310,
-  width: PADDLE_WIDTH,
-  height: PADDLE_HEIGHT,
+  x: gameConfig.konvaWidth - 10 - gameConfig.paddleWidth,
+  y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+  width: gameConfig.paddleWidth,
+  height: gameConfig.paddleHeight,
   fill: "red",
   draggable: false,
 };

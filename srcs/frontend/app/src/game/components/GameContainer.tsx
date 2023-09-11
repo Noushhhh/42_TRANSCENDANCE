@@ -83,9 +83,10 @@ function GameContainer() {
       );
     }
   
-  } else if (isInLobby === false) {
-    return <GameMenu socket={socket}/>;
   }
+  //  else if (isInLobby === false) {
+  // }
+  return <GameMenu socket={socket}/>;
 }
 
 export default GameContainer;

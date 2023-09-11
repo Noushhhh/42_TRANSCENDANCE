@@ -1,47 +1,59 @@
 import { Injectable } from "@nestjs/common";
+import { gameConfig } from './data';
 
-const KONVA_WIDTH = 1200;
-const KONVA_HEIGHT = 800;
-const PADDLE_WIDTH = 25;
-// const PADDLE_HEIGHT = 10;
-// const ballSpeed = 2;
-const RAY_LENGHT = 15 + 20;
+const RAY_LENGHT = (15 + 20) / 1200;
+
+interface GameData {
+  paddleHeight: number;
+  paddleWidth: number;
+}
 
 interface Vector2d {
   x: number;
   y: number;
 }
 
+export const paddleGap = 10 / 1200;
+
 @Injectable()
 export class GameState {
   private ballPos: Vector2d = {
-    x: KONVA_WIDTH / 2,
-    y: KONVA_HEIGHT / 2,
+    x: 0.5,
+    y: 0.5,
+  }
+
+  public gameData: GameData = {
+    paddleHeight: gameConfig.paddleHeight,
+    paddleWidth: gameConfig.paddleWidth,
+  }
+
+  public printGameState() {
+    console.log(this.gameState);
   }
 
   gameState = {
     p1pos: {
-      x: 10,
-      y: 310,
+      x: paddleGap,
+      y: 0.5 - gameConfig.paddleHeight / 2,
     },
     p2pos: {
-      x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
-      y: 310,
+      x: 1 - paddleGap - gameConfig.paddleWidth,
+      y: 0.5 - gameConfig.paddleHeight / 2,
     },
     ballState: {
       ballDirection: 'left',
       ballDX: 0,
       ballDY: 0,
       ballPos: {
-        x: KONVA_WIDTH / 2,
-        y: KONVA_HEIGHT / 2,
+        x: 0.5,
+        y: 0.5,
       },
     },
     ballRay: {
-      x1: KONVA_WIDTH / 2,
-      y1: KONVA_HEIGHT / 2,
-      x2: KONVA_WIDTH / 2 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-      y2: KONVA_HEIGHT / 2 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
+      x1: 0.5,
+      y1: 0.5,
+      x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
+      y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
     },
     isPaused: true,
     score: {

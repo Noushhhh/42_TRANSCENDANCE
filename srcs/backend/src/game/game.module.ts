@@ -8,9 +8,10 @@ import { GatewayOut } from './gatewayOut';
 import { SocketModule } from '../socket/SocketModule';
 import { SocketEvents } from '../socket/socketEvents';
 import { SocketService } from '../socket/socket.service';
+import { GameDataService } from './data.service';
 
 @Module({
-  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, SocketEvents, SocketService],
+  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, SocketEvents, SocketService, GameDataService],
   controllers: [GameController],
   imports: [SocketModule],
 })
