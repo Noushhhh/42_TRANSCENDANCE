@@ -35,12 +35,10 @@ export default function FadeMenu({ user }: FadeMenuProps) {
   };
 
   const handleProfilClick = () => {
-    console.log("Profil clicked!");
     // Ajoutez ici la logique pour "Profil"
   };
 
   const handlePrivateMessageClick = async () => {
-    console.log("Message prive clicked!");
     const response = await isChannelExist([userId, user.id]);
     if (response !== -1) {
       setChannelId(response);
@@ -61,12 +59,10 @@ export default function FadeMenu({ user }: FadeMenuProps) {
   };
 
   const handlePlayClick = () => {
-    console.log("Jouer clicked!");
     // Ajoutez ici la logique pour "Jouer"
   };
 
   const handleBlockClick = () => {
-    console.log("Bloquer clicked!");
     // Ajoutez ici la logique pour "Bloquer"
   };
 

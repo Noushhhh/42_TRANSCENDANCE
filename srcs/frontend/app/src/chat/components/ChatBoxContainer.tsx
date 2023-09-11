@@ -33,7 +33,7 @@ function ChatBoxContainer() {
                     <UserIdContext.Provider value={simulatedUserId}>
                         <MessageSide />
                         <ContentMessage channelInfo={channelInfo} setChannelInfo={setChannelInfo} userId={simulatedUserId} simulatedUserId={simulatedUserId} />
-                        <ChannelInfo isChannelInfoDisplay={channelInfo} />
+                        <ChannelInfo isChannelInfoDisplay={channelInfo} setChannelInfo={setChannelInfo}/>
                     </UserIdContext.Provider>
                     </ChannelHeaderContext.Provider>
                     </SocketContext.Provider>

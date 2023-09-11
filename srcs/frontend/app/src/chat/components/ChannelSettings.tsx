@@ -27,17 +27,16 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }
     
     const [isSettingsMenuDisplay, setisSettingsMenuDisplay] = useState<boolean>(false);
     const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
-    // const [eventChannelDeleted, setEventChannelDeleted] = useState<boolean>(false);
 
     const socket: Socket = useSocketContext();
     const setChannelId = useSetChannelIdContext();
 
     let isDisplay: string = settingsChannel ? 'isDisplaySettings' : 'isReduceSettings';
 
-    console.log(`socket id = ${socket.id}`);
 
     socket.on("channelDeleted", (channelId: number)=>{
         console.log(`ping received client-side with id: ${channelId}`);
+        setdisplayMenu(true);
         setChannelId(-1);
     })
 
@@ -45,7 +44,6 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }
         setSettingsChannel(false);
         setisSettingsMenuDisplay(true);
         setSelectedMenu(item);
-        console.log(`selected menu action = ${item.action}`)
     }
 
     const menuItems: MenuItem[] = [
@@ -83,7 +81,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu }
                                         setSettingsChannel={setSettingsChannel}
                                         isSearchBarNeeded={selectedMenu.isSearchBarNeeded}
                                         onlySearchInChannel={selectedMenu.onlySearchInChannel}
-                                        action={selectedMenu.action} />}
+                                        action={selectedMenu.action}/>}
         </div>
     );
 } export default ChannelSettings;

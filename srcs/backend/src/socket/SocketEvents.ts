@@ -32,6 +32,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
         this.socketService.setSocket(clientId, socket);
     }
 
+    // map with, key = userId, string = socketId
     listUserConnected = new Map<number, string>();
 
     readMap(map: Map<number, string>): void {

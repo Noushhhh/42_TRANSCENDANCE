@@ -75,8 +75,6 @@ function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
     }
 
     const callCreateChannel = async () => {
-        console.log("channel type ==");
-        console.log(channelType);
         createChannel(channelName, password, userListChannel, channelType, setChannelHeader, userId, socket);
       };
 

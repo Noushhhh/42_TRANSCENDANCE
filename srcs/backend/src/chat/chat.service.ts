@@ -126,8 +126,6 @@ export class ChatService {
 
   async addChannel() {
 
-    console.log('add Channel...');
-
     await this.prisma.channel.create({
       data: {
         name: 'first one',
@@ -174,7 +172,6 @@ export class ChatService {
 
   async addMessage() {
 
-    console.log('add message...');
 
     await this.prisma.message.create({
       data: {
@@ -272,9 +269,6 @@ export class ChatService {
 
   async addChannelToUser(channelInfo: channelToAdd){
 
-    console.log("add channel to user called");
-    console.log(channelInfo.type);
-
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({id: channelInfo.ownerId});
       
@@ -343,10 +337,11 @@ export class ChatService {
       return (channel.participants.length);
     }
     
-    async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerId: number): Promise<boolean>{
+    async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean>{
 
       const userId = Number(userIdStr);
       const channelId = Number(channelIdStr);
+      const callerId = Number(callerIdStr);
 
       if (isNaN(userId) || isNaN(channelId) || isNaN(callerId) || userId <= 0 || channelId <= 0 || callerId <=0){
         throw new Error("Invalid arguments");
@@ -363,12 +358,11 @@ export class ChatService {
       }
 
       if (await this.getNumberUsersInChannel(channelId) === 2){
-        console.log("channel need to be deleted");
         await this.deleteAllMessagesInChannel(channelId);
         await this.prisma.channel.delete({
           where: { id: channelId },
         })
-        this.socketEvents.alertChannelDeleted(userId, channelId);
+        this.socketEvents.alertChannelDeleted(callerId, channelId);
         return true;
       }
 
@@ -421,12 +415,11 @@ export class ChatService {
         }
         
         if (await this.getNumberUsersInChannel(channelId) <= 2){
-          console.log(`channel need to be deleted: ${channelId}`);
           await this.deleteAllMessagesInChannel(channelId);
           await this.prisma.channel.delete({
             where: { id: channelId },
           })
-          this.socketEvents.alertChannelDeleted(userId, channelId);
+          this.socketEvents.alertChannelDeleted(callerId, channelId);
           return true;
       }
       
@@ -444,7 +437,6 @@ export class ChatService {
       })
       return true;
     } catch (error){
-      console.log(error);
       throw new Error("Error updating database");
     }
 
@@ -482,8 +474,6 @@ export class ChatService {
 
     async isUserIsInChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
 
-      console.log("isUserisInChannel called");
-
       const userId: number = Number(userIdStr);
       const channelId: number = Number(channelIdStr);
 
@@ -499,14 +489,10 @@ export class ChatService {
       if (!channel)
         throw new Error("IsUserIsInChannel: user not found");
 
-      console.log(channel);
-
       return channel.participants.some((elem) => elem.id === userId);
     }
 
     async addAdminToChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean>{
-
-      console.log("addAdminToChannel called");
 
       try{
 
@@ -553,8 +539,6 @@ export class ChatService {
       }
 
       async removeAdminFromChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean>{
-
-        console.log("removeAdminFromChannel called");
   
         try{
   

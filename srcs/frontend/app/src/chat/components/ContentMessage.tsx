@@ -22,12 +22,13 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     
     const channelId = useChannelIdContext;
 
+    const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
+
     // const [channelInfo, setChannelInfo] = useState<boolean>(false);
     
     // each time the user change channel (click to a new one), we want to reset
     // all messages from the socket are they are now store in the database.
     useEffect(() => {
-        console.log("set to empty array");
         setMessages([]);
     }, ([channelId]));
 
@@ -37,7 +38,7 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     }
 
     return (
-        <div className="ContentMessage">
+        <div className={`ContentMessage ${contentMessageWidth}`}>
             <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo} />
             <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} />
             <ChatPrompt simulatedUserId={simulatedUserId} addMessage={addMessage} />

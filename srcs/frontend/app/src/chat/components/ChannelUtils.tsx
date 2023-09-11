@@ -265,6 +265,20 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
       },
     };
 
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
+    if (!response){
+      throw new Error("Error updating channel");
+    }
+    const numberUsers: number = await response.json();
+    if (numberUsers === 2 && userList[0]){
+      console.log("am i logged here");
+      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${userList[0].id}/${channelId}/${callerId}`, requestOptions);
+      if (!response.ok) {
+        throw new Error("Error updating database");
+      }
+      return ;
+    }
+
     for (const user of userList) {
       const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
       if (!response.ok) {

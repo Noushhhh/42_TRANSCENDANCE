@@ -35,12 +35,10 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
 
     useEffect(() => {
         const fetchUsers = async () => {
-            console.log("fetch user called\n");
             try {
                 if (setListUsersSearched)
                     setListUsersSearched([]);
                 let users: User[] | null;
-                console.log(`only search in channel == ${onlySearchInChannel}`);
                 if (onlySearchInChannel === true)
                 {
                     if (action === "admin" && setSearchBarResults){
@@ -48,12 +46,10 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                         setSearchBarResults(true);
                     }
                     else{
-                        console.log("get new username list");
                         users = await getUsernamesInChannelFromSubstring(channelId, inputValue);
                     }
                 }
                 else{
-                    console.log("search everywhere");
                     users  = await getUsernamesBySubstring(userId, inputValue);
                 }
                 if (!users)
@@ -68,19 +64,16 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
         const test = async () => {
 
             if (action === "admin" && setSearchBarResults){
-                console.log(`action ===> ${action}`);
                 if (fetchDataAdmins)
                     await fetchDataAdmins();
-                console.log("am i here ???");
                 setSearchBarResults(true);
-                console.log(displayResults);
             }
             if (inputValue.length > 2){
                 fetchUsers();
             }
         }
         test();
-    }, ([inputValue, displayResults, action]))
+    }, ([inputValue, displayResults, action, channelId]))
 
     return (
         <div className={`SearchBarResults ${displayState}`}>

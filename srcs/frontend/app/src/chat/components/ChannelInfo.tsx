@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ChatView.css";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import "../styles/ChannelInfo.css"
@@ -7,26 +7,33 @@ import ConfirmationPopup from "./ConfirmationPopup";
 import { leaveChannel } from "./ChannelUtils";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import { useChannelIdContext } from "../contexts/channelIdContext";
+import { useSocketContext } from "../contexts/socketContext";
+import { Socket } from "socket.io-client";
 
 interface MonComposantProps {
     isChannelInfoDisplay: boolean;
+    setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function ChannelInfo({ isChannelInfoDisplay }: MonComposantProps): JSX.Element | null {
+function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: MonComposantProps): JSX.Element | null {
 
     const [settingsChannel, setSettingsChannel] = useState<boolean>(false);
     const [displayMenu, setdisplayMenu] = useState<boolean>(true);
 
     const channelId: number = useChannelIdContext();
+    const socket: Socket = useSocketContext();
 
     let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
     let isContainerDisplay: string | null = displayMenu ? 'IsDisplay' : 'IsReduce';
 
+    useEffect(()=>{
+        setChannelInfo(false);
+    }, [channelId]);
+
     const handleSettings = () => {
         settingsChannel ? setSettingsChannel(false) : setSettingsChannel(true);
-        displayMenu ? setdisplayMenu(false) : setdisplayMenu(true);
+        setdisplayMenu(!displayMenu);
     }
-
         return channelId !== -1 ? (
             <div className={`ChannelInfo ${'ContainerChannelInfo' + widthChatView}`}>
             <div className={`${'Container' + isContainerDisplay}`}>

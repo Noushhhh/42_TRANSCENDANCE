@@ -30,7 +30,6 @@ export class ChatController {
 
     @Post('addChannel')
     async addChannel() {
-        console.log('add channel...');
         await this.chatService.addChannel();
     }
 
@@ -41,7 +40,6 @@ export class ChatController {
 
     @Get('getLastMsg/:id')
     async getLastMessage(@Param('id') id: number) {
-        console.log('getLastMsg is called...');
         return this.chatService.getLastMessage(id);
     }
 
@@ -90,7 +88,6 @@ export class ChatController {
 
     @Post('addChannelToUser')
     async addChannelToUser(@Body() channelInfo: channelToAdd) {
-        console.log("addChannelToUser called");
         try {
             return this.chatService.addChannelToUser(channelInfo);
         } catch (error) {
@@ -110,7 +107,6 @@ export class ChatController {
         @Param('userId') userId: number,
         @Param('channelId') channelId: number,
         @Param('callerId') callerId: number): Promise<boolean> {
-        console.log("kickUserFromChannel called");
         return this.chatService.kickUserFromChannel(userId, channelId, callerId);
     }
 

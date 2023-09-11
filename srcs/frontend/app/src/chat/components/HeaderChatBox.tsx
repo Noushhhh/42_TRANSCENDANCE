@@ -19,7 +19,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
     const channelId = useChannelIdContext();
 
     const handleSettingsClick = () => {
-        channelInfo === true ? setChannelInfo(false) : setChannelInfo(true);
+        setChannelInfo(!channelInfo);
     }
 
     var i: number = 0;
@@ -28,9 +28,6 @@ function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
             break;
         }
     }
-
-    if (channelHeader[i])
-        console.log(`channelId == ${channelHeader[i].channelId}`);
 
     if (channelHeader[i] === undefined) {
         return (
@@ -51,7 +48,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
                     <p>{channelHeader[i].name}</p>
                 </div>
                 <div className="HeaderChatBoxLogo">
-                    <button className="settingsButton" onClick={handleSettingsClick}><SettingsIcon/></button>
+                    <button className="showSettingsMenu" onClick={handleSettingsClick}><SettingsIcon/></button>
                 </div>
             </div>
         )

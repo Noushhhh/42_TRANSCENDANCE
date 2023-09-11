@@ -24,9 +24,7 @@ function GameContainer() {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("Well connected to socket server");
       clientId.current = socket.id;
-      console.log(clientId);
     });
     socket.on("updateGameState", (gameState: GameState) => {
       setIsPaused(gameState.isPaused);

@@ -30,7 +30,6 @@ function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps)
   }
 
   useEffect(() => {
-    console.log("will reload conversation from backend");
     setConversationFetched([]);
     const fetchConversation = async () => {
       if (channelId !== -1){
@@ -55,6 +54,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps)
               contentMessage={message.content}
               messageType={message.messageType}
               channelId={channelId}
+              isChannelInfo={isChannelInfoDisplay}
             />
           );
         })}
@@ -65,6 +65,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps)
               contentMessage={message.content}
               messageType={message.messageType}
               channelId={channelId}
+              isChannelInfo={isChannelInfoDisplay}
             />
           )
         })}

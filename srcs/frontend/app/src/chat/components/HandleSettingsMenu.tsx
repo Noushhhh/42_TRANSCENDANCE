@@ -49,7 +49,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const backMenu = () => {
-        console.log(`action in gobackmenu = ${action}`);
         setInputValue("");
         setSearchBarResults(false);
         setisSettingsMenuDisplay(false);
@@ -81,7 +80,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         try {
 
         if (action === "ban") {
-            console.log("va ban");
             // lorsque le channel fait 2 users et qu'on ban l'un des 2
             // le client essaie de ban les 2 users mais le channel a deja
             // ete detruit car il comportait plus que 1 user a la fin du 1er ban
@@ -107,8 +105,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     catch (error: any){
         const errorMessage = error.message;
         setError(error.message);
-        console.log(errorMessage);
-        console.log("EER")
     }
     }
 
