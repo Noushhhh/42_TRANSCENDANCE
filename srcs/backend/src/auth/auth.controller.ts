@@ -36,13 +36,17 @@ export class AuthController {
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
     try {
         const user = await this.authService.signToken42(req);
-
-        if (user) {
+        
+        if (user.username != user.login) {
         res.redirect('/home'); // Redirect if the user is successfully created or authenticated
-        } else {
+        } 
+        else if (user.username === user.login) {
+            res.redirect('/complete_profile');
+        }
+        else {
         console.error("error creating user"),
         // Handle other cases if needed (e.g., "User already exists")
-        res.redirect('/error1'); // Redirect to an error page or handle accordingly
+        res.redirect('/error'); // Redirect to an error page or handle accordingly
         }
     } catch (error) {
         console.error(error);
@@ -50,7 +54,5 @@ export class AuthController {
         res.redirect('/error2');
     }
 }
-
-    
 
 }

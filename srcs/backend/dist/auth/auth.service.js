@@ -181,7 +181,6 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    // request from front with code in params
     signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
@@ -189,8 +188,8 @@ let AuthService = class AuthService {
                 const token = yield this.exchangeCodeForToken(code);
                 if (token) {
                     const userInfo = yield this.getUserInfo(token);
-                    // const result = await this.createUser(userInfo);
-                    return userInfo;
+                    const user = yield this.createUser(userInfo);
+                    return user;
                 }
                 else {
                     console.error('Failed to fetch access token');
@@ -232,7 +231,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendUserInfoRequest(token);
-                this.createUser(response.data);
+                //   const this.createUser(response.data);
                 return response.data;
             }
             catch (error) {
@@ -259,19 +258,29 @@ let AuthService = class AuthService {
             });
             if (existingUser) {
                 console.log('User already exists:', existingUser);
-                return "User already exists";
+                //   return "User already exists";
+                return existingUser;
             }
             try {
+                let avatarUrl;
+                if (userInfo.image.link === null) {
+                    // Generate a random avatar URL or use a default one
+                    avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                }
+                else {
+                    avatarUrl = userInfo.image.link;
+                }
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
+                        login: userInfo.login,
                         username: userInfo.login,
                         avatar: userInfo.image.link,
                     },
                 });
-                console.log(user);
-                return "User created";
+                console.log("User created", user);
+                return user;
             }
             catch (error) {
                 console.error('Error saving user information to database:', error);

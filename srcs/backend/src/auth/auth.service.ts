@@ -1,6 +1,6 @@
 import { ForbiddenException, Req, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client'
+import { Prisma, User } from '@prisma/client'
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -156,15 +156,14 @@ export class AuthService {
         }
     }    
 
-    // request from front with code in params
     async signToken42(@Req() req: any) {
         const code = req.query['code'];
         try {
           const token = await this.exchangeCodeForToken(code);
           if (token) {
             const userInfo = await this.getUserInfo(token);
-            // const result = await this.createUser(userInfo);
-            return userInfo;
+            const user = await this.createUser(userInfo);
+            return user;
           } else {
             console.error('Failed to fetch access token');
             // Handle errors here
@@ -200,7 +199,7 @@ export class AuthService {
       private async getUserInfo(token: string): Promise<any> {
         try {
           const response = await this.sendUserInfoRequest(token);
-          this.createUser(response.data);
+        //   const this.createUser(response.data);
           return response.data;
         } catch (error) {
           console.error('Error fetching user info:', error);
@@ -216,7 +215,7 @@ export class AuthService {
         });
       }
       
-      async createUser(userInfo: any): Promise<string> {
+      async createUser(userInfo: any): Promise<User> {
         const existingUser = await this.prisma.user.findUnique({
           where: {
             id: userInfo.id,
@@ -225,20 +224,29 @@ export class AuthService {
       
         if (existingUser) {
           console.log('User already exists:', existingUser);
-          return "User already exists";
+        //   return "User already exists";
+            return existingUser;
         }
       
         try {
+            let avatarUrl;
+            if (userInfo.image.link === null) {
+                // Generate a random avatar URL or use a default one
+                avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+            } else {
+                avatarUrl = userInfo.image.link;
+            }
           const user = await this.prisma.user.create({
             data: {
-              id: userInfo.id,
-              hashPassword: this.generateRandomPassword(),
-              username: userInfo.login,
-              avatar: userInfo.image.link,
+                id: userInfo.id,
+                hashPassword: this.generateRandomPassword(),
+                login: userInfo.login,
+                username: userInfo.login,
+                avatar: userInfo.image.link,
             },
           });
-          console.log(user);
-          return "User created";
+          console.log("User created", user);
+          return user;
         } catch (error) {
           console.error('Error saving user information to database:', error);
           throw error;
@@ -251,6 +259,5 @@ export class AuthService {
           Math.random().toString(36).slice(2, 15);
         return password;
       }
-      
 
 }

@@ -56,13 +56,16 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.authService.signToken42(req);
-                if (user) {
+                if (user.username != user.login) {
                     res.redirect('/home'); // Redirect if the user is successfully created or authenticated
+                }
+                else if (user.username === user.login) {
+                    res.redirect('/complete_profile');
                 }
                 else {
                     console.error("error creating user"),
                         // Handle other cases if needed (e.g., "User already exists")
-                        res.redirect('/error1'); // Redirect to an error page or handle accordingly
+                        res.redirect('/error'); // Redirect to an error page or handle accordingly
                 }
             }
             catch (error) {
