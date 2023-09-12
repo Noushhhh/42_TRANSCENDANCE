@@ -40,7 +40,7 @@ let AuthController = class AuthController {
             return this.authService.signin(dto, res);
         });
     }
-    checkTokenValiity(req, res) {
+    checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("passing by checkTokenValidity");
             return this.authService.checkTokenValidity(req, res);
@@ -51,9 +51,25 @@ let AuthController = class AuthController {
             return this.authService.signout(res);
         });
     }
-    token(req) {
+    // change name to 42-callback 
+    handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.signToken42(req);
+            try {
+                const user = yield this.authService.signToken42(req);
+                if (user) {
+                    res.redirect('/home'); // Redirect if the user is successfully created or authenticated
+                }
+                else {
+                    console.error("error creating user"),
+                        // Handle other cases if needed (e.g., "User already exists")
+                        res.redirect('/error1'); // Redirect to an error page or handle accordingly
+                }
+            }
+            catch (error) {
+                console.error(error);
+                // Handle errors here and redirect as needed
+                res.redirect('/error2');
+            }
         });
     }
 };
@@ -83,7 +99,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "checkTokenValiity", null);
+], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
     (0, common_1.Get)('signout'),
     __param(0, (0, common_1.Res)()),
@@ -94,10 +110,11 @@ __decorate([
 __decorate([
     (0, common_1.Get)('token'),
     __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "token", null);
+], AuthController.prototype, "handle42Callback", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

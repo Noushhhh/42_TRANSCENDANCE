@@ -185,31 +185,29 @@ let AuthService = class AuthService {
     signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
-            const token = yield this.exchangeCodeForToken(code);
-            if (token) {
-                const userInfo = yield this.getUserInfo(token);
-                console.log('User Info:', userInfo);
-                // redirect to homepage 
-                // Handle the response data here, such as saving the user info or other data.
+            try {
+                const token = yield this.exchangeCodeForToken(code);
+                if (token) {
+                    const userInfo = yield this.getUserInfo(token);
+                    // const result = await this.createUser(userInfo);
+                    return userInfo;
+                }
+                else {
+                    console.error('Failed to fetch access token');
+                    // Handle errors here
+                    throw new Error('Failed to fetch access token');
+                }
             }
-            else {
-                console.error('Failed to fetch access token');
-                // Handle errors here
+            catch (error) {
+                console.error('Error in signToken42:', error);
+                throw error;
             }
         });
     }
     exchangeCodeForToken(code) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield axios_1.default.post('https://api.intra.42.fr/oauth/token', null, {
-                    params: {
-                        grant_type: 'authorization_code',
-                        client_id: process.env.UID_42,
-                        client_secret: process.env.SECRET_42,
-                        code: code,
-                        redirect_uri: 'http://localhost:4000/api/auth/token',
-                    },
-                });
+                const response = yield this.sendAuthorizationCodeRequest(code);
                 return response.data.access_token;
             }
             catch (error) {
@@ -218,16 +216,24 @@ let AuthService = class AuthService {
             }
         });
     }
+    sendAuthorizationCodeRequest(code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const requestBody = {
+                grant_type: 'authorization_code',
+                client_id: process.env.UID_42,
+                client_secret: process.env.SECRET_42,
+                code: code,
+                redirect_uri: 'http://localhost:4000/api/auth/token',
+            };
+            return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+        });
+    }
     getUserInfo(token) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield axios_1.default.get('https://api.intra.42.fr/v2/me', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                console.log(response);
+                const response = yield this.sendUserInfoRequest(token);
                 this.createUser(response.data);
+                return response.data;
             }
             catch (error) {
                 console.error('Error fetching user info:', error);
@@ -235,7 +241,15 @@ let AuthService = class AuthService {
             }
         });
     }
-    // Function to save user information in the database
+    sendUserInfoRequest(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return axios_1.default.get('https://api.intra.42.fr/v2/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+        });
+    }
     createUser(userInfo) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
@@ -243,20 +257,17 @@ let AuthService = class AuthService {
                     id: userInfo.id,
                 },
             });
-            // If user already exists, don't create a new one
             if (existingUser) {
                 console.log('User already exists:', existingUser);
-                console.log(existingUser);
                 return "User already exists";
             }
             try {
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
-                        hashPassword: 'x',
+                        hashPassword: this.generateRandomPassword(),
                         username: userInfo.login,
                         avatar: userInfo.image.link,
-                        // token 
                     },
                 });
                 console.log(user);
@@ -267,6 +278,11 @@ let AuthService = class AuthService {
                 throw error;
             }
         });
+    }
+    generateRandomPassword() {
+        const password = Math.random().toString(36).slice(2, 15) +
+            Math.random().toString(36).slice(2, 15);
+        return password;
     }
 };
 exports.AuthService = AuthService;

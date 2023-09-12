@@ -12,7 +12,7 @@ import axios from 'axios';
 @Injectable()
 export class AuthService {
 
-    private JWT_SECRET: string | any;
+    private readonly JWT_SECRET: string | any;
 
     constructor(
         private prisma: PrismaService,
@@ -154,86 +154,103 @@ export class AuthService {
            console.error(error); 
            return res.status(401).send({message: "Cookie not found"});
         }
-    }
+    }    
 
     // request from front with code in params
     async signToken42(@Req() req: any) {
-        const code = req.query['code']; 
-        const token = await this.exchangeCodeForToken(code);
-        if (token) {
-          const userInfo = await this.getUserInfo(token);
-          console.log('User Info:', userInfo);
-          // redirect to homepage 
-          // Handle the response data here, such as saving the user info or other data.
-        } else {
-          console.error('Failed to fetch access token');
-          // Handle errors here
+        const code = req.query['code'];
+        try {
+          const token = await this.exchangeCodeForToken(code);
+          if (token) {
+            const userInfo = await this.getUserInfo(token);
+            // const result = await this.createUser(userInfo);
+            return userInfo;
+          } else {
+            console.error('Failed to fetch access token');
+            // Handle errors here
+            throw new Error('Failed to fetch access token');
+          }
+        } catch (error) {
+          console.error('Error in signToken42:', error);
+          throw error;
         }
       }
-
-      private async exchangeCodeForToken(code: string): Promise<string | null> {
+      
+      async exchangeCodeForToken(code: string): Promise<string | null> {
         try {
-          const response = await axios.post('https://api.intra.42.fr/oauth/token', null, {
-            params: {
-              grant_type: 'authorization_code',
-              client_id: process.env.UID_42,
-              client_secret: process.env.SECRET_42,
-              code: code,
-              redirect_uri: 'http://localhost:4000/api/auth/token',
-            },
-          });
+          const response = await this.sendAuthorizationCodeRequest(code);
           return response.data.access_token;
         } catch (error) {
           console.error('Error fetching access token:', error);
           return null;
         }
       }
-
+      
+      private async sendAuthorizationCodeRequest(code: string) {
+        const requestBody = {
+          grant_type: 'authorization_code',
+          client_id: process.env.UID_42,
+          client_secret: process.env.SECRET_42,
+          code: code,
+          redirect_uri: 'http://localhost:4000/api/auth/token',
+        };
+        return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+      }
+      
       private async getUserInfo(token: string): Promise<any> {
         try {
-          const response = await axios.get('https://api.intra.42.fr/v2/me', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          console.log(response)
-        
-        this.createUser(response.data);
+          const response = await this.sendUserInfoRequest(token);
+          this.createUser(response.data);
+          return response.data;
         } catch (error) {
           console.error('Error fetching user info:', error);
           throw error;
         }
       }
-
-      // Function to save user information in the database
-        async createUser(userInfo: any): Promise<string> {
+      
+      private async sendUserInfoRequest(token: string) {
+        return axios.get('https://api.intra.42.fr/v2/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+      
+      async createUser(userInfo: any): Promise<string> {
         const existingUser = await this.prisma.user.findUnique({
-            where: {
-                id: userInfo.id,
-            },
+          where: {
+            id: userInfo.id,
+          },
         });
-
-        // If user already exists, don't create a new one
+      
         if (existingUser) {
-            console.log('User already exists:', existingUser);
-            console.log(existingUser);
-            return "User already exists";
+          console.log('User already exists:', existingUser);
+          return "User already exists";
         }
+      
         try {
-            const user = await this.prisma.user.create({
-                data: {
-                id: userInfo.id,
-                hashPassword: 'x', // random password? 
-                username: userInfo.login,
-                avatar: userInfo.image.link,
-                // token 
+          const user = await this.prisma.user.create({
+            data: {
+              id: userInfo.id,
+              hashPassword: this.generateRandomPassword(),
+              username: userInfo.login,
+              avatar: userInfo.image.link,
             },
-        });
-            console.log(user);
-            return "User created";
+          });
+          console.log(user);
+          return "User created";
         } catch (error) {
-            console.error('Error saving user information to database:', error);
-            throw error;
+          console.error('Error saving user information to database:', error);
+          throw error;
         }
-        }
+      }
+      
+      generateRandomPassword(): string {
+        const password =
+          Math.random().toString(36).slice(2, 15) +
+          Math.random().toString(36).slice(2, 15);
+        return password;
+      }
+      
+
 }

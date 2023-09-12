@@ -1,8 +1,8 @@
-import { Controller, Post, Body, Res, Get, Req}  from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
-import { Response, Request } from 'express';
+import { Response, Request } from 'express'
 
 @Controller('auth')
 export class AuthController {
@@ -21,7 +21,7 @@ export class AuthController {
     }
 
     @Get('checkTokenValidity')
-    async checkTokenValiity(@Req() req: Request, @Res() res: Response) {
+    async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
         console.log("passing by checkTokenValidity");
         return this.authService.checkTokenValidity(req, res);
     }
@@ -31,8 +31,26 @@ export class AuthController {
         return this.authService.signout(res);
     }
 
-    @Get('token')
-    async token(@Req() req: any) {
-        return this.authService.signToken42(req);
+    // change name to 42-callback 
+    @Get('token') 
+    async handle42Callback(@Req() req: Request, @Res() res: Response) {
+    try {
+        const user = await this.authService.signToken42(req);
+
+        if (user) {
+        res.redirect('/home'); // Redirect if the user is successfully created or authenticated
+        } else {
+        console.error("error creating user"),
+        // Handle other cases if needed (e.g., "User already exists")
+        res.redirect('/error1'); // Redirect to an error page or handle accordingly
+        }
+    } catch (error) {
+        console.error(error);
+        // Handle errors here and redirect as needed
+        res.redirect('/error2');
     }
+}
+
+    
+
 }
