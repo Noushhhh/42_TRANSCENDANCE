@@ -6,8 +6,8 @@ import '../styles/generalStyles.css';
 
 const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-18a39bac72b776af2fd5f62fa678fe5a734e9e5d8c4fe99f2ff1c7041a1d990a&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
 
-// Create a functional component named AuthChoise.
-const AuthChoise: React.FC = () => {
+// Create a functional component named AuthChoice.
+const AuthChoice: React.FC = () => {
 
     // Using the useNavigate hook from react-router to programmatically change routes.
     const navigate = useNavigate();
@@ -50,5 +50,5 @@ const AuthChoise: React.FC = () => {
     );
 }
 
-// Export the AuthChoise component for use in other parts of the app.
-export default AuthChoise;
+// Export the AuthChoice component for use in other parts of the app.
+export default AuthChoice;

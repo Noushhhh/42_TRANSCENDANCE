@@ -236,8 +236,6 @@ let AuthService = class AuthService {
         });
     }
     // Function to save user information in the database
-    //  return user  
-    //   async createUser(userInfo: any): Promise<void> { 
     createUser(userInfo) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
@@ -248,6 +246,7 @@ let AuthService = class AuthService {
             // If user already exists, don't create a new one
             if (existingUser) {
                 console.log('User already exists:', existingUser);
+                console.log(existingUser);
                 return "User already exists";
             }
             try {

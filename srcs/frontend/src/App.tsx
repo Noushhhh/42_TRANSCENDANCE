@@ -6,7 +6,7 @@ import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import {
-  Welcome, SignIn, SignUp, AuthChoise, HomePage, Settings,
+  Welcome, SignIn, SignUp, AuthChoice, HomePage, Settings,
   ProtectedRoute, Friends, Stats, Chat, useActivityLogout
 } from './home/components/index'
 import './App.css'
@@ -23,8 +23,8 @@ const App: React.FC = () => {
                 <Route path="/" element={<Welcome />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
-                {/* correct auth instead of authchoise */}
-                <Route path="/authchoise" element={<AuthChoise />} /> 
+                {/* correct auth instead of authchoice */}
+                <Route path="/authchoice" element={<AuthChoice />} /> 
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
                     <Route path="chat" element={<ChatBoxContainer />} />
                     <Route path="friends" element={<Friends />} />
