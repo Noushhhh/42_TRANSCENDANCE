@@ -181,6 +181,7 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
+    // request from front with code in params
     signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
@@ -235,6 +236,8 @@ let AuthService = class AuthService {
         });
     }
     // Function to save user information in the database
+    //  return user  
+    //   async createUser(userInfo: any): Promise<void> { 
     createUser(userInfo) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
@@ -245,7 +248,7 @@ let AuthService = class AuthService {
             // If user already exists, don't create a new one
             if (existingUser) {
                 console.log('User already exists:', existingUser);
-                return;
+                return "User already exists";
             }
             try {
                 const user = yield this.prisma.user.create({
@@ -253,11 +256,12 @@ let AuthService = class AuthService {
                         id: userInfo.id,
                         hashPassword: 'x',
                         username: userInfo.login,
-                        email: userInfo.email,
-                        // avatar: userInfo.image.link,
+                        avatar: userInfo.image.link,
+                        // token 
                     },
                 });
                 console.log(user);
+                return "User created";
             }
             catch (error) {
                 console.error('Error saving user information to database:', error);

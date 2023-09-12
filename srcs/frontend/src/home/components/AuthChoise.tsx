@@ -23,6 +23,7 @@ const AuthChoise: React.FC = () => {
     };
 
     async function signin42() {
+        
         window.location.href = authorizeUrl;
       }
 

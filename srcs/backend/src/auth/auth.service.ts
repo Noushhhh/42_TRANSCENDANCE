@@ -156,8 +156,9 @@ export class AuthService {
         }
     }
 
+    // request from front with code in params
     async signToken42(@Req() req: any) {
-        const code = req.query['code'];
+        const code = req.query['code']; 
         const token = await this.exchangeCodeForToken(code);
         if (token) {
           const userInfo = await this.getUserInfo(token);
@@ -205,7 +206,9 @@ export class AuthService {
       }
 
       // Function to save user information in the database
-      async createUser(userInfo: any): Promise<void> {
+        //  return user  
+    //   async createUser(userInfo: any): Promise<void> { 
+        async createUser(userInfo: any): Promise<string> {
         const existingUser = await this.prisma.user.findUnique({
             where: {
                 id: userInfo.id,
@@ -215,7 +218,7 @@ export class AuthService {
         // If user already exists, don't create a new one
         if (existingUser) {
             console.log('User already exists:', existingUser);
-            return;
+            return "User already exists";
         }
         try {
             const user = await this.prisma.user.create({
@@ -223,11 +226,12 @@ export class AuthService {
                 id: userInfo.id,
                 hashPassword: 'x', // random password? 
                 username: userInfo.login,
-                email: userInfo.email,
-                // avatar: userInfo.image.link,
+                avatar: userInfo.image.link,
+                // token 
             },
         });
-             console.log(user);
+            console.log(user);
+            return "User created";
         } catch (error) {
             console.error('Error saving user information to database:', error);
             throw error;
