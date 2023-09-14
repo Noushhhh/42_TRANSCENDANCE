@@ -1,14 +1,8 @@
 .popupChannelCreation{
-    position: absolute;
     border-radius: 10px;
     height: auto;
-    margin: 15px;
-    width: 320px;
-    background-color: black;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
     justify-content: center;
     color: white;
     z-index: 10;

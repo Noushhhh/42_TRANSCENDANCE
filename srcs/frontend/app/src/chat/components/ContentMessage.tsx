@@ -8,6 +8,15 @@ import "../types/type.Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useSocketContext } from "../contexts/socketContext";
 
+interface Message {
+  id: number
+  senderId: number
+  channelId: number
+  content: string
+  createdAt: Date
+  messageType: string
+}
+
 interface contentMessageProps{
     channelInfo: boolean;
     setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
@@ -23,8 +32,6 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     const channelId = useChannelIdContext;
 
     const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
-
-    // const [channelInfo, setChannelInfo] = useState<boolean>(false);
     
     // each time the user change channel (click to a new one), we want to reset
     // all messages from the socket are they are now store in the database.
@@ -33,14 +40,15 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     }, ([channelId]));
 
     const addMessage = (newMessage: Message, messageType: string): void =>{
+        console.log(newMessage);
         newMessage.messageType = messageType;
         setMessages([...messages, newMessage]);
     }
 
     return (
         <div className={`ContentMessage ${contentMessageWidth}`}>
-            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo} />
-            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} />
+            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo}/>
+            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} setMessages={setMessages}/>
             <ChatPrompt simulatedUserId={simulatedUserId} addMessage={addMessage} />
         </div>
     )   

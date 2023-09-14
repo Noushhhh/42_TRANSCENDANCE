@@ -10,11 +10,11 @@ import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
 import { useUserIdContext } from '../contexts/userIdContext';
 
-interface FadeMenuProps {
+interface UserProfileMenuProps {
   user: User;
 }
 
-export default function FadeMenu({ user }: FadeMenuProps) {
+export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const setChannelHeader = useSetChannelHeaderContext();

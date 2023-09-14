@@ -1,12 +1,37 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, Max, isNumber, IsInt, IsPositive } from 'class-validator';
 
-// export class CreateMessageDto {
-//   @IsInt()
-//   senderId: number
+class CommonChannelNameDto {
+    @IsString()
+    @IsNotEmpty()
+    @IsAlphanumeric()
+    channelName!: string;
+}
 
-//   @IsInt()
-//   channelId: number
+class CommonChannelIdDto {
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+}
+export class ChannelNameDto extends CommonChannelNameDto {}
 
-//   @IsString()
-//   content: string
-// }
+export class SignUpChannelDto extends CommonChannelIdDto {
+    @IsNotEmpty()
+    @IsString()
+    // @Min(6)
+    // @Max(22)
+    password!: string;
+
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}
+
+export class PairUserIdChannelId {
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}

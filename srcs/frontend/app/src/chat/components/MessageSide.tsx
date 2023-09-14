@@ -4,13 +4,15 @@ import MessageToClick from "./MessageToClick";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CreateChannelPopup from "./CreateChannelPopup";
 import "../types/channel.type";
 import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { fetchUser } from "./ChannelUtils"
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
+import ChannelManagerMenu from "./ChannelManagerMenu";
+import ChannelManager from "./ChannelManager";
+import HeaderChannelInfo from "./HeaderChannelInfo";
 
 function MessageSide() {
 
@@ -20,14 +22,27 @@ function MessageSide() {
   const [inputValue, setInputValue] = useState<string>("");
   const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
+  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([false, false]); // index 0 = create, index 1 = join
+  const [headerTitle, setHeaderTitle] = useState<string>('');
+
   const fetchBoolean = useRef(false);
-
   const userId = useUserIdContext();
-
   const socket = useSocketContext();
-
   const channelHeader = useChannelHeaderContext();
   const setChannelHeader = useSetChannelHeaderContext();
+
+  const setStateMessageToFalse = () => {
+    setStateMessageToClick([false, false]);
+  }
+
+  useEffect(() => {
+    if (stateMessageToClick[0] === true){
+      handleClick();
+      setHeaderTitle('create');
+    }
+    else if (stateMessageToClick[1] === true)
+      setHeaderTitle('join');
+  }, [stateMessageToClick]);
 
   const displayState = `${displayPopupChannelCreation ? "showPopup" : "hidePopup"}`;
 
@@ -64,29 +79,34 @@ function MessageSide() {
 
   return (
     <div className="MessageSide">
-      <div className="containerSearchBar">
-        <AddCircleOutlineIcon onClick={handleClick} className="createChannel" />
-        <CreateChannelPopup displayState={displayState} />
-        <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
-      </div>
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched}/>
-      {channelHeader
-        .sort((a, b) => {
+      {stateMessageToClick[0] === true || stateMessageToClick[1] === true ?
+        (<HeaderChannelInfo handleClick={setStateMessageToFalse} title={headerTitle} />)
+        :
+        (<div className="containerSearchBar">
+          <ChannelManagerMenu stateMessageToClick={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} />
+          <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
+        </div>)}
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
+
+      {stateMessageToClick[0] || stateMessageToClick[1] ?
+        <ChannelManager display={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} displayState={displayState}/>
+        :
+        (channelHeader.sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);
           const dateB = new Date(b.dateLastMsg);
           return dateB.getTime() - dateA.getTime();
         })
-        .map((channel, index) => {
-          if (previewLastMessage && channel.channelId === previewLastMessage?.channelId)
-            channel.lastMsg = previewLastMessage.content;
-          return (
-            <MessageToClick
-              channel={channel}
-              key={index}
-              isConnected={channel.isConnected}
-            />
-          );
-        })}
+          .map((channel, index) => {
+            if (previewLastMessage && channel.channelId === previewLastMessage?.channelId)
+              channel.lastMsg = previewLastMessage.content;
+            return (
+              <MessageToClick
+                channel={channel}
+                key={index}
+                isConnected={channel.isConnected}
+              />
+            );
+          }))}
     </div>
   );
 }

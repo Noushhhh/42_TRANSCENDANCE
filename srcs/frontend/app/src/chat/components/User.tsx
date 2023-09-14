@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
-import FadeMenu from "./FadeMenu";
+import UserProfileMenu from "./UserProfileMenu";
 import { useUserIdContext } from "../contexts/userIdContext";
 import avatar from "./avatar_tdeville.jpeg"
 import { useChannelIdContext } from "../contexts/channelIdContext";
@@ -61,7 +61,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                     <img className="avatar_image" src={avatar} alt="" width={49} height={49}/>
                 </div>
                 <div className="username">
-                    <FadeMenu user={user}/>
+                    <UserProfileMenu user={user}/>
                 </div>
             </div>
         )

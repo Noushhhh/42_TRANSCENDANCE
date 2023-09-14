@@ -1,17 +1,18 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType } from "@prisma/client";
-import { connect } from "rxjs";
-import { SocketService } from "../socket/socket.service";
 import { SocketEvents } from "../socket/SocketEvents";
+import * as argon from 'argon2';
+import { ForbiddenException } from "@nestjs/common";
+import { Type } from "class-transformer";
 
-interface MessageToStore{
+interface MessageToStore {
   channelId: number;
-	content: string;
-	senderId: number;
+  content: string;
+  senderId: number;
 }
 
-interface channelToAdd{
+interface channelToAdd {
   name: string,
   password: string
   ownerId: number,
@@ -19,15 +20,21 @@ interface channelToAdd{
   type: string,
 }
 
+interface isChannelExist {
+  isExist: boolean,
+  channelType: ChannelType,
+  id: number,
+}
+
 @Injectable()
 export class ChatService {
 
   constructor(private prisma: PrismaService,
-              // "private" to keep utilisation of the service inside the class
-              // "readonly" to be sure that socketService can't be substitute with
-              // others services (security)
-              private readonly socketEvents: SocketEvents
-              ) { }
+    // "private" to keep utilisation of the service inside the class
+    // "readonly" to be sure that socketService can't be substitute with
+    // others services (security)
+    private readonly socketEvents: SocketEvents
+  ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
 
@@ -80,7 +87,7 @@ export class ChatService {
 
     const channelId = Number(id);
 
-    if (isNaN(channelId) || channelId <= 0){
+    if (isNaN(channelId) || channelId <= 0) {
       throw new Error("Bad arguments");
     }
 
@@ -88,40 +95,39 @@ export class ChatService {
 
       const channel = await this.prisma.channel.findUnique({
         where: {
-        id:channelId,
-      },
-      include: {
-        messages: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 1,
+          id: channelId,
         },
-        participants:{}
-      },
-    });
-    
-    if (!channel)
-    {
-      throw new Error("getChannelHeadersFromId: channel doesnt exist");
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+          participants: {}
+        },
+      });
+
+      if (!channel) {
+        throw new Error("getChannelHeadersFromId: channel doesnt exist");
+      }
+
+      const lastMessage = channel?.messages[0];
+
+      const numberParticipants = channel.participants.length;
+
+      const channelHeader: ChannelLight = {
+        name: numberParticipants > 2 ? channel.name : "",
+        lastMsg: lastMessage ? lastMessage.content : '',
+        dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+        channelId,
+      };
+
+      return channelHeader;
     }
-    
-    const lastMessage = channel?.messages[0];
-    
-    const numberParticipants = channel.participants.length;
-    
-    const channelHeader: ChannelLight = {
-      name: numberParticipants > 2 ? channel.name : "",
-      lastMsg: lastMessage ? lastMessage.content : '',
-      dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
-      channelId,
-    };
-    
-    return channelHeader;
-  }
-  catch (error){
-    throw new Error("Error fetching database");
-  }
+    catch (error) {
+      throw new Error("Error fetching database");
+    }
   }
 
   async addChannel() {
@@ -199,7 +205,7 @@ export class ChatService {
     });
   }
 
-  async getAllMessagesByChannelId(id: number): Promise<Message[]>{
+  async getAllMessagesByChannelId(id: number): Promise<Message[]> {
 
     const channelId = Number(id);
 
@@ -212,32 +218,31 @@ export class ChatService {
       },
     });
 
-    if (!channel)
-    {
+    if (!channel) {
       throw new Error('getAllMessageFromChannelId: cant find channel');
     }
-  
+
     return channel.messages;
   }
 
-  async addMessageToChannelId(channId: number, message: MessageToStore){
+  async addMessageToChannelId(channId: number, message: MessageToStore) {
 
     await this.prisma.message.create({
       data: message,
     })
   }
 
-  async getUsersFromChannelId(id: number): Promise<User[]>{
-    
+  async getUsersFromChannelId(id: number): Promise<User[]> {
+
     const channelId = Number(id);
 
-    if (isNaN(channelId) || channelId <= 0){
+    if (isNaN(channelId) || channelId <= 0) {
       throw new Error("Invalid channelId");
     }
 
     try {
       const users = await this.prisma.channel.findUnique({
-        where: {id: channelId},
+        where: { id: channelId },
       }).participants();
 
       if (!users)
@@ -250,7 +255,7 @@ export class ChatService {
     }
   }
 
-  async getLoginsFromSubstring(substring: string): Promise<User[]>{
+  async getLoginsFromSubstring(substring: string): Promise<User[]> {
 
     const users: User[] = await this.prisma.user.findMany({
       where: {
@@ -260,104 +265,164 @@ export class ChatService {
       }
     })
 
-    if (!users){
+    if (!users) {
       throw new Error("Failed to fetch data");
     }
     // const logins = users.map(user => user.username);
     return users;
   }
 
-  async addChannelToUser(channelInfo: channelToAdd){
+  async addChannelToUser(channelInfo: channelToAdd) {
 
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
-    participants.push({id: channelInfo.ownerId});
-      
-      try {
-        const newChannel: Channel = await this.prisma.channel.create({
-          data: {
-            name: channelInfo.name,
-            password: channelInfo.password,
-            ownerId: channelInfo.ownerId,
-            // admins: channelInfo.ownerId,
-            type: ChannelType[channelInfo.type as keyof typeof ChannelType],
-            participants: {
-              connect: participants,
-            },
-            admins: {
-              connect: [{ id: channelInfo.ownerId }]
-            }
+    participants.push({ id: channelInfo.ownerId });
+
+    try {
+      const hashPassword = await argon.hash(channelInfo.password);
+      const newChannel: Channel = await this.prisma.channel.create({
+        data: {
+          name: channelInfo.name,
+          password: hashPassword,
+          ownerId: channelInfo.ownerId,
+          // admins: channelInfo.ownerId,
+          type: ChannelType[channelInfo.type as keyof typeof ChannelType],
+          participants: {
+            connect: participants,
           },
-        });
-      } catch (error){
-        console.error('addChannelToUser:', error);
-        throw error;
-      }
-    }
-
-    async isAdmin(usrId: number, channlId: number): Promise<boolean>{
-
-      const channelId = Number(channlId);
-      const userId = Number(usrId);
-
-      if (isNaN(channelId) || isNaN(userId))
-        throw new Error("isAdmin: expected number get non numerical args");
-
-      const channel = await this.prisma.channel.findUnique({
-        where: { id: channelId },
-        include: { admins: true },
+          admins: {
+            connect: [{ id: channelInfo.ownerId }]
+          }
+        },
       });
+    } catch (error) {
+      console.error('addChannelToUser:', error);
+      throw error;
+    }
+  }
 
-      if (!channel){
-        return false;
-      }
+  async isAdmin(usrId: number, channlId: number): Promise<boolean> {
 
-      return channel.admins.some((element) => element.id === userId);
+    const channelId = Number(channlId);
+    const userId = Number(usrId);
+
+    if (isNaN(channelId) || isNaN(userId))
+      throw new Error("isAdmin: expected number get non numerical args");
+
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: { admins: true },
+    });
+
+    if (!channel) {
+      return false;
     }
 
-    async getNumberUsersInChannel(channelIdStr: number): Promise<number>{
-      
-      const channelId: number = Number(channelIdStr);
+    return channel.admins.some((element) => element.id === userId);
+  }
 
-      if (isNaN(channelId)){
-        throw new Error(`Invalid args`);
+  async getNumberUsersInChannel(channelIdStr: number): Promise<number> {
+
+    const channelId: number = Number(channelIdStr);
+
+    if (isNaN(channelId)) {
+      throw new Error(`Invalid args`);
+    }
+
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: {
+        participants: {},
       }
+    }
+    );
 
-      const channel = await this.prisma.channel.findUnique({
+    if (!channel) {
+      throw new Error(`getNumberUsersInChannel didnt found channel with id: ${channelId}`);
+    }
+
+    return (channel.participants.length);
+  }
+
+  async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean> {
+
+    const userId = Number(userIdStr);
+    const channelId = Number(channelIdStr);
+    const callerId = Number(callerIdStr);
+
+    if (isNaN(userId) || isNaN(channelId) || isNaN(callerId) || userId <= 0 || channelId <= 0 || callerId <= 0) {
+      throw new Error("Invalid arguments");
+    }
+
+    if (await this.isAdmin(userId, channelId) === true) {
+      throw new HttpException("You can't kick a channel Admin",
+        HttpStatus.FORBIDDEN);
+    }
+
+    if (await this.isAdmin(callerId, channelId) === false) {
+      throw new HttpException("Only administrator can ban users",
+        HttpStatus.FORBIDDEN);
+    }
+
+    if (await this.getNumberUsersInChannel(channelId) === 2) {
+      await this.deleteAllMessagesInChannel(channelId);
+      await this.prisma.channel.delete({
         where: { id: channelId },
-        include: {
-          participants:{},
+      })
+      this.socketEvents.alertChannelDeleted(callerId, channelId);
+      return true;
+    }
+
+    const response: Channel = await this.prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        participants: {
+          disconnect: { id: userId }
         }
       }
-      );
+    })
 
-      if (!channel){
-        throw new Error(`getNumberUsersInChannel didnt found channel with id: ${channelId}`);
-      }
-      
-      return (channel.participants.length);
+    if (!response)
+      return false;
+
+    return true;
+  }
+
+  async deleteAllMessagesInChannel(channelId: number): Promise<void> {
+
+    try {
+      await this.prisma.message.deleteMany({
+        where: { channelId, }
+      });
+    } catch (error) {
+      throw new Error("Error updating message table");
     }
-    
-    async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean>{
+  }
 
-      const userId = Number(userIdStr);
-      const channelId = Number(channelIdStr);
-      const callerId = Number(callerIdStr);
+  async banUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean> {
 
-      if (isNaN(userId) || isNaN(channelId) || isNaN(callerId) || userId <= 0 || channelId <= 0 || callerId <=0){
+    const userId = Number(userIdStr);
+    const channelId = Number(channelIdStr);
+    const callerId = Number(callerIdStr);
+
+    const nbrUser: number = await this.getNumberUsersInChannel(channelId);
+
+    try {
+
+      if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
         throw new Error("Invalid arguments");
       }
 
-      if (await this.isAdmin(userId, channelId) === true){
-        throw new HttpException("You can't kick a channel Admin",
-        HttpStatus.FORBIDDEN);
-      }
-
-      if (await this.isAdmin(callerId, channelId) === false){
+      if (await this.isAdmin(callerId, channelId) === false) {
         throw new HttpException("Only administrator can ban users",
-        HttpStatus.FORBIDDEN);
+          HttpStatus.FORBIDDEN);
       }
 
-      if (await this.getNumberUsersInChannel(channelId) === 2){
+      if (await this.isAdmin(userId, channelId) === true) {
+        throw new HttpException("You can't ban a channel Admin",
+          HttpStatus.FORBIDDEN);
+      }
+
+      if (await this.getNumberUsersInChannel(channelId) <= 2) {
         await this.deleteAllMessagesInChannel(channelId);
         await this.prisma.channel.delete({
           where: { id: channelId },
@@ -366,303 +431,302 @@ export class ChatService {
         return true;
       }
 
-      const response: Channel = await this.prisma.channel.update({
-        where: { id: channelId },
-        data: { participants: {
-          disconnect: { id: userId }
-        } }
-      })
-
-      if (!response)
-        return false;
-
-      return true;
-    }
-
-    async deleteAllMessagesInChannel(channelId: number): Promise<void>{
-    
-      try {
-        await this.prisma.message.deleteMany({
-          where: { channelId, }
-        });
-      } catch (error){
-        throw new Error("Error updating message table");
-      }
-    }
-
-    async banUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean>{
-
-      const userId = Number(userIdStr);
-      const channelId = Number(channelIdStr);
-      const callerId = Number(callerIdStr);
-      
-      const nbrUser: number = await this.getNumberUsersInChannel(channelId);
-            
-      try {
-
-        if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0){
-          throw new Error("Invalid arguments");
-        }
-        
-        if (await this.isAdmin(callerId, channelId) === false){
-          throw new HttpException("Only administrator can ban users",
-          HttpStatus.FORBIDDEN);
-        }
-
-        if (await this.isAdmin(userId, channelId) === true){
-          throw new HttpException("You can't ban a channel Admin",
-          HttpStatus.FORBIDDEN);
-        }
-        
-        if (await this.getNumberUsersInChannel(channelId) <= 2){
-          await this.deleteAllMessagesInChannel(channelId);
-          await this.prisma.channel.delete({
-            where: { id: channelId },
-          })
-          this.socketEvents.alertChannelDeleted(callerId, channelId);
-          return true;
-      }
-      
       await this.kickUserFromChannel(userId, channelId, callerId);
-      
+
       const response = await this.prisma.channel.update({
         where: { id: channelId },
         data: {
-          bannedUsers:{
-            connect:{
+          bannedUsers: {
+            connect: {
               id: userId,
             }
           }
         }
       })
       return true;
-    } catch (error){
+    } catch (error) {
       throw new Error("Error updating database");
     }
 
-    }
+  }
 
-    async leaveChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
+  async leaveChannel(userIdStr: number, channelIdStr: number): Promise<boolean> {
 
-      const userId = Number(userIdStr);
-      const channelId = Number(channelIdStr);
+    const userId = Number(userIdStr);
+    const channelId = Number(channelIdStr);
 
-      if (isNaN(userId) || isNaN(channelId))
-        return false;
+    if (isNaN(userId) || isNaN(channelId))
+      return false;
 
-      if (await this.getNumberUsersInChannel(channelId) === 2){
-        this.deleteAllMessagesInChannel(channelId);
-        await this.prisma.channel.delete({
-          where: { id: channelId },
-        })
-        this.socketEvents.alertChannelDeleted(userId, channelId);
-        return true;
-      }
-
-      const response: Channel = await this.prisma.channel.update({
+    if (await this.getNumberUsersInChannel(channelId) === 2) {
+      await this.deleteAllMessagesInChannel(channelId);
+      await this.prisma.channel.delete({
         where: { id: channelId },
-        data: { participants: {
-          disconnect: { id: userId }
-        } }
       })
-
-      if (!response)
-        return false;
-
+      this.socketEvents.alertChannelDeleted(userId, channelId);
       return true;
     }
 
-    async isUserIsInChannel(userIdStr: number, channelIdStr: number): Promise<boolean>{
+    const response: Channel = await this.prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        participants: {
+          disconnect: { id: userId }
+        }
+      }
+    })
 
-      const userId: number = Number(userIdStr);
+    if (!response)
+      return false;
+
+    return true;
+  }
+
+  async isUserIsInChannel(userIdStr: number, channelIdStr: number): Promise<boolean> {
+
+    const userId: number = Number(userIdStr);
+    const channelId: number = Number(channelIdStr);
+
+    if (isNaN(userId) || isNaN(channelId)) {
+      throw new Error("Wrong parameters passed to addAdminToChannel");
+    }
+
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: { participants: true },
+    });
+
+    if (!channel)
+      throw new Error("IsUserIsInChannel: user not found");
+
+    return channel.participants.some((elem) => elem.id === userId);
+  }
+
+  async addAdminToChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean> {
+
+    try {
+
+      const inviterId: number = Number(inviterIdStr);
+      const invitedId: number = Number(invitedIdStr);
       const channelId: number = Number(channelIdStr);
 
-      if (isNaN(userId) || isNaN(channelId)){
+      if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
         throw new Error("Wrong parameters passed to addAdminToChannel");
+      }
+
+      if (await this.isAdmin(inviterId, channelId) === false) {
+        throw new HttpException("Is not admin",
+          HttpStatus.FORBIDDEN);
+      }
+
+      if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
+        throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
+      }
+
+      const userToAdd = await this.prisma.user.findUnique({
+        where: { id: invitedId }
+      })
+
+      if (!userToAdd)
+        return false;
+
+      const response = await this.prisma.channel.update({
+        where: { id: channelId },
+        data: {
+          admins: {
+            connect: {
+              id: invitedId,
+            }
+          }
+        }
+      })
+      if (!response)
+        throw new Error("addAdminToChannel: Channel not found");
+    } catch (error) {
+      throw new Error("Error in addAdminToChannel");
+    }
+    return true;
+  }
+
+  async removeAdminFromChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean> {
+
+    try {
+
+      const inviterId: number = Number(inviterIdStr);
+      const invitedId: number = Number(invitedIdStr);
+      const channelId: number = Number(channelIdStr);
+
+      if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
+        throw new Error("Wrong parameters passed to addAdminToChannel");
+      }
+
+      if (inviterId === invitedId) {
+        throw new Error("You can't kick yourself");
+      }
+
+      if (await this.isAdmin(inviterId, channelId) === false) {
+        throw new HttpException("Only admins can remove others admins",
+          HttpStatus.FORBIDDEN);
+      }
+
+      if (await this.isAdmin(invitedId, channelId) === false) {
+        throw new HttpException(`user: ${invitedId} is not admin in this channel`,
+          HttpStatus.FORBIDDEN);
+      }
+
+      if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
+        throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
+      }
+
+      const userToAdd = await this.prisma.user.findUnique({
+        where: { id: invitedId }
+      })
+
+      if (!userToAdd)
+        return false;
+
+      const response = await this.prisma.channel.update({
+        where: { id: channelId },
+        data: {
+          admins: {
+            disconnect: {
+              id: invitedId,
+            }
+          }
+        }
+      })
+      if (!response)
+        throw new Error("removeAdmin: error posting data");
+    } catch (error) {
+      throw new Error("Error in removeAdminFromChannel");
+    }
+    return true;
+  }
+
+  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string,): Promise<User[]> {
+
+    const channelId: number = Number(channelIdStr);
+
+    if (isNaN(channelId)) {
+      throw new Error("Invalid arguments: ChannelId is NaN");
+    }
+
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: { participants: true }
+    })
+
+    if (!channel) {
+      throw new NotFoundException(`Channel with id ${channelId} not found`);
+    }
+
+    const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
+
+    return users;
+  }
+
+  async getAdmins(channelIdStr: number): Promise<User[]> {
+
+    try {
+
+      const channelId: number = Number(channelIdStr);
+
+      if (isNaN(channelId) || channelId <= 0) {
+        throw new Error("Invalid arguments");
       }
 
       const channel = await this.prisma.channel.findUnique({
         where: { id: channelId },
-        include: { participants: true },
+        include: {
+          admins: true
+        }
+      })
+
+      if (!channel) {
+        throw new Error("Error fetching data");
+      }
+
+      return channel.admins;
+
+    } catch (error) {
+      throw new Error("Error fetching data");
+    }
+  }
+
+  async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<void> {
+    try {
+
+      const userId: number = Number(userIdStr);
+      const channelId: number = Number(channelIdStr);
+
+      const response = await this.prisma.channel.update({
+        where: { id: channelId },
+        data: {
+          participants: {
+            connect: { id: userId }
+          }
+        }
+      })
+
+    } catch (error) {
+      throw new Error("Error updating database");
+    }
+  }
+
+  async isChannelNameExist(channelName: string): Promise<isChannelExist | false> {
+    console.log("isChannelNameExist called with");
+    console.log(channelName);
+    try {
+      const isExist = await this.prisma.channel.findFirst({
+        where: { name: channelName },
+      })
+      if (isExist) {
+        return {
+          isExist: true,
+          channelType: isExist.type,
+          id: isExist.id
+        };
+      }
+      else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error("Error searching channel");
+    }
+  }
+
+  async isUserIsBan(channelId: number, userId: number): Promise<boolean> {
+    try {
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: channelId },
+        include: { bannedUsers: true }
       });
-      
+      if (!channel) {
+        throw new Error("Channel not found in database");
+      }
+      return channel.bannedUsers.some(user => user.id === userId);
+    } catch (error) {
+      throw new Error("Error fetching database");
+    }
+  }
+
+  async addUserToProtectedChannel(channelId: number, password: string, userId: number): Promise<void> {
+    try {
+      const channel: Channel | null = await this.prisma.channel.findUnique({
+        where: { id: channelId }
+      });
       if (!channel)
-        throw new Error("IsUserIsInChannel: user not found");
-
-      return channel.participants.some((elem) => elem.id === userId);
+        throw new ForbiddenException('Channel not found');
+      if (!channel.password)
+        throw new ForbiddenException('Channel password not found');
+      const passwordMatch = await argon.verify(channel.password, password);
+      if (!passwordMatch)
+        throw new ForbiddenException('Incorrect channel password');
+      await this.addUserToChannel(userId, channelId);
+    } catch (error){
+      throw error;
     }
-
-    async addAdminToChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean>{
-
-      try{
-
-        const inviterId: number = Number(inviterIdStr);
-        const invitedId: number = Number(invitedIdStr);
-        const channelId: number = Number(channelIdStr);
-
-        if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)){
-          throw new Error("Wrong parameters passed to addAdminToChannel");
-        }
-
-        if (await this.isAdmin(inviterId, channelId) === false){
-        throw new HttpException("Is not admin",
-          HttpStatus.FORBIDDEN);
-        }
-
-        if (await this.isUserIsInChannel(invitedIdStr, channelId) === false){
-          throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
-        }
-
-        const userToAdd = await this.prisma.user.findUnique({
-          where: { id: invitedId }
-        })
-        
-        if (!userToAdd)
-          return false;
-
-        const response = await this.prisma.channel.update({
-          where: { id: channelId },
-          data: {
-            admins: {
-              connect: {
-                id: invitedId,
-              }
-            }
-          }
-        })
-        if (!response)
-          throw new Error("addAdminToChannel: Channel not found");
-      } catch(error) {
-        throw new Error("Error in addAdminToChannel");
-      }
-        return true;
-      }
-
-      async removeAdminFromChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean>{
-  
-        try{
-  
-          const inviterId: number = Number(inviterIdStr);
-          const invitedId: number = Number(invitedIdStr);
-          const channelId: number = Number(channelIdStr);
-  
-          if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)){
-            throw new Error("Wrong parameters passed to addAdminToChannel");
-          }
-
-          if (inviterId === invitedId){
-            throw new Error("You can't kick yourself");
-          }
-  
-          if (await this.isAdmin(inviterId, channelId) === false){
-          throw new HttpException("Only admins can remove others admins",
-            HttpStatus.FORBIDDEN);
-          }
-
-          if (await this.isAdmin(invitedId, channelId) === false){
-            throw new HttpException(`user: ${invitedId} is not admin in this channel`,
-              HttpStatus.FORBIDDEN);
-            }
-  
-          if (await this.isUserIsInChannel(invitedIdStr, channelId) === false){
-            throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
-          }
-  
-          const userToAdd = await this.prisma.user.findUnique({
-            where: { id: invitedId }
-          })
-          
-          if (!userToAdd)
-            return false;
-  
-          const response = await this.prisma.channel.update({
-            where: { id: channelId },
-            data: {
-              admins: {
-                disconnect: {
-                  id: invitedId,
-                }
-              }
-            }
-          })
-          if (!response)
-            throw new Error("removeAdmin: error posting data");
-        } catch(error) {
-          throw new Error("Error in removeAdminFromChannel");
-        }
-          return true;
-        }
-
-      async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string, ): Promise<User[]>{
-
-        const channelId: number = Number(channelIdStr);
-
-        if (isNaN(channelId)){
-          throw new Error("Invalid arguments: ChannelId is NaN");
-        }
-
-        const channel = await this.prisma.channel.findUnique({
-          where: { id: channelId },
-          include: { participants: true }
-        })
-
-        if (!channel){
-          throw new NotFoundException(`Channel with id ${channelId} not found`);
-        }
-
-        const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
-
-        return users;
-      }
-
-      async getAdmins(channelIdStr: number): Promise<User[]>{
-
-        try{
-
-          const channelId: number = Number(channelIdStr);
-
-          if (isNaN(channelId) || channelId <= 0){
-            throw new Error("Invalid arguments");
-          }
-
-          const channel = await this.prisma.channel.findUnique({
-            where: { id: channelId },
-            include: { 
-              admins: true
-             }
-          })
-
-          if (!channel){
-            throw new Error("Error fetching data");
-          }
-
-          return channel.admins;
-
-        } catch(error){
-          throw new Error("Error fetching data");
-        }
-      }
-
-      async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<void>{
-        try{
-
-          const userId: number = Number(userIdStr);
-          const channelId: number = Number(channelIdStr);
-
-          const response = await this.prisma.channel.update({
-            where: { id: channelId },
-            data: {
-              participants: {
-                connect: { id: userId }
-              }
-            }
-          })
-
-        } catch (error){
-          throw new Error("Error updating database");
-        }
-      }
-      
-    }
+  }
+}
 
 

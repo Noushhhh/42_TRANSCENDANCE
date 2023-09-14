@@ -1,12 +1,13 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, Query } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto } from "./dto/chat.dto";
 import { ChatService } from "./chat.service";
-import { SocketService } from "../socket/socket.service";
-import { Message, Channel, User } from "@prisma/client";
+import { Message, User } from "@prisma/client";
+import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 
 interface channelToAdd {
     name: string,
-    password: string
+    password: string,
     ownerId: number,
     participants: number[],
     type: string,
@@ -16,6 +17,12 @@ interface MessageToStore {
     channelId: number;
     content: string;
     senderId: number;
+}
+
+interface isChannelExist{
+    isExist: boolean,
+    channelType: ChannelType,
+    id: number,
 }
 
 @Controller('chat')
@@ -166,4 +173,23 @@ export class ChatController {
         @Param('channelId') channelId: number): Promise<void> {
         return this.chatService.addUserToChannel(userId, channelId);
     }
+
+    @Post('addUserToProtectedChannel')
+    async addUserToProtectedChannel(
+        @Body() data: SignUpChannelDto): Promise<void>{
+            return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
+        }
+
+    @Post('isChannelNameExist')
+    async isChannelNameExist(
+        @Body() channelNameDto: ChannelNameDto): Promise<isChannelExist | false>{
+            return this.chatService.isChannelNameExist(channelNameDto.channelName);
+        }
+
+    @Post('isUserIsBan')
+    async isUserIsBan(
+        @Body() pair: PairUserIdChannelId): Promise<boolean>{
+            console.log(`isUserIsBan called with userId: ${pair.userId} and channelId: ${pair.channelId}`);
+            return this.chatService.isUserIsBan(pair.channelId, pair.userId);
+        }
 }

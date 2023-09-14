@@ -4,7 +4,7 @@ import MessageComponent from "./Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface Message {
-  id: number
+  id: number // id: 0
   senderId: number
   channelId: number
   content: string
@@ -12,13 +12,14 @@ interface Message {
   messageType: string
 }
 
-interface MonComposantProps {
+interface ChatViewProps {
   isChannelInfoDisplay: boolean;
   messages: Message[];
   userId: number;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
-function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps): JSX.Element {
+function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatViewProps): JSX.Element {
 
   const [conversationFetched, setConversationFetched] = useState<Message[]>([]);
   const channelId = useChannelIdContext();
@@ -31,6 +32,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps)
 
   useEffect(() => {
     setConversationFetched([]);
+    setMessages([]);
     const fetchConversation = async () => {
       if (channelId !== -1){
         const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId/${channelId}`);
@@ -43,6 +45,11 @@ function ChatView({ isChannelInfoDisplay, messages, userId }: MonComposantProps)
     }
     fetchConversation();
   }, ([channelId]));
+
+  // console.log("fetched=");
+  // console.log(conversationFetched);
+  // console.log('socket =');
+  // console.log(messages);
 
   return (
     <div className="ChatViewContainer">

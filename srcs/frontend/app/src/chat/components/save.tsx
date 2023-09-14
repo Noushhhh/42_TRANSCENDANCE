@@ -463,20 +463,26 @@ export const addUserListToChannel = async (userList: User[], channelId: number):
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> =>{
   try {
     const response = await axios.post("http://localhost:4000/api/chat/isUserIsBan", { channelId, userId });
-    return response.data;
+    console.log(response);
+    return true;
   } catch (error){
     console.log(error);
   }
   return false;
 }
 
-export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<boolean> => {
+export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<void> => {
   try {
-    const response = await axios.post('http://localhost:4000/api/chat/addUserToProtectedChannel', { password , userId, channelId });
-    console.log(response);
-    return true;
-  } catch (error: any){
-    return false;
+    if (await isUserIsBan(channelId, userId) === true){
+      throw new Error("You are banned from channel");
+    }
+
+  } catch (error: any) {
+    if (error.status === 403){
+      console.log('not granted');
+    } else {
+      throw new Error("Error");
+    }
   }
 }
 

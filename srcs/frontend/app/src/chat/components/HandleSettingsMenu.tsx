@@ -11,6 +11,7 @@ import { banUserList, fetchUser, kickUserList, fetchUserAdminTable, manageAdmins
 import { useSocketContext } from "../contexts/socketContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { Socket } from "socket.io-client";
+import ValidationButton from "./ValidationButton";
 
 interface HandleSettingsMenuProps {
     isSettingsMenuDisplay: boolean,
@@ -177,9 +178,11 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                 <div className="userList">
                 </div>
                 <h4>hande Settings Menu</h4>
-                <div className="validationButton">
+                <ValidationButton action={callAction} size={{height:50, width:50}}
+                                    position={{top:0, left:0}}/>
+                {/* <div className="validationButton">
                     <DoneIcon onClick={callAction} className="icon" />
-                </div>
+                </div> */}
             </div>
         )
     }
