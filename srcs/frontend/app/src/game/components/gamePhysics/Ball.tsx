@@ -1,4 +1,4 @@
-import React, { FC, useRef, useEffect } from "react";
+import React, { FC, useRef, useEffect, useState } from "react";
 import Konva from "konva";
 import { Circle } from "react-konva";
 import { Vector2d } from "konva/lib/types";
@@ -7,7 +7,9 @@ import { gameConfig } from "../../assets/gameConfig";
 
 const Ball: FC<data.BallProps> = ({ socket }) => {
   const circleRef = useRef<Konva.Circle>(null);
+  const [ballSize, setBallSize] = useState<number>(20);
 
+  // console.log("ballSize = ", ballSize);
   useEffect(() => {
     socket.on("updateGameState", (gameState: data.GameState) => {
       const normBallPos: Vector2d = {
@@ -21,6 +23,18 @@ const Ball: FC<data.BallProps> = ({ socket }) => {
       socket.off("updateBallPos");
     };
   });
+
+  useEffect(() => {
+    window.addEventListener("resize", updateBallSize);
+
+    return () => {
+      window.removeEventListener("resize", updateBallSize);
+    };
+  });
+
+  const updateBallSize = () => {
+    setBallSize((20 * (window.innerWidth - 1200)) / 1200);
+  };
 
   const updateBallPos = (pos: Vector2d) => {
     const ball = circleRef.current;
@@ -36,7 +50,7 @@ const Ball: FC<data.BallProps> = ({ socket }) => {
       ref={circleRef}
       x={gameConfig.konvaWidth / 2}
       y={gameConfig.konvaHeight / 2}
-      radius={20}
+      radius={ballSize}
       fill="green"
     />
   );

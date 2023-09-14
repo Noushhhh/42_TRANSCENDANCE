@@ -13,7 +13,7 @@ interface Vector2d {
   y: number;
 }
 
-export const paddleGap = 10 / 1200;
+export const paddleGap = 0.1/10;
 
 @Injectable()
 export class GameState {

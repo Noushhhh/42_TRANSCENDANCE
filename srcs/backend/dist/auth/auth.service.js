@@ -43,9 +43,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
+// import { User, Bookmark } from  '@prisma/client';
 const prisma_service_1 = require("../prisma/prisma.service");
+const runtime_1 = require("@prisma/client/runtime");
 const argon = __importStar(require("argon2"));
-let AuthService = exports.AuthService = class AuthService {
+let AuthService = class AuthService {
     constructor(prisma) {
         this.prisma = prisma;
     }
@@ -54,21 +56,55 @@ let AuthService = exports.AuthService = class AuthService {
             // generate password hash
             const hashPassword = yield argon.hash(dto.password);
             // save user in db
-            const user = yield this.prisma.user.create({
-                data: {
-                    login: dto.login,
-                    hashPassword,
-                },
-            });
-            // return saved user
-            return user;
-            // return { msg: 'I have signed up' };
+            try {
+                const user = yield this.prisma.user.create({
+                    data: {
+                        username: dto.username,
+                        hashPassword,
+                    },
+                    select: {
+                        username: true, // return only username and not hash pwd
+                    }
+                });
+                // return saved user
+                return user;
+            }
+            catch (error) {
+                // handle parsing errors
+                if (error instanceof runtime_1.PrismaClientKnownRequestError &&
+                    error.code === 'P2002' // try to create new record with unique field
+                ) {
+                    // throw new Error('Username already in use');
+                    throw new common_1.ForbiddenException("Username already in use");
+                }
+                // handle other errors
+                throw error;
+            }
         });
     }
-    signin() {
-        return { msg: 'I have signed in' };
+    signin(dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // find user with username
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    username: dto.username,
+                }
+            });
+            // if user not found throw exception
+            if (!user)
+                throw new common_1.ForbiddenException('Username not found');
+            // compare password
+            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
+            // if password wrong throw exception
+            if (!passwordMatch)
+                throw new common_1.ForbiddenException('Incorrect password');
+            // send back the user
+            // delete user.hashPassword
+            return user;
+        });
     }
 };
+exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])

@@ -17,7 +17,7 @@ function bootstrap() {
         // Create a new NestJS application instance
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
         app.useGlobalPipes(new common_1.ValidationPipe({
-            whitelist: true,
+            whitelist: true, // check if whitelist needed or only restrain fields to login and password
         }));
         const corsOptions = {
             origin: 'http://localhost:8080',
@@ -25,7 +25,7 @@ function bootstrap() {
         };
         // Activez CORS pour toutes les routes de l'application
         app.enableCors(corsOptions);
-        // app.setGlobalPrefix('api'); // set global route prefix
+        app.setGlobalPrefix('api'); // set global route prefix
         // Start the application and listen on port 4000
         yield app.listen(4000);
     });

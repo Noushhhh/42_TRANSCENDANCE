@@ -9,22 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthDto = void 0;
-const class_validator_1 = require("class-validator");
-class AuthDto {
-    constructor(username, password) {
-        this.username = username;
-        this.password = password;
+exports.lobbies = exports.Lobby = void 0;
+const common_1 = require("@nestjs/common");
+const gameState_1 = require("./gameState");
+let Lobby = class Lobby {
+    constructor(player) {
+        this.player2 = null;
+        this.spectators = [];
+        this.gameState = new gameState_1.GameState();
+        this.ballState = this.gameState.gameState.ballState;
+        this.player1 = player;
     }
-}
-exports.AuthDto = AuthDto;
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], AuthDto.prototype, "username", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], AuthDto.prototype, "password", void 0);
+    printPlayersPos() {
+        console.log("print 4: ", this.gameState.gameState.p1pos);
+        console.log("print 4: ", this.gameState.gameState.p2pos);
+    }
+};
+exports.Lobby = Lobby;
+exports.Lobby = Lobby = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [Object])
+], Lobby);
+exports.lobbies = new Map();

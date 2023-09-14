@@ -16,6 +16,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   socket,
 }) => {
   const [konvaSize, setKonvaSize] = useState<KonvaSize>([1200, 800]);
+  // const [p1Pos, setP1Pos] = useState<Vector2d>([])
   const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {
@@ -32,24 +33,12 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   }, []);
 
   const resizeEvent = () => {
-    if (window.innerWidth < 2000) {
-      console.log("je passe par ici 1");
-      GameConfigController.setKonvaWidth(1000);
-      GameConfigController.setKonvaHeight(600);
-      stageRef.current?.width(1000);
-      stageRef.current?.height(600);
-      setKonvaSize([1000, 600]);
-      setGameData();
-    }
-    if (window.innerWidth > 2000) {
-      console.log("je passe par ici 2");
-      GameConfigController.setKonvaWidth(1200);
-      GameConfigController.setKonvaHeight(800);
-      stageRef.current?.width(1200);
-      stageRef.current?.height(800);
-      setKonvaSize([1200, 800]);
-      setGameData();
-    }
+    GameConfigController.setKonvaWidth(window.innerWidth - 1200);
+    GameConfigController.setKonvaHeight((window.innerWidth - 1200) / 1.5);
+    stageRef.current?.width(window.innerWidth - 1200);
+    stageRef.current?.height((window.innerWidth - 1200) / 1.5);
+    setKonvaSize([(window.innerWidth - 1200) / 1.5, window.innerWidth - 1200]);
+    setGameData();
   };
 
   const setGameData = () => {

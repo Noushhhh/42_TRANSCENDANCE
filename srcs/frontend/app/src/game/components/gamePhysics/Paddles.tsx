@@ -20,8 +20,6 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
   useEffect(() => {
     socket.on("updateGameState", (gameState: data.GameState) => {
-      console.log("client receive: ", gameState);
-      console.log("gameConfig: ", gameConfig);
       const normP1Pos: Vector2d = {
         x: gameState.p1pos.x * gameConfig.konvaWidth,
         y: gameState.p1pos.y * gameConfig.konvaHeight,
@@ -72,16 +70,15 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   };
 
   const updateP1pos = (pos: Vector2d) => {
-    console.log("je log pos: ", pos);
     const rect1 = rect1Ref.current;
     if (!rect1) return;
 
     requestAnimationFrame(() => {
       rect1.position({ x: pos.x, y: pos.y });
-      rect1.size ({
+      rect1.size({
         width: (gameConfig.paddleWidth / 1200.0) * gameConfig.konvaWidth,
-        height: (gameConfig.paddleHeight / 800.0) * gameConfig.konvaHeight
-      })
+        height: (gameConfig.paddleHeight / 800.0) * gameConfig.konvaHeight,
+      });
     });
   };
 
@@ -91,6 +88,10 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
     requestAnimationFrame(() => {
       rect2.position({ x: pos.x, y: pos.y });
+      rect2.size({
+        width: (gameConfig.paddleWidth / 1200.0) * gameConfig.konvaWidth,
+        height: (gameConfig.paddleHeight / 800.0) * gameConfig.konvaHeight,
+      });
     });
   };
 

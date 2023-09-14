@@ -17,7 +17,7 @@ const common_1 = require("@nestjs/common");
 // import { Request } from 'express';
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
-let AuthController = exports.AuthController = class AuthController {
+let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
@@ -26,10 +26,15 @@ let AuthController = exports.AuthController = class AuthController {
         return this.authService.signup(dto);
     }
     //POST /auth/signin
-    signin() {
-        return this.authService.signin();
+    // @Post('signin')
+    // signin(@Body() dto: AuthDto) {
+    //     return this.authService.signin(dto);
+    // }
+    test() {
+        return 'hello test';
     }
 };
+exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('signup'),
     __param(0, (0, common_1.Body)()),
@@ -38,11 +43,11 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "signup", null);
 __decorate([
-    (0, common_1.Post)('signin'),
+    (0, common_1.Post)('test'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], AuthController.prototype, "signin", null);
+], AuthController.prototype, "test", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
