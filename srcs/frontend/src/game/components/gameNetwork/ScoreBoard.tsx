@@ -17,7 +17,16 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   }, [socket]);
 
   return (
-    <div className="ScoreBoard">
+    <div
+      className="ScoreBoard"
+      style={{
+        display: "flex",
+        justifyContent: "space-around",
+        alignItems: "center",
+        fontSize: "5rem",
+        width: "70%",
+      }}
+    >
       <div style={{ color: "white" }}>{p1Score}</div>
       <div style={{ color: "white" }}>{p2Score}</div>
     </div>

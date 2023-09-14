@@ -142,4 +142,22 @@ export class GameLobbyService {
       this.gatewayOut.emitToUser(player.id, "getAllLobbies", { lobbies: serializedLobbies });
     }
   }
+
+  sendPlayersPos(player: Socket | undefined) {
+    if (!player) return
+    for (const [key, value] of lobbies) {
+      if (value.player1?.id === player?.id || value.player2?.id === player?.id) {
+        this.gatewayOut.emitToRoom(key, 'receivePlayersPos', [value.gameState.gameState.p1pos, value.gameState.gameState.p2pos]);
+        return;
+      }
+    }
+  }
+
+  printLobbyPlayerPos() {
+    for (const [key, value] of lobbies) {
+      console.log(key, "p1pos:", value.gameState.gameState.p1pos);
+      console.log(key, "p2pos:", value.gameState.gameState.p2pos);
+      console.log(key, "config: ", value.gameState.gameData);
+    }
+  }
 }

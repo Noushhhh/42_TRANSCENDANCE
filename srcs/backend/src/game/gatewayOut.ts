@@ -24,10 +24,6 @@ export class GatewayOut {
 
   constructor(private readonly socketMap: SocketService, private readonly io: SocketEvents) { }
 
-  sendBallPos(pos: Vector2d) {
-    this.server.emit('updateBallPos', pos);
-  }
-
   updateGameState(gameState: GameState) {
     this.server.emit('updateGameState', gameState);
   }

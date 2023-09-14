@@ -3,18 +3,24 @@ import { GameLogicService } from './gameLogic.service';
 import { GatewayOut } from './gatewayOut';
 import { lobbies } from './lobbies';
 import { Socket } from 'socket.io';
+import { gameConfig } from './data';
+import { GameState } from './gameState';
 
-const KONVA_WIDTH = 1200;
-const KONVA_HEIGHT = 800;
-const PADDLE_WIDTH = 25;
-// const PADDLE_HEIGHT = 10;
-// const ballSpeed = 2;
 const RAY_LENGHT = 15 + 20;
 
 interface Vector2d {
   x: number;
   y: number;
 }
+
+interface GameData {
+  konvaHeight: number;
+  konvaWidth: number;
+  paddleHeight: number;
+  paddleWidth: number;
+}
+
+const moveSpeed = 6 / 800.0;
 
 @Injectable()
 export class GameLoopService {
@@ -49,6 +55,7 @@ export class GameLoopService {
       setTimeout(() => {
         this.gameLoop();
       }, 1000 / 60);
+      // }, 1000 / 60);
     }
   }
 
@@ -73,26 +80,29 @@ export class GameLoopService {
     if (player.id === lobby.player1?.id) {
       if (direction === 'up') {
         if (lobby.gameState.gameState.p1pos.y > 0) {
-          lobby.gameState.gameState.p1pos.y -= 6;
+          lobby.gameState.gameState.p1pos.y -= moveSpeed;
         }
       } else if (direction === 'down') {
-        if (lobby.gameState.gameState.p1pos.y < KONVA_HEIGHT - 150) {
-          lobby.gameState.gameState.p1pos.y += 6;
+        if (lobby.gameState.gameState.p1pos.y < 1 - gameConfig.paddleHeight) {
+          lobby.gameState.gameState.p1pos.y += moveSpeed;
         }
       }
     } else {
       if (direction === 'up') {
         if (lobby.gameState.gameState.p2pos.y > 0) {
-          lobby.gameState.gameState.p2pos.y -= 6;
+          lobby.gameState.gameState.p2pos.y -= moveSpeed;
         }
       } else if (direction === 'down') {
-        if (lobby.gameState.gameState.p2pos.y < KONVA_HEIGHT - 150) {
-          lobby.gameState.gameState.p2pos.y += 6;
+        if (lobby.gameState.gameState.p2pos.y < 1 - gameConfig.paddleHeight) {
+          lobby.gameState.gameState.p2pos.y += moveSpeed;
         }
       }
     }
-    lobby.printPlayersPos();
   }
+
+  // printGameData() {
+  //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
+  // }
 
   // private updateRay = () => {
   //   this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
