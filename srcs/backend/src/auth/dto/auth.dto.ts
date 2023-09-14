@@ -23,8 +23,6 @@ import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 
 // The DTO (Data Transfer Object) for authentication operations
 export class AuthDto {
-    // Decorator to ensure that 'email' is in valid email format
-    @IsEmail()
     // Decorator to ensure that 'email' field cannot be empty
     @IsNotEmpty()
     username!: string;

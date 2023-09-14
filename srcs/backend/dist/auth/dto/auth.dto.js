@@ -36,9 +36,6 @@ class AuthDto {
 }
 exports.AuthDto = AuthDto;
 __decorate([
-    (0, class_validator_1.IsEmail)()
-    // Decorator to ensure that 'email' field cannot be empty
-    ,
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], AuthDto.prototype, "username", void 0);

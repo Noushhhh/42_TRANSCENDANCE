@@ -26,7 +26,6 @@ export class AuthService {
     }
 
     async signup(dto: AuthDto, res: Response) {
-
         const hashPassword = await argon.hash(dto.password);
         try {
             const user = await this.prisma.user.create({
@@ -68,7 +67,6 @@ export class AuthService {
 
         // send back the token
         return this.signToken(user.id, user.username, res);
-
     }
 
     async signToken(
