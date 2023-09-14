@@ -1,0 +1,19 @@
+@import './generalStyles.css';
+
+  /* Styling for navigation buttons (non-active state) */
+  .buttonGoBack {
+    color: var(--purple-color);  /* Sets color for the active button */
+    background-color: var(--black-color);  /* Sets color for the active button*/
+    text-decoration: none;  /*Removes the default underline from the buttons*/
+    transition: color 0.3s;  /* Smooth transition effect for color changes (hover & active) */
+    font-family: var(--main-font);  /* Sets the font for this container and its children */
+    font-size: large;
+    border-style: none;
+    height: auto;
+    margin-top: 10%;
+  }
+  
+  /* Styling for navigation buttons on hover state */
+  .buttonGoBack:hover{
+    color: var(--white-color);
+  }

@@ -4,8 +4,8 @@ export interface GameConfig {
 }
 
 export const gameConfig: GameConfig = {
-  paddleHeight: 150 / 800.0,
-  paddleWidth: 25 / 1200.0,
+  paddleHeight: 100 / 800.0,
+  paddleWidth: 15 / 1200.0,
 };
 
 // export class GameConfig {

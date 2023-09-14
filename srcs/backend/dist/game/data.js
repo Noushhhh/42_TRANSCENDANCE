@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.gameConfig = void 0;
 exports.gameConfig = {
-    paddleHeight: 150 / 1200.0,
-    paddleWidth: 25 / 800.0,
+    paddleHeight: 100 / 800.0,
+    paddleWidth: 15 / 1200.0,
 };
 // export class GameConfig {
 //   private konvaWidth = 1200;

@@ -1,53 +1,53 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-// import { User, Bookmark } from  '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { Prisma } from '@prisma/client'
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
+import { JwtService } from '@nestjs/jwt';
+import { Request, Response } from 'express';
+import { randomBytes } from 'crypto';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) {}
 
-    async signup(dto: AuthDto) 
-    {
-        // generate password hash
+    private JWT_SECRET: string | any;
+
+    constructor(
+        private prisma: PrismaService,
+        private jwt: JwtService,
+    ) {
+        this.JWT_SECRET = process.env.JWT_SECRET;
+
+        if (!this.JWT_SECRET) {
+            throw new Error("JWT_SECRET environment variable not set!");
+        }
+    }
+
+    async signup(dto: AuthDto, res: Response) {
+
         const hashPassword = await argon.hash(dto.password);
-        // save user in db
-        try
-        {
+        try {
             const user = await this.prisma.user.create({
                 data: {
                     username: dto.username,
                     hashPassword,
                 },
-            select:
-            {
-                username : true, // return only username and not hash pwd
-            }
             });
-            // return saved user
-            return user;
-        }
-        catch (error: unknown) 
-        {
-            // handle parsing errors
-            if (
-                error instanceof PrismaClientKnownRequestError &&
-                error.code === 'P2002' // try to create new record with unique field
-            ) 
-            {
-                // throw new Error('Username already in use');
-                throw new ForbiddenException("Username already in use")
+            return this.signToken(user.id, user.username, res);
+            // return user;
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                console.log(error)
+                if (error.code === 'P2002') {
+                    throw new ForbiddenException('Credentials taken');
+                }
             }
-    
-            // handle other errors
             throw error;
         }
     }
 
-    async signin(dto: AuthDto) 
-    {
+    async signin(dto: AuthDto, res: Response) {
         // find user with username
         const user = await this.prisma.user.findUnique({
             where: {
@@ -57,17 +57,101 @@ export class AuthService {
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
-        
+
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-        
+
         // if password wrong throw exception
         if (!passwordMatch)
             throw new ForbiddenException('Incorrect password',);
 
-        // send back the user
-        // delete user.hashPassword
-            return user ;
+        // send back the token
+        return this.signToken(user.id, user.username, res);
 
+    }
+
+    async signToken(
+        userId: number,
+        email: string,
+        res: Response
+    ): Promise<void> {
+        const payload = {
+            sub: userId,
+            email,
+        };
+        const secret = this.JWT_SECRET;
+        const token = await this.jwt.signAsync(
+            payload,
+            {
+                expiresIn: '15m',
+                secret: secret,
+            },
+        );
+
+        // Generate a refresh token
+        const refreshToken = this.createRefreshToken(userId);
+
+        // Save refresh token in an HttpOnly cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true, // set it to false if you're not using HTTPS
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+        });
+
+        // Existing JWT token cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+        });
+
+        res.status(200).send({ message: 'Authentication successful' });
+    }
+
+    async createRefreshToken(userId: number): Promise<string> {
+        const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
+
+        const expiration = new Date();
+
+        expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
+
+        // Save refreshToken to database along with userId
+        await this.prisma.refreshToken.create({
+            data: {
+                token: refreshToken,
+                userId: userId,
+                expiresAt: expiration
+            }
+        });
+
+        return refreshToken;
+    }
+
+    async checkTokenValidity(req: Request, res: Response) {
+        const token = req.cookies.token;
+
+        console.log("passing by checktokenvalidity");
+        if (!token)
+            return res.status(401).json({ valid: false, message: "Token Missing" });
+
+        try {
+            jwt.verify(token, this.JWT_SECRET);
+            return res.status(200).json({ valid: true, message: "Token is valid" });
+        } catch (error) {
+            return res.status(401).json({ valid: false, message: "Invalid Token" });
+        }
+    }
+
+    signout(res: Response): Response {
+        // Clear the JWT cookie or session
+        try {
+            res.clearCookie('token'); // assuming your token is saved in a cookie named 'token'
+            return res.status(200).send({ message: 'Signed out successfully' });
+        } catch (error) {
+           console.error(error); 
+           return res.status(401).send({message: "Cookie not found"});
+        }
     }
 }

@@ -10,7 +10,7 @@ exports.GameState = exports.paddleGap = void 0;
 const common_1 = require("@nestjs/common");
 const data_1 = require("./data");
 const RAY_LENGHT = (15 + 20) / 1200;
-exports.paddleGap = 10 / 1200;
+exports.paddleGap = 0.1 / 10;
 let GameState = class GameState {
     constructor() {
         this.ballPos = {
