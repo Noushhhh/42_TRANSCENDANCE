@@ -5,18 +5,7 @@ import { useChannelIdContext } from "../contexts/channelIdContext";
 import { fetchUser, joinProtectedChannel } from "./ChannelUtils";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
-
-enum ChannelType {
-    PUBLIC,
-    PRIVATE,
-    PASSWORD_PROTECTED,
-}
-
-interface isChannelExist {
-    isExist: boolean,
-    channelType: ChannelType,
-    id: number,
-}
+import "../styles/JoinChannel.css";
 
 interface JoinProtectedChannelProps {
     setStateMessageToClick: React.Dispatch<React.SetStateAction<boolean[]>>;
@@ -43,6 +32,8 @@ function JoinProtectedChannel({ setStateMessageToClick, channelId }: JoinProtect
                 if (await joinProtectedChannel(channelId, userId, password)){
                     fetchUser(setChannelHeader, userId, socket);
                     setStateMessageToClick([false, false]);
+                } else {
+                    setError("Wrong password");
                 }
             }
         } catch (error: any) {
@@ -68,7 +59,7 @@ function JoinProtectedChannel({ setStateMessageToClick, channelId }: JoinProtect
                 <p style={{ color: "red" }}>
                     {error}
                 </p>
-                <p>Enter password:</p>
+                <p className="fontColorWhite">Enter password:</p>
                 <input ref={inputRef} onKeyDown={handleKeyDown} value={password} onChange={handleChange} type="text" />
             </div>
             <div>

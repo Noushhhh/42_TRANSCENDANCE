@@ -38,10 +38,10 @@ function MessageSide() {
   useEffect(() => {
     if (stateMessageToClick[0] === true){
       handleClick();
-      setHeaderTitle('create');
+      setHeaderTitle('Create a channel');
     }
     else if (stateMessageToClick[1] === true)
-      setHeaderTitle('join');
+      setHeaderTitle('Join a channel');
   }, [stateMessageToClick]);
 
   const displayState = `${displayPopupChannelCreation ? "showPopup" : "hidePopup"}`;
