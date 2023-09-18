@@ -20,9 +20,6 @@ let GatewayOut = class GatewayOut {
         this.socketMap = socketMap;
         this.io = io;
     }
-    sendBallPos(pos) {
-        this.server.emit('updateBallPos', pos);
-    }
     updateGameState(gameState) {
         this.server.emit('updateGameState', gameState);
     }

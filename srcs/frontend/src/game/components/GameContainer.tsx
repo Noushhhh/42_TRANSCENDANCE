@@ -7,6 +7,7 @@ import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import Button from "./common/Button";
 import GameMenu from "./GameMenu";
+import MiddleLine from "./gamePhysics/MiddleLine";
 
 const socket = io("http://localhost:4000");
 
@@ -67,13 +68,12 @@ function GameContainer() {
   };
 
   if (isInLobby === true) {
-
     if (isLobbyFull === false) {
       return <WaitingForPlayer />;
-
     } else {
       return (
         <div className="GameContainer">
+          <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
           <Button onClick={handlePlayPause} style={buttonStyle}>
@@ -82,10 +82,10 @@ function GameContainer() {
         </div>
       );
     }
-  
-  } else if (isInLobby === false) {
-    return <GameMenu socket={socket}/>;
   }
+  //  else if (isInLobby === false) {
+  // }
+  return <GameMenu socket={socket} />;
 }
 
 export default GameContainer;
