@@ -20,6 +20,7 @@ const GameMenu: FC<GameMenuProps> = ({ socket }) => {
     };
   }, [socket]);
 
+  // @todo REMOVE LOCALHOST
   const lobby = () => {
     fetch(`http://localhost:4000/api/game/lobby?clientId=${clientId.current}`)
       .then((response) => response.json())

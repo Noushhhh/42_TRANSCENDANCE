@@ -6,43 +6,44 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameState = void 0;
+exports.GameState = exports.paddleGap = void 0;
 const common_1 = require("@nestjs/common");
-const KONVA_WIDTH = 1200;
-const KONVA_HEIGHT = 800;
-const PADDLE_WIDTH = 25;
-// const PADDLE_HEIGHT = 10;
-// const ballSpeed = 2;
-const RAY_LENGHT = 15 + 20;
+const data_1 = require("./data");
+const RAY_LENGHT = (15 + 20) / 1200;
+exports.paddleGap = 0.1 / 10;
 let GameState = class GameState {
     constructor() {
         this.ballPos = {
-            x: KONVA_WIDTH / 2,
-            y: KONVA_HEIGHT / 2,
+            x: 0.5,
+            y: 0.5,
+        };
+        this.gameData = {
+            paddleHeight: data_1.gameConfig.paddleHeight,
+            paddleWidth: data_1.gameConfig.paddleWidth,
         };
         this.gameState = {
             p1pos: {
-                x: 10,
-                y: 310,
+                x: exports.paddleGap,
+                y: 0.5 - data_1.gameConfig.paddleHeight / 2,
             },
             p2pos: {
-                x: KONVA_WIDTH - 10 - PADDLE_WIDTH,
-                y: 310,
+                x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
+                y: 0.5 - data_1.gameConfig.paddleHeight / 2,
             },
             ballState: {
                 ballDirection: 'left',
                 ballDX: 0,
                 ballDY: 0,
                 ballPos: {
-                    x: KONVA_WIDTH / 2,
-                    y: KONVA_HEIGHT / 2,
+                    x: 0.5,
+                    y: 0.5,
                 },
             },
             ballRay: {
-                x1: KONVA_WIDTH / 2,
-                y1: KONVA_HEIGHT / 2,
-                x2: KONVA_WIDTH / 2 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: KONVA_HEIGHT / 2 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
+                x1: 0.5,
+                y1: 0.5,
+                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
+                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
             },
             isPaused: true,
             score: {
@@ -58,6 +59,9 @@ let GameState = class GameState {
             ballPos: this.ballPos,
             scoreBoard: this.gameState.score
         };
+    }
+    printGameState() {
+        console.log(this.gameState);
     }
 };
 exports.GameState = GameState;

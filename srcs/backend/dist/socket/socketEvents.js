@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
@@ -64,14 +65,14 @@ let SocketEvents = class SocketEvents {
 exports.SocketEvents = SocketEvents;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
-    __metadata("design:type", socket_io_1.Server)
+    __metadata("design:type", typeof (_a = typeof socket_io_1.Server !== "undefined" && socket_io_1.Server) === "function" ? _a : Object)
 ], SocketEvents.prototype, "server", void 0);
 __decorate([
     (0, websockets_1.SubscribeMessage)('setNewUserConnected'),
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [Number, typeof (_b = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _b : Object]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleSetNewUserConnected", null);
 __decorate([
@@ -79,13 +80,13 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [Number, typeof (_c = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _c : Object]),
     __metadata("design:returntype", Boolean)
 ], SocketEvents.prototype, "handleIsUserConnected", null);
 __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket]),
+    __metadata("design:paramtypes", [typeof (_d = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _d : Object]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleDisconnect", null);
 __decorate([
@@ -93,7 +94,7 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [Object, typeof (_e = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _e : Object]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleMessage", null);
 exports.SocketEvents = SocketEvents = __decorate([

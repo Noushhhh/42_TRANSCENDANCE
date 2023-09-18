@@ -1,24 +1,73 @@
-import React, { FC, useRef, useEffect } from "react";
+import React, { FC, useRef, useEffect, useState } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
 import * as data from "../../assets/data";
 import { Vector2d } from "konva/lib/types";
+import { gameConfig } from "../../assets/gameConfig";
+
+interface PlayerPos {
+  x: number;
+  y: number;
+}
 
 const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
   const rect2Ref = useRef<Konva.Rect>(null);
   const keyState = useRef<{ [key: string]: boolean }>({});
 
+  const playerPosRef = useRef<Vector2d[]>([]);
+  const [render, setRender] = useState<boolean>(true);
+
   useEffect(() => {
     socket.on("updateGameState", (gameState: data.GameState) => {
-      updateP1pos(gameState.p1pos);
-      updateP2pos(gameState.p2pos);
+      const normP1Pos: Vector2d = {
+        x: gameState.p1pos.x * gameConfig.konvaWidth,
+        y: gameState.p1pos.y * gameConfig.konvaHeight,
+      };
+
+      const normP2Pos: Vector2d = {
+        x: gameState.p2pos.x * gameConfig.konvaWidth,
+        y: gameState.p2pos.y * gameConfig.konvaHeight,
+      };
+      updateP1pos(normP1Pos);
+      updateP2pos(normP2Pos);
     });
+
+    // socket.on(
+    //   "receivePlayersPos",
+    //   (playersPos: [{ x: number; y: number }, { x: number; y: number }]) => {
+    //     console.log("je log ici", playersPos);
+    //     const playersPosData = [
+    //       { x: playersPos[0].x, y: playersPos[0].y },
+    //       { x: playersPos[1].x, y: playersPos[1].y },
+    //     ];
+    //     playerPosRef.current = playersPosData;
+    //   }
+    // );
 
     return () => {
       socket.off("updateGameState");
+      // socket.off("receivePlayersPos");
     };
   }, [socket]);
+
+  useEffect(() => {
+    setRender((current) => !current);
+    window.addEventListener("resize", resizeEvent);
+
+    return () => {
+      window.removeEventListener("resize", resizeEvent);
+    };
+  }, []);
+
+  const getPlayerPos = () => {
+    socket.emit("sendPlayersPos");
+  };
+
+  const resizeEvent = () => {
+    getPlayerPos();
+    console.log("gameConfig: ", gameConfig);
+  };
 
   const updateP1pos = (pos: Vector2d) => {
     const rect1 = rect1Ref.current;
@@ -26,6 +75,10 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
     requestAnimationFrame(() => {
       rect1.position({ x: pos.x, y: pos.y });
+      rect1.size({
+        width: (gameConfig.paddleWidth / 1200.0) * gameConfig.konvaWidth,
+        height: (gameConfig.paddleHeight / 800.0) * gameConfig.konvaHeight,
+      });
     });
   };
 
@@ -35,6 +88,10 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
     requestAnimationFrame(() => {
       rect2.position({ x: pos.x, y: pos.y });
+      rect2.size({
+        width: (gameConfig.paddleWidth / 1200.0) * gameConfig.konvaWidth,
+        height: (gameConfig.paddleHeight / 800.0) * gameConfig.konvaHeight,
+      });
     });
   };
 
@@ -51,7 +108,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
     const updateRect = () => {
       if (isPaused) return;
-      
+
       if (keyState.current["w"]) {
         socket.emit("getPlayerPos", "up");
       }

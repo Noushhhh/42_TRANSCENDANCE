@@ -28,11 +28,6 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
     setIsButtonClicked(true);
   };
 
-  const printLobbies = () => {
-    console.log(typeof lobbiesState);
-    console.log(lobbiesState);
-  };
-
   if (isButtonClicked === false) {
     return (
       <Button onClick={() => requestLobbies()} style={{ marginTop: "1.5rem" }}>
