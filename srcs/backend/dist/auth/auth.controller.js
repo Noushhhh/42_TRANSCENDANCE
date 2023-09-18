@@ -52,21 +52,17 @@ let AuthController = class AuthController {
         });
     }
     // change name to 42-callback 
+    // @Public()
+    // @Get('42Url')
+    // async get42Url() {
+    //     // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
+    //     const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
+    //     return (url);
+    // }
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.authService.signToken42(req);
-                if (user.username != user.login) {
-                    res.redirect('/home'); // Redirect if the user is successfully created or authenticated
-                }
-                else if (user.username === user.login) {
-                    res.redirect('/complete_profile');
-                }
-                else {
-                    console.error("error creating user"),
-                        // Handle other cases if needed (e.g., "User already exists")
-                        res.redirect('/error'); // Redirect to an error page or handle accordingly
-                }
             }
             catch (error) {
                 console.error(error);

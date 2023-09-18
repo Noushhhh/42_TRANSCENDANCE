@@ -19,7 +19,7 @@ export class AuthDto {
 } */
 
 // Importing validation decorators from 'class-validator' package
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsNumber, Min, IsNotEmpty, IsString } from "class-validator";
 
 // The DTO (Data Transfer Object) for authentication operations
 export class AuthDto {
@@ -32,4 +32,5 @@ export class AuthDto {
     // Decorator to ensure that 'password' field cannot be empty
     @IsNotEmpty()
     password!: string;
+
 }
