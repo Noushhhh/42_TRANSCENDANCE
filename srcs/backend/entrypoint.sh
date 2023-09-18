@@ -1,13 +1,20 @@
 #!/bin/bash
 
+
 # Check if node_modules exists, if not install dependencies
 if [ ! -d "node_modules" ]; then
-    echo "Installing all the dependencies from package.json"
+    #install latest version of npm
+    echo "Installing latest version of npm"
+    npm install -g npm@latest
+    #install check for updates globally
+    echo "Installing npm-check-updates"
+    npm install -g npm-check-updates
+    #update updates in the package.json file
+    echo "Updating packages version inside package.json"
+    ncu -u 
+    #install all dependencies from package.json
+    echo "Installing all dependencies from package.json"
     npm install
-
-    # Install nodemon and ts-node as dev dependencies
-    echo "Installing nodemon and ts-node as dev dependencies"
-    npm install --save-dev nodemon ts-node
 fi
 
 # echo "Updating all the dependencies from package.json"
@@ -19,11 +26,11 @@ npx prisma migrate deploy
 echo "Starting prisma studio"
 npx prisma studio &
 
-# Check if permissions are needed and then set them. This check can be made more specific based on your requirements.
-if [ ! -x "/usr/src/app/node_modules/prisma/build/xdg-open" ]; then
-    echo "Giving permissions to xdg-open for Prisma Studio"
-    chmod +x /usr/src/app/node_modules/prisma/build/xdg-open
-fi
+# # Check if permissions are needed and then set them. This check can be made more specific based on your requirements.
+# if [ ! -x "/usr/src/app/node_modules/prisma/build/xdg-open" ]; then
+#     echo "Giving permissions to xdg-open for Prisma Studio"
+#     chmod +x /usr/src/app/node_modules/prisma/build/xdg-open
+# fi
 
 echo "Starting the Node.js application"
 npm run start:dev

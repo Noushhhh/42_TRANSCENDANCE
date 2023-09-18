@@ -40,6 +40,10 @@ services:
       - app_network # Connect to the app network
     depends_on:
       - db
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
 
   # Frontend Service
   frontend:
