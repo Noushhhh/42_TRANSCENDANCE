@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { SocketEvents } from "./socketEvents";
+import { SocketEvents } from "./SocketEvents";
 import { SocketService } from "./socket.service";
 
 @Module({

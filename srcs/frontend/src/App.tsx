@@ -3,18 +3,26 @@ import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 // import AuthContainer from './auth/components/AuthContainer';
 
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import React from "react";
+import { Route, Routes } from "react-router-dom";
 import {
   Welcome, SignIn, SignUp, AuthChoice, HomePage, Settings,
   ProtectedRoute, Friends, Stats, Chat, useActivityLogout
 } from './home/components/index'
 import './App.css'
 
-{/* <Navbar /> */ }
-{/* <ChatBoxContainer /> */ }
-{/* <GameContainer /> */ }
-{/* < AuthContainer/> */ }
+{
+  /* <Navbar /> */
+}
+{
+  /* <ChatBoxContainer /> */
+}
+{
+  /* <GameContainer /> */
+}
+{
+  /* < AuthContainer/> */
+}
 
 const App: React.FC = () => {
     useActivityLogout();
@@ -36,4 +44,3 @@ const App: React.FC = () => {
     );
 }
 export default App;
-

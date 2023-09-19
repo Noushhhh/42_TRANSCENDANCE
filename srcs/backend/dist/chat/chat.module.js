@@ -11,13 +11,16 @@ const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../prisma/prisma.module");
 const chat_controller_1 = require("./chat.controller");
 const chat_service_1 = require("./chat.service");
+const SocketEvents_1 = require("../socket/SocketEvents");
+const SocketModule_1 = require("../socket/SocketModule");
+const socket_service_1 = require("../socket/socket.service");
 let ChatModule = class ChatModule {
 };
 exports.ChatModule = ChatModule;
 exports.ChatModule = ChatModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, SocketModule_1.SocketModule],
         controllers: [chat_controller_1.ChatController],
-        providers: [chat_service_1.ChatService],
+        providers: [chat_service_1.ChatService, socket_service_1.SocketService, SocketEvents_1.SocketEvents],
     })
 ], ChatModule);

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@nestjs/class-transformer": "^0.4.0"
+  }
+}

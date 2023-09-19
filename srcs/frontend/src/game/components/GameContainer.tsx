@@ -7,6 +7,7 @@ import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import Button from "./common/Button";
 import GameMenu from "./GameMenu";
+import MiddleLine from "./gamePhysics/MiddleLine";
 
 const socket = io("http://localhost:4000");
 
@@ -24,9 +25,7 @@ function GameContainer() {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("Well connected to socket server");
       clientId.current = socket.id;
-      console.log(clientId);
     });
     socket.on("updateGameState", (gameState: GameState) => {
       setIsPaused(gameState.isPaused);
@@ -67,13 +66,12 @@ function GameContainer() {
   };
 
   if (isInLobby === true) {
-
     if (isLobbyFull === false) {
       return <WaitingForPlayer />;
-
     } else {
       return (
         <div className="GameContainer">
+          <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
           <Button onClick={handlePlayPause} style={buttonStyle}>
@@ -82,10 +80,10 @@ function GameContainer() {
         </div>
       );
     }
-  
-  } else if (isInLobby === false) {
-    return <GameMenu socket={socket}/>;
   }
+  //  else if (isInLobby === false) {
+  // }
+  return <GameMenu socket={socket} />;
 }
 
 export default GameContainer;

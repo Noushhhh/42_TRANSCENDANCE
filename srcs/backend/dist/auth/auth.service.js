@@ -145,14 +145,16 @@ let AuthService = class AuthService {
             const expiration = new Date();
             expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
             // Save refreshToken to database along with userId
-            yield this.prisma.refreshToken.create({
+            /*await this.prisma.refreshToken.create({
                 data: {
                     token: refreshToken,
                     userId: userId,
                     expiresAt: expiration
                 }
             });
-            return refreshToken;
+    
+            return refreshToken;*/
+            return "hey";
         });
     }
     checkTokenValidity(req, res) {
@@ -181,6 +183,7 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
+  
     signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
@@ -284,15 +287,40 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 console.error('Error saving user information to database:', error);
+
+    getUsernameFromId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = Number(id);
+            try {
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                    select: {
+                        username: true,
+                    }
+                });
+                if (user) {
+                    console.log(user.username);
+                    return user.username;
+                }
+                else {
+                    return undefined;
+                }
+            }
+            catch (error) {
+
                 throw error;
             }
         });
     }
+              
     generateRandomPassword() {
         const password = Math.random().toString(36).slice(2, 15) +
             Math.random().toString(36).slice(2, 15);
         return password;
     }
+
 };
 exports.AuthService = AuthService;
 __decorate([

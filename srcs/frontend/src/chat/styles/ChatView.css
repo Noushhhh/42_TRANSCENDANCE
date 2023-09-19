@@ -1,7 +1,20 @@
 
-.ChatView{
-    background-color: #262421;
-    color: white;
+.ChatViewContainer{
     height: 100%;
     overflow: scroll;
+    display: flex;
+    position: relative;
+    background-color: #262421;
+}
+
+.ChatView{
+    height: max-content;
+}
+
+.isDisplay{
+    width: 100%;
+}
+
+.isReduce{
+    width: 100%;
 }

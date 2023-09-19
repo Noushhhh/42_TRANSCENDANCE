@@ -9,6 +9,14 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
+import { GameDataService } from './data.service';
+
+type GameDataArray = [
+  konvaHeight: number,
+  konvaWidth: number,
+  paddleHeight: number,
+  paddleWidth: number,
+]
 
 @WebSocketGateway({
   cors: {
@@ -22,6 +30,7 @@ export class GatewayIn implements OnGatewayDisconnect {
   constructor(
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
+    private readonly gameData: GameDataService,
   ) { }
 
   handleDisconnect(client: Socket) {
@@ -30,7 +39,7 @@ export class GatewayIn implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getPlayerPos')
-  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {  
+  getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {
     this.gameLoop.updatePlayerPos(direction, client);
   }
 
@@ -47,5 +56,22 @@ export class GatewayIn implements OnGatewayDisconnect {
   @SubscribeMessage('setIntoLobby')
   setIntoLobby(@MessageBody() lobbyName: string, @ConnectedSocket() client: Socket) {
     this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
+  }
+
+  @SubscribeMessage('setGameData')
+  setGameData(@MessageBody() data: GameDataArray) {
+    console.log('data: ', data);
+    // this.gameData.setKonvaHeight(data[0]);
+    // this.gameData.setKonvaWidth(data[1]);
+    // this.gameData.setPaddleHeight(data[2]);
+    // this.gameData.setPaddleWidth(data[3]);
+    // this.gameLoop.printGameData();
+    // this.gameData.printData();
+  }
+
+  @SubscribeMessage('sendPlayersPos')
+  sendPlayersPos(@ConnectedSocket() client: Socket) {
+    this.gameLobby.sendPlayersPos(client);
+    this.gameLobby.printLobbyPlayerPos();
   }
 }
