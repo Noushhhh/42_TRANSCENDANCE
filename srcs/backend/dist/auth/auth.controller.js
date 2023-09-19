@@ -63,6 +63,8 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.authService.signToken42(req);
+                // implement revesre proxy. tip synthax / and /api
+                res.redirect('http://localhost:8081');
             }
             catch (error) {
                 console.error(error);

@@ -45,6 +45,8 @@ export class AuthController {
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
     try {
         const user = await this.authService.signToken42(req);    
+        // implement revesre proxy. tip synthax / and /api
+        res.redirect('http://localhost:8081'); 
     } catch (error) {
         console.error(error);
         // Handle errors here and redirect as needed
