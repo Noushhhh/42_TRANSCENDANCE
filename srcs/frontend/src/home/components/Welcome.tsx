@@ -53,9 +53,9 @@ const Features: React.FC<FeaturesProps> = ({ handleFunction }) => (
 const Welcome: React.FC = () => {
     const navigate = useNavigate();
 
-    // Handler for the start button. When clicked, navigates the user to the '/AuthChoise' page.
+    // Handler for the start button. When clicked, navigates the user to the '/AuthChoice' page.
     const handleStart = () => {
-        navigate('/AuthChoise');
+        navigate('/AuthChoice');
     }
 
     return (
