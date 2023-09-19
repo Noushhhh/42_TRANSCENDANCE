@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthDto = void 0;
 const class_validator_1 = require("class-validator");
 class AuthDto {
-    constructor(login, password) {
-        this.login = login;
+    constructor(username, password) {
+        this.username = username;
         this.password = password;
     }
 }
@@ -22,7 +22,7 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], AuthDto.prototype, "login", void 0);
+], AuthDto.prototype, "username", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),

@@ -11,8 +11,9 @@ const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../prisma/prisma.module");
 const chat_controller_1 = require("./chat.controller");
 const chat_service_1 = require("./chat.service");
-let ChatModule = exports.ChatModule = class ChatModule {
+let ChatModule = class ChatModule {
 };
+exports.ChatModule = ChatModule;
 exports.ChatModule = ChatModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],

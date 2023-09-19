@@ -14,7 +14,7 @@ const PADDLE_WIDTH = 25;
 const PADDLE_HEIGHT = 150;
 const ballSpeed = 11;
 // Have to implement a calculator between ball and paddle like a ray
-let GameLogicService = exports.GameLogicService = class GameLogicService {
+let GameLogicService = class GameLogicService {
     constructor() {
         this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay) => {
             if (ballDirection === 'left') {
@@ -110,6 +110,7 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
         };
     }
 };
+exports.GameLogicService = GameLogicService;
 exports.GameLogicService = GameLogicService = __decorate([
     (0, common_1.Injectable)()
 ], GameLogicService);

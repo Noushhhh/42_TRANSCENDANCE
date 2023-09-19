@@ -9,24 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PrismaService = void 0;
+exports.lobbies = exports.Lobby = void 0;
 const common_1 = require("@nestjs/common");
-const client_1 = require("@prisma/client");
-let PrismaService = class PrismaService extends client_1.PrismaClient {
-    constructor() {
-        console.log("teeeeeeeeest icicicicicicicicicici");
-        console.log(process.env.DATABASE_URL);
-        super({
-            datasources: {
-                db: {
-                    url: process.env.DATABASE_URL
-                },
-            },
-        });
+const gameState_1 = require("./gameState");
+let Lobby = class Lobby {
+    constructor(player) {
+        this.player2 = null;
+        this.spectators = [];
+        this.gameState = new gameState_1.GameState();
+        this.ballState = this.gameState.gameState.ballState;
+        this.player1 = player;
+    }
+    printPlayersPos() {
+        console.log(this.gameState.gameState.p1pos);
+        console.log(this.gameState.gameState.p2pos);
     }
 };
-exports.PrismaService = PrismaService;
-exports.PrismaService = PrismaService = __decorate([
+exports.Lobby = Lobby;
+exports.Lobby = Lobby = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
-], PrismaService);
+    __metadata("design:paramtypes", [Object])
+], Lobby);
+exports.lobbies = new Map();

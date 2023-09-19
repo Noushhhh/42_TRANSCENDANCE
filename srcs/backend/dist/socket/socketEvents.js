@@ -11,15 +11,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-const client_1 = require("@prisma/client");
-let SocketEvents = exports.SocketEvents = class SocketEvents {
-    constructor() {
+const socket_service_1 = require("./socket.service");
+let SocketEvents = class SocketEvents {
+    constructor(socketService) {
+        this.socketService = socketService;
         this.listUserConnected = new Map();
+    }
+    onModuleInit() {
+        this.server.on('connection', (socket) => {
+            console.log('client connected', socket.id);
+        });
+    }
+    handleConnection(socket) {
+        const clientId = socket.id;
+        this.socketService.setSocket(clientId, socket);
     }
     readMap(map) {
         console.log('readmap:');
@@ -45,11 +54,14 @@ let SocketEvents = exports.SocketEvents = class SocketEvents {
                 this.listUserConnected.delete(key);
         }
         this.server.emit("changeConnexionState");
+        const clientId = client.id;
+        this.socketService.removeSocket(clientId);
     }
     handleMessage(data, client) {
         this.server.emit('message', client.id, data);
     }
 };
+exports.SocketEvents = SocketEvents;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
@@ -81,7 +93,7 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof client_1.Message !== "undefined" && client_1.Message) === "function" ? _a : Object, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleMessage", null);
 exports.SocketEvents = SocketEvents = __decorate([
@@ -89,5 +101,6 @@ exports.SocketEvents = SocketEvents = __decorate([
         cors: {
             origin: '*',
         },
-    })
+    }),
+    __metadata("design:paramtypes", [socket_service_1.SocketService])
 ], SocketEvents);
