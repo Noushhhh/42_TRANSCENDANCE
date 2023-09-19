@@ -1,19 +1,21 @@
 import React, { ChangeEvent, useState } from "react";
 import "../styles/ChatPrompt.css"
 import SendIcon from '@mui/icons-material/Send';
-import { Socket } from "socket.io-client";
 import "../types/type.Message";
+import { useChannelIdContext } from "../contexts/channelIdContext";
+import { useSocketContext } from "../contexts/socketContext";
 
 interface ChatPromptProps {
-	socket: any;
 	simulatedUserId: number;
 	addMessage: (newMessage: Message, messageType: string) => void;
-	channelId: number;
 }
 
-function ChatPrompt({ addMessage, channelId, simulatedUserId, socket }: ChatPromptProps): JSX.Element {
+function ChatPrompt({ addMessage, simulatedUserId }: ChatPromptProps): JSX.Element {
 
 	const [message, setMessage] = useState("");
+
+	const channelId = useChannelIdContext();
+	const socket = useSocketContext();
 
 	const handleMessageChange = (event: ChangeEvent<HTMLInputElement>): void => {
 		setMessage(event.target.value);
@@ -65,12 +67,17 @@ function ChatPrompt({ addMessage, channelId, simulatedUserId, socket }: ChatProm
 	socket.on('message', function (id: any, data: Message) {
 		if (!data)
 			return;
-		if (socket.id == id || isWhitespace(data.content))
+		if (socket.id === id || isWhitespace(data.content))
 			return;
 		addMessage(data, "MessageFrom");
 		setMessage("");
 	})
 
+	if (channelId === -1){
+		return (
+			<div></div>
+		)
+	}
 	return (
 		<div className="ChatPrompt">
 			<input value={message}

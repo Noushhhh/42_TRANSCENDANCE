@@ -36,20 +36,19 @@ import "./App.css";
 const App: React.FC = () => {
   useActivityLogout();
   return (
-    // <Routes>
-    //     <Route path="/" element={<Welcome />} />
-    //     <Route path="/signin" element={<SignIn />} />
-    //     <Route path="/signup" element={<SignUp />} />
-    //     <Route path="/authchoise" element={<AuthChoise />} />
-    //     <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
-    //         <Route path="chat" element={<ChatBoxContainer />} />
-    //         <Route path="friends" element={<Friends />} />
-    //         <Route path="stats" element={<Stats />} />
-    //         <Route path="settings" element={<Settings />} />
-    //         <Route path="game" element={<GameContainer />} />
-    //     </Route>
-    // </Routes>
-    <GameContainer />
+   <Routes>
+       <Route path="/" element={<Welcome />} />
+       <Route path="/signin" element={<SignIn />} />
+       <Route path="/signup" element={<SignUp />} />
+        <Route path="/authchoise" element={<AuthChoise />} />
+       <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
+           <Route path="chat" element={<ChatBoxContainer />} />
+           <Route path="friends" element={<Friends />} />
+           <Route path="stats" element={<Stats />} />
+           <Route path="settings" element={<Settings />} />
+           <Route path="game" element={<GameContainer />} />
+       </Route>
+   </Routes>
   );
 };
 export default App;

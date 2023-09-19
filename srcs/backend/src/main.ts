@@ -18,7 +18,6 @@ async function bootstrap() {
     optionsSuccessStatus: 200,
     credentials: true,
   };
-
   // Activez CORS pour toutes les routes de l'application
   app.enableCors(corsOptions);
   app.use(cookieParser());

@@ -26,7 +26,6 @@ model User {
 
   adminOfChannels   Channel[]    @relation("Admins")
 
-  // login         String @unique
   hashPassword  String
   refreshToken RefreshToken[]
 
@@ -36,6 +35,7 @@ model User {
   bannedFromChannel Channel[]    @relation("BannedUsers")
   sentMessages      Message[]    @relation("MessagesSent")
   mutedInChannels   Channel[]    @relation("MutedUsers")
+
 
   @@map("users")
 }

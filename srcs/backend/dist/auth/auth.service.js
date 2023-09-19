@@ -138,14 +138,16 @@ let AuthService = class AuthService {
             const expiration = new Date();
             expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
             // Save refreshToken to database along with userId
-            yield this.prisma.refreshToken.create({
+            /*await this.prisma.refreshToken.create({
                 data: {
                     token: refreshToken,
                     userId: userId,
                     expiresAt: expiration
                 }
             });
-            return refreshToken;
+    
+            return refreshToken;*/
+            return "hey";
         });
     }
     checkTokenValidity(req, res) {
@@ -173,6 +175,31 @@ let AuthService = class AuthService {
             console.error(error);
             return res.status(401).send({ message: "Cookie not found" });
         }
+    }
+    getUsernameFromId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = Number(id);
+            try {
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                    select: {
+                        username: true,
+                    }
+                });
+                if (user) {
+                    console.log(user.username);
+                    return user.username;
+                }
+                else {
+                    return undefined;
+                }
+            }
+            catch (error) {
+                throw error;
+            }
+        });
     }
 };
 exports.AuthService = AuthService;

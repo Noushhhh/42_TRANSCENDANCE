@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-function App() {
+function testFetch() {
   useEffect(() => {
     fetch('/api/status')
       .then(response => response.json())
@@ -11,4 +11,4 @@ function App() {
   // rest of your component...
 }
 
-export default App;
+export default testFetch;

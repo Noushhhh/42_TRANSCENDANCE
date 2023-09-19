@@ -5,37 +5,45 @@ import ChatPrompt from "./ChatPrompt";
 import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
+import { useChannelIdContext } from "../contexts/channelIdContext";
+import { useSocketContext } from "../contexts/socketContext";
+
+interface Message {
+  id: number
+  senderId: number
+  channelId: number
+  content: string
+  createdAt: Date
+  messageType: string
+}
 
 interface contentMessageProps{
-    channelHeader: Channel[];
-    socket: any;
+    channelInfo: boolean;
+    setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
     simulatedUserId: number;
-    conversation: number;
-    channelId: number;
     userId: number;
 }
 
-function ContentMessage( { channelHeader, conversation, channelId, simulatedUserId, socket, userId } : contentMessageProps) {
+function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId } : contentMessageProps) {
 
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
+    
+    const channelId = useChannelIdContext;
 
-    // each time the user change channel (click to a new one), we want to reset
-    // all messages from the socket are they are now store in the database.
-    useEffect(() => {
-        setMessages([]);
-    }, ([channelId]));
+    const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
 
     const addMessage = (newMessage: Message, messageType: string): void =>{
+        console.log(newMessage);
         newMessage.messageType = messageType;
         setMessages([...messages, newMessage]);
     }
 
     return (
-        <div className="ContentMessage">
-            <HeaderChatBox channelHeader={channelHeader} channelId={channelId} />
-            <ChatView userId={userId} conversation={conversation}  messages={messages} channelId={channelId}/>
-            <ChatPrompt socket={socket} simulatedUserId={simulatedUserId} channelId={channelId} addMessage={addMessage} />
+        <div className={`ContentMessage ${contentMessageWidth}`}>
+            <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo}/>
+            <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} setMessages={setMessages}/>
+            <ChatPrompt simulatedUserId={simulatedUserId} addMessage={addMessage} />
         </div>
     )   
 }

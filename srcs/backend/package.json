@@ -48,7 +48,7 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/jest": "^29.5.4",
     "nodemon": "^2.0.22",
-    "prisma": "4.15.0",
+    "prisma": "^4.15.0",
     "ts-node": "^10.9.1"
   },
   "prisma": {
