@@ -58,20 +58,13 @@ export class GatewayIn implements OnGatewayDisconnect {
     this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
   }
 
-  @SubscribeMessage('setGameData')
-  setGameData(@MessageBody() data: GameDataArray) {
-    console.log('data: ', data);
-    // this.gameData.setKonvaHeight(data[0]);
-    // this.gameData.setKonvaWidth(data[1]);
-    // this.gameData.setPaddleHeight(data[2]);
-    // this.gameData.setPaddleWidth(data[3]);
-    // this.gameLoop.printGameData();
-    // this.gameData.printData();
-  }
-
   @SubscribeMessage('sendPlayersPos')
   sendPlayersPos(@ConnectedSocket() client: Socket) {
     this.gameLobby.sendPlayersPos(client);
-    this.gameLobby.printLobbyPlayerPos();
+  }
+
+  @SubscribeMessage('requestGameState')
+  requestGameState(@ConnectedSocket() client: Socket) {
+    this.gameLobby.sendLobbyGameState(client);
   }
 }

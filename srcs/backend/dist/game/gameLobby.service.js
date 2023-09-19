@@ -32,6 +32,7 @@ let GameLobbyService = class GameLobbyService {
         });
     }
     addPlayerToLobby(playerId) {
+        this.gatewayOut.updateLobbiesGameState();
         const player = this.socketMap.getSocket(playerId);
         if (this.isInLobby(player)) {
             console.log('Already in a lobby', player);
@@ -162,6 +163,17 @@ let GameLobbyService = class GameLobbyService {
             console.log(key, "p1pos:", value.gameState.gameState.p1pos);
             console.log(key, "p2pos:", value.gameState.gameState.p2pos);
             console.log(key, "config: ", value.gameState.gameData);
+        }
+    }
+    sendLobbyGameState(player) {
+        var _a, _b;
+        if (!player)
+            return;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
+                this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
+                return;
+            }
         }
     }
 };

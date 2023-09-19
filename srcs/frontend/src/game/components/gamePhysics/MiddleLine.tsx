@@ -1,16 +1,40 @@
 import React, { useState, useEffect } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
-import { Height } from "@mui/icons-material";
-
-const traitStyle = {
-  width: "30px",
-  minHeight: "1px",
-  height: "100%",
-  backgroundColor: "white",
-}
 
 const MiddleLine = () => {
+  const [divSize, setDivSize] = useState<number>(window.innerWidth * (6 / 12));
+  const [traitGap, setTraitGap] = useState<number>(
+    (window.innerWidth * (6 / 12)) / 12
+  );
+  const [traitWidth, setTraitWidth] = useState<number>(
+    (window.innerWidth * (6 / 12)) / 30
+  );
+
+  const traitStyle = {
+    width: traitWidth,
+    minHeight: "1px",
+    height: "100%",
+    backgroundColor: "white",
+  };
+
+  useEffect(() => {
+    updateDivSize();
+    window.addEventListener("resize", updateDivSize);
+    return () => {
+      window.removeEventListener("resize", updateDivSize);
+    };
+  });
+
+  const updateDivSize = () => {
+    const divSize = window.innerWidth * (6 / 12);
+    const traitGap = (window.innerWidth * (6 / 12)) / 12;
+    const traitWidth = (window.innerWidth * (6 / 12)) / 30;
+    setDivSize(divSize);
+    setTraitGap(traitGap);
+    setTraitWidth(traitWidth);
+  };
+
   return (
     <div
       style={{
@@ -18,8 +42,8 @@ const MiddleLine = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        height: "75%",
-        gap: "6rem"
+        height: divSize,
+        gap: traitGap,
       }}
     >
       <div style={traitStyle}></div>
@@ -29,11 +53,6 @@ const MiddleLine = () => {
       <div style={traitStyle}></div>
       <div style={traitStyle}></div>
       <div style={traitStyle}></div>
-      {/* <div style={{width: "30px", height: "200px", backgroundColor: "white"}}></div>
-      <div style={{width: "30px", height: "200px", backgroundColor: "white"}}></div>
-      <div style={{width: "30px", height: "200px", backgroundColor: "white"}}></div>
-      <div style={{width: "30px", height: "200px", backgroundColor: "white"}}></div>
-      <div style={{width: "30px", height: "200px", backgroundColor: "white"}}></div> */}
     </div>
   );
 };
