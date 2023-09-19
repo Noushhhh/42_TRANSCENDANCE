@@ -1,0 +1,117 @@
+/* Setting base font-size for the document to use REM units effectively */
+html {
+  font-size: 16px;
+}
+
+@font-face {
+  font-family: 'PressStart2P';
+  src: url('./fonts/PressStart2P-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --main-font: 'PressStart2P', cursive;
+  --green-color: #48BC3E;
+  --purple-color: #cc4cd7;
+  --white-color: #FFFFFF;
+  --red-color: #d74c65;
+  --blue-color: #2cbdbd;
+  --background-color: #201F1F;
+  --transition-duration: 0.3s;
+  /* For dynamic transitions */
+}
+
+.container {
+  display: flex;
+  background-color: var(--background-color);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-family: var(--main-font);
+  height: 100vh;
+  width: 100vw;
+  gap: 30px 0; /* row-gap 30px column gap 0px*/
+}
+
+.title {
+  font-size: 2rem;
+  color: var(--white-color);
+  margin-bottom: 1.25rem;
+  flex-shrink: 1;
+}
+
+.header {
+  display: flex;
+  gap: 4.375rem;
+}
+
+.nav-link {
+  color: var(--purple-color);
+  text-decoration: none;
+  transition: color var(--transition-duration);
+  /* Dynamic transition */
+}
+
+.active-nav-link {
+  color: var(--green-color);
+}
+
+.nav-link:hover {
+  color: var(--white-color);
+}
+
+.content {
+  align-items: center;
+  justify-content: center;
+  flex: auto;
+  width: 80vw; 
+  height: 50vh;
+  border: 5px solid var(--white-color);
+  background-color: var(--background-color);
+}
+
+.button {
+  font-family: var(--main-font);
+  background-color: var(--green-color);
+  color: var(--white-color);
+  border-style: none;
+  font-size: larger;
+  transition: color var(--transition-duration), background-color var(--transition-duration);
+  /* Dynamic transition */
+  text-size-adjust: auto;
+  flex-shrink: 0.2;
+  flex-wrap: wrap;
+  font-size: large;
+}
+
+.button:hover {
+  color: black;
+  background-color: var(--purple-color);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 0.625rem;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .container {
+    padding: 0 0.625rem;
+  }
+
+  .content {
+    padding: 0.625rem 0;
+  }
+}

@@ -27,6 +27,7 @@ model User {
   adminOfChannels   Channel[]    @relation("Admins")
 
   hashPassword  String
+  refreshToken RefreshToken[]
 
   email         String?
   firstName     String?
@@ -81,3 +82,20 @@ enum ChannelType {
   PRIVATE
   PASSWORD_PROTECTED
 }
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  
+  // This field is the scalar that will store the foreign key
+  userId      Int
+      
+  // This field is the relation field that lets you fetch the actual User object. 
+  // The fields and references arguments define how the relationship is mapped.
+  user        User     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime 
+}
+
+

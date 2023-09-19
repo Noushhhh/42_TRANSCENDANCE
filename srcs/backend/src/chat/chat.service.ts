@@ -64,7 +64,7 @@ export class ChatService {
     });
 
     if (!channel) {
-      return null;
+      throw new ForbiddenException("Channel not found");
     }
 
     const lastMessage: Message | null = await this.prisma.message.findFirst({

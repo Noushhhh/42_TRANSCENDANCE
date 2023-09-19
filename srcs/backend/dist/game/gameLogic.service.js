@@ -8,100 +8,106 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GameLogicService = void 0;
 const common_1 = require("@nestjs/common");
-const KONVA_WIDTH = 1200;
-const KONVA_HEIGHT = 800;
-const PADDLE_WIDTH = 25;
-const PADDLE_HEIGHT = 150;
-const ballSpeed = 11;
+const data_1 = require("./data");
+const gameState_1 = require("./gameState");
+const ballSpeed = 11 / 1200.0;
 // Have to implement a calculator between ball and paddle like a ray
-let GameLogicService = exports.GameLogicService = class GameLogicService {
+let GameLogicService = class GameLogicService {
     constructor() {
+        // printGameConfig = () => {
+        //   console.log("GameConfig in gameLoop: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
+        // }
         this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay) => {
+            const normBallX = ballPos.x;
+            const normBallY = ballPos.y;
+            const normP1Y = p1Pos.y;
+            const normP2Y = p2Pos.y;
+            const normP1X = p1Pos.x;
+            const normP2X = p2Pos.x;
+            const normPaddleWidth = data_1.gameConfig.paddleWidth;
+            const normPaddleHeight = data_1.gameConfig.paddleHeight;
+            const ballRadius = 25 / 1200.0;
             if (ballDirection === 'left') {
                 // Touch left paddle condition
-                if (ballPos.x > 10 + PADDLE_WIDTH &&
-                    ballPos.x < 10 + PADDLE_WIDTH + 25 &&
-                    ballPos.y > p1Pos.y &&
-                    ballPos.y < p1Pos.y + PADDLE_HEIGHT) {
-                    const touch = p1Pos.y + PADDLE_HEIGHT / 2 - ballPos.y;
-                    const normalizedTouch = touch / (PADDLE_HEIGHT / 2);
-                    const velocity = normalizedTouch * (Math.PI / 1);
-                    ballDX = Math.cos(velocity) * 4;
-                    ballDY = -Math.sin(velocity) * 4;
+                if (normBallX > gameState_1.paddleGap + normPaddleWidth &&
+                    normBallX < gameState_1.paddleGap + normPaddleWidth + ballRadius &&
+                    normBallY > normP1Y - ballRadius &&
+                    normBallY < normP1Y + ballRadius + normPaddleHeight) {
+                    const touch = normP1Y + normPaddleHeight / 2 - normBallY;
+                    const normalizedTouch = touch / (normPaddleHeight / 2);
+                    const velocity = normalizedTouch * (Math.PI / 2);
+                    ballDX = Math.cos(velocity) * ballSpeed;
+                    ballDY = -Math.sin(velocity) * ballSpeed;
                     ballDirection = 'right';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
                 // Touch top condition
-                else if (ballPos.y < 0 + 10) {
+                else if (normBallY < (0 + gameState_1.paddleGap)) {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (ballPos.y > KONVA_HEIGHT - 10) {
+                else if (normBallY > (1 - gameState_1.paddleGap)) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
                 if (ballPos.x < 0) {
                     // left paddle scored
-                    ballPos.x = KONVA_WIDTH / 2;
-                    ballPos.y = KONVA_HEIGHT / 2;
+                    ballPos.x = 0.5;
+                    ballPos.y = 0.5;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p1Score += 1;
-                    return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
+                    return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard };
                     // Normal move to left condition
                 }
                 else {
-                    const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-                    if (velocityMagnitude > 2) {
-                        const scalingFactor = 2 / velocityMagnitude;
-                        ballDX *= scalingFactor;
-                        ballDY *= scalingFactor;
-                    }
+                    // const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+                    // if (velocityMagnitude > 2) {
+                    //   const scalingFactor = 2 / velocityMagnitude;
+                    //   ballDX *= scalingFactor;
+                    //   ballDY *= scalingFactor;
+                    // }
                     ballPos.x = ballPos.x - ballSpeed - Math.abs(ballDX);
                     ballPos.y = ballPos.y - ballDY;
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
             }
             else if (ballDirection === 'right') {
-                // Touch left paddle condition
-                if (ballPos.x > KONVA_WIDTH - PADDLE_WIDTH - 30 &&
-                    ballPos.x < KONVA_WIDTH - PADDLE_WIDTH - 10 &&
-                    ballPos.y > p2Pos.y &&
-                    ballPos.y < p2Pos.y + PADDLE_HEIGHT) {
-                    const touch = p2Pos.y + PADDLE_HEIGHT / 2 - ballPos.y;
-                    const normalizedTouch = touch / (PADDLE_HEIGHT / 2);
-                    const velocity = -(normalizedTouch * (Math.PI / 1));
-                    ballDX = Math.cos(velocity) * 4;
-                    ballDY = -Math.sin(velocity) * 4;
+                // Touch right paddle condition
+                if (
+                // @todo have to create a variable for the 30
+                normBallX > (1 - data_1.gameConfig.paddleWidth - ballRadius) &&
+                    normBallX < (1 - data_1.gameConfig.paddleWidth - gameState_1.paddleGap) &&
+                    normBallY >= normP2Y - ballRadius &&
+                    normBallY <= normP2Y + ballRadius + normPaddleHeight) {
+                    const touch = p2Pos.y + data_1.gameConfig.paddleHeight / 2 - ballPos.y;
+                    const normalizedTouch = touch / data_1.gameConfig.paddleHeight;
+                    const velocity = -(normalizedTouch * (Math.PI / 2));
+                    ballDX = Math.cos(velocity) * ballSpeed;
+                    ballDY = -Math.sin(velocity) * ballSpeed;
                     ballDirection = 'left';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
                 // Touch top condition
-                else if (ballPos.y < 0 + 10) {
+                else if (normBallY < (0 + gameState_1.paddleGap)) {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (ballPos.y > KONVA_HEIGHT - 10) {
+                else if (normBallY > (1 - gameState_1.paddleGap)) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
-                if (ballPos.x > KONVA_WIDTH) {
+                if (ballPos.x > 1) {
                     // right paddle scored
-                    ballPos.x = KONVA_WIDTH / 2;
-                    ballPos.y = KONVA_HEIGHT / 2;
+                    ballPos.x = 0.5;
+                    ballPos.y = 0.5;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p2Score += 1;
-                    return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
-                    // Normal move to left condition
+                    return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard };
+                    // Normal move to right condition
                 }
                 else {
-                    const velocityMagnitude = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-                    if (velocityMagnitude > 2) {
-                        const scalingFactor = 2 / velocityMagnitude;
-                        ballDX *= scalingFactor;
-                        ballDY *= scalingFactor;
-                    }
                     ballPos.x = ballPos.x + ballSpeed + Math.abs(ballDX);
                     ballPos.y = ballPos.y + ballDY;
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
@@ -110,6 +116,7 @@ let GameLogicService = exports.GameLogicService = class GameLogicService {
         };
     }
 };
+exports.GameLogicService = GameLogicService;
 exports.GameLogicService = GameLogicService = __decorate([
     (0, common_1.Injectable)()
 ], GameLogicService);
