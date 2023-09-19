@@ -146,7 +146,6 @@ let AuthService = class AuthService {
                 }
             });
             return refreshToken;
-            return "hey";
         });
     }
     checkTokenValidity(req, res) {

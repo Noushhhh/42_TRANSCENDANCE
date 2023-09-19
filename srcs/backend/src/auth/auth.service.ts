@@ -127,7 +127,6 @@ export class AuthService {
         });
 
         return refreshToken;
-        return "hey";
     }
 
     async checkTokenValidity(req: Request, res: Response) {
