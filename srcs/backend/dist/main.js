@@ -24,7 +24,8 @@ function bootstrap() {
             whitelist: true, // check if whitelist needed or only restrain fields to login and password
         }));
         const corsOptions = {
-            origin: 'http://localhost:8080',
+            // changed to 8081 to be able to fetch the api. was 8080 before
+            origin: 'http://localhost:8081',
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
             allowedHeaders: ['Content-Type', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
             optionsSuccessStatus: 200,

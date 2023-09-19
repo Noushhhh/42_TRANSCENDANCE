@@ -25,8 +25,8 @@ const AuthChoice: React.FC = () => {
         navigate('/signup');
     };
 
-    async function signin42() {
-        console.log("Before redirecting:", authorizeUrl);
+    async function handleSignin42Nav() {
+        // const authorizeUrl = axios.get(/)
         window.location.href = authorizeUrl;
       }
 
@@ -47,11 +47,9 @@ const AuthChoice: React.FC = () => {
             </div>
 
             {/* Button for 42 student authentication */}
-            <button className="button" onClick={signin42}>Sign in with 42</button>
-            {/* <NavLink to='42api' className='nav-link'> I am a 42 student</NavLink> */}
+            <button className="button" onClick={handleSignin42Nav}>Sign in with 42</button>
         </div>
     );
 }
 
-// Export the AuthChoice component for use in other parts of the app.
 export default AuthChoice;
