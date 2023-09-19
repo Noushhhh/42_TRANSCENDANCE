@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Get, Req}  from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req, UseGuards}  from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
@@ -8,6 +8,7 @@ import { Response, Request } from 'express';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    @UseGuards(isAdmin)
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {
