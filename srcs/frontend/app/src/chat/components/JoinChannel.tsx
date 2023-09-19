@@ -9,6 +9,7 @@ import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import JoinProtectedChannel from "./JoinProtectedChannel";
 import { isUserIsBan } from "./ChannelUtils";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 enum ChannelType {
     PUBLIC,

@@ -1,5 +1,5 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto } from "./dto/chat.dto";
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId } from "./dto/chat.dto";
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
 import { ChannelType } from "@prisma/client";
@@ -189,7 +189,14 @@ export class ChatController {
     @Post('isUserIsBan')
     async isUserIsBan(
         @Body() pair: PairUserIdChannelId): Promise<boolean>{
-            console.log(`isUserIsBan called with userId: ${pair.userId} and channelId: ${pair.channelId}`);
             return this.chatService.isUserIsBan(pair.channelId, pair.userId);
+        }
+
+    @Post('blockUser')
+    async blockUser(
+        @Body() pairId: pairUserId){
+            console.log('blockUser called');
+            console.log(pairId);
+            return this.chatService.blockUser(pairId.callerId, pairId.targetId);
         }
 }

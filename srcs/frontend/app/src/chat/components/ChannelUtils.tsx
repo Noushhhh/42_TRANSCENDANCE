@@ -495,3 +495,25 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
   }
   return channel.channelType;
 }
+
+export const blockUser = async(callerId: number, targetId: number) => {
+  callerId = -1;
+  fetch("http://localhost:4000/api/chat/blockUser", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+    },
+    body: JSON.stringify({callerId, targetId}) // Convertit l'objet JavaScript en JSON
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur réseau.');
+      }
+    })
+    .then(data => {
+      console.log('Réponse du serveur :', data);
+    })
+    .catch(error => {
+      console.error('Erreur :', error);
+    });
+}

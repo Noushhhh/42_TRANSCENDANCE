@@ -4,7 +4,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import { useState } from 'react';
 import axios from 'axios';
-import { isChannelExist, fetchUser } from './ChannelUtils';
+import { isChannelExist, fetchUser, blockUser } from './ChannelUtils';
 import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
@@ -62,8 +62,10 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     // Ajoutez ici la logique pour "Jouer"
   };
 
-  const handleBlockClick = () => {
+  const handleBlockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
+    await blockUser(userId, user.id);
+    console.log('blocked');
   };
 
   const menuFunctions: { [key: string]: () => void } = {

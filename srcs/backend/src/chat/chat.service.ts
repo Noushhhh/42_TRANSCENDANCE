@@ -4,7 +4,7 @@ import { Channel, Message, User, ChannelType } from "@prisma/client";
 import { SocketEvents } from "../socket/SocketEvents";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
-import { Type } from "class-transformer";
+import { UnauthorizedException } from "@nestjs/common";
 
 interface MessageToStore {
   channelId: number;
@@ -696,18 +696,18 @@ export class ChatService {
   }
 
   async isUserIsBan(channelId: number, userId: number): Promise<boolean> {
-    try {
-      const channel = await this.prisma.channel.findUnique({
-        where: { id: channelId },
-        include: { bannedUsers: true }
-      });
-      if (!channel) {
-        throw new Error("Channel not found in database");
-      }
-      return channel.bannedUsers.some(user => user.id === userId);
-    } catch (error) {
-      throw new Error("Error fetching database");
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: { bannedUsers: true }
+    });
+    console.log("ici1");
+    if (!channel) {
+      console.log("ici2");
+      throw new ForbiddenException('channel not found');
+      console.log("ici3");
     }
+    console.log('4');
+    return channel.bannedUsers.some(user => user.id === userId);
   }
 
   async addUserToProtectedChannel(channelId: number, password: string, userId: number): Promise<void> {
@@ -723,10 +723,58 @@ export class ChatService {
       if (!passwordMatch)
         throw new ForbiddenException('Incorrect channel password');
       await this.addUserToChannel(userId, channelId);
-    } catch (error){
+    } catch (error) {
       throw error;
     }
   }
+
+  async getUserById(channelId: number): Promise<User | null> {
+
+    const user: User | null = await this.prisma.user.findUnique({
+      where: { id: channelId }
+    })
+    if (!user) {
+      throw new NotFoundException(`User with id ${channelId} not found`);
+    }
+    return user;
+  }
+
+  async getChannelById(channelId: number): Promise<Channel | null> {
+    const channel: Channel | null = await this.prisma.channel.findUnique({
+      where: { id: channelId }
+    })
+    if (!channel)
+      throw new NotFoundException(`Channel with id ${channelId} not found`);
+    return channel;
+  }
+
+  async blockUser(callerId: number, targetId: number) {
+
+    await this.getUserById(targetId);
+    await this.getUserById(callerId);
+
+    if (callerId === targetId)
+      throw new UnauthorizedException('Can\'t block yourself');
+
+    await this.prisma.user.update({
+      where: { id: callerId },
+      data: {
+        blockedUsers: {
+          connect: { id: targetId }
+        }
+      }
+    })
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: {
+        blockedBy: {
+          connect: { id: callerId }
+        }
+      }
+    })
+    console.log('end');
+  }
+
 }
 
 

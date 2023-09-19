@@ -4,7 +4,6 @@ import MessageToClick from "./MessageToClick";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
-import CreateChannelPopup from "./CreateChannelPopup";
 import "../types/channel.type";
 import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { fetchUser } from "./ChannelUtils"
@@ -20,7 +19,6 @@ function MessageSide() {
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
-  const [displayPopupChannelCreation, setdisplayPopupChannelCreation] = useState<boolean>(false);
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
   const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([false, false]); // index 0 = create, index 1 = join
   const [headerTitle, setHeaderTitle] = useState<string>('');
@@ -37,18 +35,11 @@ function MessageSide() {
 
   useEffect(() => {
     if (stateMessageToClick[0] === true){
-      handleClick();
       setHeaderTitle('Create a channel');
     }
     else if (stateMessageToClick[1] === true)
       setHeaderTitle('Join a channel');
   }, [stateMessageToClick]);
-
-  const displayState = `${displayPopupChannelCreation ? "showPopup" : "hidePopup"}`;
-
-  const handleClick = () => {
-    displayPopupChannelCreation === false ? setdisplayPopupChannelCreation(true) : setdisplayPopupChannelCreation(false);
-  }
 
   function findChannelById(channelId: number): Channel | undefined {
     return channelHeader.find((channel) => channel.channelId === channelId);
@@ -89,7 +80,7 @@ function MessageSide() {
       <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
 
       {stateMessageToClick[0] || stateMessageToClick[1] ?
-        <ChannelManager display={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} displayState={displayState}/>
+        <ChannelManager display={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} />
         :
         (channelHeader.sort((a, b) => {
           const dateA = new Date(a.dateLastMsg);

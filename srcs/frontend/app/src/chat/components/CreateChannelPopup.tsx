@@ -9,11 +9,8 @@ import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 
-interface CreateChannelPopupProps{
-    displayState: string;
-}
 
-function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
+function CreateChannelPopup()  {
 
     const [userListChannel, setUserListChannel] = useState<User[]>([]);
     const [channelName, setChannelName] = useState<string>("");
@@ -26,14 +23,6 @@ function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
 
     const socket = useSocketContext();
     const userId = useUserIdContext();
-
-    useEffect(() => {
-
-        if (displayState === "hidePopup"){
-            setListUsersSearched([]);
-            setInputValue("");
-        }
-    }, [displayState])
 
     const setChannelHeader = useSetChannelHeaderContext();
 
@@ -79,8 +68,7 @@ function CreateChannelPopup( { displayState }: CreateChannelPopupProps) {
       };
 
     return (
-        <div className={`popupChannelCreation ${displayState}`}>
-            <h2>CREATE CHANNEL</h2>
+        <div className={`popupChannelCreation`}>
             <div className="flex">
                 <label>Type de channel:</label>
                 <select value={channelType} onChange={handleChannelTypeChange} name="" id="">

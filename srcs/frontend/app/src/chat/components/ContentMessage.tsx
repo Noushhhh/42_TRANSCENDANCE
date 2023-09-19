@@ -32,12 +32,6 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
     const channelId = useChannelIdContext;
 
     const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
-    
-    // each time the user change channel (click to a new one), we want to reset
-    // all messages from the socket are they are now store in the database.
-    useEffect(() => {
-        setMessages([]);
-    }, ([channelId]));
 
     const addMessage = (newMessage: Message, messageType: string): void =>{
         console.log(newMessage);
