@@ -14,6 +14,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ChatModule } from './chat/chat.module';
 import { GameModule } from './game/game.module';
+import { SocketEvents } from './socket/SocketEvents';
+import { SocketService } from './socket/socket.service';
 
 @Module({
   imports: [
@@ -27,6 +29,6 @@ import { GameModule } from './game/game.module';
     GameModule
   ],
   controllers: [AppController, ChatController],
-  providers: [AppService, ChatService, PrismaService],
+  providers: [AppService, ChatService, PrismaService, SocketEvents, SocketService],
 })
 export class AppModule {}

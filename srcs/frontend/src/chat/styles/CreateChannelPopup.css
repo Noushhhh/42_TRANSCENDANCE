@@ -1,0 +1,42 @@
+.popupChannelCreation{
+    border-radius: 10px;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    justify-content: center;
+    color: white;
+    z-index: 10;
+}
+
+.flex{
+    display: flex;
+}
+
+.flex h5 {
+    width: 30%;
+}
+
+.flex input {
+    width: 70%;
+}
+
+.flex label{
+    width: 30%;
+}
+
+.popupChannelCreation p, .popupChannelCreation h5, .popupChannelCreation h3    {
+    padding:0;
+    margin:0;
+}
+
+.showPopup{
+    display: block;
+}
+
+.hidePopup {
+    display: none;
+}
+
+.userList{
+    display: flex;
+}

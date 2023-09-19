@@ -14,8 +14,6 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 let PrismaService = class PrismaService extends client_1.PrismaClient {
     constructor() {
-        console.log("teeeeeeeeest icicicicicicicicicici");
-        console.log(process.env.DATABASE_URL);
         super({
             datasources: {
                 db: {

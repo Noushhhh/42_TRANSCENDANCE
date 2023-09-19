@@ -6,7 +6,7 @@ import { Server, Socket } from 'socket.io';
 import { GameState } from './types'
 import { lobbies } from './lobbies';
 import { SocketService } from '../socket/socket.service';
-import { SocketEvents } from '../socket/socketEvents';
+import { SocketEvents } from '../socket/SocketEvents';
 
 interface Vector2d {
   x: number;
@@ -23,10 +23,6 @@ export class GatewayOut {
   server!: Server;
 
   constructor(private readonly socketMap: SocketService, private readonly io: SocketEvents) { }
-
-  sendBallPos(pos: Vector2d) {
-    this.server.emit('updateBallPos', pos);
-  }
 
   updateGameState(gameState: GameState) {
     this.server.emit('updateGameState', gameState);

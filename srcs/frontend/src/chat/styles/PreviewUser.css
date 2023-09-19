@@ -1,0 +1,47 @@
+.PreviewUser{
+    display: flex;
+    height: 25px;
+    width: fit-content;
+    margin: 0px 3px;
+    font-size: 15px;
+    padding: 0px 7px;
+    display: flex;
+    font-weight: 400;
+    color: grey;
+    transition: 0.5s ease;
+}
+
+.PreviewUser .icon{
+    cursor: pointer;
+    padding-left: 4px;
+    padding-right: 7px;
+}
+
+.previewUserAvatar{
+    border-radius: 14px;
+    margin-right: 6px;
+    top: -2px;
+    position: relative;
+}
+
+.PreviewUser span{
+    background-color: #E9EDEF;
+    display: flex;
+    border-radius: 13px;
+}
+
+.fadeIn {
+    animation: fadeInAnimation 0.5s ease-in-out;
+    opacity: 1;
+  }
+  
+  @keyframes fadeInAnimation {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

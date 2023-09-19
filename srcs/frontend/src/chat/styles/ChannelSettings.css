@@ -1,0 +1,20 @@
+.ChannelSettings{
+    height: 100%;
+    visibility: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.isDisplaySettings{
+    display: block;
+    visibility: visible;
+}
+
+.isReduceSettings{
+    display: none;
+    visibility: hidden;
+}
+
+/* .ContentChannelSettings{
+    background-color: #F0F2F5;
+} */

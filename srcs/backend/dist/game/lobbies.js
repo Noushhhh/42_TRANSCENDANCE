@@ -21,8 +21,8 @@ let Lobby = class Lobby {
         this.player1 = player;
     }
     printPlayersPos() {
-        console.log(this.gameState.gameState.p1pos);
-        console.log(this.gameState.gameState.p2pos);
+        console.log("print 4: ", this.gameState.gameState.p1pos);
+        console.log("print 4: ", this.gameState.gameState.p2pos);
     }
 };
 exports.Lobby = Lobby;

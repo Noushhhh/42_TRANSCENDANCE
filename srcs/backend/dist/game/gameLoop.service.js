@@ -14,12 +14,9 @@ const common_1 = require("@nestjs/common");
 const gameLogic_service_1 = require("./gameLogic.service");
 const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
-const KONVA_WIDTH = 1200;
-const KONVA_HEIGHT = 800;
-const PADDLE_WIDTH = 25;
-// const PADDLE_HEIGHT = 10;
-// const ballSpeed = 2;
+const data_1 = require("./data");
 const RAY_LENGHT = 15 + 20;
+const moveSpeed = 6 / 800.0;
 let GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
         this.gameLogicService = gameLogicService;
@@ -27,6 +24,9 @@ let GameLoopService = class GameLoopService {
         this.updateGameState = () => {
             this.gatewayOut.updateLobbiesGameState();
         };
+        // printGameData() {
+        //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
+        // }
         // private updateRay = () => {
         //   this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
         //   this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
@@ -71,6 +71,7 @@ let GameLoopService = class GameLoopService {
             setTimeout(() => {
                 this.gameLoop();
             }, 1000 / 60);
+            // }, 1000 / 60);
         }
     }
     findPlayerLobby(player) {
@@ -92,28 +93,27 @@ let GameLoopService = class GameLoopService {
         if (player.id === ((_a = lobby.player1) === null || _a === void 0 ? void 0 : _a.id)) {
             if (direction === 'up') {
                 if (lobby.gameState.gameState.p1pos.y > 0) {
-                    lobby.gameState.gameState.p1pos.y -= 6;
+                    lobby.gameState.gameState.p1pos.y -= moveSpeed;
                 }
             }
             else if (direction === 'down') {
-                if (lobby.gameState.gameState.p1pos.y < KONVA_HEIGHT - 150) {
-                    lobby.gameState.gameState.p1pos.y += 6;
+                if (lobby.gameState.gameState.p1pos.y < 1 - data_1.gameConfig.paddleHeight) {
+                    lobby.gameState.gameState.p1pos.y += moveSpeed;
                 }
             }
         }
         else {
             if (direction === 'up') {
                 if (lobby.gameState.gameState.p2pos.y > 0) {
-                    lobby.gameState.gameState.p2pos.y -= 6;
+                    lobby.gameState.gameState.p2pos.y -= moveSpeed;
                 }
             }
             else if (direction === 'down') {
-                if (lobby.gameState.gameState.p2pos.y < KONVA_HEIGHT - 150) {
-                    lobby.gameState.gameState.p2pos.y += 6;
+                if (lobby.gameState.gameState.p2pos.y < 1 - data_1.gameConfig.paddleHeight) {
+                    lobby.gameState.gameState.p2pos.y += moveSpeed;
                 }
             }
         }
-        lobby.printPlayersPos();
     }
 };
 exports.GameLoopService = GameLoopService;

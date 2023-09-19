@@ -1,0 +1,20 @@
+.button-as-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: purple;
+    /* font: inherit; */
+    text-decoration: underline;
+    cursor: pointer;
+    outline: none;  /* Remove focus outline, but make sure you provide an accessible focus state */
+    transition: color 0.3s;
+}
+
+.button-as-link:hover,
+.button-as-link:focus {
+    color: white;  /* Slightly darker color on hover/focus */
+}
+
+.button-as-link:active {
+    color: navy;  /* Even darker on active state */
+}

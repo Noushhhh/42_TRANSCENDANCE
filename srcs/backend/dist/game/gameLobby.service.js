@@ -15,7 +15,7 @@ const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const socket_service_1 = require("../socket/socket.service");
 const gameState_1 = require("./gameState");
-const socketEvents_1 = require("../socket/socketEvents");
+const SocketEvents_1 = require("../socket/SocketEvents");
 let GameLobbyService = class GameLobbyService {
     constructor(gatewayOut, socketMap, io) {
         this.gatewayOut = gatewayOut;
@@ -146,11 +146,29 @@ let GameLobbyService = class GameLobbyService {
             this.gatewayOut.emitToUser(player.id, "getAllLobbies", { lobbies: serializedLobbies });
         }
     }
+    sendPlayersPos(player) {
+        var _a, _b;
+        if (!player)
+            return;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === (player === null || player === void 0 ? void 0 : player.id) || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
+                this.gatewayOut.emitToRoom(key, 'receivePlayersPos', [value.gameState.gameState.p1pos, value.gameState.gameState.p2pos]);
+                return;
+            }
+        }
+    }
+    printLobbyPlayerPos() {
+        for (const [key, value] of lobbies_1.lobbies) {
+            console.log(key, "p1pos:", value.gameState.gameState.p1pos);
+            console.log(key, "p2pos:", value.gameState.gameState.p2pos);
+            console.log(key, "config: ", value.gameState.gameData);
+        }
+    }
 };
 exports.GameLobbyService = GameLobbyService;
 exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
         socket_service_1.SocketService,
-        socketEvents_1.SocketEvents])
+        SocketEvents_1.SocketEvents])
 ], GameLobbyService);
