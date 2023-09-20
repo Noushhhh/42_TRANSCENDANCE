@@ -99,14 +99,12 @@ let AuthService = class AuthService {
             });
             // if user not found throw exception
             if (!user)
-                return res.status(401).json({ message: 'Username not found' });
-            // throw new ForbiddenException('Username not found',);
+                throw new common_1.ForbiddenException('Username not found');
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
             if (!passwordMatch)
-                // throw new ForbiddenException('Incorrect password',);
-                return res.status(401).json({ message: 'Incorrect password' });
+                throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
@@ -183,14 +181,14 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    signToken42(req, res) {
+    signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
             try {
                 const token = yield this.exchangeCodeForToken(code);
                 if (token) {
                     const userInfo = yield this.getUserInfo(token);
-                    const user = yield this.createUser(userInfo, res);
+                    const user = yield this.createUser(userInfo);
                     return user;
                 }
                 else {
@@ -201,7 +199,7 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 console.error('Error in signToken42:', error);
-                throw new Error('Failed to fetch sign Token 42');
+                throw error;
             }
         });
     }
@@ -251,7 +249,7 @@ let AuthService = class AuthService {
             });
         });
     }
-    createUser(userInfo, res) {
+    createUser(userInfo) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
                 where: {
@@ -260,9 +258,7 @@ let AuthService = class AuthService {
             });
             if (existingUser) {
                 console.log('User already exists:', existingUser);
-                // return this.signToken(existingUser.id, existingUser.username, res);
                 //   return "User already exists";
-                this.signToken(existingUser.id, existingUser.username, res);
                 return existingUser;
             }
             try {
@@ -278,13 +274,12 @@ let AuthService = class AuthService {
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
-                        login: userInfo.login,
+                        // login: userInfo.login,
                         username: userInfo.login,
                         avatar: userInfo.image.link,
                     },
                 });
                 console.log("User created", user);
-                this.signToken(user.id, user.username, res);
                 return user;
             }
             catch (error) {
@@ -303,7 +298,7 @@ exports.AuthService = AuthService;
 __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([

@@ -56,16 +56,14 @@ export class AuthService {
         });
         // if user not found throw exception
         if (!user)
-            return res.status(401).json({ message: 'Username not found' });
-            // throw new ForbiddenException('Username not found',);
+            throw new ForbiddenException('Username not found',);
 
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
 
         // if password wrong throw exception
         if (!passwordMatch)
-            // throw new ForbiddenException('Incorrect password',);
-            return res.status(401).json({ message: 'Incorrect password' });
+            throw new ForbiddenException('Incorrect password',);
 
         // send back the token
         return this.signToken(user.id, user.username, res);
@@ -156,13 +154,13 @@ export class AuthService {
         }
     }    
 
-    async signToken42(@Req() req: any, res: Response) {
+    async signToken42(@Req() req: any) {
         const code = req.query['code'];
         try {
           const token = await this.exchangeCodeForToken(code);
           if (token) {
             const userInfo = await this.getUserInfo(token);
-            const user = await this.createUser(userInfo, res);
+            const user = await this.createUser(userInfo);
             return user;
           } else {
             console.error('Failed to fetch access token');
@@ -171,7 +169,7 @@ export class AuthService {
           }
         } catch (error) {
           console.error('Error in signToken42:', error);
-          throw new Error('Failed to fetch sign Token 42');
+          throw error;
         }
       }
       
@@ -215,7 +213,7 @@ export class AuthService {
         });
       }
       
-      async createUser(userInfo: any, res: Response): Promise<User>  {
+      async createUser(userInfo: any): Promise<User> {
         const existingUser = await this.prisma.user.findUnique({
           where: {
             id: userInfo.id,
@@ -224,9 +222,7 @@ export class AuthService {
       
         if (existingUser) {
           console.log('User already exists:', existingUser);
-          // return this.signToken(existingUser.id, existingUser.username, res);
-          //   return "User already exists";
-            this.signToken(existingUser.id, existingUser.username, res);
+        //   return "User already exists";
             return existingUser;
         }
       
@@ -242,13 +238,12 @@ export class AuthService {
             data: {
                 id: userInfo.id,
                 hashPassword: this.generateRandomPassword(),
-                login: userInfo.login,
+                // login: userInfo.login,
                 username: userInfo.login,
                 avatar: userInfo.image.link,
             },
           });
           console.log("User created", user);
-          this.signToken(user.id, user.username, res);
           return user;
         } catch (error) {
           console.error('Error saving user information to database:', error);
