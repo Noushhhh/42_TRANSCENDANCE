@@ -49,11 +49,7 @@ export class AuthService {
 
     async signin(dto: AuthDto, res: Response) {
         // find user with username
-        const user = await this.prisma.user.findUnique({
-            where: {
-                username: dto.username,
-            }
-        });
+        const user = await this.findUserByUsername(dto.username);
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
@@ -258,8 +254,15 @@ export class AuthService {
         return password;
       }
 
-    }
+      private async findUserByUsername(username: string): Promise<User | null> {
+        return this.prisma.user.findUnique({
+            where: {
+                username,
+            },
+        });
 
+    }
+  }
     // async getUsernameFromId(id: number): Promise<string | undefined>{
 
     //     const userId = Number(id);
@@ -283,4 +286,4 @@ export class AuthService {
     //     } catch (error){
     //         throw error;
     //     }
-    // }
+    // 

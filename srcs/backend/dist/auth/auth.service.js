@@ -92,11 +92,7 @@ let AuthService = class AuthService {
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    username: dto.username,
-                }
-            });
+            const user = yield this.findUserByUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
@@ -293,6 +289,15 @@ let AuthService = class AuthService {
             Math.random().toString(36).slice(2, 15);
         return password;
     }
+    findUserByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.prisma.user.findUnique({
+                where: {
+                    username,
+                },
+            });
+        });
+    }
 };
 exports.AuthService = AuthService;
 __decorate([
@@ -327,4 +332,4 @@ exports.AuthService = AuthService = __decorate([
 //     } catch (error){
 //         throw error;
 //     }
-// }
+// 
