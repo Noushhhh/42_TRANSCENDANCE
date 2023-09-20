@@ -99,12 +99,14 @@ let AuthService = class AuthService {
             });
             // if user not found throw exception
             if (!user)
-                throw new common_1.ForbiddenException('Username not found');
+                return res.status(401).json({ message: 'Username not found' });
+            // throw new ForbiddenException('Username not found',);
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
             if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
+                // throw new ForbiddenException('Incorrect password',);
+                return res.status(401).json({ message: 'Incorrect password' });
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
@@ -199,7 +201,7 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 console.error('Error in signToken42:', error);
-                throw error;
+                throw new Error('Failed to fetch sign Token 42');
             }
         });
     }
@@ -258,6 +260,7 @@ let AuthService = class AuthService {
             });
             if (existingUser) {
                 console.log('User already exists:', existingUser);
+                // return this.signToken(existingUser.id, existingUser.username, res);
                 //   return "User already exists";
                 return existingUser;
             }
@@ -280,6 +283,7 @@ let AuthService = class AuthService {
                     },
                 });
                 console.log("User created", user);
+                // return this.signToken(user.id, user.username, res);
                 return user;
             }
             catch (error) {
@@ -306,34 +310,25 @@ exports.AuthService = AuthService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);
-async;
-getUsernameFromId(id, number);
-Promise < string | undefined > {
-    const: userId = Number(id),
-    try: {
-        const: user
-    }
-};
-{
-    username: string;
-}
- | null;
-await this.prisma.user.findUnique({
-    where: {
-        id: userId,
-    },
-    select: {
-        username: true,
-    }
-});
-if (user) {
-    console.log(user.username);
-    return user.username;
-}
-else {
-    return undefined;
-}
-try { }
-catch (error) {
-    throw error;
-}
+// async getUsernameFromId(id: number): Promise<string | undefined>{
+//     const userId = Number(id);
+//     try {
+//         const user: { username: string; } | null = await this.prisma.user.findUnique({
+//             where: {
+//                 id: userId,
+//             },
+//             select: {
+//                 username: true,
+//             }
+//         })
+//         if (user){
+//             console.log(user.username);
+//             return user.username;
+//         }
+//         else{
+//             return undefined;
+//         }
+//     } catch (error){
+//         throw error;
+//     }
+// }

@@ -1,7 +1,7 @@
-import { Controller, Post, Body, Res, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
-import { AuthGuard } from '@nestjs/passport';
+// import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
 
@@ -46,7 +46,7 @@ export class AuthController {
     try {
         const user = await this.authService.signToken42(req);    
         // implement revesre proxy. tip synthax / and /api
-        res.redirect('http://localhost:8081'); 
+        res.redirect('http://localhost:8081');
     } catch (error) {
         console.error(error);
         // Handle errors here and redirect as needed
