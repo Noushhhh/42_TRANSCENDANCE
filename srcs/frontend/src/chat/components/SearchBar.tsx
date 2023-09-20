@@ -1,13 +1,14 @@
-import React, { useState, SetStateAction, Dispatch } from "react";
-import { TextField } from "@mui/material";
+import React, { SetStateAction, Dispatch, useEffect } from "react";
 
 interface SearchBarProps{
     setDisplayResults: Dispatch<SetStateAction<boolean>>;
     inputValue: string;
     setInputValue: Dispatch<SetStateAction<string>>;
+    action?: string;
 }
 
-function SearchBar( {setDisplayResults, inputValue, setInputValue}: SearchBarProps ){
+function SearchBar( { setDisplayResults, inputValue, setInputValue, action }: SearchBarProps ){
+
     const handleInputValue = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter')
         {
@@ -22,7 +23,7 @@ function SearchBar( {setDisplayResults, inputValue, setInputValue}: SearchBarPro
 
     return (
          <div className="searchBar">
-            <input value={inputValue} onChange={handleChange} onKeyDown={handleInputValue} type="text" placeholder="Search/create new channel"/>
+            <input value={inputValue} onChange={handleChange} onKeyDown={handleInputValue} type="text" placeholder="Search a user"/>
          </div>
     )
 }

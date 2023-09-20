@@ -1,0 +1,16 @@
+.HeaderChannelSettings{
+    justify-content: flex-start!important;
+}
+.HeaderChannelSettings h4{
+    width: 100%;
+    justify-content: center;
+    padding-right: 16px;
+}
+.HeaderChannelSettings .icon {
+    padding-left: 8px;
+    cursor: pointer;
+}
+
+.HeaderChannelInfo h4 {
+    display: flex;
+}

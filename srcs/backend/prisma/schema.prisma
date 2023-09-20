@@ -16,26 +16,26 @@ datasource db {
 }
 
 model User {
-  id                Int          @id @default(autoincrement())
-  username          String       @unique
+  id                  Int          @id @default(autoincrement())
+  login               String?      @unique
+  username            String        @unique
+  avatar              String?
 
-  channelsOwned     Channel[]    @relation("Owner")
-  blockedUsers      User[]       @relation("BlockedUsers")
-  blockedBy         User[]       @relation("BlockedUsers")
-  conversations     Channel[]    @relation("Participant")
+  hashPassword        String
+  refreshToken        RefreshToken[]
 
-  adminOfChannels   Channel[]    @relation("Admins")
+  TwoFA               Boolean   @default(false)
 
-  // login         String @unique
-  hashPassword  String
-  refreshToken RefreshToken[]
+  // Channel related
+  channelsOwned       Channel[]    @relation("Owner")
+  blockedUsers        User[]       @relation("BlockedUsers")
+  blockedBy           User[]       @relation("BlockedUsers")
+  conversations       Channel[]    @relation("Participant")
+  adminOfChannels     Channel[]    @relation("Admins")
+  bannedFromChannel   Channel[]    @relation("BannedUsers")
+  sentMessages        Message[]    @relation("MessagesSent")
+  mutedInChannels     Channel[]    @relation("MutedUsers")
 
-  email         String?
-  firstName     String?
-  lastName      String?
-  bannedFromChannel Channel[]    @relation("BannedUsers")
-  sentMessages      Message[]    @relation("MessagesSent")
-  mutedInChannels   Channel[]    @relation("MutedUsers")
 
   @@map("users")
 }
