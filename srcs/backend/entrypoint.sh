@@ -7,15 +7,6 @@ if [ ! -d "node_modules" ]; then
 fi
 
 
-# Install nodemon and ts-node as dev dependencies
-echo "Installing nodemon and ts-node as dev dependencies"
-npm install --save-dev nodemon ts-node
-
-# This line updates all the dependencies defined in the package.json file 
-echo "Updating all the dependencies from package.json"
-npm update
-# shouldnt update at each start can crash if versions not compatible  
-
 echo "Running prisma migrations"
 npx prisma migrate deploy
 

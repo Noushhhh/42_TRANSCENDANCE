@@ -56,16 +56,14 @@ export class AuthService {
         });
         // if user not found throw exception
         if (!user)
-            return res.status(401).json({ message: 'Username not found' });
-            // throw new ForbiddenException('Username not found',);
+            throw new ForbiddenException('Username not found',);
 
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
 
         // if password wrong throw exception
         if (!passwordMatch)
-            // throw new ForbiddenException('Incorrect password',);
-            return res.status(401).json({ message: 'Incorrect password' });
+            throw new ForbiddenException('Incorrect password',);
 
         // send back the token
         return this.signToken(user.id, user.username, res);
@@ -156,80 +154,79 @@ export class AuthService {
         }
     }    
 
-    async signToken42(@Req() req: any, res: Response) {
+    async signToken42(@Req() req: any) {
         const code = req.query['code'];
         try {
-          const token = await this.exchangeCodeForToken(code);
-          if (token) {
-            const userInfo = await this.getUserInfo(token);
-            const user = await this.createUser(userInfo, res);
-            return user;
-          } else {
-            console.error('Failed to fetch access token');
-            // Handle errors here
-            throw new Error('Failed to fetch access token');
-          }
+            const token = await this.exchangeCodeForToken(code);
+            if (token) {
+                const userInfo = await this.getUserInfo(token);
+                const user = await this.createUser(userInfo);
+                return user;
+            } else {
+                console.error('Failed to fetch access token');
+                // Handle errors here
+                throw new Error('Failed to fetch access token');
+            }
         } catch (error) {
-          console.error('Error in signToken42:', error);
-          throw new Error('Failed to fetch sign Token 42');
+            console.error('Error in signToken42:', error);
+            throw error;
         }
-      }
+    }
+    
       
-      async exchangeCodeForToken(code: string): Promise<string | null> {
+    async exchangeCodeForToken(code: string): Promise<string | null> {
         try {
-          const response = await this.sendAuthorizationCodeRequest(code);
-          return response.data.access_token;
+            const response = await this.sendAuthorizationCodeRequest(code);
+            return response.data.access_token;
         } catch (error) {
-          console.error('Error fetching access token:', error);
-          return null;
+            console.error('Error fetching access token:', error);
+            return null;
         }
-      }
-      
-      private async sendAuthorizationCodeRequest(code: string) {
+    }
+
+    private async sendAuthorizationCodeRequest(code: string) {
         const requestBody = {
-          grant_type: 'authorization_code',
-          client_id: process.env.UID_42,
-          client_secret: process.env.SECRET_42,
-          code: code,
-          redirect_uri: 'http://localhost:4000/api/auth/token',
+            grant_type: 'authorization_code',
+            client_id: process.env.UID_42,
+            client_secret: process.env.SECRET_42,
+            code: code,
+            redirect_uri: 'http://localhost:4000/api/auth/token',
         };
         return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
-      }
-      
-      private async getUserInfo(token: string): Promise<any> {
+    }
+
+    private async getUserInfo(token: string): Promise<any> {
         try {
-          const response = await this.sendUserInfoRequest(token);
-        //   const this.createUser(response.data);
-          return response.data;
+            const response = await this.sendUserInfoRequest(token);
+            //   const this.createUser(response.data);
+            return response.data;
         } catch (error) {
-          console.error('Error fetching user info:', error);
-          throw error;
+            console.error('Error fetching user info:', error);
+            throw error;
         }
-      }
-      
-      private async sendUserInfoRequest(token: string) {
+    }
+
+    private async sendUserInfoRequest(token: string) {
         return axios.get('https://api.intra.42.fr/v2/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
-      }
-      
-      async createUser(userInfo: any, res: Response): Promise<User>  {
+    }
+
+    async createUser(userInfo: any): Promise<User> {
         const existingUser = await this.prisma.user.findUnique({
-          where: {
-            id: userInfo.id,
-          },
+            where: {
+                id: userInfo.id,
+            },
         });
-      
+
         if (existingUser) {
-          console.log('User already exists:', existingUser);
-          // return this.signToken(existingUser.id, existingUser.username, res);
-          //   return "User already exists";
-            this.signToken(existingUser.id, existingUser.username, res);
+            console.log('User already exists:', existingUser);
+            //   return "User already exists";
             return existingUser;
         }
-      
+
         try {
             let avatarUrl;
             if (userInfo.image.link === null) {
@@ -238,54 +235,51 @@ export class AuthService {
             } else {
                 avatarUrl = userInfo.image.link;
             }
-          const user = await this.prisma.user.create({
-            data: {
-                id: userInfo.id,
-                hashPassword: this.generateRandomPassword(),
-                login: userInfo.login,
-                username: userInfo.login,
-                avatar: userInfo.image.link,
-            },
-          });
-          console.log("User created", user);
-          this.signToken(user.id, user.username, res);
-          return user;
+            const user = await this.prisma.user.create({
+                data: {
+                    id: userInfo.id,
+                    hashPassword: this.generateRandomPassword(),
+                    // login: userInfo.login,
+                    username: userInfo.login,
+                    avatar: userInfo.image.link,
+                },
+            });
+            console.log("User created", user);
+            return user;
         } catch (error) {
-          console.error('Error saving user information to database:', error);
-          throw error;
+            console.error('Error saving user information to database:', error);
+            throw error;
         }
-      }
-      
-      generateRandomPassword(): string {
-        const password =
-          Math.random().toString(36).slice(2, 15) +
-          Math.random().toString(36).slice(2, 15);
-        return password;
-      }
-
     }
 
-    // async getUsernameFromId(id: number): Promise<string | undefined>{
+    generateRandomPassword(): string {
+        const password =
+            Math.random().toString(36).slice(2, 15) +
+            Math.random().toString(36).slice(2, 15);
+        return password;
+    }
 
-    //     const userId = Number(id);
 
-    //     try {
-    //         const user: { username: string; } | null = await this.prisma.user.findUnique({
-    //             where: {
-    //                 id: userId,
-    //             },
-    //             select: {
-    //                 username: true,
-    //             }
-    //         })
-    //         if (user){
-    //             console.log(user.username);
-    //             return user.username;
-    //         }
-    //         else{
-    //             return undefined;
-    //         }
-    //     } catch (error){
-    //         throw error;
-    //     }
-    // }
+    async getUsernameFromId(id: number): Promise<string | undefined> {
+        const userId = Number(id);
+        try {
+            const user: { username: string; } | null = await this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    username: true,
+                }
+            })
+            if (user) {
+                console.log(user.username);
+                return user.username;
+            }
+            else {
+                return undefined;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+}
