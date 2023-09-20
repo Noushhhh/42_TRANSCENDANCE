@@ -18,14 +18,14 @@ async function bootstrap() {
 
   // Define CORS options
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:8080',
+    // changed to 8081 to be able to fetch the api. was 8080 before
+    origin: 'http://localhost:8081', 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
     optionsSuccessStatus: 200,
     credentials: true,
   };
-
-  // Enable CORS with the specified options
+  // Activez CORS pour toutes les routes de l'application
   app.enableCors(corsOptions);
 
   // Use the cookie-parser middleware

@@ -46,6 +46,7 @@ const signInAPI = async (email: string, password: string) => {
         const data = await response.json();
         throw new Error(`${data?.message}` || `Server responded with status: ${response.status}`);
     }
+    console.log(response);
 
     return response.json();
 };

@@ -1,6 +1,7 @@
 
 .Message {
     display: flex;
+    /* width: fit-content; */
 }
 
 .MessageComposant{
@@ -9,7 +10,8 @@
     border-radius: 10px;
     padding: 4px 8px;
     font-size: 15px;
-    word-wrap: break-word;
+    word-wrap: anywhere;
+    box-shadow: 1px 1px 3px black;
 }
 
 .Date{
@@ -37,5 +39,12 @@
 .MessageToContainer {
     justify-content: flex-end;
     padding: 0px 12px;
-
 }
+
+.reduceMsgWidth{
+    max-width: 65%!important;
+}
+ 
+/* .wideMsgWidth{
+    width: 80%;
+} */

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import {
-    Welcome, SignIn, SignUp, AuthChoise, HomePage, Settings,
+    Welcome, SignIn, SignUp, AuthChoice, HomePage, Settings,
     ProtectedRoute, Friends, Stats, ErrorComponent, useActivityLogout,
     UserProfileSetup
 } from './home/components/index';
@@ -17,7 +17,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Welcome />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/authchoise" element={<AuthChoise  />} />
+            <Route path="/authchoice" element={<AuthChoice  />} />
             <Route path="/userprofilesetup" element={<UserProfileSetup  email = "tengo@gmail.com"/>} />
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
                 <Route path="chat" element={<ChatBoxContainer />} /> 
@@ -31,5 +31,4 @@ const App: React.FC = () => {
         </Routes>
     );
 };
-
 export default App;

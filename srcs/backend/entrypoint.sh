@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Check if node_modules exists, if not install dependencies
 if [ ! -d "node_modules" ]; then
     #install latest version of npm
@@ -16,9 +15,6 @@ if [ ! -d "node_modules" ]; then
     echo "Installing all dependencies from package.json"
     npm install
 fi
-
-# echo "Updating all the dependencies from package.json"
-# npm update 
 
 echo "Running prisma migrations"
 npx prisma migrate deploy

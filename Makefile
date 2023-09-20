@@ -109,11 +109,11 @@ recreate_backend: del_node_pack_backend
 
 del_node_pack_front:
 	@echo "Removing frontend node_modules and package-lock.json"
-	@rm -rf ./srcs/frontend/node_modules ./srcs/frontend/package-lock.json
+	rm -rf ./srcs/frontend/node_modules ./srcs/frontend/package-lock.json
 
 del_node_pack_backend:
 	@echo "Removing backend node_modules and package-lock.json"
-	@rm -rf ./srcs/backend/node_modules ./srcs/backend/package-lock.json
+	rm -rf ./srcs/backend/node_modules ./srcs/backend/package-lock.json
 
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all

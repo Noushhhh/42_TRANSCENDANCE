@@ -17,10 +17,10 @@ interface User {
 }
 
 interface Message {
+    id: 0;
 	senderId: number;
 	channelId: number;
 	content: string;
 	createdAt: Date;
-    id: 0;
     messageType: string;
 }

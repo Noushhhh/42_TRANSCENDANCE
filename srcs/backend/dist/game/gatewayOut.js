@@ -14,7 +14,7 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const lobbies_1 = require("./lobbies");
 const socket_service_1 = require("../socket/socket.service");
-const socketEvents_1 = require("../socket/socketEvents");
+const SocketEvents_1 = require("../socket/SocketEvents");
 let GatewayOut = class GatewayOut {
     constructor(socketMap, io) {
         this.socketMap = socketMap;
@@ -50,5 +50,5 @@ exports.GatewayOut = GatewayOut = __decorate([
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [socket_service_1.SocketService, socketEvents_1.SocketEvents])
+    __metadata("design:paramtypes", [socket_service_1.SocketService, SocketEvents_1.SocketEvents])
 ], GatewayOut);

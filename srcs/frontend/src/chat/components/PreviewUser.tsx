@@ -1,25 +1,25 @@
 import React from "react";
 import "../styles/PreviewUser.css";
+import avatar from "./avatar_tdeville.jpeg"
+import CloseIcon from '@mui/icons-material/Close';
 
-interface PreviewUserProps{
-    user: {
-        username: string,
-        id: number,
-    }
-    removeUserFromList: (input: {username: string, id: number}) => void;
+interface PreviewUserProps {
+    user: User;
+    removeUserFromList: (input: User) => void;
 }
 
-function PreviewUser( { user, removeUserFromList }: PreviewUserProps): JSX.Element{
+function PreviewUser({ user, removeUserFromList }: PreviewUserProps): JSX.Element {
 
-    const removeUser = (user:{username: string, id: number,}) => {
+    const removeUser = (user: User) => {
         removeUserFromList(user);
     }
 
-    console.log(user);
-
     return (
-        <div className="PreviewUser">
-            {user.username} <button onClick={()=> removeUser(user)}>X</button>
+        <div className="PreviewUser fadeIn">
+            <span>
+                <img className="previewUserAvatar" src={avatar} alt="" width={29} height={29} />
+                {user.username} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
+            </span>
         </div>
     )
 }
