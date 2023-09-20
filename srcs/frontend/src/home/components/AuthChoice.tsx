@@ -5,9 +5,8 @@ import { useNavigate} from "react-router-dom";
 import '../styles/generalStyles.css';
 
 
-// const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-18a39bac72b776af2fd5f62fa678fe5a734e9e5d8c4fe99f2ff1c7041a1d990a&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
-const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=' + process.env.UID_42 + '&redirect_uri=' + 'http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
-
+const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-18a39bac72b776af2fd5f62fa678fe5a734e9e5d8c4fe99f2ff1c7041a1d990a&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
+// const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=' + process.env.UID_42 + '&redirect_uri=' + 'http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {

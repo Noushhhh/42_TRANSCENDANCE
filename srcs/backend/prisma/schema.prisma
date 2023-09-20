@@ -16,25 +16,26 @@ datasource db {
 }
 
 model User {
-  id                  Int          @id @default(autoincrement())
-  login               String?      @unique
+  // add unique constraint to id ? 
+  id                  Int           @id @default(autoincrement()) 
   username            String        @unique
   avatar              String?
 
   hashPassword        String
   refreshToken        RefreshToken[]
 
-  TwoFA               Boolean   @default(false)
+  firstConnexion      Boolean       @default (true)
+  TwoFA               Boolean       @default(false)
 
   // Channel related
-  channelsOwned       Channel[]    @relation("Owner")
-  blockedUsers        User[]       @relation("BlockedUsers")
-  blockedBy           User[]       @relation("BlockedUsers")
-  conversations       Channel[]    @relation("Participant")
-  adminOfChannels     Channel[]    @relation("Admins")
-  bannedFromChannel   Channel[]    @relation("BannedUsers")
-  sentMessages        Message[]    @relation("MessagesSent")
-  mutedInChannels     Channel[]    @relation("MutedUsers")
+  channelsOwned       Channel[]     @relation("Owner")
+  blockedUsers        User[]        @relation("BlockedUsers")
+  blockedBy           User[]        @relation("BlockedUsers")
+  conversations       Channel[]     @relation("Participant")
+  adminOfChannels     Channel[]     @relation("Admins")
+  bannedFromChannel   Channel[]     @relation("BannedUsers")
+  sentMessages        Message[]     @relation("MessagesSent")
+  mutedInChannels     Channel[]     @relation("MutedUsers")
 
 
   @@map("users")

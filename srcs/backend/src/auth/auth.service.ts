@@ -56,14 +56,16 @@ export class AuthService {
         });
         // if user not found throw exception
         if (!user)
-            throw new ForbiddenException('Username not found',);
+            return res.status(401).json({ message: 'Username not found' });
+            // throw new ForbiddenException('Username not found',);
 
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
 
         // if password wrong throw exception
         if (!passwordMatch)
-            throw new ForbiddenException('Incorrect password',);
+            // throw new ForbiddenException('Incorrect password',);
+            return res.status(401).json({ message: 'Incorrect password' });
 
         // send back the token
         return this.signToken(user.id, user.username, res);
@@ -154,13 +156,13 @@ export class AuthService {
         }
     }    
 
-    async signToken42(@Req() req: any) {
+    async signToken42(@Req() req: any, res: Response) {
         const code = req.query['code'];
         try {
           const token = await this.exchangeCodeForToken(code);
           if (token) {
             const userInfo = await this.getUserInfo(token);
-            const user = await this.createUser(userInfo);
+            const user = await this.createUser(userInfo, res);
             return user;
           } else {
             console.error('Failed to fetch access token');
@@ -169,7 +171,7 @@ export class AuthService {
           }
         } catch (error) {
           console.error('Error in signToken42:', error);
-          throw error;
+          throw new Error('Failed to fetch sign Token 42');
         }
       }
       
@@ -213,7 +215,7 @@ export class AuthService {
         });
       }
       
-      async createUser(userInfo: any): Promise<User> {
+      async createUser(userInfo: any, res: Response): Promise<User>  {
         const existingUser = await this.prisma.user.findUnique({
           where: {
             id: userInfo.id,
@@ -222,7 +224,9 @@ export class AuthService {
       
         if (existingUser) {
           console.log('User already exists:', existingUser);
-        //   return "User already exists";
+          // return this.signToken(existingUser.id, existingUser.username, res);
+          //   return "User already exists";
+            this.signToken(existingUser.id, existingUser.username, res);
             return existingUser;
         }
       
@@ -244,6 +248,7 @@ export class AuthService {
             },
           });
           console.log("User created", user);
+          this.signToken(user.id, user.username, res);
           return user;
         } catch (error) {
           console.error('Error saving user information to database:', error);
@@ -260,28 +265,27 @@ export class AuthService {
 
     }
 
-    async getUsernameFromId(id: number): Promise<string | undefined>{
+    // async getUsernameFromId(id: number): Promise<string | undefined>{
 
-        const userId = Number(id);
+    //     const userId = Number(id);
 
-        try {
-            const user: { username: string; } | null = await this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-                select: {
-                    username: true,
-                }
-            })
-            if (user){
-                console.log(user.username);
-                return user.username;
-            }
-            else{
-                return undefined;
-            }
-        } catch (error){
-            throw error;
-        }
-    }
-}
+    //     try {
+    //         const user: { username: string; } | null = await this.prisma.user.findUnique({
+    //             where: {
+    //                 id: userId,
+    //             },
+    //             select: {
+    //                 username: true,
+    //             }
+    //         })
+    //         if (user){
+    //             console.log(user.username);
+    //             return user.username;
+    //         }
+    //         else{
+    //             return undefined;
+    //         }
+    //     } catch (error){
+    //         throw error;
+    //     }
+    // }
