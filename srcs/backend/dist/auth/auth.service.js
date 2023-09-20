@@ -183,14 +183,14 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    signToken42(req) {
+    signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
             try {
                 const token = yield this.exchangeCodeForToken(code);
                 if (token) {
                     const userInfo = yield this.getUserInfo(token);
-                    const user = yield this.createUser(userInfo);
+                    const user = yield this.createUser(userInfo, res);
                     return user;
                 }
                 else {
@@ -251,7 +251,7 @@ let AuthService = class AuthService {
             });
         });
     }
-    createUser(userInfo) {
+    createUser(userInfo, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
                 where: {
@@ -262,6 +262,7 @@ let AuthService = class AuthService {
                 console.log('User already exists:', existingUser);
                 // return this.signToken(existingUser.id, existingUser.username, res);
                 //   return "User already exists";
+                this.signToken(existingUser.id, existingUser.username, res);
                 return existingUser;
             }
             try {
@@ -283,7 +284,7 @@ let AuthService = class AuthService {
                     },
                 });
                 console.log("User created", user);
-                // return this.signToken(user.id, user.username, res);
+                this.signToken(user.id, user.username, res);
                 return user;
             }
             catch (error) {
@@ -302,7 +303,7 @@ exports.AuthService = AuthService;
 __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([

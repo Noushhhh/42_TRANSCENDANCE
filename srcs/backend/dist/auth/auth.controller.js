@@ -63,9 +63,10 @@ let AuthController = class AuthController {
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield this.authService.signToken42(req);
-                // implement revesre proxy. tip synthax / and /api
-                res.redirect('http://localhost:8081');
+                const user = yield this.authService.signToken42(req, res);
+                // implement revesre proxy
+                res.redirect('http://localhost:8081/home');
+                // res.redirect('');
             }
             catch (error) {
                 console.error(error);

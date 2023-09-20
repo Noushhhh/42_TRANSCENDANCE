@@ -156,13 +156,13 @@ export class AuthService {
         }
     }    
 
-    async signToken42(@Req() req: any) {
+    async signToken42(@Req() req: any, res: Response) {
         const code = req.query['code'];
         try {
           const token = await this.exchangeCodeForToken(code);
           if (token) {
             const userInfo = await this.getUserInfo(token);
-            const user = await this.createUser(userInfo);
+            const user = await this.createUser(userInfo, res);
             return user;
           } else {
             console.error('Failed to fetch access token');
@@ -215,7 +215,7 @@ export class AuthService {
         });
       }
       
-      async createUser(userInfo: any): Promise<User>  {
+      async createUser(userInfo: any, res: Response): Promise<User>  {
         const existingUser = await this.prisma.user.findUnique({
           where: {
             id: userInfo.id,
@@ -226,7 +226,7 @@ export class AuthService {
           console.log('User already exists:', existingUser);
           // return this.signToken(existingUser.id, existingUser.username, res);
           //   return "User already exists";
-
+            this.signToken(existingUser.id, existingUser.username, res);
             return existingUser;
         }
       
@@ -248,7 +248,7 @@ export class AuthService {
             },
           });
           console.log("User created", user);
-          // return this.signToken(user.id, user.username, res);
+          this.signToken(user.id, user.username, res);
           return user;
         } catch (error) {
           console.error('Error saving user information to database:', error);

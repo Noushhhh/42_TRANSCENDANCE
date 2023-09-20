@@ -34,6 +34,7 @@ const App: React.FC = () => {
                 {/* correct auth instead of authchoice */}
                 <Route path="/authchoice" element={<AuthChoice />} /> 
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
+                  {/* add here incremented route if user first connexion can access only user settings page */}
                     <Route path="chat" element={<ChatBoxContainer />} />
                     <Route path="friends" element={<Friends />} />
                     <Route path="stats" element={<Stats />} />
