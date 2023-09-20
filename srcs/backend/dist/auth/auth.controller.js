@@ -25,6 +25,7 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
+// import { AuthGuard } from '@nestjs/passport';
 const public_decorators_1 = require("../decorators/public.decorators");
 let AuthController = class AuthController {
     constructor(authService) {
@@ -62,9 +63,10 @@ let AuthController = class AuthController {
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield this.authService.signToken42(req);
-                // implement revesre proxy. tip synthax / and /api
-                res.redirect('http://localhost:8081');
+                const user = yield this.authService.signToken42(req, res);
+                // implement revesre proxy
+                res.redirect('http://localhost:8081/home');
+                // res.redirect('');
             }
             catch (error) {
                 console.error(error);

@@ -1,14 +1,26 @@
-// import { Inject, Injectable } from "@nestjs/common";
-// import { Prisma } from "@prisma/client";
+// import { Injectable } from "@nestjs/common";
+// import { PrismaService } from '../prisma/prisma.service';
+// import { Prisma, User } from '@prisma/client'
 
 // @Injectable({})
 // export class UserService {
-
-//     async set2faSecret(secret: string, id: string) {
-//         const user = await this.usersRepository.findOneBy({id});
+//     constructor(
+//         private prisma: PrismaService,
+//     )
+// //     async set2faSecret(secret: string, id: string) {
+// //         const user = await this.usersRepository.findOneBy({id});
     
-//         user.twoFactorSecret = secret;
-//         await this.usersRepository.save(user);
-//         return (user.twoFactorSecret);
+// //         user.twoFactorSecret = secret;
+// //         await this.usersRepository.save(user);
+// //         return (user.twoFactorSecret);
+// //     }
+// // }
+
+//     async findUserByUsername(username: string): Promise<User | null> {
+//         return this.prisma.user.findUnique({
+//             where: {
+//                 username,
+//             },
+//         });
 //     }
 // }
