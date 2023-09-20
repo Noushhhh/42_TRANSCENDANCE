@@ -33,6 +33,7 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             const { profileName } = req.body;
             const userCookie = req.cookies['token'];
+            console.log("passing by user controller" + `\n token from cookies: ${userCookie} \n profile name : ${profileName}\n`);
             return this.userService.handleProfileSetup(userCookie, profileName, profileImage);
         });
     }

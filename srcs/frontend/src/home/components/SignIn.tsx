@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
-import ProfileSetup from "./ProfileSetup";
 
 /*************************************************************************** */
 /**
@@ -78,7 +77,7 @@ const SignIn: React.FC = () => {
         try {
             await signInAPI(email, password);  // Try to authenticate the user.
             // navigate('/home');  // Navigate to home on successful authentication.
-            navigate('/ProfileSetup');  // Navigate to home on successful authentication
+            navigate('/userprofilesetup');  // Navigate to home on successful authentication
 
         } catch (error) {
             // Error handling: differentiate between different error types and set appropriate error messages.

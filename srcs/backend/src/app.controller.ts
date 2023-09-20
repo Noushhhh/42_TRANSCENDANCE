@@ -1,5 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
+import { JwtGuard } from './auth/guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class AppController {
@@ -11,7 +13,9 @@ export class AppController {
       // Call the `getHello` method of the `AppService`
       return this.appService.getHello();
     }
+
     @Get('status') // Handles GET requests to the root URL
+    @UseGuards(JwtGuard)
     getStatus(): { status: string } {
       return { status: 'im here bro' };
     }

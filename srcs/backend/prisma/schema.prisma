@@ -49,7 +49,7 @@ model Channel {
   type             ChannelType     @default(PUBLIC)
   password         String?         @default("")
 
-  owner            User            @relation("Owner", fields: [ownerId], references: [id])
+  owner            User            @relation("Owner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId          Int
   admins           User[]          @relation("Admins")
 
@@ -94,7 +94,9 @@ model RefreshToken {
       
   // This field is the relation field that lets you fetch the actual User object. 
   // The fields and references arguments define how the relationship is mapped.
-  user        User     @relation(fields: [userId], references: [id])
+  // The onDelete attribute is set to Cascade, which means that when you delete a User record,
+  // Prisma will automatically delete all related RefreshToken records.
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime @default(now())
   expiresAt   DateTime 

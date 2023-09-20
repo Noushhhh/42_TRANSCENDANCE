@@ -1,16 +1,22 @@
+// Import necessary modules and dependencies
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
+// Define the bootstrap function
 async function bootstrap() {
-  // Create a new NestJS application instance
-  const app = await NestFactory.create(AppModule);
+  // Create a NestJS application instance with the AppModule and NestExpressApplication type
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Use the ValidationPipe globally with the whitelist option enabled
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // check if whitelist needed or only restrain fields to login and password
+    whitelist: true,
   }));
 
+  // Define CORS options
   const corsOptions: CorsOptions = {
     origin: 'http://localhost:8080',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -19,11 +25,21 @@ async function bootstrap() {
     credentials: true,
   };
 
-  // Activez CORS pour toutes les routes de l'application
+  // Enable CORS with the specified options
   app.enableCors(corsOptions);
+
+  // Use the cookie-parser middleware
   app.use(cookieParser());
-  app.setGlobalPrefix('api'); // set global route prefix
-  // Start the application and listen on port 4000
+
+  // Set the global prefix for the API routes
+  app.setGlobalPrefix('api');
+
+  // Serve static files from the 'uploads' folder with the '/uploads' prefix
+  app.useStaticAssets('uploads', { prefix: '/uploads' });
+
+  // Start the application on port 4000
   await app.listen(4000);
 }
+
+// Call the bootstrap function to start the application
 bootstrap();

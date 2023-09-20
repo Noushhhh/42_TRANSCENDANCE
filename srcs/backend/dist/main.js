@@ -12,17 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Import necessary modules and dependencies
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+// Define the bootstrap function
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
-        // Create a new NestJS application instance
+        // Create a NestJS application instance with the AppModule and NestExpressApplication type
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
+        // Use the ValidationPipe globally with the whitelist option enabled
         app.useGlobalPipes(new common_1.ValidationPipe({
-            whitelist: true, // check if whitelist needed or only restrain fields to login and password
+            whitelist: true,
         }));
+        // Define CORS options
         const corsOptions = {
             origin: 'http://localhost:8080',
             methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -30,12 +34,17 @@ function bootstrap() {
             optionsSuccessStatus: 200,
             credentials: true,
         };
-        // Activez CORS pour toutes les routes de l'application
+        // Enable CORS with the specified options
         app.enableCors(corsOptions);
+        // Use the cookie-parser middleware
         app.use((0, cookie_parser_1.default)());
-        app.setGlobalPrefix('api'); // set global route prefix
-        // Start the application and listen on port 4000
+        // Set the global prefix for the API routes
+        app.setGlobalPrefix('api');
+        // Serve static files from the 'uploads' folder with the '/uploads' prefix
+        app.useStaticAssets('uploads', { prefix: '/uploads' });
+        // Start the application on port 4000
         yield app.listen(4000);
     });
 }
+// Call the bootstrap function to start the application
 bootstrap();
