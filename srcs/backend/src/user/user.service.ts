@@ -1,10 +1,9 @@
 // Import necessary modules and dependencies
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import jwt from 'jsonwebtoken';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Payload } from '@prisma/client/runtime/library';
+import {DecodedPayload } from '../auth/interfaces/decoded-payload.interface';
 const ClamScan = require('clamscan').ClamScan;
 
 
@@ -25,55 +24,31 @@ export class UserService {
     }
   }
 
+
   // ─────────────────────────────────────────────────────────────────────
-  async decodeToken(token: string): Promise<any> {
+
+  async clientFirstconnection(payload: DecodedPayload, res: Response) {
+
+    console.log("passing by clientFirstConnection");
+
     try {
-      const decodedToken = jwt.verify(token, this.JWT_SECRET);
-      return decodedToken;
+      const user = this.prisma.user.findUnique({ where: { username: payload.email } })
+      if (user.)
     } catch (error) {
-      throw new Error(`${error}` || 'Impossible to decode token');
+      return res.status(401).json({ valid: false, message: "Invalid Token" });
     }
-
   }
 
-  // ─────────────────────────────────────────────────────────────────────
 
-
-
-  //Function to check if the publicName the user in trying to use already exists
-  async hasProfileName(username: string): Promise<boolean> {
-    const user: any = await this.prisma.user.findUnique({
-      where: {
-        username: username,
-      },
-    });
-  
-    if (user === null) {
-      throw new Error(`User with username "${username}" not found.`);
-    }
-  
-    return user.profileName !== null;
-  }
 
   // ─────────────────────────────────────────────────────────────────────
 
   // handleProfileSetup method takes tokenCookie, profileName, and profileImage as arguments
-  async handleProfileSetup(tokenCookie: string, profileName: string, profileImage: any): Promise<any> {
+  async handleProfileSetup(payload: DecodedPayload | null, profileName: string, profileImage: any): Promise<any> {
     // Declare a variable to store the decoded JWT token
 
-    // Declare a variable to store the email from the decoded token
-    let emailFromCookies: string | undefined; 
-
-    const decodedToken = await this.decodeToken(tokenCookie);
-
     console.log("passing by handlePorfileSetup \n");
-
-    // Check if the decoded token is an object and has an email property
-    if (typeof decodedToken === 'object' && decodedToken !== null) {
-      emailFromCookies = decodedToken.email;
-    } else {
-      throw new Error('Invalid token format backend(handleProfileSetup).\n');
-    }
+    const emailFromCookies = payload?.email;
 
     const existingUser: any = this.prisma.user.findUnique({ where: { profileName: profileName } });
     if (existingUser) {

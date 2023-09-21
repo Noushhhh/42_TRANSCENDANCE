@@ -17,15 +17,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 // Import necessary modules and dependencies
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const path_1 = require("path");
 const uuid_1 = require("uuid");
 const ClamScan = require('clamscan').ClamScan;
@@ -42,48 +38,26 @@ let UserService = class UserService {
         }
     }
     // ─────────────────────────────────────────────────────────────────────
-    decodeToken(token) {
+    clientFirstconnection(payload, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("passing by clientFirstConnection");
             try {
-                const decodedToken = jsonwebtoken_1.default.verify(token, this.JWT_SECRET);
-                return decodedToken;
+                const user = this.prisma.user.findUnique({ where: { username: payload.email } });
+                if (user.)
+                    ;
             }
             catch (error) {
-                throw new Error(`${error}` || 'Impossible to decode token');
+                return res.status(401).json({ valid: false, message: "Invalid Token" });
             }
-        });
-    }
-    // ─────────────────────────────────────────────────────────────────────
-    //Function to check if the publicName the user in trying to use already exists
-    hasProfileName(username) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    username: username,
-                },
-            });
-            if (user === null) {
-                throw new Error(`User with username "${username}" not found.`);
-            }
-            return user.profileName !== null;
         });
     }
     // ─────────────────────────────────────────────────────────────────────
     // handleProfileSetup method takes tokenCookie, profileName, and profileImage as arguments
-    handleProfileSetup(tokenCookie, profileName, profileImage) {
+    handleProfileSetup(payload, profileName, profileImage) {
         return __awaiter(this, void 0, void 0, function* () {
             // Declare a variable to store the decoded JWT token
-            // Declare a variable to store the email from the decoded token
-            let emailFromCookies;
-            const decodedToken = yield this.decodeToken(tokenCookie);
             console.log("passing by handlePorfileSetup \n");
-            // Check if the decoded token is an object and has an email property
-            if (typeof decodedToken === 'object' && decodedToken !== null) {
-                emailFromCookies = decodedToken.email;
-            }
-            else {
-                throw new Error('Invalid token format backend(handleProfileSetup).\n');
-            }
+            const emailFromCookies = payload === null || payload === void 0 ? void 0 : payload.email;
             const existingUser = this.prisma.user.findUnique({ where: { profileName: profileName } });
             if (existingUser) {
                 return {

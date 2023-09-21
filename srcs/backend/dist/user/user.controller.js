@@ -25,16 +25,29 @@ exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const user_service_1 = require("./user.service");
+const extract_jwt_decorator_1 = require("../auth/decorators/extract-jwt.decorator");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    createOrUpdateProfile(profileImage, req) {
+    createOrUpdateProfile(profileImage, req, decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!decodedPayload) {
+                console.error('Unable to decode token in createOrUpdateProfile controller in user module\n');
+                return res.status(401).json({ valid: false, message: "Unable to decode token in usermodule" });
+            }
             const { profileName } = req.body;
-            const userCookie = req.cookies['token'];
-            console.log("passing by user controller" + `\n token from cookies: ${userCookie} \n profile name : ${profileName}\n`);
-            return this.userService.handleProfileSetup(userCookie, profileName, profileImage);
+            // const userCookie = req.cookies['token'];
+            console.log("passing by user controller" + `\n decoded email: ${decodedPayload.email} \n profile name : ${profileName}\n`);
+            // return this.userService.handleProfileSetup(decodedToken, profileName, profileImage);
+            return res.status(200).json({ valid: true, message: "Decorator is working propertly\n" });
+        });
+    }
+    checkToken(req) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("passing by controller checkToken in user module\n");
+            const tokenCookie = req.cookies['token'];
+            return this.userService.decodeToken(tokenCookie);
         });
     }
 };
@@ -44,10 +57,18 @@ __decorate([
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('profileImage')),
     __param(0, (0, common_1.UploadedFile)()),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(3, (0, common_1.Response)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createOrUpdateProfile", null);
+__decorate([
+    (0, common_1.Get)('checkToken'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "checkToken", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

@@ -159,10 +159,12 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
             console.log("passing by checktokenvalidity");
+            console.log(req.cookies);
             if (!token)
                 return res.status(401).json({ valid: false, message: "Token Missing" });
             try {
-                jwt.verify(token, this.JWT_SECRET);
+                const result = jwt.verify(token, this.JWT_SECRET);
+                console.log(result);
                 return res.status(200).json({ valid: true, message: "Token is valid" });
             }
             catch (error) {
