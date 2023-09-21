@@ -48,7 +48,6 @@ const client_1 = require("@prisma/client");
 const SocketEvents_1 = require("../socket/SocketEvents");
 const argon = __importStar(require("argon2"));
 const common_2 = require("@nestjs/common");
-const common_3 = require("@nestjs/common");
 let ChatService = class ChatService {
     constructor(prisma, 
     // "private" to keep utilisation of the service inside the class
@@ -685,31 +684,6 @@ let ChatService = class ChatService {
             if (!channel)
                 throw new common_1.NotFoundException(`Channel with id ${channelId} not found`);
             return channel;
-        });
-    }
-    blockUser(callerId, targetId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.getUserById(targetId);
-            yield this.getUserById(callerId);
-            if (callerId === targetId)
-                throw new common_3.UnauthorizedException('Can\'t block yourself');
-            yield this.prisma.user.update({
-                where: { id: callerId },
-                data: {
-                    blockedUsers: {
-                        connect: { id: targetId }
-                    }
-                }
-            });
-            yield this.prisma.user.update({
-                where: { id: targetId },
-                data: {
-                    blockedBy: {
-                        connect: { id: callerId }
-                    }
-                }
-            });
-            console.log('end');
         });
     }
 };

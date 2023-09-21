@@ -165,13 +165,6 @@ let ChatController = class ChatController {
             return this.chatService.isUserIsBan(pair.channelId, pair.userId);
         });
     }
-    blockUser(pairId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('blockUser called');
-            console.log(pairId);
-            return this.chatService.blockUser(pairId.callerId, pairId.targetId);
-        });
-    }
 };
 exports.ChatController = ChatController;
 __decorate([
@@ -354,13 +347,6 @@ __decorate([
     __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "isUserIsBan", null);
-__decorate([
-    (0, common_1.Post)('blockUser'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [chat_dto_1.pairUserId]),
-    __metadata("design:returntype", Promise)
-], ChatController.prototype, "blockUser", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])
