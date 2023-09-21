@@ -32,7 +32,7 @@ const InputField: React.FC<{ type: string, value: string,
  */
 /*************************************************************************** */
 const signInAPI = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:4000/api/auth/signin', {
+    const response = await fetch('http://localhost:8081/api/auth/signin', {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
