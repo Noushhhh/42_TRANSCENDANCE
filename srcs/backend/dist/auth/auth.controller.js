@@ -54,7 +54,6 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.UseGuards)(isAdmin),
     (0, public_decorators_1.Public)(),
     (0, common_1.Post)('signup'),
     __param(0, (0, common_1.Body)()),

@@ -1,9 +1,10 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId } from "./dto/chat.dto";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto } from "./dto/chat.dto";
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
 import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
+import { AdminGuard } from "./guards/admin.guards";
 
 interface channelToAdd {
     name: string,
@@ -19,7 +20,7 @@ interface MessageToStore {
     senderId: number;
 }
 
-interface isChannelExist{
+interface isChannelExist {
     isExist: boolean,
     channelType: ChannelType,
     id: number,
@@ -30,9 +31,11 @@ export class ChatController {
 
     constructor(private chatService: ChatService) { };
 
-    @Get('getAllConvFromId/:id')
-    getAllConvFromId(@Param('id') id: number) {
-        return this.chatService.getAllConvFromId(id);
+    @Post('getAllConvFromId')
+    async getAllConvFromId(
+        @Body()userIdDto: UserIdDto) {
+        console.log("get all conv called");
+        return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
     @Post('addChannel')
@@ -102,6 +105,7 @@ export class ChatController {
         }
     }
 
+
     @Get('isAdmin/:userId/:channelId')
     async isAdmin(
         @Param('userId') userId: number,
@@ -109,14 +113,17 @@ export class ChatController {
         return this.chatService.isAdmin(userId, channelId);
     }
 
+    @UseGuards(AdminGuard)
     @Post('kickUserFromChannel/:userId/:channelId/:callerId')
     async kickUserFromChannel(
         @Param('userId') userId: number,
         @Param('channelId') channelId: number,
         @Param('callerId') callerId: number): Promise<boolean> {
+        console.log("kick user called");
         return this.chatService.kickUserFromChannel(userId, channelId, callerId);
     }
 
+    @UseGuards(AdminGuard)
     @Post('banUserFromChannel/:userId/:channelId/:callerId')
     async banUserFromChannel(
         @Param('userId') userId: number,
@@ -176,27 +183,27 @@ export class ChatController {
 
     @Post('addUserToProtectedChannel')
     async addUserToProtectedChannel(
-        @Body() data: SignUpChannelDto): Promise<void>{
-            return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
-        }
+        @Body() data: SignUpChannelDto): Promise<void> {
+        return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
+    }
 
     @Post('isChannelNameExist')
     async isChannelNameExist(
-        @Body() channelNameDto: ChannelNameDto): Promise<isChannelExist | false>{
-            return this.chatService.isChannelNameExist(channelNameDto.channelName);
-        }
+        @Body() channelNameDto: ChannelNameDto): Promise<isChannelExist | false> {
+        return this.chatService.isChannelNameExist(channelNameDto.channelName);
+    }
 
     @Post('isUserIsBan')
     async isUserIsBan(
-        @Body() pair: PairUserIdChannelId): Promise<boolean>{
-            return this.chatService.isUserIsBan(pair.channelId, pair.userId);
-        }
+        @Body() pair: PairUserIdChannelId): Promise<boolean> {
+        return this.chatService.isUserIsBan(pair.channelId, pair.userId);
+    }
 
     @Post('blockUser')
     async blockUser(
-        @Body() pairId: pairUserId){
-            console.log('blockUser called');
-            console.log(pairId);
-            return this.chatService.blockUser(pairId.callerId, pairId.targetId);
-        }
+        @Body() pairId: pairUserId) {
+        console.log('blockUser called');
+        console.log(pairId);
+        return this.chatService.blockUser(pairId.callerId, pairId.targetId);
+    }
 }

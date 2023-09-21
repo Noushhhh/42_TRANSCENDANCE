@@ -358,11 +358,6 @@ export class ChatService {
         HttpStatus.FORBIDDEN);
     }
 
-    if (await this.isAdmin(callerId, channelId) === false) {
-      throw new HttpException("Only administrator can ban users",
-        HttpStatus.FORBIDDEN);
-    }
-
     if (await this.getNumberUsersInChannel(channelId) === 2) {
       await this.deleteAllMessagesInChannel(channelId);
       await this.prisma.channel.delete({
@@ -410,11 +405,6 @@ export class ChatService {
 
       if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
         throw new Error("Invalid arguments");
-      }
-
-      if (await this.isAdmin(callerId, channelId) === false) {
-        throw new HttpException("Only administrator can ban users",
-          HttpStatus.FORBIDDEN);
       }
 
       if (await this.isAdmin(userId, channelId) === true) {

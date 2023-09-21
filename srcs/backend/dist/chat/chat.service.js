@@ -342,9 +342,6 @@ let ChatService = class ChatService {
             if ((yield this.isAdmin(userId, channelId)) === true) {
                 throw new common_1.HttpException("You can't kick a channel Admin", common_1.HttpStatus.FORBIDDEN);
             }
-            if ((yield this.isAdmin(callerId, channelId)) === false) {
-                throw new common_1.HttpException("Only administrator can ban users", common_1.HttpStatus.FORBIDDEN);
-            }
             if ((yield this.getNumberUsersInChannel(channelId)) === 2) {
                 yield this.deleteAllMessagesInChannel(channelId);
                 yield this.prisma.channel.delete({
@@ -387,9 +384,6 @@ let ChatService = class ChatService {
             try {
                 if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
                     throw new Error("Invalid arguments");
-                }
-                if ((yield this.isAdmin(callerId, channelId)) === false) {
-                    throw new common_1.HttpException("Only administrator can ban users", common_1.HttpStatus.FORBIDDEN);
                 }
                 if ((yield this.isAdmin(userId, channelId)) === true) {
                     throw new common_1.HttpException("You can't ban a channel Admin", common_1.HttpStatus.FORBIDDEN);

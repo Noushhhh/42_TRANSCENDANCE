@@ -68,6 +68,7 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
+                console.log('signup calle');
                 return this.signToken(user.id, user.username, res);
                 // return user;
             }
@@ -115,21 +116,28 @@ let AuthService = class AuthService {
             });
             // Generate a refresh token
             const refreshToken = this.createRefreshToken(userId);
+            console.log('refresh token = ');
+            console.log(refreshToken);
+            console.log('token = ');
+            console.log(token);
             // Save refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'strict',
+                sameSite: 'none',
                 maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
             });
             // Existing JWT token cookie
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'strict',
+                sameSite: 'none',
                 maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
             });
             res.status(200).send({ message: 'Authentication successful' });
+            // return {
+            //     access_token: token
+            // }
         });
     }
     createRefreshToken(userId) {
@@ -138,16 +146,14 @@ let AuthService = class AuthService {
             const expiration = new Date();
             expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
             // Save refreshToken to database along with userId
-            /*await this.prisma.refreshToken.create({
+            yield this.prisma.refreshToken.create({
                 data: {
                     token: refreshToken,
                     userId: userId,
                     expiresAt: expiration
                 }
             });
-    
-            return refreshToken;*/
-            return "hey";
+            return refreshToken;
         });
     }
     checkTokenValidity(req, res) {

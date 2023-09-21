@@ -8,7 +8,6 @@ import { Response, Request } from 'express';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    @UseGuards(isAdmin)
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {

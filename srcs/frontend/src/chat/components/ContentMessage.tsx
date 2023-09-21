@@ -7,6 +7,7 @@ import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useSocketContext } from "../contexts/socketContext";
+import { useUserIdContext } from "../contexts/userIdContext";
 
 interface Message {
   id: number
@@ -20,16 +21,14 @@ interface Message {
 interface contentMessageProps{
     channelInfo: boolean;
     setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
-    simulatedUserId: number;
-    userId: number;
 }
 
-function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId } : contentMessageProps) {
+function ContentMessage( { channelInfo, setChannelInfo } : contentMessageProps) {
 
     // useState that represent all the messages inside the socket:
     const [messages, setMessages] = useState<Message[]>([]);
     
-    const channelId = useChannelIdContext;
+    const userId: number = useUserIdContext();
 
     const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
 
@@ -43,7 +42,7 @@ function ContentMessage( { channelInfo, setChannelInfo, simulatedUserId, userId 
         <div className={`ContentMessage ${contentMessageWidth}`}>
             <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo}/>
             <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} setMessages={setMessages}/>
-            <ChatPrompt simulatedUserId={simulatedUserId} addMessage={addMessage} />
+            <ChatPrompt simulatedUserId={userId} addMessage={addMessage} />
         </div>
     )   
 }

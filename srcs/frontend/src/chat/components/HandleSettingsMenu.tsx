@@ -28,7 +28,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const [searchBarResults, setSearchBarResults] = useState<boolean>(false);
     const [userList, setUserList] = useState<User[]>([]);
     const [inputValue, setInputValue] = useState<string>("");
-    const [listUserAdmin, setListUserAdmin] = useState<{user: User, isAdmin: boolean}[]>([]);
+    const [listUserAdmin, setListUserAdmin] = useState<{ user: User, isAdmin: boolean }[]>([]);
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     let isItDisplay: string = isSettingsMenuDisplay ? "isDisplay" : "isNotDisplay";
 
     const updateUserAdminList = (user: User): void => {
-        const updatedList: {user: User, isAdmin: boolean}[] = listUserAdmin.map(userAdmin => {
+        const updatedList: { user: User, isAdmin: boolean }[] = listUserAdmin.map(userAdmin => {
             if (userAdmin.user.id === user.id) {
                 return { ...userAdmin, isAdmin: !userAdmin.isAdmin };
             }
@@ -50,63 +50,60 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const backMenu = () => {
+        console.log("backkkk");
         setInputValue("");
         setSearchBarResults(false);
         setisSettingsMenuDisplay(false);
         setSettingsChannel(true);
         setUserList([]);
         setListUsersSearched([])
+        setError(null);
     }
 
     const fetchDataAdmins = async () => {
-        if (action === "admin"){
+        if (action === "admin") {
             try {
-                const userAdminTable: {user: User, isAdmin: boolean}[] = await fetchUserAdminTable(channelId);
+                const userAdminTable: { user: User, isAdmin: boolean }[] = await fetchUserAdminTable(channelId);
                 setListUserAdmin(userAdminTable);
-                listUserAdmin.forEach((item) => {
-                    console.log(item);
-                });
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
         };
     }
-      // Utilisez useEffect avec un tableau vide en tant que deuxième argument
-      // pour appeler fetchDataAdmins une seule fois au rendu initial du composant.
-      useEffect(() => {
+    // Utilisez useEffect avec un tableau vide en tant que deuxième argument
+    // pour appeler fetchDataAdmins une seule fois au rendu initial du composant.
+    useEffect(() => {
         fetchDataAdmins();
-      }, []);
+    }, []);
 
     const callAction = async () => {
         try {
-
-        if (action === "ban") {
-            // lorsque le channel fait 2 users et qu'on ban l'un des 2
-            // le client essaie de ban les 2 users mais le channel a deja
-            // ete detruit car il comportait plus que 1 user a la fin du 1er ban
-            await banUserList(userList, channelId, userId);
+            if (action === "ban") {
+                // lorsque le channel fait 2 users et qu'on ban l'un des 2
+                // le client essaie de ban les 2 users mais le channel a deja
+                // ete detruit car il comportait plus que 1 user a la fin du 1er ban
+                await banUserList(userList, channelId, userId);
+            }
+            else if (action === "kick") {
+                await kickUserList(userList, channelId, userId);
+            }
+            else if (action === "admin") {
+                await manageAdminsToChannel(listUserAdmin, channelId, userId);
+            }
+            else if (action === "add") {
+                await addUserListToChannel(userList, channelId);
+            }
+            else {
+                console.log("WIP");
+            }
+            setSearchBarResults(false);
+            setInputValue("");
+            setUserList([]);
+            await fetchUser(setChannelHeader, userId, socket);
         }
-        else if (action === "kick"){
-            await kickUserList(userList, channelId, userId);
+        catch (error: any) {
+            setError(error.message);
         }
-        else if (action === "admin"){
-            await manageAdminsToChannel(listUserAdmin, channelId, userId);
-        }
-        else if (action === "add"){
-            await addUserListToChannel(userList, channelId);
-        }
-        else {
-            console.log("WIP");
-        }
-        setSearchBarResults(false);
-        setInputValue("");
-        setUserList([]);
-        await fetchUser(setChannelHeader, userId, socket);
-    }
-    catch (error: any){
-        const errorMessage = error.message;
-        setError(error.message);
-    }
     }
 
     function checkIfAlreadyInList(usernameToCheck: string) {
@@ -121,7 +118,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const addUserToList = (user: User) => {
         if (action === "admin")
             return;
-        if (checkIfAlreadyInList(user.username)){
+        if (checkIfAlreadyInList(user.username)) {
             removeUserFromList(user);
             return;
         }
@@ -129,9 +126,9 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const removeUserFromList = (input: User) => {
-        if (action === "admin"){
+        if (action === "admin") {
             updateUserAdminList(input);
-            return ;
+            return;
         }
         setUserList((prevUserList) =>
             prevUserList.filter((username) => username !== input)
@@ -149,20 +146,20 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     else {
         return (
             <div className={`${isItDisplay}`}>
-                { error }
+                {error}
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
                 <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} action={action} />
                 <div className="ContainerPreviewUser">
-                    { action === "admin" ?
-                    listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => {
-                        return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user.user} />
-                    })
-                        : 
-                    (userList.map((user, index) => {
-                        return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
-                    }))}
+                    {action === "admin" ?
+                        listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => {
+                            return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user.user} />
+                        })
+                        :
+                        (userList.map((user, index) => {
+                            return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
+                        }))}
                 </div>
-               {<SearchBarResults 
+                {<SearchBarResults
                     inputValue={inputValue}
                     displayResults={searchBarResults}
                     showUserMenu={false}
@@ -171,15 +168,15 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                     listUserAdmin={listUserAdmin}
                     action={action}
                     setSearchBarResults={setSearchBarResults}
-                    updateUserAdminList={updateUserAdminList} 
+                    updateUserAdminList={updateUserAdminList}
                     fetchDataAdmins={fetchDataAdmins}
                     listUsersSearched={listUsersSearched}
-                    setListUsersSearched={setListUsersSearched}/>}
+                    setListUsersSearched={setListUsersSearched} />}
                 <div className="userList">
                 </div>
                 <h4>hande Settings Menu</h4>
-                <ValidationButton action={callAction} size={{height:50, width:50}}
-                                    position={{top:0, left:0}}/>
+                <ValidationButton action={callAction} size={{ height: 50, width: 50 }}
+                    position={{ top: 0, left: 0 }} />
                 {/* <div className="validationButton">
                     <DoneIcon onClick={callAction} className="icon" />
                 </div> */}
