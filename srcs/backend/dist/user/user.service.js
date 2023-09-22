@@ -36,34 +36,32 @@ let UserService = class UserService {
             throw new Error('JWT_SECRET environment variable not set!');
         }
     }
-    // ─────────────────────────────────────────────────────────────────────
-    clientFirstconnection(payload) {
+    // Function to check if user has been already registered
+    isClientRegistered(payload) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("passing by clientFirstConnection");
             try {
-                const user = yield this.prisma.user.findUnique({ where: { username: payload.email } });
+                const user = yield this.prisma.user.findUnique({ where: { username: payload === null || payload === void 0 ? void 0 : payload.email } });
                 if (user === null || user === void 0 ? void 0 : user.firstConnection) {
                     return ({
                         statusCode: 200,
                         valid: true,
-                        message: "User is already registred"
+                        message: "Client already registered"
                     });
                 }
                 else {
                     return ({
                         statusCode: 404,
                         valid: false,
-                        message: "User is not registered yet"
+                        message: "Client is not registered yet"
                     });
                 }
             }
             catch (error) {
-                console.log(error);
-                return ({
-                    statusCode: 400,
+                return {
+                    statusCode: 401,
                     valid: false,
-                    message: "Username not found"
-                });
+                    message: error
+                };
             }
         });
     }
@@ -72,10 +70,9 @@ let UserService = class UserService {
     handleProfileSetup(payload, profileName, profileImage) {
         return __awaiter(this, void 0, void 0, function* () {
             // Declare a variable to store the decoded JWT token
-            console.log("passing by handlePorfileSetup \n");
             const emailFromCookies = payload === null || payload === void 0 ? void 0 : payload.email;
-            const existingUser = this.prisma.user.findUnique({ where: { publicName: profileName } });
-            if (existingUser) {
+            const registeredUser = yield this.prisma.user.findUnique({ where: { publicName: profileName } });
+            if (registeredUser) {
                 return {
                     statusCode: 409,
                     valid: false,
@@ -89,7 +86,7 @@ let UserService = class UserService {
                 return {
                     statusCode: 404,
                     valid: false,
-                    message: 'username(email) not found',
+                    message: 'username not found',
                 };
             }
             // Get the file extension of the profile image
@@ -111,18 +108,29 @@ let UserService = class UserService {
                 };
             }
             // Update the user profile in the database using the PrismaService
-            const userProfile = yield this.prisma.user.update({
-                where: { id: user.id },
-                data: {
-                    publicName: profileName,
-                    avatar: filePath,
-                },
-            });
-            // Return the updated user profile
-            return {
-                statusCode: 200,
-                data: userProfile,
-            };
+            try {
+                yield this.prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        publicName: profileName,
+                        avatar: filePath,
+                        firstConnection: true
+                    },
+                });
+                // Return the updated user profile
+                return {
+                    statusCode: 200,
+                    valid: true,
+                    message: "Profile was successfully updated"
+                };
+            }
+            catch (error) {
+                return ({
+                    statusCode: 400,
+                    valid: false,
+                    message: error
+                });
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────

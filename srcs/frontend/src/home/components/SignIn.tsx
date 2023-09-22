@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
 
@@ -14,11 +15,13 @@ import GoBackButton from "../tools/GoBackButton";
  * @returns {JSX.Element} Rendered input field component.
  */
 /*************************************************************************** */
-const InputField: React.FC<{ type: string, value: string, 
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+const InputField: React.FC<{
+    type: string, value: string,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string
+}> =
     ({ type, value, onChange, placeholder }) => (
-    <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
-);
+        <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
+    );
 
 // ─────────────────────────────────────────────────────────────────────────────
 /*************************************************************************** */
@@ -69,6 +72,7 @@ const SignIn: React.FC = () => {
 
     // Hook for programmatic navigation.
     const navigate = useNavigate();
+    const checkFirstConnection = useCheckFirstConnection();
 
     // Event handler for the Sign In button click.
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -77,9 +81,11 @@ const SignIn: React.FC = () => {
 
         try {
             await signInAPI(email, password);  // Try to authenticate the user.
-            // navigate('/home');  // Navigate to home on successful authentication.
-            navigate('/userprofilesetup');  // Navigate to home on successful authentication
-
+            if (!checkFirstConnection) {
+                navigate('/userprofilesetup');  // Navigate to home on successful authentication
+            } else {
+                navigate('/home');  // Navigate to home on successful authentication.
+            }
         } catch (error) {
             // Error handling: differentiate between different error types and set appropriate error messages.
             if (error instanceof Error) {

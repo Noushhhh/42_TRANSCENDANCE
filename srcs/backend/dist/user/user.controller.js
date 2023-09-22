@@ -30,6 +30,8 @@ let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
+    // ─────────────────────────────────────────────────────────────────────
+    // update publicName and avatar
     createOrUpdateProfile(profileImage, req, decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!decodedPayload) {
@@ -37,10 +39,20 @@ let UserController = class UserController {
                 return res.status(401).json({ valid: false, message: "Unable to decode token in usermodule" });
             }
             const { profileName } = req.body;
-            // const userCookie = req.cookies['token'];
-            console.log("passing by user controller" + `\n decoded email: ${decodedPayload.email} \n profile name : ${profileName}\n`);
             const result = yield this.userService.handleProfileSetup(decodedPayload, profileName, profileImage);
-            return res.status(result === null || result === void 0 ? void 0 : result.statusCode).json({ valid: result.valid, message: result.message });
+            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+    //Check if client has already registered his publicName
+    checkFirstConnection(decodedPayload, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!decodedPayload) {
+                console.error('Unable to decode token in createOrUpdateProfile controller in user module\n');
+                return res.status(401).json({ valid: false, message: "Unable to decode token in usermodule" });
+            }
+            const result = yield this.userService.isClientRegistered(decodedPayload);
+            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
         });
     }
 };
@@ -56,6 +68,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createOrUpdateProfile", null);
+__decorate([
+    (0, common_1.Get)('isClientRegistered'),
+    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(1, (0, common_1.Response)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "checkFirstConnection", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

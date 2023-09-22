@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import useTokenExpired from "../tools/hooks/useTokenExpired";
-import SkeletonLoader from "../tools/SkeletonLoader";
+import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
 import { useSignOut } from "../tools/hooks/useSignOut";
+import SkeletonLoader from "../tools/SkeletonLoader";
 
 /**
  * This interface defines the expected props for the ProtectedRoute component.
@@ -29,6 +30,7 @@ const MIN_LOADING_TIME = 2000;
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     // Using a custom hook to check whether the token has expired or not.
     const tokenExpired = useTokenExpired();
+    const checkFirstConnection = useCheckFirstConnection();
 
     // Custom hook to logout user if token expired
     const handleSignOut = useSignOut();
@@ -53,8 +55,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         return <SkeletonLoader />;
     }
 
-    // If the token has expired, redirect the user to the sign-in page.
-    if (tokenExpired) {
+    // If the token has expired or if the client has had his first profile set up, redirect the user to the sign-in page.
+    if (tokenExpired || !checkFirstConnection) {
         handleSignOut();
         return <Navigate to='/signin' />;
     }
