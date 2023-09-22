@@ -24,7 +24,6 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const path_1 = require("path");
 const uuid_1 = require("uuid");
-const ClamScan = require('clamscan').ClamScan;
 // Define the UserService class and mark it as injectable using the @Injectable() decorator
 let UserService = class UserService {
     // Constructor initializes the PrismaService and JWT_SECRET
@@ -38,16 +37,33 @@ let UserService = class UserService {
         }
     }
     // ─────────────────────────────────────────────────────────────────────
-    clientFirstconnection(payload, res) {
+    clientFirstconnection(payload) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("passing by clientFirstConnection");
             try {
-                const user = this.prisma.user.findUnique({ where: { username: payload.email } });
-                if (user.)
-                    ;
+                const user = yield this.prisma.user.findUnique({ where: { username: payload.email } });
+                if (user === null || user === void 0 ? void 0 : user.firstConnection) {
+                    return ({
+                        statusCode: 200,
+                        valid: true,
+                        message: "User is already registred"
+                    });
+                }
+                else {
+                    return ({
+                        statusCode: 404,
+                        valid: false,
+                        message: "User is not registered yet"
+                    });
+                }
             }
             catch (error) {
-                return res.status(401).json({ valid: false, message: "Invalid Token" });
+                console.log(error);
+                return ({
+                    statusCode: 400,
+                    valid: false,
+                    message: "Username not found"
+                });
             }
         });
     }
@@ -58,10 +74,11 @@ let UserService = class UserService {
             // Declare a variable to store the decoded JWT token
             console.log("passing by handlePorfileSetup \n");
             const emailFromCookies = payload === null || payload === void 0 ? void 0 : payload.email;
-            const existingUser = this.prisma.user.findUnique({ where: { profileName: profileName } });
+            const existingUser = this.prisma.user.findUnique({ where: { publicName: profileName } });
             if (existingUser) {
                 return {
                     statusCode: 409,
+                    valid: false,
                     message: 'Username already exists',
                 };
             }
@@ -71,6 +88,7 @@ let UserService = class UserService {
             if (!user) {
                 return {
                     statusCode: 404,
+                    valid: false,
                     message: 'username(email) not found',
                 };
             }
@@ -88,6 +106,7 @@ let UserService = class UserService {
                 console.error(error);
                 return {
                     statusCode: 400,
+                    valid: false,
                     message: error,
                 };
             }
@@ -95,8 +114,8 @@ let UserService = class UserService {
             const userProfile = yield this.prisma.user.update({
                 where: { id: user.id },
                 data: {
-                    profileName: profileName,
-                    profileImageUrl: filePath,
+                    publicName: profileName,
+                    avatar: filePath,
                 },
             });
             // Return the updated user profile
@@ -110,21 +129,19 @@ let UserService = class UserService {
     // saveImageToLocalFolder method takes a file and a file path as arguments
     saveImageToLocalFolder(file, filePath) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Initialize ClamAV scanner
-            const clamscan = yield new ClamScan().init();
-            // Scan the uploaded file for viruses
-            const { is_infected } = yield clamscan.scan_file(file.path);
-            if (is_infected) {
-                throw new Error('The uploaded file contains a virus.');
+            try {
+                // Import the 'fs' module to work with the file system
+                const fs = require('fs');
+                // Create a write stream to write the file buffer to the specified file path
+                const writeStream = fs.createWriteStream(filePath);
+                // Write the file buffer to the write stream
+                writeStream.write(file.buffer);
+                // End the write stream
+                writeStream.end();
             }
-            // Import the 'fs' module to work with the file system
-            const fs = require('fs');
-            // Create a write stream to write the file buffer to the specified file path
-            const writeStream = fs.createWriteStream(filePath);
-            // Write the file buffer to the write stream
-            writeStream.write(file.buffer);
-            // End the write stream
-            writeStream.end();
+            catch (error) {
+                throw error;
+            }
         });
     }
 };

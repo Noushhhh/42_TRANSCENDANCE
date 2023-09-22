@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import {DecodedPayload } from '../auth/interfaces/decoded-payload.interface';
-const ClamScan = require('clamscan').ClamScan;
+import multer from 'multer';
 
 
 // Define the UserService class and mark it as injectable using the @Injectable() decorator
@@ -27,15 +27,41 @@ export class UserService {
 
   // ─────────────────────────────────────────────────────────────────────
 
-  async clientFirstconnection(payload: DecodedPayload, res: Response) {
+  async clientFirstconnection(payload: DecodedPayload) {
 
     console.log("passing by clientFirstConnection");
 
     try {
-      const user = this.prisma.user.findUnique({ where: { username: payload.email } })
-      if (user.)
+      const user = await this.prisma.user.findUnique({ where: { username: payload.email } })
+      if (user?.firstConnection){
+        return (
+          {
+            statusCode: 200,
+            valid: true,
+            message: "User is already registred"
+          }
+        )
+      }
+      else{
+        return (
+          {
+            statusCode: 404,
+            valid: false,
+            message: "User is not registered yet"
+          }
+        )
+      }
+
+
     } catch (error) {
-      return res.status(401).json({ valid: false, message: "Invalid Token" });
+      console.log(error);
+      return (
+        {
+          statusCode: 400,
+          valid: false,
+          message: "Username not found"
+        }
+      ) 
     }
   }
 
@@ -50,10 +76,11 @@ export class UserService {
     console.log("passing by handlePorfileSetup \n");
     const emailFromCookies = payload?.email;
 
-    const existingUser: any = this.prisma.user.findUnique({ where: { profileName: profileName } });
+    const existingUser: any = this.prisma.user.findUnique({ where: { publicName: profileName } });
     if (existingUser) {
       return {
         statusCode: 409,
+        valid: false,
         message: 'Username already exists',
       }
     }
@@ -65,6 +92,7 @@ export class UserService {
     if (!user) {
       return {
         statusCode: 404,
+        valid: false,
         message: 'username(email) not found',
       }
     }
@@ -85,6 +113,7 @@ export class UserService {
       console.error(error);
       return {
         statusCode: 400,
+        valid: false,
         message: error,
       }
     }   
@@ -93,8 +122,8 @@ export class UserService {
     const userProfile = await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        profileName: profileName,
-        profileImageUrl: filePath,
+        publicName: profileName,
+        avatar: filePath,
       },
     });
 
@@ -109,23 +138,19 @@ export class UserService {
 
   // saveImageToLocalFolder method takes a file and a file path as arguments
   private async saveImageToLocalFolder(file: Express.Multer.File, filePath: string): Promise<void> {
-
-    // Initialize ClamAV scanner
-    const clamscan = await new ClamScan().init();
-    // Scan the uploaded file for viruses
-    const { is_infected } = await clamscan.scan_file(file.path);
-    if (is_infected) {
-      throw new Error('The uploaded file contains a virus.');
+    try {
+      // Import the 'fs' module to work with the file system
+      const fs = require('fs');
+      // Create a write stream to write the file buffer to the specified file path
+      const writeStream = fs.createWriteStream(filePath);
+      // Write the file buffer to the write stream
+      writeStream.write(file.buffer);
+      // End the write stream
+      writeStream.end();
     }
-
-    // Import the 'fs' module to work with the file system
-    const fs = require('fs');
-    // Create a write stream to write the file buffer to the specified file path
-    const writeStream = fs.createWriteStream(filePath);
-    // Write the file buffer to the write stream
-    writeStream.write(file.buffer);
-    // End the write stream
-    writeStream.end();
+    catch (error) {
+      throw error;
+    }
   }
 }
 // import { Injectable } from "@nestjs/common";

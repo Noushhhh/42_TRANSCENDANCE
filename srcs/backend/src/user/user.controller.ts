@@ -27,15 +27,8 @@ export class UserController {
         const { profileName } = req.body;
         // const userCookie = req.cookies['token'];
         console.log("passing by user controller" + `\n decoded email: ${decodedPayload.email} \n profile name : ${profileName}\n`);
-        // return this.userService.handleProfileSetup(decodedToken, profileName, profileImage);
-        return res.status(200).json({valid: true, message: "Decorator is working propertly\n"});
+        const result = await this.userService.handleProfileSetup(decodedPayload, profileName, profileImage);
+        return res.status(result?.statusCode).json({valid: result.valid, message: result.message});
     }
 
-    @Get('checkToken')
-    async checkToken(req: Request)
-    {
-        console.log("passing by controller checkToken in user module\n" );
-        const tokenCookie = req.cookies['token'];
-        return this.userService.decodeToken(tokenCookie);
-    }
 }

@@ -13,7 +13,7 @@ if [ ! -d "node_modules" ]; then
     ncu -u 
     #install all dependencies from package.json
     echo "Installing all dependencies from package.json"
-    npm install
+    npm install --save
 fi
 
 echo "Running prisma migrations"

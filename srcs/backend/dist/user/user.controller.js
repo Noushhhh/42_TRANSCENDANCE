@@ -39,15 +39,8 @@ let UserController = class UserController {
             const { profileName } = req.body;
             // const userCookie = req.cookies['token'];
             console.log("passing by user controller" + `\n decoded email: ${decodedPayload.email} \n profile name : ${profileName}\n`);
-            // return this.userService.handleProfileSetup(decodedToken, profileName, profileImage);
-            return res.status(200).json({ valid: true, message: "Decorator is working propertly\n" });
-        });
-    }
-    checkToken(req) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("passing by controller checkToken in user module\n");
-            const tokenCookie = req.cookies['token'];
-            return this.userService.decodeToken(tokenCookie);
+            const result = yield this.userService.handleProfileSetup(decodedPayload, profileName, profileImage);
+            return res.status(result === null || result === void 0 ? void 0 : result.statusCode).json({ valid: result.valid, message: result.message });
         });
     }
 };
@@ -63,12 +56,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createOrUpdateProfile", null);
-__decorate([
-    (0, common_1.Get)('checkToken'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "checkToken", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])
