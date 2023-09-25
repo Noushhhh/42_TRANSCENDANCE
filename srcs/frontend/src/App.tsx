@@ -6,19 +6,10 @@ import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import {
-  Welcome,
-  SignIn,
-  SignUp,
-  AuthChoise,
-  HomePage,
-  Settings,
-  ProtectedRoute,
-  Friends,
-  Stats,
-  Chat,
-  useActivityLogout,
-} from "./home/components/index";
-import "./App.css";
+  Welcome, SignIn, SignUp, AuthChoice, HomePage, Settings,
+  ProtectedRoute, Friends, Stats, Chat, useActivityLogout
+} from './home/components/index'
+import './App.css'
 
 {
   /* <Navbar /> */
@@ -34,22 +25,23 @@ import "./App.css";
 }
 
 const App: React.FC = () => {
-  useActivityLogout();
-  return (
-    // <Routes>
-    //     <Route path="/" element={<Welcome />} />
-    //     <Route path="/signin" element={<SignIn />} />
-    //     <Route path="/signup" element={<SignUp />} />
-    //     <Route path="/authchoise" element={<AuthChoise />} />
-    //     <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
-    //         <Route path="chat" element={<ChatBoxContainer />} />
-    //         <Route path="friends" element={<Friends />} />
-    //         <Route path="stats" element={<Stats />} />
-    //         <Route path="settings" element={<Settings />} />
-    //         <Route path="game" element={<GameContainer />} />
-    //     </Route>
-    // </Routes>
-    <GameContainer />
-  );
-};
+    useActivityLogout();
+    return (
+            <Routes>
+                <Route path="/" element={<Welcome />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                {/* correct auth instead of authchoice */}
+                <Route path="/authchoice" element={<AuthChoice />} /> 
+                <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
+                  {/* add here incremented route if user first connexion can access only user settings page */}
+                    <Route path="chat" element={<ChatBoxContainer />} />
+                    <Route path="friends" element={<Friends />} />
+                    <Route path="stats" element={<Stats />} />
+                    <Route path="settings" element={<Settings />} />
+                    {/* <Route path="game" element={<GameContainer />} /> */}
+                </Route>
+            </Routes>
+    );
+}
 export default App;

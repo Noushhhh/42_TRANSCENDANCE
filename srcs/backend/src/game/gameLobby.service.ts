@@ -4,7 +4,7 @@ import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
 import { SocketService } from '../socket/socket.service';
 import { GameState } from './gameState';
-import { SocketEvents } from '../socket/socketEvents';
+import { SocketEvents } from '../socket/SocketEvents';
 
 @Injectable()
 export class GameLobbyService {

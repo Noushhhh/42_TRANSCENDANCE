@@ -1,20 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/HeaderChatBox.css"
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import IsConnected from "./isConnected";
 import "../types/channel.type";
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface HeaderChatBoxProps {
-    channelHeader: Channel[];
-    channelId: number;
+    channelInfo: boolean;
+    setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
+function HeaderChatBox({ channelInfo, setChannelInfo }: HeaderChatBoxProps) {
+
+    const channelHeader = useChannelHeaderContext();
+
+    const channelId = useChannelIdContext();
 
     const handleSettingsClick = () => {
-        console.log("clicked");
+        setChannelInfo(!channelInfo);
     }
 
     var i: number = 0;
@@ -29,11 +34,7 @@ function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
             <div className="HeaderChatBox">
                 <div className="ContactName">
                     <span className="ArrowBackPhone"><ArrowBackIosIcon /></span>
-                    <RadioButtonUncheckedIcon />
-                    <p>loading...</p>
-                </div>
-                <div className="HeaderChatBoxLogo">
-                    <SettingsIcon />
+                    <p>Select a channel...</p>
                 </div>
             </div>
         )
@@ -47,7 +48,7 @@ function HeaderChatBox({ channelHeader, channelId }: HeaderChatBoxProps) {
                     <p>{channelHeader[i].name}</p>
                 </div>
                 <div className="HeaderChatBoxLogo">
-                    <button className="settingsButton" onClick={handleSettingsClick}><SettingsIcon/></button>
+                    <button className="showSettingsMenu" onClick={handleSettingsClick}><SettingsIcon/></button>
                 </div>
             </div>
         )

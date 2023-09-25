@@ -1,6 +1,6 @@
 export { default as Welcome } from './Welcome';
 export { default as SignIn } from './SignIn';
-export { default as AuthChoise } from './AuthChoise';
+export { default as AuthChoice } from './AuthChoice';
 export { default as HomePage } from './HomePage';
 export { default as Settings } from './Settings';
 export { default as ProtectedRoute } from './ProtectedRoute';

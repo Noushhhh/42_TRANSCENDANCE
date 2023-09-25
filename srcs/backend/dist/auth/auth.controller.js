@@ -25,6 +25,7 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
+// import { AuthGuard } from '@nestjs/passport';
 const public_decorators_1 = require("../decorators/public.decorators");
 let AuthController = class AuthController {
     constructor(authService) {
@@ -40,7 +41,7 @@ let AuthController = class AuthController {
             return this.authService.signin(dto, res);
         });
     }
-    checkTokenValiity(req, res) {
+    checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("passing by checkTokenValidity");
             return this.authService.checkTokenValidity(req, res);
@@ -49,6 +50,29 @@ let AuthController = class AuthController {
     signout(res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.signout(res);
+        });
+    }
+    // change name to 42-callback 
+    // @Public()
+    // @Get('42Url')
+    // async get42Url() {
+    //     // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
+    //     const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
+    //     return (url);
+    // }
+    handle42Callback(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield this.authService.signToken42(req, res);
+                // implement revesre proxy
+                res.redirect('http://localhost:8081/home');
+                // res.redirect('');
+            }
+            catch (error) {
+                console.error(error);
+                // Handle errors here and redirect as needed
+                res.redirect('/error2');
+            }
         });
     }
 };
@@ -78,7 +102,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "checkTokenValiity", null);
+], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
     (0, common_1.Get)('signout'),
     __param(0, (0, common_1.Res)()),
@@ -86,6 +110,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
+__decorate([
+    (0, common_1.Get)('token'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "handle42Callback", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

@@ -6,7 +6,7 @@ const GoBackButton: React.FC = () => {
     const navigate = useNavigate();
 
     const handleButton = () => {
-        navigate('/authchoise');
+        navigate('/authchoice');
     }
 
     return (
