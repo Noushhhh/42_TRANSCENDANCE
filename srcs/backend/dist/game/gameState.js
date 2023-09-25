@@ -10,6 +10,7 @@ exports.GameState = exports.paddleGap = void 0;
 const common_1 = require("@nestjs/common");
 const data_1 = require("./data");
 const RAY_LENGHT = (15 + 20) / 1200;
+const BALL_SIZE = 20 / 1200.0;
 exports.paddleGap = 0.1 / 10;
 let GameState = class GameState {
     constructor() {
@@ -24,22 +25,28 @@ let GameState = class GameState {
         this.gameState = {
             p1pos: {
                 x: exports.paddleGap,
-                y: 0.5 - data_1.gameConfig.paddleHeight / 2,
+                y: (0.5) - data_1.gameConfig.paddleHeight / 2,
             },
             p2pos: {
                 x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
-                y: 0.5 - data_1.gameConfig.paddleHeight / 2,
+                y: (0.5) - data_1.gameConfig.paddleHeight / 2,
             },
             ballState: {
-                ballDirection: 'left',
+                ballDirection: 'right',
                 ballDX: 0,
                 ballDY: 0,
                 ballPos: {
-                    x: 0.5,
-                    y: 0.5,
+                    x: 0.5 - BALL_SIZE / 2,
+                    y: 0.5 - BALL_SIZE / 2,
                 },
             },
-            ballRay: {
+            ballRayUp: {
+                x1: 0.5,
+                y1: 0.5,
+                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
+                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
+            },
+            ballRayDown: {
                 x1: 0.5,
                 y1: 0.5,
                 x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),

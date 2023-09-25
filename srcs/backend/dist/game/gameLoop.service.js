@@ -15,7 +15,8 @@ const gameLogic_service_1 = require("./gameLogic.service");
 const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const data_1 = require("./data");
-const RAY_LENGHT = 15 + 20;
+const RAY_LENGHT = 35 / 1200;
+const BALL_SIZE = 20 / 1200.0;
 const moveSpeed = 6 / 800.0;
 let GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
@@ -27,24 +28,47 @@ let GameLoopService = class GameLoopService {
         // printGameData() {
         //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
         // }
-        // private updateRay = () => {
-        //   this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
-        //   this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
-        //   if (this.gameState.ballState.ballDirection === 'right') {
-        //     this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-        //     this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-        //     return;
-        //   }
-        //   this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-        //   this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-        // }
+        this.updateRayUp = (gameState) => {
+            if (gameState.gameState.ballState.ballDirection === 'right') {
+                gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
+                gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
+                gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+                gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+                return gameState.gameState.ballRayUp;
+            }
+            else {
+                gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x;
+                gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
+                gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+                gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+                return gameState.gameState.ballRayUp;
+            }
+        };
+        this.updateRayDown = (gameState) => {
+            if (gameState.gameState.ballState.ballDirection === 'right') {
+                gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
+                gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
+                gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+                gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
+                return gameState.gameState.ballRayDown;
+            }
+            else {
+                gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x;
+                gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
+                gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+                gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
+                return gameState.gameState.ballRayDown;
+            }
+        };
         this.updateBall = () => {
             for (const [key, lobby] of lobbies_1.lobbies) {
                 if (lobby.gameState.gameState.isPaused === true)
                     continue;
-                const ballState = this.gameLogicService.ballMove(lobby.gameState.gameState.ballState.ballDirection, lobby.gameState.gameState.ballState.ballPos, lobby.gameState.gameState.p1pos, lobby.gameState.gameState.p2pos, lobby.gameState.gameState.ballState.ballDX, lobby.gameState.gameState.ballState.ballDY, lobby.gameState.gameState.score, lobby.gameState.gameState.ballRay);
+                const ballState = this.gameLogicService.ballMove(lobby.gameState.gameState.ballState.ballDirection, lobby.gameState.gameState.ballState.ballPos, lobby.gameState.gameState.p1pos, lobby.gameState.gameState.p2pos, lobby.gameState.gameState.ballState.ballDX, lobby.gameState.gameState.ballState.ballDY, lobby.gameState.gameState.score, lobby.gameState.gameState.ballRayUp);
                 if (ballState) {
                     lobby.gameState.gameState.ballState = ballState;
+                    lobby.gameState.gameState.ballRayUp = this.updateRayUp(lobby.gameState);
+                    lobby.gameState.gameState.ballRayDown = this.updateRayDown(lobby.gameState);
                 }
                 const score = ballState === null || ballState === void 0 ? void 0 : ballState.scoreBoard;
                 if (score)
@@ -52,6 +76,10 @@ let GameLoopService = class GameLoopService {
             }
         };
         this.gameLoopRunning = false;
+    }
+    onModuleInit() {
+        this.updateBall();
+        this.updateGameState();
     }
     startGameLoop() {
         if (this.gameLoopRunning) {

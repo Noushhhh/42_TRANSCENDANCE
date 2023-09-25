@@ -15,10 +15,8 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   const rect2Ref = useRef<Konva.Rect>(null);
   const keyState = useRef<{ [key: string]: boolean }>({});
 
-  const playerPosRef = useRef<Vector2d[]>([]);
-  const [render, setRender] = useState<boolean>(true);
-
   useEffect(() => {
+    initPlayersSize();
     socket.on("updateGameState", (gameState: data.GameState) => {
       const normP1Pos: Vector2d = {
         x: gameState.p1pos.x * gameConfig.konvaWidth,
@@ -33,40 +31,34 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
       updateP2pos(normP2Pos);
     });
 
-    // socket.on(
-    //   "receivePlayersPos",
-    //   (playersPos: [{ x: number; y: number }, { x: number; y: number }]) => {
-    //     console.log("je log ici", playersPos);
-    //     const playersPosData = [
-    //       { x: playersPos[0].x, y: playersPos[0].y },
-    //       { x: playersPos[1].x, y: playersPos[1].y },
-    //     ];
-    //     playerPosRef.current = playersPosData;
-    //   }
-    // );
-
     return () => {
       socket.off("updateGameState");
-      // socket.off("receivePlayersPos");
     };
   }, [socket]);
 
   useEffect(() => {
-    setRender((current) => !current);
     window.addEventListener("resize", resizeEvent);
 
     return () => {
       window.removeEventListener("resize", resizeEvent);
     };
-  }, []);
-
-  const getPlayerPos = () => {
-    socket.emit("sendPlayersPos");
-  };
+  });
 
   const resizeEvent = () => {
-    getPlayerPos();
-    console.log("gameConfig: ", gameConfig);
+    socket.emit("requestGameState");
+  };
+
+  const initPlayersSize = () => {
+    const initP1Pos: Vector2d = {
+      x: 10,
+      y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+    };
+    const initP2Pos: Vector2d = {
+      x: gameConfig.konvaWidth - 10 - gameConfig.paddleWidth,
+      y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+    };
+    updateP1pos(initP1Pos);
+    updateP2pos(initP2Pos);
   };
 
   const updateP1pos = (pos: Vector2d) => {
