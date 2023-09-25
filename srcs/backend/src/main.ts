@@ -13,7 +13,7 @@ async function bootstrap() {
 
   const corsOptions: CorsOptions = {
     // changed to 8081 to be able to fetch the api. was 8080 before
-    origin: 'http://localhost:8081', 
+    origin: 'http://localhost:8081',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
     optionsSuccessStatus: 200,

@@ -52,13 +52,13 @@ let AuthController = class AuthController {
         });
     }
     // change name to 42-callback 
-    // @Public()
-    // @Get('42Url')
-    // async get42Url() {
-    //     // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
-    //     const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
-    //     return (url);
-    // }
+    get42Url() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
+            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
+            return (url);
+        });
+    }
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -107,6 +107,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
+__decorate([
+    (0, public_decorators_1.Public)(),
+    (0, common_1.Get)('42Url'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "get42Url", null);
 __decorate([
     (0, common_1.Get)('token'),
     __param(0, (0, common_1.Req)()),

@@ -277,7 +277,6 @@ export class AuthService {
           console.log('User already exists:', existingUser);
         //   return "User already exists";
             existingUser.firstConnexion = false;
-            // this.signToken(existingUser.id, existingUser.username, res);
             return existingUser;
         }
       
