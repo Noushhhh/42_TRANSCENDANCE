@@ -32,29 +32,29 @@ let GameLogicService = class GameLogicService {
                 // Touch left paddle condition
                 if ((normBallX > gameState_1.paddleGap + normPaddleWidth &&
                     normBallX < gameState_1.paddleGap + normPaddleWidth + ballRadius &&
-                    normBallY > normP1Y - ballRadius &&
-                    normBallY < normP1Y + ballRadius + normPaddleHeight)) {
-                    const touch = normP1Y + normPaddleHeight / 2 - normBallY;
+                    normBallY + ballSize / 2 > normP1Y - ballRadius &&
+                    normBallY + ballSize / 2 < normP1Y + ballRadius + normPaddleHeight)) {
+                    const touch = normP1Y + normPaddleHeight / 2 - normBallY + ballSize / 2;
                     const normalizedTouch = touch / (normPaddleHeight / 2);
-                    const velocity = normalizedTouch * (Math.PI / 2);
+                    const velocity = normalizedTouch * (Math.PI);
                     ballDX = Math.cos(velocity) * ballSpeed;
                     ballDY = -Math.sin(velocity) * ballSpeed;
                     ballDirection = 'right';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
                 // Touch top condition
-                else if (normBallY < (0 + gameState_1.paddleGap)) {
+                else if (normBallY < (0)) {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - gameState_1.paddleGap)) {
+                else if (normBallY > (1 - ballSize)) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
                 if (ballPos.x < 0) {
                     // left paddle scored
-                    ballPos.x = 0.5;
-                    ballPos.y = 0.5;
+                    ballPos.x = 0.5 - ballSize / 2;
+                    ballPos.y = 0.5 - ballSize / 2;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p1Score += 1;
@@ -80,31 +80,31 @@ let GameLogicService = class GameLogicService {
                 //   return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 // }
                 // @todo have to create a variable for the 30
-                if ((normBallX + ballSize > (1 - data_1.gameConfig.paddleWidth - ballRadius) &&
-                    normBallX + ballSize < (1 - data_1.gameConfig.paddleWidth - gameState_1.paddleGap) &&
-                    normBallY >= normP2Y - ballRadius &&
-                    normBallY <= normP2Y + ballRadius + normPaddleHeight)) {
-                    const touch = p2Pos.y + data_1.gameConfig.paddleHeight / 2 - ballPos.y;
+                if ((normBallX + ballSize > (1 - normPaddleWidth - gameState_1.paddleGap) &&
+                    // normBallX + ballSize < (1 - gameConfig.paddleWidth - paddleGap) &&
+                    normBallY + ballSize / 2 >= normP2Y &&
+                    normBallY + ballSize / 2 <= normP2Y + normPaddleHeight)) {
+                    const touch = p2Pos.y + data_1.gameConfig.paddleHeight / 2 - ballPos.y + ballSize / 2;
                     const normalizedTouch = touch / data_1.gameConfig.paddleHeight;
-                    const velocity = -(normalizedTouch * (Math.PI / 2));
+                    const velocity = -(normalizedTouch * (Math.PI));
                     ballDX = Math.cos(velocity) * ballSpeed;
                     ballDY = -Math.sin(velocity) * ballSpeed;
                     ballDirection = 'left';
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
                 }
                 // Touch top condition
-                else if (normBallY < (0 + gameState_1.paddleGap)) {
+                else if (normBallY < 0) {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - gameState_1.paddleGap)) {
+                else if (normBallY > (1 - ballSize)) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
                 if (ballPos.x > 1) {
                     // right paddle scored
-                    ballPos.x = 0.5;
-                    ballPos.y = 0.5;
+                    ballPos.x = 0.5 - ballSize / 2;
+                    ballPos.y = 0.5 - ballSize / 2;
                     ballDX = 0;
                     ballDY = 0;
                     scoreBoard.p2Score += 1;

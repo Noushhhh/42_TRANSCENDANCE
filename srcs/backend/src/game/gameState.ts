@@ -46,8 +46,8 @@ export class GameState {
       ballDX: 0,
       ballDY: 0,
       ballPos: {
-        x: 0.5,
-        y: 0.5,
+        x: 0.5 - BALL_SIZE / 2,
+        y: 0.5 - BALL_SIZE / 2,
       },
     },
     ballRayUp: {

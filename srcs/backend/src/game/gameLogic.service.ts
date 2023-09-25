@@ -18,6 +18,7 @@ export class GameLogicService {
   //   console.log("GameConfig in gameLoop: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
   // }
 
+
   ballMove = (
     ballDirection: string,
     ballPos: Vector2d,
@@ -45,12 +46,12 @@ export class GameLogicService {
       if (
         (normBallX > paddleGap + normPaddleWidth &&
           normBallX < paddleGap + normPaddleWidth + ballRadius &&
-          normBallY > normP1Y - ballRadius &&
-          normBallY < normP1Y + ballRadius + normPaddleHeight)
+          normBallY + ballSize / 2 > normP1Y - ballRadius &&
+          normBallY + ballSize / 2 < normP1Y + ballRadius + normPaddleHeight)
       ) {
-        const touch = normP1Y + normPaddleHeight / 2 - normBallY;
+        const touch = normP1Y + normPaddleHeight / 2 - normBallY + ballSize / 2;
         const normalizedTouch = touch / (normPaddleHeight / 2);
-        const velocity = normalizedTouch * (Math.PI / 2);
+        const velocity = normalizedTouch * (Math.PI);
         ballDX = Math.cos(velocity) * ballSpeed;
         ballDY = -Math.sin(velocity) * ballSpeed;
 
@@ -58,17 +59,17 @@ export class GameLogicService {
         return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
       // Touch top condition
-      else if (normBallY < (0 + paddleGap)) {
+      else if (normBallY < (0)) {
         ballDY = -ballDY;
         // Touch bot condition
-      } else if (normBallY > (1 - paddleGap)) {
+      } else if (normBallY > (1 - ballSize)) {
         ballDY = -ballDY;
       }
       // If the ball go after the left paddle
       if (ballPos.x < 0) {
         // left paddle scored
-        ballPos.x = 0.5;
-        ballPos.y = 0.5;
+        ballPos.x = 0.5 - ballSize / 2;
+        ballPos.y = 0.5 - ballSize / 2;
         ballDX = 0;
         ballDY = 0;
         scoreBoard.p1Score += 1;
@@ -94,32 +95,32 @@ export class GameLogicService {
       // }
       // @todo have to create a variable for the 30
       if (
-        (normBallX + ballSize > (1 - gameConfig.paddleWidth - ballRadius) &&
-          normBallX + ballSize < (1 - gameConfig.paddleWidth - paddleGap) &&
-          normBallY >= normP2Y - ballRadius &&
-          normBallY <= normP2Y + ballRadius + normPaddleHeight)
+        (normBallX + ballSize > (1 - normPaddleWidth - paddleGap) &&
+          // normBallX + ballSize < (1 - gameConfig.paddleWidth - paddleGap) &&
+          normBallY + ballSize / 2 >= normP2Y &&
+          normBallY + ballSize / 2 <= normP2Y + normPaddleHeight)
       ) {
-        const touch = p2Pos.y + gameConfig.paddleHeight / 2 - ballPos.y;
+        const touch = p2Pos.y + gameConfig.paddleHeight / 2 - ballPos.y + ballSize / 2;
         const normalizedTouch = touch / gameConfig.paddleHeight;
-        const velocity = -(normalizedTouch * (Math.PI / 2));
+        const velocity = -(normalizedTouch * (Math.PI));
         ballDX = Math.cos(velocity) * ballSpeed;
         ballDY = -Math.sin(velocity) * ballSpeed;
-
+ 
         ballDirection = 'left';
         return { ballDirection, ballDX, ballDY, ballPos, scoreBoard };
       }
       // Touch top condition
-      else if (normBallY < (0 + paddleGap)) {
+      else if (normBallY < 0) {
         ballDY = -ballDY;
         // Touch bot condition
-      } else if (normBallY > (1 - paddleGap)) {
+      } else if (normBallY > (1 - ballSize)) {
         ballDY = -ballDY;
       }
       // If the ball go after the left paddle
       if (ballPos.x > 1) {
         // right paddle scored
-        ballPos.x = 0.5;
-        ballPos.y = 0.5;
+        ballPos.x = 0.5 - ballSize / 2;
+        ballPos.y = 0.5 - ballSize / 2;
         ballDX = 0;
         ballDY = 0;
         scoreBoard.p2Score += 1;
