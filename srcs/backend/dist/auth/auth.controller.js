@@ -54,8 +54,7 @@ let AuthController = class AuthController {
     // change name to 42-callback 
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
-            // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
-            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
+            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
             return (url);
         });
     }
