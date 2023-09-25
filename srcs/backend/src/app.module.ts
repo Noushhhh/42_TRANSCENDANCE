@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { BookmarkModule } from './bookmark/bookmark.module';
 import { SocketModule } from './socket/SocketModule';
 // import { PrismaModule } from './prisma/prisma.module';
 import { ChatController } from './chat/chat.controller';
@@ -21,7 +20,6 @@ import { SocketService } from './socket/socket.service';
   imports: [
     AuthModule,
     UserModule,
-    BookmarkModule,
     ConfigModule.forRoot({}),
     SocketModule,
     ChatModule,

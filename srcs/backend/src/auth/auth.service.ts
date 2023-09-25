@@ -67,12 +67,12 @@ export class AuthService {
 
     async signToken(
         userId: number,
-        email: string,
+        username: string,
         res: Response
     ): Promise<void> {
         const payload = {
             sub: userId,
-            email,
+            username,
         };
         const secret = this.JWT_SECRET;
         const token = await this.jwt.signAsync(
@@ -150,25 +150,82 @@ export class AuthService {
         }
     }    
 
-    async signToken42(@Req() req: any) {
-        const code = req.query['code'];
-        try {
-          const token = await this.exchangeCodeForToken(code);
-          if (token) {
-            const userInfo = await this.getUserInfo(token);
-            const user = await this.createUser(userInfo);
-            return user;
-          } else {
-            console.error('Failed to fetch access token');
-            // Handle errors here
-            throw new Error('Failed to fetch access token');
-          }
-        } catch (error) {
-          console.error('Error in signToken42:', error);
-          throw error;
-        }
-      }
+    // async signToken42(@Req() req: any, res: Response) {
+    //     const code = req.query['code'];
+    //     try {
+    //       const token = await this.exchangeCodeForToken(code);
+    //       if (token) {
+    //         {
+    //           const userInfo = await this.getUserInfo(token);
+    //           const user = await this.createUser(userInfo, res);
+    //           return this.signToken(user.id, user.username, res);
+    //           // return user;
+    //         // if (user) {
+    //         //     return this.signToken(user.id, user.username, res);
+    //         //     // You may return the JWT token or any other response data as needed.
+    //         // } else {
+    //         //     // Handle user creation error
+    //         // }
+    //         }
+    //       } else {
+    //         console.error('Failed to fetch access token');
+    //         // Handle errors here
+    //         throw new Error('Failed to fetch access token');
+    //       }
+    //     } catch (error) {
+    //       console.error('Error in signToken42:', error);
+    //       throw new Error('Failed to fetch sign Token 42');
+    //     }
+    //   }
       
+
+    async signToken42(@Req() req: any, res: Response) {
+      try {
+          const code = req.query['code'];
+          const token = await this.exchangeCodeForToken(code);
+          if (!token) {
+              console.error('Failed to fetch access token');
+              throw new Error('Failed to fetch access token');
+          }
+          const userInfo = await this.getUserInfo(token);
+          const user = await this.createUser(userInfo, res);
+  
+          // Set both JWT token and refresh token as cookies
+          const payload = {
+              sub: user.id,
+              username: user.username,
+          };
+          const secret = this.JWT_SECRET;
+          const jwtToken = await this.jwt.signAsync(payload, {
+              expiresIn: '15m',
+              secret: secret,
+          });
+  
+          const refreshToken = this.createRefreshToken(user.id);
+  
+          res.cookie('token', jwtToken, {
+              httpOnly: true,
+              secure: true,
+              sameSite: 'strict',
+              maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+          });
+  
+          res.cookie('refreshToken', refreshToken, {
+              httpOnly: true,
+              secure: true,
+              sameSite: 'strict',
+              maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+          });
+  
+          // Redirect the user to the desired URL after successful authentication
+          res.redirect('http://localhost:8081/home');
+      } catch (error) {
+          console.error('Error in signToken42:', error);
+          // Handle errors here, e.g., return an error response
+          res.status(500).send({ message: 'Internal Server Error' });
+      }
+  }
+  
       async exchangeCodeForToken(code: string): Promise<string | null> {
         try {
           const response = await this.sendAuthorizationCodeRequest(code);
@@ -209,7 +266,7 @@ export class AuthService {
         });
       }
       
-      async createUser(userInfo: any): Promise<User> {
+      async createUser(userInfo: any, res: Response): Promise<User> {
         const existingUser = await this.prisma.user.findUnique({
           where: {
             id: userInfo.id,
@@ -219,6 +276,8 @@ export class AuthService {
         if (existingUser) {
           console.log('User already exists:', existingUser);
         //   return "User already exists";
+            existingUser.firstConnexion = false;
+            // this.signToken(existingUser.id, existingUser.username, res);
             return existingUser;
         }
       
@@ -234,7 +293,6 @@ export class AuthService {
             data: {
                 id: userInfo.id,
                 hashPassword: this.generateRandomPassword(),
-                // login: userInfo.login,
                 username: userInfo.login,
                 avatar: userInfo.image.link,
             },

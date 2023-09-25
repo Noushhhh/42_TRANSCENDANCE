@@ -105,11 +105,11 @@ let AuthService = class AuthService {
             return this.signToken(user.id, user.username, res);
         });
     }
-    signToken(userId, email, res) {
+    signToken(userId, username, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 sub: userId,
-                email,
+                username,
             };
             const secret = this.JWT_SECRET;
             const token = yield this.jwt.signAsync(payload, {
@@ -177,25 +177,74 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    signToken42(req) {
+    // async signToken42(@Req() req: any, res: Response) {
+    //     const code = req.query['code'];
+    //     try {
+    //       const token = await this.exchangeCodeForToken(code);
+    //       if (token) {
+    //         {
+    //           const userInfo = await this.getUserInfo(token);
+    //           const user = await this.createUser(userInfo, res);
+    //           return this.signToken(user.id, user.username, res);
+    //           // return user;
+    //         // if (user) {
+    //         //     return this.signToken(user.id, user.username, res);
+    //         //     // You may return the JWT token or any other response data as needed.
+    //         // } else {
+    //         //     // Handle user creation error
+    //         // }
+    //         }
+    //       } else {
+    //         console.error('Failed to fetch access token');
+    //         // Handle errors here
+    //         throw new Error('Failed to fetch access token');
+    //       }
+    //     } catch (error) {
+    //       console.error('Error in signToken42:', error);
+    //       throw new Error('Failed to fetch sign Token 42');
+    //     }
+    //   }
+    signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const code = req.query['code'];
             try {
+                const code = req.query['code'];
                 const token = yield this.exchangeCodeForToken(code);
-                if (token) {
-                    const userInfo = yield this.getUserInfo(token);
-                    const user = yield this.createUser(userInfo);
-                    return user;
-                }
-                else {
+                if (!token) {
                     console.error('Failed to fetch access token');
-                    // Handle errors here
                     throw new Error('Failed to fetch access token');
                 }
+                const userInfo = yield this.getUserInfo(token);
+                const user = yield this.createUser(userInfo, res);
+                // Set both JWT token and refresh token as cookies
+                const payload = {
+                    sub: user.id,
+                    username: user.username,
+                };
+                const secret = this.JWT_SECRET;
+                const jwtToken = yield this.jwt.signAsync(payload, {
+                    expiresIn: '15m',
+                    secret: secret,
+                });
+                const refreshToken = this.createRefreshToken(user.id);
+                res.cookie('token', jwtToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+                });
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+                });
+                // Redirect the user to the desired URL after successful authentication
+                res.redirect('http://localhost:8081/home');
             }
             catch (error) {
                 console.error('Error in signToken42:', error);
-                throw error;
+                // Handle errors here, e.g., return an error response
+                res.status(500).send({ message: 'Internal Server Error' });
             }
         });
     }
@@ -245,7 +294,7 @@ let AuthService = class AuthService {
             });
         });
     }
-    createUser(userInfo) {
+    createUser(userInfo, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
                 where: {
@@ -255,6 +304,8 @@ let AuthService = class AuthService {
             if (existingUser) {
                 console.log('User already exists:', existingUser);
                 //   return "User already exists";
+                existingUser.firstConnexion = false;
+                // this.signToken(existingUser.id, existingUser.username, res);
                 return existingUser;
             }
             try {
@@ -270,7 +321,6 @@ let AuthService = class AuthService {
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
-                        // login: userInfo.login,
                         username: userInfo.login,
                         avatar: userInfo.image.link,
                     },
@@ -303,7 +353,7 @@ exports.AuthService = AuthService;
 __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([
