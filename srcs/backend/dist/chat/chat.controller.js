@@ -188,7 +188,11 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
 <<<<<<< HEAD
+<<<<<<< HEAD
     __metadata("design:paramtypes", [typeof (_a = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _a : Object]),
+=======
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+>>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
 >>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
@@ -383,7 +387,11 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
 <<<<<<< HEAD
+<<<<<<< HEAD
     __metadata("design:paramtypes", [typeof (_b = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _b : Object]),
+=======
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+>>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
 >>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
