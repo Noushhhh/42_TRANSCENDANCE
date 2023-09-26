@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { GameLogicService } from './gameLogic.service';
 import { GatewayOut } from './gatewayOut';
 import { lobbies } from './lobbies';
@@ -6,7 +6,8 @@ import { Socket } from 'socket.io';
 import { gameConfig } from './data';
 import { GameState } from './gameState';
 
-const RAY_LENGHT = 15 + 20;
+const RAY_LENGHT = 35 / 1200;
+const BALL_SIZE = 20 / 1200.0;
 
 interface Vector2d {
   x: number;
@@ -23,7 +24,7 @@ interface GameData {
 const moveSpeed = 6 / 800.0;
 
 @Injectable()
-export class GameLoopService {
+export class GameLoopService implements OnModuleInit {
   private gameLoopRunning: boolean;
 
   constructor(
@@ -31,6 +32,11 @@ export class GameLoopService {
     private readonly gatewayOut: GatewayOut,
   ) {
     this.gameLoopRunning = false;
+  }
+
+  onModuleInit() {
+    this.updateBall();
+    this.updateGameState();
   }
 
   startGameLoop() {
@@ -104,18 +110,37 @@ export class GameLoopService {
   //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
   // }
 
-  // private updateRay = () => {
-  //   this.gameState.ballRay.x1 = this.gameState.ballState.ballPos.x;
-  //   this.gameState.ballRay.y1 = this.gameState.ballState.ballPos.y;
-  //   if (this.gameState.ballState.ballDirection === 'right') {
-  //     this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //     this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-  //     return;
-  //   }
-  //   this.gameState.ballRay.x2 = this.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //   this.gameState.ballRay.y2 = this.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+  private updateRayUp = (gameState: GameState) => {
+    if (gameState.gameState.ballState.ballDirection === 'right') {
+      gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
+      gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
+      gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+      gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+      return gameState.gameState.ballRayUp;
+    } else {
+      gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x;
+      gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
+      gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+      gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
+      return gameState.gameState.ballRayUp;
+    }
+  }
 
-  // }
+  private updateRayDown = (gameState: GameState) => {
+    if (gameState.gameState.ballState.ballDirection === 'right') {
+      gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
+      gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
+      gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+      gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
+      return gameState.gameState.ballRayDown;
+    } else {
+      gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x;
+      gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
+      gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
+      gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
+      return gameState.gameState.ballRayDown;
+    }
+  }
 
   private updateBall = () => {
     for (const [key, lobby] of lobbies) {
@@ -128,13 +153,16 @@ export class GameLoopService {
         lobby.gameState.gameState.ballState.ballDX,
         lobby.gameState.gameState.ballState.ballDY,
         lobby.gameState.gameState.score,
-        lobby.gameState.gameState.ballRay,
+        lobby.gameState.gameState.ballRayUp,
       )
       if (ballState) {
         lobby.gameState.gameState.ballState = ballState;
+        lobby.gameState.gameState.ballRayUp = this.updateRayUp(lobby.gameState);
+        lobby.gameState.gameState.ballRayDown = this.updateRayDown(lobby.gameState);
       }
       const score = ballState?.scoreBoard;
       if (score) lobby.gameState.gameState.score = score;
+
     }
   };
 }

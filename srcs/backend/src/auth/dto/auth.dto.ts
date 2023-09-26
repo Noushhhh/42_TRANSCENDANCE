@@ -32,4 +32,5 @@ export class AuthDto {
     // Decorator to ensure that 'password' field cannot be empty
     @IsNotEmpty()
     password!: string;
+
 }
