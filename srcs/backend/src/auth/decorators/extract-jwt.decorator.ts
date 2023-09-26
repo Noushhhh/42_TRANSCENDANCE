@@ -1,17 +1,24 @@
-// Import the necessary functions and libraries
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
-
-  
-
-// Define the ExtractJwt decorator using the createParamDecorator function
+/**
+* ****************************************************************************
+ * ExtractJwt decorator is used to extract and decode JWT tokens from the request.
+ * @function
+ * @param {any} data - Unused data parameter. The `data` parameter is included in the function signature because
+ *                     it is part of the expected function signature for custom decorators in NestJS. The
+ *                     `createParamDecorator` function expects a callback function with two parameters: `data` and
+ *                     `context`. In some other use cases, the `data` parameter might be used to pass additional
+ *                     information to the decorator, but in this case, it is not needed.
+ * @param {ExecutionContext} context - ExecutionContext instance.
+ * @returns {DecodedPayload | null} - Returns the decoded JWT payload or null if the token is invalid or not found.
+  * ****************************************************************************
+  */
 export const ExtractJwt = createParamDecorator((data, context: ExecutionContext) => {
   // Get the JWT_SECRET from the environment variables
   const JWT_SECRET = process.env.JWT_SECRET;
 
   // Check if JWT_SECRET is set, otherwise throw an error
-  // This ensures that the JWT_SECRET environment variable is properly set before using it
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable not set!');
   }
@@ -35,7 +42,6 @@ export const ExtractJwt = createParamDecorator((data, context: ExecutionContext)
     const decodedToken = jwt.verify(accessToken, JWT_SECRET);
 
     // If the token is successfully decoded, return the decoded token
-    console.log(decodedToken);
     return decodedToken;
   } catch (error) {
     // If there's an error while decoding the token (e.g., the token is invalid),

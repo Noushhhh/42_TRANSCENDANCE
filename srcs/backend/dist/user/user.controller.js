@@ -26,33 +26,72 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const user_service_1 = require("./user.service");
 const extract_jwt_decorator_1 = require("../auth/decorators/extract-jwt.decorator");
+/**
+* ****************************************************************************
+ * UserController class provides endpoints for user-related operations.
+ * @class
+* ****************************************************************************
+*/
 let UserController = class UserController {
+    /**
+     * Constructor initializes the UserService.
+     * @constructor
+     * @param {UserService} userService - UserService instance.
+     */
     constructor(userService) {
         this.userService = userService;
     }
-    // ─────────────────────────────────────────────────────────────────────
-    // update publicName and avatar
+    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+    * ****************************************************************************
+       * Updates the user's publicName and avatar.
+       * @async
+       * @post
+       * @param {Express.Multer.File} profileImage - User's profile image.
+       * @param {Request} req - Express request object.
+       * @param {DecodedPayload | null} decodedPayload - Decoded JWT payload.
+       * @param {Response} res - Express response object.
+       * @returns {Promise<Response>} - Returns a promise that resolves with the response object.
+    * ****************************************************************************
+    */
     createOrUpdateProfile(profileImage, req, decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!decodedPayload) {
                 console.error('Unable to decode token in createOrUpdateProfile controller in user module\n');
-                return res.status(401).json({ valid: false, message: "Unable to decode token in usermodule" });
+                return res
+                    .status(401)
+                    .json({ valid: false, message: 'Unable to decode token in usermodule' });
             }
             const { profileName } = req.body;
             const result = yield this.userService.handleProfileSetup(decodedPayload, profileName, profileImage);
-            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+            return res
+                .status(result.statusCode)
+                .json({ valid: result.valid, message: result.message });
         });
     }
     // ─────────────────────────────────────────────────────────────────────
-    //Check if client has already registered his publicName
+    /**
+    * ****************************************************************************
+       * Checks if the client has already registered their publicName.
+       * @async
+       * @get
+       * @param {DecodedPayload | null} decodedPayload - Decoded JWT payload.
+       * @param {Response} res - Express response object.
+       * @returns {Promise<Response>} - Returns a promise that resolves with the response object.
+    * ****************************************************************************
+    */
     checkFirstConnection(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!decodedPayload) {
                 console.error('Unable to decode token in createOrUpdateProfile controller in user module\n');
-                return res.status(401).json({ valid: false, message: "Unable to decode token in usermodule" });
+                return res
+                    .status(401)
+                    .json({ valid: false, message: 'Unable to decode token in usermodule' });
             }
             const result = yield this.userService.isClientRegistered(decodedPayload);
-            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+            return res
+                .status(result.statusCode)
+                .json({ valid: result.valid, message: result.message });
         });
     }
 };

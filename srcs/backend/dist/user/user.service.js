@@ -24,9 +24,16 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const path_1 = require("path");
 const uuid_1 = require("uuid");
-// Define the UserService class and mark it as injectable using the @Injectable() decorator
+/**
+ * UserService class provides methods for user-related operations.
+ * @class
+ */
 let UserService = class UserService {
-    // Constructor initializes the PrismaService and JWT_SECRET
+    /**
+     * Constructor initializes the PrismaService and JWT_SECRET.
+     * @constructor
+     * @param {PrismaService} prisma - PrismaService instance.
+     */
     constructor(prisma) {
         this.prisma = prisma;
         this.uploadFolder = 'uploads';
@@ -36,42 +43,56 @@ let UserService = class UserService {
             throw new Error('JWT_SECRET environment variable not set!');
         }
     }
-    // Function to check if user has been already registered
+    /**
+    * ****************************************************************************
+     * Checks if a user has been already registered.
+     * @async
+     * @param {DecodedPayload | null} payload - Decoded JWT payload.
+     * @returns {Promise<any>} - Returns an object with registration status and message.
+     *
+    * ****************************************************************************
+    */
     isClientRegistered(payload) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield this.prisma.user.findUnique({ where: { username: payload === null || payload === void 0 ? void 0 : payload.email } });
+                const user = yield this.prisma.user.findUnique({
+                    where: { username: payload === null || payload === void 0 ? void 0 : payload.email },
+                });
                 if (user === null || user === void 0 ? void 0 : user.firstConnection) {
-                    return ({
+                    return {
                         statusCode: 200,
                         valid: true,
-                        message: "Client already registered"
-                    });
+                        message: 'Client already registered',
+                    };
                 }
                 else {
-                    return ({
+                    return {
                         statusCode: 404,
                         valid: false,
-                        message: "Client is not registered yet"
-                    });
+                        message: 'Client is not registered yet',
+                    };
                 }
             }
             catch (error) {
-                return {
-                    statusCode: 401,
-                    valid: false,
-                    message: error
-                };
+                return { statusCode: 401, valid: false, message: error };
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────
-    // handleProfileSetup method takes tokenCookie, profileName, and profileImage as arguments
+    /**
+     * Handles profile setup for a user.
+     * @async
+     * @param {DecodedPayload | null} payload - Decoded JWT payload.
+     * @param {string} profileName - User's profile name.
+     * @param {any} profileImage - User's profile image.
+     * @returns {Promise<any>} - Returns an object with profile setup status and message.
+     */
     handleProfileSetup(payload, profileName, profileImage) {
         return __awaiter(this, void 0, void 0, function* () {
             // Declare a variable to store the decoded JWT token
             const emailFromCookies = payload === null || payload === void 0 ? void 0 : payload.email;
-            const registeredUser = yield this.prisma.user.findUnique({ where: { publicName: profileName } });
+            const registeredUser = yield this.prisma.user.findUnique({
+                where: { publicName: profileName },
+            });
             if (registeredUser) {
                 return {
                     statusCode: 409,
@@ -80,7 +101,9 @@ let UserService = class UserService {
                 };
             }
             // Fetch the user from the database using the PrismaService and the email from the decoded token
-            const user = yield this.prisma.user.findUnique({ where: { username: emailFromCookies } });
+            const user = yield this.prisma.user.findUnique({
+                where: { username: emailFromCookies },
+            });
             // Check if the user exists, otherwise throw an error
             if (!user) {
                 return {
@@ -101,11 +124,7 @@ let UserService = class UserService {
             }
             catch (error) {
                 console.error(error);
-                return {
-                    statusCode: 400,
-                    valid: false,
-                    message: error,
-                };
+                return { statusCode: 400, valid: false, message: error };
             }
             // Update the user profile in the database using the PrismaService
             try {
@@ -114,27 +133,31 @@ let UserService = class UserService {
                     data: {
                         publicName: profileName,
                         avatar: filePath,
-                        firstConnection: true
+                        firstConnection: true,
                     },
                 });
                 // Return the updated user profile
                 return {
                     statusCode: 200,
                     valid: true,
-                    message: "Profile was successfully updated"
+                    message: 'Profile was successfully updated',
                 };
             }
             catch (error) {
-                return ({
-                    statusCode: 400,
-                    valid: false,
-                    message: error
-                });
+                return { statusCode: 400, valid: false, message: error };
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    // saveImageToLocalFolder method takes a file and a file path as arguments
+    /**
+    * ****************************************************************************
+     * Saves an image to the local folder.
+     * @async
+     * @private
+     * @param {Express.Multer.File} file - Image file to be saved.
+     * @param {string} filePath - File path where the image will be saved.
+     * @returns {Promise<void>} - Returns a promise that resolves when the image is saved.
+    * ****************************************************************************
+    */
     saveImageToLocalFolder(file, filePath) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -158,26 +181,3 @@ exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], UserService);
-// import { Injectable } from "@nestjs/common";
-// import { PrismaService } from '../prisma/prisma.service';
-// import { Prisma, User } from '@prisma/client'
-// @Injectable({})
-// export class UserService {
-//     constructor(
-//         private prisma: PrismaService,
-//     )
-// //     async set2faSecret(secret: string, id: string) {
-// //         const user = await this.usersRepository.findOneBy({id});
-// //         user.twoFactorSecret = secret;
-// //         await this.usersRepository.save(user);
-// //         return (user.twoFactorSecret);
-// //     }
-// // }
-//     async findUserByUsername(username: string): Promise<User | null> {
-//         return this.prisma.user.findUnique({
-//             where: {
-//                 username,
-//             },
-//         });
-//     }
-// }
