@@ -45,13 +45,11 @@ const signInAPI = async (email: string, password: string) => {
         })
     });
 
+    const data = await response.json();
     if (!response.ok) {
-        const data = await response.json();
         throw new Error(`${data?.message}` || `Server responded with status: ${response.status}`);
     }
-    console.log(response);
-
-    return response.json();
+    return data;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,10 +79,11 @@ const SignIn: React.FC = () => {
 
         try {
             await signInAPI(email, password);  // Try to authenticate the user.
-            if (!checkFirstConnection) {
-                navigate('/userprofilesetup');  // Navigate to home on successful authentication
+            const userNotRegistered = await checkFirstConnection(); // check if user has already registered its username
+            if (!userNotRegistered) {
+                navigate('/userprofilesetup' , { state: { email } });  // Navigate to userProfileSetup if user doesn't have public username
             } else {
-                navigate('/home');  // Navigate to home on successful authentication.
+                navigate('/home');  // Navigate to home on successful authentication and if user already has public username.
             }
         } catch (error) {
             // Error handling: differentiate between different error types and set appropriate error messages.

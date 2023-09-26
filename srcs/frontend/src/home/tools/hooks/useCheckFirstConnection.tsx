@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 // Constants
 const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/user/isClientRegistered";
 
@@ -12,10 +10,8 @@ const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/user/isClientRegiste
  *                           * null if the status hasn't been determined yet
  */
 const useCheckFirstConnection = () => {
-  const [userHadFirstConnection, setUserHadFirstConnection] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    const checkFirstConnection = async () => {
+    const checkFirstConnection = async ():Promise<boolean> => {
       try {
         const response = await fetch(API_IS_CLIENT_REGISTERED, {
           method: "GET",
@@ -24,22 +20,18 @@ const useCheckFirstConnection = () => {
 
         if (response.ok) {
           const result = await response.json();
-          setUserHadFirstConnection(result.valid);
+          return result.valid;
         } else {
           throw new Error(`Error status ${response.status}`);
         }
       } catch (error) {
         console.error("User check first connection error:", error);
-        setUserHadFirstConnection(false);
+        return false;
       }
     };
 
-    // Initiate the first connection check.
-    checkFirstConnection();
-  }, []);
-
   // Return the user's first connection status.
-  return userHadFirstConnection;
+  return checkFirstConnection;
 };
 
 export default useCheckFirstConnection;

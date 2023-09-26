@@ -25,7 +25,7 @@ const App: React.FC = () => {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/authchoice" element={<AuthChoice  />} />
-            <Route path="/userprofilesetup" element={<UserProfileSetup  email = "tengo@gmail.com"/>} />
+            <Route path="/userprofilesetup" element={<UserProfileSetup />} />
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>}>
                 <Route path="chat" element={<MockComponent/>} /> 
                 <Route path="friends" element={<MockComponent/>} />
