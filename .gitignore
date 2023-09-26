@@ -4,3 +4,5 @@ package-lock.json
 *.json
 .env
 package-lock.json
+srcs/backend/dist
+srcs/frontend/dist
