@@ -24,12 +24,11 @@ function ChatBoxContainer() {
     });
 
     useEffect(() => {
-        const callGetUser = async () => {
+        const getUser = async () => {
             const userIdFetched: number = await getMyUserId();
             setUserId(userIdFetched);
         };
-
-        callGetUser();
+        getUser();
     }, []);
 
     if (userId === -1)

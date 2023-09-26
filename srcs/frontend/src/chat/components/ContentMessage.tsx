@@ -5,9 +5,8 @@ import ChatPrompt from "./ChatPrompt";
 import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
-import { useChannelIdContext } from "../contexts/channelIdContext";
-import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
+import { getBlockedUsersById } from "./ChannelUtils";
 
 interface Message {
   id: number
@@ -32,9 +31,15 @@ function ContentMessage( { channelInfo, setChannelInfo } : contentMessageProps) 
 
     const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
 
-    const addMessage = (newMessage: Message, messageType: string): void =>{
+    const addMessage = async (newMessage: Message, messageType: string) => {
         console.log(newMessage);
         newMessage.messageType = messageType;
+        const blockedUsers: number[] = await getBlockedUsersById(userId);
+        if (blockedUsers.some(id => id === newMessage.senderId)){
+            console.log("am i here ??");
+            return ;
+        }
+        console.log("or here ??");
         setMessages([...messages, newMessage]);
     }
 

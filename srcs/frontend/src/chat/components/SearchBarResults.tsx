@@ -25,7 +25,6 @@ interface SearchBarResultsProps {
 
 function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList, onlySearchInChannel, listUserAdmin, action, updateUserAdminList, setSearchBarResults, fetchDataAdmins, listUsersSearched, setListUsersSearched }: SearchBarResultsProps) {
 
-    // const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
     
     const userId: number = useUserIdContext();
@@ -50,7 +49,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                     }
                 }
                 else{
-                    users  = await getUsernamesBySubstring(userId, inputValue);
+                    users = await getUsernamesBySubstring(userId, inputValue);
                 }
                 if (!users)
                     setError("error while fetching data");

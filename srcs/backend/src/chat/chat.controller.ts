@@ -38,16 +38,6 @@ export class ChatController {
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
-    @Post('addChannel')
-    async addChannel() {
-        await this.chatService.addChannel();
-    }
-
-    @Post('addMessage')
-    async addMessage() {
-        await this.chatService.addMessage();
-    }
-
     @Get('getLastMsg/:id')
     async getLastMessage(@Param('id') id: number) {
         return this.chatService.getLastMessage(id);
@@ -58,10 +48,11 @@ export class ChatController {
         return this.chatService.getChannelHeadersFromId(id);
     }
 
-    @Get('getAllMessagesByChannelId/:id')
-    async getAllMessagesByChannelId(@Param('id') id: number): Promise<Message[]> {
+    @Post('getAllMessagesByChannelId')
+    async getAllMessagesByChannelId(
+        @Body() PairIdDto: PairUserIdChannelId): Promise<Message[]> {
         try {
-            const messages = this.chatService.getAllMessagesByChannelId(id);
+            const messages = this.chatService.getAllMessagesByChannelId(PairIdDto.userId, PairIdDto.channelId);
             return messages;
         } catch (error) {
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
@@ -201,9 +192,25 @@ export class ChatController {
 
     @Post('blockUser')
     async blockUser(
-        @Body() pairId: pairUserId) {
-        console.log('blockUser called');
-        console.log(pairId);
-        return this.chatService.blockUser(pairId.callerId, pairId.targetId);
+        @Body() pairIdDto: pairUserId) {
+        return this.chatService.blockUser(pairIdDto.callerId, pairIdDto.targetId);
     }
+
+    @Post('unblockUser')
+    async unblockUser(
+        @Body() pairIdDto: pairUserId) {
+        return this.chatService.unblockUser(pairIdDto.callerId, pairIdDto.targetId);
+    }
+
+    @Post('isUserIsBlockedBy')
+    async isUserIsBlockedBy(
+        @Body() pairIdDto: pairUserId) {
+            return this.chatService.isUserIsBlockedBy(pairIdDto.callerId, pairIdDto.targetId);
+        }
+
+    @Post('getBlockedUsersById')
+    async getBlockedUsersById(
+        @Body() userIdDto: UserIdDto): Promise<number[]>{
+            return this.chatService.getBlockedUsersById(userIdDto.userId);
+        }
 }

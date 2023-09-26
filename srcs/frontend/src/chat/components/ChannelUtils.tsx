@@ -2,6 +2,16 @@ import axios from 'axios';
 import { Socket } from 'socket.io-client';
 import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
 
+interface Message {
+  id: number // id: 0
+  senderId: number
+  channelId: number
+  content: string
+  createdAt: Date
+  messageType: string
+}
+
+
 interface isChannelNameConnected {
   isConnected: boolean;
   name: string;
@@ -31,10 +41,10 @@ const fetchPost = async (url: string, data: any) => {
   return response;
 };
 
-export const getMyUserId = async(): Promise<number> => {
+export const getMyUserId = async (): Promise<number> => {
   const response = await fetch('http://localhost:4000/api/users/me', {
-      credentials: 'include',
-      method: 'GET',
+    credentials: 'include',
+    method: 'GET',
   })
   const user = await response.json();
   return user.sub;
@@ -49,40 +59,46 @@ export const fetchUser = async (
   console.log("user id = ");
   console.log(userId);
 
-  const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
-    method: "POST",
-    credentials: 'include',
-    headers: {
-      "Content-Type": "application/json", // Add appropriate headers if needed
-    },
-    body: JSON.stringify({ userId }), // Include the data you want to send in the request body
-  });
-  if (response.status === 400)
-    return ;
+  try {
 
-  const listChannelId = await response.json();
 
-  const fetchChannelHeaders = listChannelId.map(async (id: string) => {
-    const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
-    const header: Channel = await response.json();
+    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json", // Add appropriate headers if needed
+      },
+      body: JSON.stringify({ userId }), // Include the data you want to send in the request body
+    });
+    if (response.status === 400)
+      return;
 
-    let channelInfo: isChannelNameConnected | null = {
-      name: '',
-      isConnected: false,
-    };
+    const listChannelId = await response.json();
 
-    if (header.name === '') {
-      channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
-      if (!channelInfo)
-        return null;
-      header.name = channelInfo.name;
-    }
-    header.isConnected = channelInfo.isConnected;
+    const fetchChannelHeaders = listChannelId.map(async (id: string) => {
+      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
+      const header: Channel = await response.json();
 
-    return header;
-  });
-  const channelHeaders = await Promise.all(fetchChannelHeaders);
-  setChannelHeader(channelHeaders);
+      let channelInfo: isChannelNameConnected | null = {
+        name: '',
+        isConnected: false,
+      };
+
+      if (header.name === '') {
+        channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
+        if (!channelInfo)
+          return null;
+        header.name = channelInfo.name;
+      }
+      header.isConnected = channelInfo.isConnected;
+
+      return header;
+    });
+    const channelHeaders = await Promise.all(fetchChannelHeaders);
+    setChannelHeader(channelHeaders);
+  } catch (error) {
+    console.log("error in fetchUser");
+  }
 };
 
 export const createChannel = async (
@@ -149,24 +165,32 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
 
   try {
     // get all the conversation of a user
-    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId/${participants[0]}`);
+    let userId: number = participants[0];
+    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json", // Add appropriate headers if needed
+      },
+      body: JSON.stringify({ userId }), // Include the data you want to send in the request body
+    });
 
     if (!response) {
       throw new Error('Erreur lors de la récupération des données');
     }
 
     channelList = await response.json();
+    for (const convId of channelList) {
+      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${convId}`);
+      const userList = await response.json();
+      if (compareUsersWithNumbers(userList, participants) === true) {
+        return convId;
+      }
+    }
   } catch (error) {
     console.error('Erreur lors de la requête:', error);
   }
 
-  for (const convId of channelList) {
-    const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${convId}`);
-    const userList = await response.json();
-    if (compareUsersWithNumbers(userList, participants) === true) {
-      return convId;
-    }
-  }
   return -1;
 };
 
@@ -445,7 +469,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
 
   } catch (error: any) {
     if (error.status === 403)
-        throw new Error("Action disallowed (you are not admin)");
+      throw new Error("Action disallowed (you are not admin)");
     throw new Error("Error updating administrators");
   }
 
@@ -523,8 +547,31 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
   return channel.channelType;
 }
 
+export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
+  try {
+    const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ callerId, targetId })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur réseau.');
+    }
+
+    const data = await response.json(); // Attendre la conversion de la réponse en JSON
+    console.log('Réponse du serveur :', data);
+
+    return data; // Retourner la réponse obtenue depuis fetch
+  } catch (error) {
+    console.error('Erreur :', error);
+    throw error; // Lancer l'erreur pour que l'appelant puisse la gérer
+  }
+}
+
 export const blockUser = async (callerId: number, targetId: number) => {
-  callerId = -1;
   fetch("http://localhost:4000/api/chat/blockUser", {
     method: 'POST',
     headers: {
@@ -543,4 +590,65 @@ export const blockUser = async (callerId: number, targetId: number) => {
     .catch(error => {
       console.error('Erreur :', error);
     });
+}
+
+export const unblockUser = async (callerId: number, targetId: number) => {
+  fetch("http://localhost:4000/api/chat/unblockUser", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+    },
+    body: JSON.stringify({ callerId, targetId }) // Convertit l'objet JavaScript en JSON
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur réseau.');
+      }
+    })
+    .then(data => {
+      console.log('Réponse du serveur :', data);
+    })
+    .catch(error => {
+      console.error('Erreur :', error);
+    });
+}
+
+export const getBlockedUsersById = async (userId: number): Promise<number[]> => {
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/getBlockedUsersById`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      },
+      body: JSON.stringify({ userId })
+    });
+    if (!response) {
+      throw new Error('Error fetching data');
+    }
+    const blockedUsers: number[] = await response.json();
+    return blockedUsers;
+  } catch (error){
+    throw error;
+  }
+}
+
+export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      },
+      body: JSON.stringify({ userId, channelId })
+    });
+    const messageList = await response.json();
+    messageList.map((message: Message) => {
+      userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
+      addMsgToFetchedConversation(message)
+    })
+  } catch (error) {
+    throw error;
+  }
 }

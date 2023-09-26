@@ -136,83 +136,19 @@ let ChatService = class ChatService {
             }
         });
     }
-    addChannel() {
+    getBlockedUsersById(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.channel.create({
-                data: {
-                    name: 'first one',
-                    type: 'PUBLIC',
-                    password: 'ok',
-                    owner: {
-                        connect: {
-                            id: 1
-                        }
-                    },
-                    admins: {
-                        connect: [
-                            {
-                                id: 1
-                            }
-                        ]
-                    },
-                    participants: {
-                        connect: [
-                            {
-                                id: 1
-                            }
-                        ]
-                    },
-                    messages: {},
-                    bannedUsers: {},
-                    mutedUsers: {}
-                },
-                select: {
-                    id: true,
-                    name: true,
-                    type: true,
-                    password: true,
-                    owner: true,
-                    ownerId: true,
-                    admins: true,
-                    participants: true,
-                    messages: true,
-                    bannedUsers: true,
-                    mutedUsers: true
-                }
+            const user = yield this.prisma.user.findUnique({
+                where: { id: userId },
+                include: { blockedUsers: true }
             });
+            if (!user)
+                throw new common_2.ForbiddenException("User not found");
+            return user.blockedUsers.map(user => user.id);
         });
     }
-    addMessage() {
+    getAllMessagesByChannelId(userId, channelId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.message.create({
-                data: {
-                    sender: {
-                        connect: {
-                            id: 2
-                        }
-                    },
-                    channel: {
-                        connect: {
-                            id: 11
-                        }
-                    },
-                    content: 'Mec je suis trop daccord'
-                },
-                select: {
-                    id: true,
-                    sender: true,
-                    senderId: true,
-                    channel: true,
-                    channelId: true,
-                    content: true,
-                    createdAt: true
-                }
-            });
-        });
-    }
-    getAllMessagesByChannelId(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const channelId = Number(id);
             const channel = yield this.prisma.channel.findUnique({
                 where: {
                     id: channelId,
@@ -222,9 +158,13 @@ let ChatService = class ChatService {
                 },
             });
             if (!channel) {
-                throw new Error('getAllMessageFromChannelId: cant find channel');
+                throw new common_2.ForbiddenException("Channel not found");
             }
-            return channel.messages;
+            const blockedUsersId = yield this.getBlockedUsersById(userId);
+            const filteredMessages = channel.messages.filter((message) => {
+                return !blockedUsersId.includes(message.senderId);
+            });
+            return filteredMessages;
         });
     }
     addMessageToChannelId(channId, message) {
@@ -683,10 +623,10 @@ let ChatService = class ChatService {
     }
     blockUser(callerId, targetId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.getUserById(targetId);
-            yield this.getUserById(callerId);
             if (callerId === targetId)
                 throw new common_3.UnauthorizedException('Can\'t block yourself');
+            yield this.getUserById(targetId);
+            yield this.getUserById(callerId);
             yield this.prisma.user.update({
                 where: { id: callerId },
                 data: {
@@ -703,7 +643,41 @@ let ChatService = class ChatService {
                     }
                 }
             });
-            console.log('end');
+        });
+    }
+    unblockUser(callerId, targetId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.getUserById(targetId);
+            yield this.getUserById(callerId);
+            if (callerId === targetId)
+                throw new common_3.UnauthorizedException('Can\'t block yourself');
+            yield this.prisma.user.update({
+                where: { id: callerId },
+                data: {
+                    blockedUsers: {
+                        disconnect: { id: targetId }
+                    }
+                }
+            });
+            yield this.prisma.user.update({
+                where: { id: targetId },
+                data: {
+                    blockedBy: {
+                        disconnect: { id: callerId }
+                    }
+                }
+            });
+        });
+    }
+    isUserIsBlockedBy(callerId, targetId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const users = yield this.prisma.user.findUnique({
+                where: { id: callerId },
+                include: { blockedUsers: true }
+            });
+            if (!users)
+                return false;
+            return users.blockedUsers.some(user => user.id === targetId);
         });
     }
 };
