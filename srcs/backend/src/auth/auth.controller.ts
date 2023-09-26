@@ -1,7 +1,7 @@
-import { Controller, Post, Body, Res, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
-import { AuthGuard } from '@nestjs/passport';
+// import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
 
@@ -43,15 +43,16 @@ export class AuthController {
 
     @Get('token') 
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
-    try {
-        const user = await this.authService.signToken42(req);    
-        // implement revesre proxy. tip synthax / and /api
-        res.redirect('http://localhost:8081'); 
-    } catch (error) {
-        console.error(error);
-        // Handle errors here and redirect as needed
-        res.redirect('/error2');
-    }
+        try {
+            const user = await this.authService.signToken42(req, res);    
+            // implement revesre proxy
+            res.redirect('http://localhost:8081/home');
+            // res.redirect('');
+        } catch (error) {
+            console.error(error);
+            // Handle errors here and redirect as needed
+            res.redirect('/error2');
+        }
     }
 
     // @Post('enable2FA')

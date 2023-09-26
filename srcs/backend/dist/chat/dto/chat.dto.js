@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pairUserId = exports.PairUserIdChannelId = exports.SignUpChannelDto = exports.ChannelNameDto = void 0;
+exports.pairUserId = exports.PairUserIdChannelId = exports.SignUpChannelDto = exports.UserIdDto = exports.ChannelIdDto = exports.ChannelNameDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class CommonChannelNameDto {
@@ -25,11 +25,26 @@ class CommonChannelIdDto {
 __decorate([
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CommonChannelIdDto.prototype, "channelId", void 0);
+class CommonUserIdDto {
+}
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CommonUserIdDto.prototype, "userId", void 0);
 class ChannelNameDto extends CommonChannelNameDto {
 }
 exports.ChannelNameDto = ChannelNameDto;
+class ChannelIdDto extends CommonChannelIdDto {
+}
+exports.ChannelIdDto = ChannelIdDto;
+class UserIdDto extends CommonUserIdDto {
+}
+exports.UserIdDto = UserIdDto;
 class SignUpChannelDto extends CommonChannelIdDto {
 }
 exports.SignUpChannelDto = SignUpChannelDto;

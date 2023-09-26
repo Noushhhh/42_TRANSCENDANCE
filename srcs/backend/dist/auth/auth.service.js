@@ -75,6 +75,7 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
+                console.log('signup calle');
                 return this.signToken(user.id, user.username, res);
                 // return user;
             }
@@ -99,12 +100,14 @@ let AuthService = class AuthService {
             });
             // if user not found throw exception
             if (!user)
-                throw new common_1.ForbiddenException('Username not found');
+                return res.status(401).json({ message: 'Username not found' });
+            // throw new ForbiddenException('Username not found',);
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
             if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
+                // throw new ForbiddenException('Incorrect password',);
+                return res.status(401).json({ message: 'Incorrect password' });
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
@@ -122,21 +125,28 @@ let AuthService = class AuthService {
             });
             // Generate a refresh token
             const refreshToken = this.createRefreshToken(userId);
+            console.log('refresh token = ');
+            console.log(refreshToken);
+            console.log('token = ');
+            console.log(token);
             // Save refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'strict',
+                sameSite: 'none',
                 maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
             });
             // Existing JWT token cookie
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'strict',
+                sameSite: 'none',
                 maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
             });
             res.status(200).send({ message: 'Authentication successful' });
+            // return {
+            //     access_token: token
+            // }
         });
     }
     createRefreshToken(userId) {
@@ -181,14 +191,14 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    signToken42(req) {
+    signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const code = req.query['code'];
             try {
                 const token = yield this.exchangeCodeForToken(code);
                 if (token) {
                     const userInfo = yield this.getUserInfo(token);
-                    const user = yield this.createUser(userInfo);
+                    const user = yield this.createUser(userInfo, res);
                     return user;
                 }
                 else {
@@ -199,7 +209,7 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 console.error('Error in signToken42:', error);
-                throw error;
+                throw new Error('Failed to fetch sign Token 42');
             }
         });
     }
@@ -249,7 +259,7 @@ let AuthService = class AuthService {
             });
         });
     }
-    createUser(userInfo) {
+    createUser(userInfo, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
                 where: {
@@ -258,7 +268,9 @@ let AuthService = class AuthService {
             });
             if (existingUser) {
                 console.log('User already exists:', existingUser);
+                // return this.signToken(existingUser.id, existingUser.username, res);
                 //   return "User already exists";
+                this.signToken(existingUser.id, existingUser.username, res);
                 return existingUser;
             }
             try {
@@ -280,6 +292,7 @@ let AuthService = class AuthService {
                     },
                 });
                 console.log("User created", user);
+                this.signToken(user.id, user.username, res);
                 return user;
             }
             catch (error) {
@@ -298,7 +311,7 @@ exports.AuthService = AuthService;
 __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([
@@ -306,34 +319,25 @@ exports.AuthService = AuthService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);
-async;
-getUsernameFromId(id, number);
-Promise < string | undefined > {
-    const: userId = Number(id),
-    try: {
-        const: user
-    }
-};
-{
-    username: string;
-}
- | null;
-await this.prisma.user.findUnique({
-    where: {
-        id: userId,
-    },
-    select: {
-        username: true,
-    }
-});
-if (user) {
-    console.log(user.username);
-    return user.username;
-}
-else {
-    return undefined;
-}
-try { }
-catch (error) {
-    throw error;
-}
+// async getUsernameFromId(id: number): Promise<string | undefined>{
+//     const userId = Number(id);
+//     try {
+//         const user: { username: string; } | null = await this.prisma.user.findUnique({
+//             where: {
+//                 id: userId,
+//             },
+//             select: {
+//                 username: true,
+//             }
+//         })
+//         if (user){
+//             console.log(user.username);
+//             return user.username;
+//         }
+//         else{
+//             return undefined;
+//         }
+//     } catch (error){
+//         throw error;
+//     }
+// }

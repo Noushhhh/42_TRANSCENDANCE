@@ -31,7 +31,8 @@ export class JwtGuard extends AuthGuard('jwt') {
     // `canActivate` is a required method for any guard in NestJS. It determines whether or not a particular request 
     // can continue to its route handler.
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        
+
+        console.log("can activate call");
         // Here, we're using the `reflector` to check if our route (or its containing controller) 
         // has the `IS_PUBLIC_KEY` metadata (i.e., if it's marked as public using the `@Public()` decorator).
         const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -49,10 +50,10 @@ export class JwtGuard extends AuthGuard('jwt') {
 
         // If the result is an Observable (reactive programming construct), we convert it to a Promise.
         // This ensures that our function always returns a promise.
-        if (result instanceof Observable) {
+        /*if (result instanceof Observable) {
             // Convert the Observable to a Promise and ensure that if it emits `undefined`, we convert that to `false`.
             return result.toPromise().then(res => !!res);
-        }
+        }*/
 
         // If the result is already a boolean, we return it as is.
         return result as boolean;
