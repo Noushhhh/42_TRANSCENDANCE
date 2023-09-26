@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../styles/ChatView.css";
 import MessageComponent from "./Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
+import { fetchConversation } from "./ChannelUtils";
 
 interface Message {
   id: number // id: 0
@@ -33,23 +34,9 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   useEffect(() => {
     setConversationFetched([]);
     setMessages([]);
-    const fetchConversation = async () => {
-      if (channelId !== -1){
-        const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId/${channelId}`);
-        const messageList = await response.json();
-        messageList.map((message: Message) => {
-          userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
-          addMsgToFetchedConversation(message)
-        })
-      }
-    }
-    fetchConversation();
+    if (channelId !== -1)
+      fetchConversation(userId, channelId, addMsgToFetchedConversation);
   }, ([channelId]));
-
-  // console.log("fetched=");
-  // console.log(conversationFetched);
-  // console.log('socket =');
-  // console.log(messages);
 
   return (
     <div className="ChatViewContainer">

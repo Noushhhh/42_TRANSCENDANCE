@@ -29,8 +29,6 @@ const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 // Importing the custom decorator we've defined to mark certain routes as publicly accessible without JWT authentication.
 const public_decorators_1 = require("../../decorators/public.decorators");
-// Importing Observable from rxjs, a library for reactive programming using observables.
-const rxjs_1 = require("rxjs");
 // The `@Injectable()` decorator marks the class as a provider that can be managed 
 // by the NestJS dependency injection system.
 let JwtGuard = class JwtGuard extends (0, passport_1.AuthGuard)('jwt') {
@@ -48,6 +46,7 @@ let JwtGuard = class JwtGuard extends (0, passport_1.AuthGuard)('jwt') {
             canActivate: { get: () => super.canActivate }
         });
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("can activate call");
             // Here, we're using the `reflector` to check if our route (or its containing controller) 
             // has the `IS_PUBLIC_KEY` metadata (i.e., if it's marked as public using the `@Public()` decorator).
             const isPublic = this.reflector.getAllAndOverride(public_decorators_1.IS_PUBLIC_KEY, [
@@ -62,10 +61,10 @@ let JwtGuard = class JwtGuard extends (0, passport_1.AuthGuard)('jwt') {
             const result = _super.canActivate.call(this, context);
             // If the result is an Observable (reactive programming construct), we convert it to a Promise.
             // This ensures that our function always returns a promise.
-            if (result instanceof rxjs_1.Observable) {
+            /*if (result instanceof Observable) {
                 // Convert the Observable to a Promise and ensure that if it emits `undefined`, we convert that to `false`.
                 return result.toPromise().then(res => !!res);
-            }
+            }*/
             // If the result is already a boolean, we return it as is.
             return result;
         });

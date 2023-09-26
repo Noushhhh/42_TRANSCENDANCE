@@ -1,6 +1,11 @@
 import { createContext, useContext } from "react";
 
-export const UserIdContext = createContext<number | undefined>(1);
+interface UserIdContextProps{
+    userId: number;
+    setUserId: (id: number) => void;
+}
+
+export const UserIdContext = createContext<UserIdContextProps | undefined>(undefined);
 
 export const useUserIdContext = () => {
 
@@ -10,6 +15,15 @@ export const useUserIdContext = () => {
         throw new Error("UserIdContext must be used with userIdContext.Provider")
     }
 
-    return instance;
+    return instance.userId;
+}
 
+export function useSetChannelHeaderContext(){
+    const instance = useContext(UserIdContext);
+
+    if (instance === undefined){
+        throw new Error("UserIdContext must be used with ChannelIdContext.Provider")
+    }
+
+    return instance.setUserId;
 }

@@ -34,6 +34,7 @@ export class AuthService {
                     hashPassword,
                 },
             });
+            console.log('signup calle');
             return this.signToken(user.id, user.username, res);
             // return user;
         } catch (error) {
@@ -91,12 +92,16 @@ export class AuthService {
 
         // Generate a refresh token
         const refreshToken = this.createRefreshToken(userId);
+        console.log('refresh token = ');
+        console.log(refreshToken);
+        console.log('token = ');
+        console.log(token);
 
         // Save refresh token in an HttpOnly cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: true, // set it to false if you're not using HTTPS
-            sameSite: 'strict',
+            sameSite: 'none',
             maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
         });
 
@@ -104,11 +109,14 @@ export class AuthService {
         res.cookie('token', token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'strict',
+            sameSite: 'none',
             maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
         });
 
         res.status(200).send({ message: 'Authentication successful' });
+        // return {
+        //     access_token: token
+        // }
     }
 
     async createRefreshToken(userId: number): Promise<string> {

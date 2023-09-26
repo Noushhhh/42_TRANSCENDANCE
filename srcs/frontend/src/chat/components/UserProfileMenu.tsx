@@ -4,7 +4,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import { useState } from 'react';
 import axios from 'axios';
-import { isChannelExist, fetchUser, blockUser } from './ChannelUtils';
+import { isChannelExist, fetchUser, blockUser, unblockUser, isUserIsBlockedBy } from './ChannelUtils';
 import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
@@ -17,17 +17,23 @@ interface UserProfileMenuProps {
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
+
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
 
   const socket = useSocketContext();
   const userId = useUserIdContext();
 
+  
   const open = Boolean(anchorEl);
   const menu: string[] = ["Profile", "Private message", "Play", "Block"];
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+  const menuIfBlock: string[] = ["Profile", "Private message", "Play", "Unblock"];
+  
+  const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
+    setIsBlocked(isBlocked);
   };
 
   const handleClose = () => {
@@ -36,6 +42,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleProfilClick = () => {
     // Ajoutez ici la logique pour "Profil"
+    handleClose();
   };
 
   const handlePrivateMessageClick = async () => {
@@ -56,6 +63,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       );
       fetchUser(setChannelHeader, userId, socket);
     }
+    handleClose();
   };
 
   const handlePlayClick = () => {
@@ -66,6 +74,14 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     // Ajoutez ici la logique pour "Bloquer"
     await blockUser(userId, user.id);
     console.log('blocked');
+    handleClose();
+  };
+
+  const handleUnblockClick = async () => {
+    // Ajoutez ici la logique pour "Bloquer"
+    await unblockUser(userId, user.id);
+    console.log('Unblocked');
+    handleClose();
   };
 
   const menuFunctions: { [key: string]: () => void } = {
@@ -73,6 +89,13 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     'Private message': handlePrivateMessageClick,
     Play: handlePlayClick,
     Block: handleBlockClick,
+  };
+
+  const menuFunctionsBlocked: { [key: string]: () => void } = {
+    Profile: handleProfilClick,
+    'Private message': handlePrivateMessageClick,
+    Play: handlePlayClick,
+    Unblock: handleUnblockClick,
   };
 
   return (
@@ -92,7 +115,11 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
         onClose={handleClose}
         TransitionComponent={Fade}
       >
-        {menu.map((item, index) => {
+        {isBlocked ? 
+        menuIfBlock.map((item, index) => {
+          return (<MenuItem key={index} onClick={menuFunctionsBlocked[item]}>{item}</MenuItem>)
+        }) : 
+        menu.map((item, index) => {
           return (<MenuItem key={index} onClick={menuFunctions[item]}>{item}</MenuItem>)
         })}
       </Menu>
