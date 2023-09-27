@@ -26,6 +26,7 @@ let GameController = class GameController {
     }
     connectToLobby(clientId) {
         this.gameLobby.addPlayerToLobby(clientId);
+        return { test: 'bidule' };
     }
     play() {
         this.gameLoopService.startGameLoop();

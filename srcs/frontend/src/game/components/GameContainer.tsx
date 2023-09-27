@@ -9,13 +9,15 @@ import Button from "./common/Button";
 import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
 
-const socket = io("http://localhost:4000");
 
 const buttonStyle: React.CSSProperties = {
   position: "absolute",
   top: "5%",
   right: "15%",
+  fontSize: "0.5rem",
 };
+
+const socket = io("http://localhost:4000");
 
 function GameContainer() {
   const [isPaused, setIsPaused] = useState(true);
@@ -24,28 +26,41 @@ function GameContainer() {
   const clientId = useRef<string>("");
 
   useEffect(() => {
-    socket.on("connect", () => {
-      clientId.current = socket.id;
-    });
-    socket.on("updateGameState", (gameState: GameState) => {
-      setIsPaused(gameState.isPaused);
-    });
-    socket.on("isOnLobby", (isOnLobby: boolean, clientIdRes: string) => {
-      if (clientIdRes === clientId.current) {
-        setIsInLobby(isOnLobby);
-      }
-    });
-    socket.on("isLobbyFull", (isLobbyFull: boolean) => {
-      setIsLobbyFull(isLobbyFull);
-    });
+    socket.on("connect", connectListener)
+    socket.on("updateGameState", updateGameStateListener);
+    socket.on("isOnLobby", isOnLobbyListener);
+    socket.on("isLobbyFull", isLobbyFullListener);
 
     return () => {
-      socket.off("connect");
-      socket.off("updateGameState");
-      socket.off("isOnLobby");
-      socket.off("isLobbyFull");
+      socket.off("connect", connectListener);
+      socket.off("updateGameState", updateGameStateListener);
+      socket.off("isOnLobby", isOnLobbyListener);
+      socket.off("isLobbyFull", isLobbyFullListener);
     };
   }, []);
+
+  const connectListener = () => {
+    clientId.current = socket.id;
+  }
+
+  const updateGameStateListener = (gameState: GameState) => {
+    setIsPaused(gameState.isPaused);
+  };
+
+  const isOnLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
+    console.log('check entering lobby');
+    console.log('clientIDRes', clientIdRes);
+    console.log('clientID.current', clientId.current);
+    
+    if (clientIdRes === socket.id) {
+      console.log('salut ca va ?');
+      setIsInLobby(isOnLobby);
+    }
+  };
+
+  const isLobbyFullListener = (isLobbyFull: boolean) => {
+    setIsLobbyFull(isLobbyFull);
+  };
 
   const handlePlayPause = () => {
     socket.emit("getIsPaused", !isPaused);

@@ -35,7 +35,7 @@ let GameLobbyService = class GameLobbyService {
         this.gatewayOut.updateLobbiesGameState();
         const player = this.socketMap.getSocket(playerId);
         if (this.isInLobby(player)) {
-            console.log('Already in a lobby', player);
+            console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
             return;
         }
         for (const [key, value] of lobbies_1.lobbies) {

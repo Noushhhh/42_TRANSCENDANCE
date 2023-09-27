@@ -242,7 +242,6 @@ export class AuthService {
             data: {
                 id: userInfo.id,
                 hashPassword: this.generateRandomPassword(),
-                login: userInfo.login,
                 username: userInfo.login,
                 avatar: userInfo.image.link,
             },

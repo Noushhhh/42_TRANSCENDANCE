@@ -8,26 +8,12 @@ import { gameConfig } from "../../assets/gameConfig";
 const Ball: FC<data.BallProps> = ({ socket }) => {
   const circleRef = useRef<Konva.Circle>(null);
   const rectRef = useRef<Konva.Rect>(null);
-  // const [ballSize, setBallSize] = useState<number>(
-  //   (20 * window.innerWidth) / 1200
-  // );
 
-  // const [ballSize, setBallSize] = useState<Vector2d>(
-  //   [(20 * window.innerWidth) / 1200, ]
-  // );
-
-  // console.log("ballSize = ", ballSize);
   useEffect(() => {
-    socket.on("updateGameState", (gameState: data.GameState) => {
-      const normBallPos: Vector2d = {
-        x: gameState.ballState.ballPos.x * gameConfig.konvaWidth,
-        y: gameState.ballState.ballPos.y * gameConfig.konvaHeight,
-      };
-      updateBallPos(normBallPos);
-    });
+    socket.on("updateGameState", updateGameStateListener);
 
     return () => {
-      socket.off("updateBallPos");
+      socket.off("updateBallPos", updateGameStateListener);
     };
   });
 
@@ -39,11 +25,20 @@ const Ball: FC<data.BallProps> = ({ socket }) => {
     };
   });
 
+  const updateGameStateListener = (gameState: data.GameState) => {
+    const normBallPos: Vector2d = {
+      x: gameState.ballState.ballPos.x * gameConfig.konvaWidth,
+      y: gameState.ballState.ballPos.y * gameConfig.konvaHeight,
+    };
+    updateBallPos(normBallPos);
+  };
+
   const updateBallSize = () => {
     // setBallSize((20 * window.innerWidth) / 1200);
   };
 
   const updateBallPos = (pos: Vector2d) => {
+    
     const ball = rectRef.current;
     if (!ball) return;
 

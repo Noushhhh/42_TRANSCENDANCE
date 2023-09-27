@@ -29,7 +29,7 @@ export class GameLobbyService {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
-      console.log('Already in a lobby', player);
+      console.log('Already in a lobby', player?.id);
       return;
     }
 

@@ -14,14 +14,16 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
   const [lobbiesState, setLobbiesState] = useState<LobbyData[]>([]);
 
   useEffect(() => {
-    socket.on("getAllLobbies", (data: { lobbies: LobbyData[] }) => {
-      console.log("lobbies: ", data.lobbies, typeof data.lobbies);
-      setLobbiesState(data.lobbies);
-    });
+    socket.on("getAllLobbies", getAllLobbiesListener);
     return () => {
-      socket.off("getAllLobbies");
+      socket.off("getAllLobbies", getAllLobbiesListener);
     };
   }, [socket]);
+
+  const getAllLobbiesListener = (data: { lobbies: LobbyData[] }) => {
+    console.log("lobbies: ", data.lobbies, typeof data.lobbies);
+    setLobbiesState(data.lobbies);
+  };
 
   const requestLobbies = () => {
     socket.emit("requestLobbies");

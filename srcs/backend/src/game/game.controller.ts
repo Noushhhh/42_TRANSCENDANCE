@@ -16,6 +16,7 @@ export class GameController {
   @Get('lobby')
   connectToLobby(@Query('clientId') clientId: string) {
     this.gameLobby.addPlayerToLobby(clientId);
+    return { test: 'bidule'};
   }
 
   @Get('play')

@@ -11,6 +11,11 @@ import {
 } from './home/components/index'
 import './App.css'
 
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
+console.log("socket id: ", socket);
+
 {
   /* <Navbar /> */
 }
@@ -39,7 +44,7 @@ const App: React.FC = () => {
                     <Route path="friends" element={<Friends />} />
                     <Route path="stats" element={<Stats />} />
                     <Route path="settings" element={<Settings />} />
-                    {/* <Route path="game" element={<GameContainer />} /> */}
+                    <Route path="game" element={<GameContainer />} />
                 </Route>
             </Routes>
     );
