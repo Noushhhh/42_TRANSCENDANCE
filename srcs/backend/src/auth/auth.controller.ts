@@ -30,8 +30,7 @@ export class AuthController {
     async signout(@Res() res: Response){
         return this.authService.signout(res);
     }
-
-    // change name to 42-callback 
+ 
     @Public()
     @Get('42Url')
     async get42Url() {
@@ -52,5 +51,7 @@ export class AuthController {
     }
 
     // @Post('enable2FA')
-    // async enable2FA()
+    // async enable2FA() {
+
+    // }
 }

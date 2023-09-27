@@ -51,7 +51,6 @@ let AuthController = class AuthController {
             return this.authService.signout(res);
         });
     }
-    // change name to 42-callback 
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
             const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";

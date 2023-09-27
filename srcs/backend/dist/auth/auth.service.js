@@ -56,8 +56,12 @@ const jwt_1 = require("@nestjs/jwt");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+// import * as qrcode from 'qrcode';
+const speakeasy = __importStar(require("speakeasy"));
 let AuthService = class AuthService {
-    constructor(prisma, jwt) {
+    constructor(prisma, 
+    // const prisma = new PrismaClient()
+    jwt) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.JWT_SECRET = process.env.JWT_SECRET;
@@ -169,7 +173,7 @@ let AuthService = class AuthService {
     signout(res) {
         // Clear the JWT cookie or session
         try {
-            res.clearCookie('token'); // assuming your token is saved in a cookie named 'token'
+            res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
             return res.status(200).send({ message: 'Signed out successfully' });
         }
         catch (error) {
@@ -177,33 +181,6 @@ let AuthService = class AuthService {
             return res.status(401).send({ message: "Cookie not found" });
         }
     }
-    // async signToken42(@Req() req: any, res: Response) {
-    //     const code = req.query['code'];
-    //     try {
-    //       const token = await this.exchangeCodeForToken(code);
-    //       if (token) {
-    //         {
-    //           const userInfo = await this.getUserInfo(token);
-    //           const user = await this.createUser(userInfo, res);
-    //           return this.signToken(user.id, user.username, res);
-    //           // return user;
-    //         // if (user) {
-    //         //     return this.signToken(user.id, user.username, res);
-    //         //     // You may return the JWT token or any other response data as needed.
-    //         // } else {
-    //         //     // Handle user creation error
-    //         // }
-    //         }
-    //       } else {
-    //         console.error('Failed to fetch access token');
-    //         // Handle errors here
-    //         throw new Error('Failed to fetch access token');
-    //       }
-    //     } catch (error) {
-    //       console.error('Error in signToken42:', error);
-    //       throw new Error('Failed to fetch sign Token 42');
-    //     }
-    //   }
     signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -215,6 +192,8 @@ let AuthService = class AuthService {
                 }
                 const userInfo = yield this.getUserInfo(token);
                 const user = yield this.createUser(userInfo, res);
+                if (user.TwoFA == true) {
+                }
                 // Set both JWT token and refresh token as cookies
                 const payload = {
                     sub: user.id,
@@ -316,6 +295,7 @@ let AuthService = class AuthService {
                 else {
                     avatarUrl = userInfo.image.link;
                 }
+                // const { secret, otpauthUrl } = TwoFAService.generateTwoFASecret(user.id);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
@@ -324,6 +304,9 @@ let AuthService = class AuthService {
                         avatar: userInfo.image.link,
                     },
                 });
+                const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+                user.twoFASecret = secret;
+                user.twoFAUrl = otpauthUrl;
                 console.log("User created", user);
                 return user;
             }
@@ -347,6 +330,33 @@ let AuthService = class AuthService {
             });
         });
     }
+    generateTwoFASecret(userId) {
+        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
+        const otpauthUrl = speakeasy.otpauthURL({
+            secret: secret.base32,
+            label: `ft_transcendance:${userId}`,
+            issuer: 'ft_transcendance', // Customize the issuer as needed
+        });
+        return { secret: secret.base32, otpauthUrl };
+    }
+    verifyTwoFACode(userId, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFASecret || '',
+                encoding: 'base32',
+                token: code,
+            });
+            return verified;
+        });
+    }
 };
 exports.AuthService = AuthService;
 __decorate([
@@ -360,25 +370,3 @@ exports.AuthService = AuthService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);
-// async getUsernameFromId(id: number): Promise<string | undefined>{
-//     const userId = Number(id);
-//     try {
-//         const user: { username: string; } | null = await this.prisma.user.findUnique({
-//             where: {
-//                 id: userId,
-//             },
-//             select: {
-//                 username: true,
-//             }
-//         })
-//         if (user){
-//             console.log(user.username);
-//             return user.username;
-//         }
-//         else{
-//             return undefined;
-//         }
-//     } catch (error){
-//         throw error;
-//     }
-// 

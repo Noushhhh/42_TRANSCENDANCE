@@ -30,6 +30,28 @@ exports.UserService = void 0;
 //         });
 //     }
 // }
+// async getUsernameFromId(id: number): Promise<string | undefined>{
+//     const userId = Number(id);
+//     try {
+//         const user: { username: string; } | null = await this.prisma.user.findUnique({
+//             where: {
+//                 id: userId,
+//             },
+//             select: {
+//                 username: true,
+//             }
+//         })
+//         if (user){
+//             console.log(user.username);
+//             return user.username;
+//         }
+//         else{
+//             return undefined;
+//         }
+//     } catch (error){
+//         throw error;
+//     }
+// 
 const common_1 = require("@nestjs/common");
 let UserService = class UserService {
 };

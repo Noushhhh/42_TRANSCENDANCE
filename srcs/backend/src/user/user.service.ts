@@ -25,6 +25,31 @@
 //     }
 // }
 
+    // async getUsernameFromId(id: number): Promise<string | undefined>{
+
+    //     const userId = Number(id);
+
+    //     try {
+    //         const user: { username: string; } | null = await this.prisma.user.findUnique({
+    //             where: {
+    //                 id: userId,
+    //             },
+    //             select: {
+    //                 username: true,
+    //             }
+    //         })
+    //         if (user){
+    //             console.log(user.username);
+    //             return user.username;
+    //         }
+    //         else{
+    //             return undefined;
+    //         }
+    //     } catch (error){
+    //         throw error;
+    //     }
+    // 
+
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
