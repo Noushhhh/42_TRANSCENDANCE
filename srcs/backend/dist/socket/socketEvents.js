@@ -11,25 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SocketEvents = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-const common_1 = require("@nestjs/common");
-const socket_service_1 = require("./socket.service");
-let SocketEvents = class SocketEvents {
-    constructor(socketService) {
-        this.socketService = socketService;
-        // map with, key = userId, string = socketId
+const client_1 = require("@prisma/client");
+let SocketEvents = exports.SocketEvents = class SocketEvents {
+    constructor() {
         this.listUserConnected = new Map();
     }
     onModuleInit() {
         this.server.on('connection', (socket) => {
             console.log('client connected', socket.id);
         });
-    }
-    getSocketById(socketId) {
-        return this.server.sockets.sockets.get(socketId);
     }
     handleConnection(socket) {
         const clientId = socket.id;
@@ -40,8 +35,11 @@ let SocketEvents = class SocketEvents {
         console.log(Array.from(map.values()));
     }
     handleSetNewUserConnected(userId, client) {
+        console.log("user conneted");
+        console.log(userId);
         this.listUserConnected.set(userId, client.id);
         this.server.emit("changeConnexionState");
+        this.readMap(this.listUserConnected);
     }
     handleIsUserConnected(userId, client) {
         const socketId = this.listUserConnected.get(userId); // get the socketId from userId
@@ -61,19 +59,6 @@ let SocketEvents = class SocketEvents {
     }
     handleMessage(data, client) {
         this.server.emit('message', client.id, data);
-    }
-    alertChannelDeleted(userId, channelId) {
-        const socketId = this.listUserConnected.get(userId);
-        if (!socketId) {
-            throw new Error("socketId not found");
-        }
-        const socket = this.getSocketById(socketId);
-        if (!socket) {
-            throw new Error("socket not found");
-        }
-        console.log(`alert server-side called and socketId = ${socket.id}`);
-        socket.emit('channelDeleted', channelId);
-        // Utilisez userId pour trouver la socket de l'utilisateur
     }
 };
 exports.SocketEvents = SocketEvents;
@@ -108,11 +93,10 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [typeof (_a = typeof client_1.Message !== "undefined" && client_1.Message) === "function" ? _a : Object, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], SocketEvents.prototype, "handleMessage", null);
 exports.SocketEvents = SocketEvents = __decorate([
-    (0, common_1.Injectable)(),
     (0, websockets_1.WebSocketGateway)({
         cors: {
             origin: '*',
