@@ -88,7 +88,7 @@ export class AuthService {
         );
 
         // Generate a refresh token
-        const refreshToken = this.createRefreshToken(userId);
+        const refreshToken = this.createRefreshToken(userId, email);
 
         // Save refresh token in an HttpOnly cookie
         res.cookie('refreshToken', refreshToken, {
@@ -109,7 +109,7 @@ export class AuthService {
         res.status(200).send({ message: 'Authentication successful' });
     }
 
-    async createRefreshToken(userId: number): Promise<string> {
+    async createRefreshToken(userId: number, userName: string): Promise<string> {
         const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
 
         const expiration = new Date();
@@ -121,7 +121,8 @@ export class AuthService {
             data: {
                 token: refreshToken,
                 userId: userId,
-                expiresAt: expiration
+                expiresAt: expiration,
+                userName: userName
             }
         });
 
@@ -285,4 +286,51 @@ export class AuthService {
             throw error;
         }
     }
+
+    async refreshToken(req: Request, res: Response) {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return ({
+                statusCode: 401,
+                valid: false,
+                message: "Refresh token missing"
+            })
+        }
+
+        // Find the refresh token in the database
+        const storedToken = await this.prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+        });
+
+        if (!storedToken) {
+            return ({
+                statusCode: 401,
+                valid: false,
+                message: "Invalid refresh token"
+            })
+        }
+
+        // Check if the refresh token is expired
+        const now = new Date();
+        if (storedToken.expiresAt < now) {
+            return ({
+                statusCode: 401,
+                valid: false,
+                message: "Refresh token expired"
+            })
+        }
+
+        // Generate a new access token
+        const newAccessToken = await this.signToken(storedToken.userId, storedToken.userName, res);
+
+        // Send the new access token to the client
+        res.status(200).json({ access_token: newAccessToken });
+        return ({
+            statusCode: 200,
+            valid: true,
+            message: "New access token created successfully"
+        })
+    }
+
 }

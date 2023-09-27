@@ -121,7 +121,7 @@ let AuthService = class AuthService {
                 secret: secret,
             });
             // Generate a refresh token
-            const refreshToken = this.createRefreshToken(userId);
+            const refreshToken = this.createRefreshToken(userId, email);
             // Save refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -139,7 +139,7 @@ let AuthService = class AuthService {
             res.status(200).send({ message: 'Authentication successful' });
         });
     }
-    createRefreshToken(userId) {
+    createRefreshToken(userId, userName) {
         return __awaiter(this, void 0, void 0, function* () {
             const refreshToken = (0, crypto_1.randomBytes)(40).toString('hex'); // Generates a random 40-character hex string
             const expiration = new Date();
@@ -149,7 +149,8 @@ let AuthService = class AuthService {
                 data: {
                     token: refreshToken,
                     userId: userId,
-                    expiresAt: expiration
+                    expiresAt: expiration,
+                    userName: userName
                 }
             });
             return refreshToken;
@@ -318,6 +319,47 @@ let AuthService = class AuthService {
             catch (error) {
                 throw error;
             }
+        });
+    }
+    refreshToken(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const refreshToken = req.cookies.refreshToken;
+            if (!refreshToken) {
+                return ({
+                    statusCode: 401,
+                    valid: false,
+                    message: "Refresh token missing"
+                });
+            }
+            // Find the refresh token in the database
+            const storedToken = yield this.prisma.refreshToken.findUnique({
+                where: { token: refreshToken },
+            });
+            if (!storedToken) {
+                return ({
+                    statusCode: 401,
+                    valid: false,
+                    message: "Invalid refresh token"
+                });
+            }
+            // Check if the refresh token is expired
+            const now = new Date();
+            if (storedToken.expiresAt < now) {
+                return ({
+                    statusCode: 401,
+                    valid: false,
+                    message: "Refresh token expired"
+                });
+            }
+            // Generate a new access token
+            const newAccessToken = yield this.signToken(storedToken.userId, storedToken.userName, res);
+            // Send the new access token to the client
+            res.status(200).json({ access_token: newAccessToken });
+            return ({
+                statusCode: 200,
+                valid: true,
+                message: "New access token created successfully"
+            });
         });
     }
 };

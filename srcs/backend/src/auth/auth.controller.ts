@@ -28,6 +28,16 @@ export class AuthController {
         return this.authService.checkTokenValidity(req, res);
     }
 
+    @Post('refreshToken')
+    async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response> {
+        console.log("passing by checkTokenValidity");
+        const result = await this.refreshToken(req, res);
+        return res.status(result.statusCode).json({valid:result.valid, message: result.message});
+    }
+
+
+
+
     @Get('signout')
     async signout(@Res() res: Response){
         return this.authService.signout(res);

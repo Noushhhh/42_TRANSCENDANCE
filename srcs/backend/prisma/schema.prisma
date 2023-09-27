@@ -17,7 +17,8 @@ model User {
   firstConnection   Boolean        @default(false)
   channelsOwned     Channel[]      @relation("Owner")
   sentMessages      Message[]      @relation("MessagesSent")
-  refreshToken      RefreshToken[]
+  refreshTokenById  RefreshToken[] @relation("UserById")
+  refreshTokenByName RefreshToken? @relation("UserByName")
   adminOfChannels   Channel[]      @relation("Admins")
   bannedFromChannel Channel[]      @relation("BannedUsers")
   users_A           User[]         @relation("BlockedUsers")
@@ -65,9 +66,11 @@ model RefreshToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   userId    Int
+  userName  String   @unique
   createdAt DateTime @default(now())
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userById  User     @relation("UserById", fields: [userId], references: [id], onDelete: Cascade)
+  userByName User    @relation("UserByName", fields: [userName], references: [username], onDelete: Cascade)
 }
 
 enum ChannelType {

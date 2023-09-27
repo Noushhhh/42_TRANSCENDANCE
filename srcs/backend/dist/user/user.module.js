@@ -10,13 +10,11 @@ exports.UserModule = void 0;
 const common_1 = require("@nestjs/common");
 const user_controller_1 = require("./user.controller");
 const user_service_1 = require("./user.service");
-const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
     (0, common_1.Module)({
-        imports: [cloudinary_module_1.CloudinaryModule],
         controllers: [user_controller_1.UserController],
         providers: [user_service_1.UserService]
     })

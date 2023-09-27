@@ -48,6 +48,13 @@ let AuthController = class AuthController {
             return this.authService.checkTokenValidity(req, res);
         });
     }
+    refreshToken(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("passing by checkTokenValidity");
+            const result = yield this.refreshToken(req, res);
+            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+        });
+    }
     signout(res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.signout(res);
@@ -104,6 +111,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
+__decorate([
+    (0, common_1.Post)('refreshToken'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refreshToken", null);
 __decorate([
     (0, common_1.Get)('signout'),
     __param(0, (0, common_1.Res)()),
