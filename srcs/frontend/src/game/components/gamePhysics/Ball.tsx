@@ -62,8 +62,8 @@ const Ball: FC<data.BallProps> = ({ socket }) => {
     // />
     <Rect
       ref={rectRef}
-      x={gameConfig.konvaWidth / 2}
-      y={gameConfig.konvaHeight / 2}
+      x={gameConfig.konvaWidth / 2 - 20}
+      y={gameConfig.konvaHeight / 2 - 20}
       width={(20 * window.innerWidth) / 1200}
       height={(20 * window.innerWidth) / 1200}
       fill="white"

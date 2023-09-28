@@ -7,7 +7,6 @@ import Paddles from "./Paddles";
 import Ball from "./Ball";
 import Ray from "./Ray";
 import Konva from "konva";
-import MiddleLine from "./MiddleLine";
 
 type KonvaSize = [konvaWidth: number, konvaHeight: number];
 const GameConfigController = new data.GameConfig();
@@ -21,11 +20,11 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {
+    resizeEvent();
     console.log(
       GameConfigController.getKonvaHeight(),
       GameConfigController.getKonvaWidth()
     );
-    setGameData();
     window.addEventListener("resize", resizeEvent);
 
     return () => {
@@ -35,22 +34,10 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
 
   const resizeEvent = () => {
     GameConfigController.setKonvaWidth(window.innerWidth);
-    GameConfigController.setKonvaHeight(window.innerHeight);
+    GameConfigController.setKonvaHeight((window.innerWidth * 6) / 12);
     stageRef.current?.width(window.innerWidth);
-    stageRef.current?.height(window.innerHeight);
-    setKonvaSize([window.innerWidth, window.innerHeight]);
-    setGameData();
-  };
-
-  const setGameData = () => {
-    console.log("setGameLog: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
-    socket.emit(
-      "setGameData",
-      gameConfig.konvaHeight,
-      gameConfig.konvaWidth,
-      gameConfig.paddleHeight,
-      gameConfig.paddleWidth
-    );
+    stageRef.current?.height((window.innerWidth * 6) / 12);
+    setKonvaSize([window.innerWidth, (window.innerWidth * 6) / 12]);
   };
 
   const ballPosRef = useRef<Vector2d>({

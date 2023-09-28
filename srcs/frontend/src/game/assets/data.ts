@@ -96,7 +96,13 @@ export interface GameState {
       y: number;
     },
   },
-  ballRay: {
+  ballRayUp: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  },
+  ballRayDown: {
     x1: number;
     y1: number;
     x2: number;

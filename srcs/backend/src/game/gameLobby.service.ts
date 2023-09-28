@@ -26,6 +26,7 @@ export class GameLobbyService {
   }
 
   addPlayerToLobby(playerId: string): void {
+    this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
       console.log('Already in a lobby', player);
@@ -158,6 +159,16 @@ export class GameLobbyService {
       console.log(key, "p1pos:", value.gameState.gameState.p1pos);
       console.log(key, "p2pos:", value.gameState.gameState.p2pos);
       console.log(key, "config: ", value.gameState.gameData);
+    }
+  }
+
+  sendLobbyGameState(player: Socket | undefined) {
+    if (!player) return;
+    for (const [key, value] of lobbies) {
+      if (value.player1?.id === player.id || value.player2?.id === player?.id) {
+        this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
+        return;
+      }
     }
   }
 }

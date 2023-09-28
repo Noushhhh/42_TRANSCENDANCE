@@ -4,17 +4,13 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { JwtGuard } from '../auth/guard/';
-import { PrismaService } from '../prisma/prisma.service';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 
 @Controller ('users')
-export class UserController {
-    constructor(
-        // private userController: UserController,
-        private config: ConfigService,
-        private prisma: PrismaService,
-    ) { }
-
+export class UserController 
+{
+    constructor(private config: ConfigService) {};
+    // constructor (private UserService: User)
     // @UseGuards(JwtGuard)
     @Get ('me')
     getMe(@Req() req: Request)
@@ -28,23 +24,5 @@ export class UserController {
         } catch (error){
             console.log(error);
         }
-    }
-
-    @Get('user_w_username')
-    async getUserWUsername(@Query('username') username: string) {
-      try {
-        // Use Prisma service to find the user by username
-        const user = await this.prisma.user.findUnique({
-          where: { username },
-        });
-  
-        if (!user) {
-          throw new NotFoundException('User not found');
-        }
-        return user;
-      } catch (error) {
-        console.error(error);
-        throw error; // Handle errors appropriately (e.g., return an error response)
-      }
     }
 }

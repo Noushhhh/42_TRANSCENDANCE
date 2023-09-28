@@ -14,6 +14,7 @@ const chat_service_1 = require("./chat.service");
 const SocketEvents_1 = require("../socket/SocketEvents");
 const SocketModule_1 = require("../socket/SocketModule");
 const socket_service_1 = require("../socket/socket.service");
+const config_1 = require("@nestjs/config");
 let ChatModule = class ChatModule {
 };
 exports.ChatModule = ChatModule;
@@ -21,6 +22,6 @@ exports.ChatModule = ChatModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, SocketModule_1.SocketModule],
         controllers: [chat_controller_1.ChatController],
-        providers: [chat_service_1.ChatService, socket_service_1.SocketService, SocketEvents_1.SocketEvents],
+        providers: [chat_service_1.ChatService, socket_service_1.SocketService, SocketEvents_1.SocketEvents, config_1.ConfigService],
     })
 ], ChatModule);

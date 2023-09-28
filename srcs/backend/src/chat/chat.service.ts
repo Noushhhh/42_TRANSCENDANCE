@@ -130,84 +130,20 @@ export class ChatService {
     }
   }
 
-  async addChannel() {
+  async getBlockedUsersById(userId: number): Promise<number[]> {
 
-    await this.prisma.channel.create({
-      data: {
-        name: 'first one',
-        type: 'PUBLIC',
-        password: 'ok',
-        owner: {
-          connect: {
-            id: 1
-          }
-        },
-        admins: {
-          connect: [
-            {
-              id: 1
-            }
-          ]
-        },
-        participants: {
-          connect: [
-            {
-              id: 1
-            }
-          ]
-        },
-        messages: {},
-        bannedUsers: {},
-        mutedUsers: {}
-      },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        password: true,
-        owner: true,
-        ownerId: true,
-        admins: true,
-        participants: true,
-        messages: true,
-        bannedUsers: true,
-        mutedUsers: true
-      }
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { blockedUsers: true }
     })
+
+    if (!user)
+      throw new ForbiddenException("User not found");
+
+    return user.blockedUsers.map(user => user.id);
   }
 
-  async addMessage() {
-
-
-    await this.prisma.message.create({
-      data: {
-        sender: {
-          connect: {
-            id: 2
-          }
-        },
-        channel: {
-          connect: {
-            id: 11
-          }
-        },
-        content: 'Mec je suis trop daccord'
-      },
-      select: {
-        id: true,
-        sender: true,
-        senderId: true,
-        channel: true,
-        channelId: true,
-        content: true,
-        createdAt: true
-      }
-    });
-  }
-
-  async getAllMessagesByChannelId(id: number): Promise<Message[]> {
-
-    const channelId = Number(id);
+  async getAllMessagesByChannelId(userId: number, channelId: number): Promise<Message[]> {
 
     const channel = await this.prisma.channel.findUnique({
       where: {
@@ -219,10 +155,16 @@ export class ChatService {
     });
 
     if (!channel) {
-      throw new Error('getAllMessageFromChannelId: cant find channel');
+      throw new ForbiddenException("Channel not found");
     }
 
-    return channel.messages;
+    const blockedUsersId: number[] = await this.getBlockedUsersById(userId);
+
+    const filteredMessages: Message[] = channel.messages.filter((message) => {
+      return !blockedUsersId.includes(message.senderId);
+    });
+  
+    return filteredMessages;
   }
 
   async addMessageToChannelId(channId: number, message: MessageToStore) {
@@ -358,11 +300,6 @@ export class ChatService {
         HttpStatus.FORBIDDEN);
     }
 
-    if (await this.isAdmin(callerId, channelId) === false) {
-      throw new HttpException("Only administrator can ban users",
-        HttpStatus.FORBIDDEN);
-    }
-
     if (await this.getNumberUsersInChannel(channelId) === 2) {
       await this.deleteAllMessagesInChannel(channelId);
       await this.prisma.channel.delete({
@@ -410,11 +347,6 @@ export class ChatService {
 
       if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
         throw new Error("Invalid arguments");
-      }
-
-      if (await this.isAdmin(callerId, channelId) === false) {
-        throw new HttpException("Only administrator can ban users",
-          HttpStatus.FORBIDDEN);
       }
 
       if (await this.isAdmin(userId, channelId) === true) {
@@ -750,11 +682,11 @@ export class ChatService {
 
   async blockUser(callerId: number, targetId: number) {
 
-    await this.getUserById(targetId);
-    await this.getUserById(callerId);
-
     if (callerId === targetId)
       throw new UnauthorizedException('Can\'t block yourself');
+
+    await this.getUserById(targetId);
+    await this.getUserById(callerId);
 
     await this.prisma.user.update({
       where: { id: callerId },
@@ -772,7 +704,45 @@ export class ChatService {
         }
       }
     })
-    console.log('end');
+  }
+
+  async unblockUser(callerId: number, targetId: number) {
+
+    await this.getUserById(targetId);
+    await this.getUserById(callerId);
+
+    if (callerId === targetId)
+      throw new UnauthorizedException('Can\'t block yourself');
+
+    await this.prisma.user.update({
+      where: { id: callerId },
+      data: {
+        blockedUsers: {
+          disconnect: { id: targetId }
+        }
+      }
+    })
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: {
+        blockedBy: {
+          disconnect: { id: callerId }
+        }
+      }
+    })
+  }
+
+  async isUserIsBlockedBy(callerId: number, targetId: number): Promise<boolean> {
+
+    const users = await this.prisma.user.findUnique({
+      where: { id: callerId },
+      include: { blockedUsers: true }
+    })
+
+    if (!users)
+      return false;
+
+    return users.blockedUsers.some(user => user.id === targetId);
   }
 
 }

@@ -31,44 +31,53 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserController = void 0;
+exports.AdminGuard = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt = __importStar(require("jsonwebtoken"));
-// import { JwtStrategy } from '../strategy/jwt.strategy';
-let UserController = class UserController {
-    constructor(config) {
+const prisma_service_1 = require("../../prisma/prisma.service");
+let AdminGuard = class AdminGuard {
+    constructor(config, prisma) {
         this.config = config;
-    }
-    ;
-    // constructor (private UserService: User)
-    // @UseGuards(JwtGuard)
-    getMe(req) {
-        try {
-            console.log('get me called');
-            const jwtCookie = req.cookies['token'];
+        this.prisma = prisma;
+        this.canActivate = (context) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const request = context.switchToHttp().getRequest();
+            const channelId = Number(request.params.channelId);
+            const jwtCookie = request.cookies['token'];
             const secret = this.config.get('JWT_SECRET');
             const user = jwt.verify(jwtCookie, secret);
-            return user;
-        }
-        catch (error) {
-            console.log(error);
-        }
+            let userId;
+            if (!user)
+                return false;
+            if (user.sub)
+                userId = parseInt((_a = user.sub) === null || _a === void 0 ? void 0 : _a.toString(), 10);
+            else
+                return false;
+            const channel = yield this.prisma.channel.findUnique({
+                where: { id: channelId },
+                include: { admins: true }
+            });
+            if (!channel)
+                throw new common_1.NotFoundException('Channel not found');
+            return channel.admins.some(admin => (admin.id === userId));
+        });
     }
+    ;
 };
-exports.UserController = UserController;
-__decorate([
-    (0, common_1.Get)('me'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], UserController.prototype, "getMe", null);
-exports.UserController = UserController = __decorate([
-    (0, common_1.Controller)('users'),
-    __metadata("design:paramtypes", [config_1.ConfigService])
-], UserController);
+exports.AdminGuard = AdminGuard;
+exports.AdminGuard = AdminGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        prisma_service_1.PrismaService])
+], AdminGuard);
