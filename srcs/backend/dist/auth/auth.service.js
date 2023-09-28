@@ -59,9 +59,7 @@ const axios_1 = __importDefault(require("axios"));
 // import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
 let AuthService = class AuthService {
-    constructor(prisma, 
-    // const prisma = new PrismaClient()
-    jwt) {
+    constructor(prisma, jwt) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.JWT_SECRET = process.env.JWT_SECRET;
@@ -80,7 +78,6 @@ let AuthService = class AuthService {
                     },
                 });
                 return this.signToken(user.id, user.username, res);
-                // return user;
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
@@ -355,6 +352,10 @@ let AuthService = class AuthService {
                 token: code,
             });
             return verified;
+        });
+    }
+    enable2FA() {
+        return __awaiter(this, void 0, void 0, function* () {
         });
     }
 };

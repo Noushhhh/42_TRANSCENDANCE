@@ -34,18 +34,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt = __importStar(require("jsonwebtoken"));
+const prisma_service_1 = require("../prisma/prisma.service");
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 let UserController = class UserController {
-    constructor(config) {
+    constructor(
+    // private userController: UserController,
+    config, prisma) {
         this.config = config;
+        this.prisma = prisma;
     }
-    ;
-    // constructor (private UserService: User)
     // @UseGuards(JwtGuard)
     getMe(req) {
         try {
@@ -59,6 +70,24 @@ let UserController = class UserController {
             console.log(error);
         }
     }
+    getUserWUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Use Prisma service to find the user by username
+                const user = yield this.prisma.user.findUnique({
+                    where: { username },
+                });
+                if (!user) {
+                    throw new common_1.NotFoundException('User not found');
+                }
+                return user;
+            }
+            catch (error) {
+                console.error(error);
+                throw error; // Handle errors appropriately (e.g., return an error response)
+            }
+        });
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -68,7 +97,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "getMe", null);
+__decorate([
+    (0, common_1.Get)('user_w_username'),
+    __param(0, (0, common_1.Query)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUserWUsername", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('users'),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        prisma_service_1.PrismaService])
 ], UserController);

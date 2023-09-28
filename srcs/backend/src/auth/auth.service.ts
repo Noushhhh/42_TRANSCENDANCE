@@ -18,8 +18,7 @@ export class AuthService {
     private readonly JWT_SECRET: string | any;
 
     constructor(
-      private prisma: PrismaService,
-      // const prisma = new PrismaClient()
+        private prisma: PrismaService,
         private jwt: JwtService,
     ) {
         this.JWT_SECRET = process.env.JWT_SECRET;
@@ -39,7 +38,6 @@ export class AuthService {
                 },
             });
             return this.signToken(user.id, user.username, res);
-            // return user;
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                 console.log(error)
@@ -333,6 +331,10 @@ export class AuthService {
       });
     
       return verified;
+    }
+
+    async enable2FA(){
+
     }
 
   }
