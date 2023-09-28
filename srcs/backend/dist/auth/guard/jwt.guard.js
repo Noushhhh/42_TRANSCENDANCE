@@ -18,7 +18,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JwtGuard = void 0;
 // This guard is part of NestJS's integration with Passport, a popular authentication middleware for Node.js.
@@ -74,5 +73,5 @@ let JwtGuard = class JwtGuard extends (0, passport_1.AuthGuard)('jwt') {
 exports.JwtGuard = JwtGuard;
 exports.JwtGuard = JwtGuard = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof core_1.Reflector !== "undefined" && core_1.Reflector) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [core_1.Reflector])
 ], JwtGuard);
