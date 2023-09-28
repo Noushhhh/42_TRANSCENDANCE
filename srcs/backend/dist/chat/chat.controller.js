@@ -189,6 +189,7 @@ __decorate([
     __metadata("design:type", Function),
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     __metadata("design:paramtypes", [typeof (_a = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _a : Object]),
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
@@ -196,6 +197,9 @@ __decorate([
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
 >>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
+=======
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+>>>>>>> bd9f94741c8015dd0f6a9e0b751d557744cb8d2f
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllConvFromId", null);
 __decorate([
@@ -388,6 +392,7 @@ __decorate([
     __metadata("design:type", Function),
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     __metadata("design:paramtypes", [typeof (_b = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _b : Object]),
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
@@ -395,6 +400,9 @@ __decorate([
 =======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
 >>>>>>> c80c063c44ec20d3c85ba0be41f6cb4b3d47a43e
+=======
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+>>>>>>> bd9f94741c8015dd0f6a9e0b751d557744cb8d2f
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getBlockedUsersById", null);
 exports.ChatController = ChatController = __decorate([
