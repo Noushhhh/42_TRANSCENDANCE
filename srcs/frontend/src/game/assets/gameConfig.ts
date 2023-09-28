@@ -8,6 +8,6 @@ export interface GameConfig {
 export const gameConfig: GameConfig = {
   konvaWidth: window.innerWidth,
   konvaHeight: window.innerWidth * 6/12,
-  paddleHeight: 100,
+  paddleHeight: 150,
   paddleWidth: 15,
 };

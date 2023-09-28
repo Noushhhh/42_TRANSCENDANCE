@@ -49,6 +49,7 @@ export class GameState {
         x: 0.5 - BALL_SIZE / 2,
         y: 0.5 - BALL_SIZE / 2,
       },
+      ballSpeed: 12.5 / 1200.0,
     },
     ballRayUp: {
       x1: 0.5,
@@ -75,6 +76,7 @@ export class GameState {
     ballDX: 0,
     ballDY: 0,
     ballPos: this.ballPos,
-    scoreBoard: this.gameState.score
+    scoreBoard: this.gameState.score,
+    ballSpeed: 12.5 / 1200.0,
   };
 }
