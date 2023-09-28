@@ -22,8 +22,8 @@ const useActivityLogout = () => {
     const resetTimer = () => {
         clearTimeout(inicativityTimer); // Clear any existing timers.
 
-        // Set a new timeout for automatic logout after 10 minutes of inactivity.
-        inicativityTimer = setTimeout(logoutAndNavigate, 60000);
+        // Set a new timeout for automatic logout after 20 minutes of inactivity.
+        inicativityTimer = setTimeout(logoutAndNavigate, 120000);
     };
 
     // Adding event listeners for various user activities to reset the inactivity timer.

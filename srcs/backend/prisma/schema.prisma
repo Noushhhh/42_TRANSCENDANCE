@@ -22,6 +22,10 @@ model User {
   avatar              String?
 
   hashPassword        String
+
+  twoFASecret         String?
+  twoFAUrl            String?
+
   refreshToken        RefreshToken[]
 
   firstConnexion      Boolean       @default (true)

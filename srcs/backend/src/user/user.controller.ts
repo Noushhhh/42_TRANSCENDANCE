@@ -1,4 +1,4 @@
-import {Controller, Get, Req, UseGuards} from '@nestjs/common'
+import {Controller, Get, Req, Query , NotFoundException} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';

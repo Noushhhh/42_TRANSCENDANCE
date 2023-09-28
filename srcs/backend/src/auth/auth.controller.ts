@@ -1,7 +1,6 @@
 import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
-// import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
 
@@ -31,23 +30,21 @@ export class AuthController {
     async signout(@Res() res: Response){
         return this.authService.signout(res);
     }
+ 
+    @Public()
+    @Get('42Url')
+    async get42Url() {
+        // const url = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-c601adb4ff1b1cb2a3beeecf17b0f6fdda957b3fda7f427d752162777499d169&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Fcallback42&response_type=code";
+        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
+        return (url);
+    }
 
-    // change name to 42-callback 
-    // @Public()
-    // @Get('42Url')
-    // async get42Url() {
-    //     // const callback_url = encodeURIComponent(process.env.CALLBACK_URL_42);
-    //     const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + "http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code";
-    //     return (url);
-    // }
-
-    @Get('token') 
+    @Get('callback42') 
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
-        try {
-            const user = await this.authService.signToken42(req, res);    
-            // implement revesre proxy
-            res.redirect('http://localhost:8081/home');
-            // res.redirect('');
+        console.log("test");
+        try {   
+            // Call the authService to handle 42 authentication
+            await this.authService.signToken42(req, res);
         } catch (error) {
             console.error(error);
             // Handle errors here and redirect as needed
@@ -55,7 +52,11 @@ export class AuthController {
         }
     }
 
-    // @Post('enable2FA')
-    // async enable2FA()
+    @Post('enable2FA') 
+    async enable2FA () {
 
+    }
+    // async enable2FA() {
+
+    // }
 }
