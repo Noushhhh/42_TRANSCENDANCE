@@ -56,6 +56,8 @@ const jwt_1 = require("@nestjs/jwt");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+// import * as qrcode from 'qrcode';
+const speakeasy = __importStar(require("speakeasy"));
 let AuthService = class AuthService {
     constructor(prisma, jwt) {
         this.prisma = prisma;
@@ -77,7 +79,6 @@ let AuthService = class AuthService {
                 });
                 console.log('signup calle');
                 return this.signToken(user.id, user.username, res);
-                // return user;
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
@@ -93,30 +94,24 @@ let AuthService = class AuthService {
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    username: dto.username,
-                }
-            });
+            const user = yield this.findUserByUsername(dto.username);
             // if user not found throw exception
             if (!user)
-                return res.status(401).json({ message: 'Username not found' });
-            // throw new ForbiddenException('Username not found',);
+                throw new common_1.ForbiddenException('Username not found');
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
             if (!passwordMatch)
-                // throw new ForbiddenException('Incorrect password',);
-                return res.status(401).json({ message: 'Incorrect password' });
+                throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
     }
-    signToken(userId, email, res) {
+    signToken(userId, username, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 sub: userId,
-                email,
+                username,
             };
             const secret = this.JWT_SECRET;
             const token = yield this.jwt.signAsync(payload, {
@@ -183,7 +178,7 @@ let AuthService = class AuthService {
     signout(res) {
         // Clear the JWT cookie or session
         try {
-            res.clearCookie('token'); // assuming your token is saved in a cookie named 'token'
+            res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
             return res.status(200).send({ message: 'Signed out successfully' });
         }
         catch (error) {
@@ -193,23 +188,47 @@ let AuthService = class AuthService {
     }
     signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const code = req.query['code'];
             try {
+                const code = req.query['code'];
                 const token = yield this.exchangeCodeForToken(code);
-                if (token) {
-                    const userInfo = yield this.getUserInfo(token);
-                    const user = yield this.createUser(userInfo, res);
-                    return user;
-                }
-                else {
+                if (!token) {
                     console.error('Failed to fetch access token');
-                    // Handle errors here
                     throw new Error('Failed to fetch access token');
                 }
+                const userInfo = yield this.getUserInfo(token);
+                const user = yield this.createUser(userInfo, res);
+                if (user.TwoFA == true) {
+                }
+                // Set both JWT token and refresh token as cookies
+                const payload = {
+                    sub: user.id,
+                    username: user.username,
+                };
+                const secret = this.JWT_SECRET;
+                const jwtToken = yield this.jwt.signAsync(payload, {
+                    expiresIn: '15m',
+                    secret: secret,
+                });
+                const refreshToken = this.createRefreshToken(user.id);
+                res.cookie('token', jwtToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+                });
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+                });
+                // Redirect the user to the desired URL after successful authentication
+                res.redirect('http://localhost:8081/home');
             }
             catch (error) {
                 console.error('Error in signToken42:', error);
-                throw new Error('Failed to fetch sign Token 42');
+                // Handle errors here, e.g., return an error response
+                res.status(500).send({ message: 'Internal Server Error' });
             }
         });
     }
@@ -268,9 +287,8 @@ let AuthService = class AuthService {
             });
             if (existingUser) {
                 console.log('User already exists:', existingUser);
-                // return this.signToken(existingUser.id, existingUser.username, res);
                 //   return "User already exists";
-                this.signToken(existingUser.id, existingUser.username, res);
+                existingUser.firstConnexion = false;
                 return existingUser;
             }
             try {
@@ -282,17 +300,19 @@ let AuthService = class AuthService {
                 else {
                     avatarUrl = userInfo.image.link;
                 }
+                // const { secret, otpauthUrl } = TwoFAService.generateTwoFASecret(user.id);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
-                        // login: userInfo.login,
                         username: userInfo.login,
                         avatar: userInfo.image.link,
                     },
                 });
+                const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+                user.twoFASecret = secret;
+                user.twoFAUrl = otpauthUrl;
                 console.log("User created", user);
-                this.signToken(user.id, user.username, res);
                 return user;
             }
             catch (error) {
@@ -305,6 +325,46 @@ let AuthService = class AuthService {
         const password = Math.random().toString(36).slice(2, 15) +
             Math.random().toString(36).slice(2, 15);
         return password;
+    }
+    findUserByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.prisma.user.findUnique({
+                where: {
+                    username,
+                },
+            });
+        });
+    }
+    generateTwoFASecret(userId) {
+        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
+        const otpauthUrl = speakeasy.otpauthURL({
+            secret: secret.base32,
+            label: `ft_transcendance:${userId}`,
+            issuer: 'ft_transcendance', // Customize the issuer as needed
+        });
+        return { secret: secret.base32, otpauthUrl };
+    }
+    verifyTwoFACode(userId, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFASecret || '',
+                encoding: 'base32',
+                token: code,
+            });
+            return verified;
+        });
+    }
+    enable2FA() {
+        return __awaiter(this, void 0, void 0, function* () {
+        });
     }
 };
 exports.AuthService = AuthService;
@@ -319,25 +379,3 @@ exports.AuthService = AuthService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);
-// async getUsernameFromId(id: number): Promise<string | undefined>{
-//     const userId = Number(id);
-//     try {
-//         const user: { username: string; } | null = await this.prisma.user.findUnique({
-//             where: {
-//                 id: userId,
-//             },
-//             select: {
-//                 username: true,
-//             }
-//         })
-//         if (user){
-//             console.log(user.username);
-//             return user.username;
-//         }
-//         else{
-//             return undefined;
-//         }
-//     } catch (error){
-//         throw error;
-//     }
-// }
