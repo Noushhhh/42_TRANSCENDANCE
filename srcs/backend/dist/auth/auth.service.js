@@ -251,7 +251,7 @@ let AuthService = class AuthService {
                 client_id: process.env.UID_42,
                 client_secret: process.env.SECRET_42,
                 code: code,
-                redirect_uri: 'http://localhost:4000/api/auth/token',
+                redirect_uri: 'http://localhost:4000/api/auth/callback42',
             };
             return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
         });
