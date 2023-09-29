@@ -292,15 +292,18 @@ let AuthService = class AuthService {
                 return existingUser;
             }
             try {
+                // let avatarUrl;
+                // if (userInfo.image.link === null) {
+                //     // Generate a random avatar URL or use a default one
+                //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                // } else {
+                //     avatarUrl = userInfo.image.link;
+                // }
                 let avatarUrl;
-                if (userInfo.image.link === null) {
-                    // Generate a random avatar URL or use a default one
-                    avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                if (userInfo.image.link !== null) {
+                    // use the 42 profile picture if not null
+                    avatarUrl = avatarUrl = userInfo.image.link;
                 }
-                else {
-                    avatarUrl = userInfo.image.link;
-                }
-                // const { secret, otpauthUrl } = TwoFAService.generateTwoFASecret(user.id);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
