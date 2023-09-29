@@ -8,7 +8,7 @@ import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import Button from "./common/Button";
 import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
-
+import GameCustomization from "./gamePhysics/GameCustomization";
 
 const buttonStyle: React.CSSProperties = {
   position: "absolute",
@@ -26,7 +26,7 @@ function GameContainer() {
   const clientId = useRef<string>("");
 
   useEffect(() => {
-    socket.on("connect", connectListener)
+    socket.on("connect", connectListener);
     socket.on("updateGameState", updateGameStateListener);
     socket.on("isOnLobby", isOnLobbyListener);
     socket.on("isLobbyFull", isLobbyFullListener);
@@ -41,19 +41,19 @@ function GameContainer() {
 
   const connectListener = () => {
     clientId.current = socket.id;
-  }
+  };
 
   const updateGameStateListener = (gameState: GameState) => {
     setIsPaused(gameState.isPaused);
   };
 
   const isOnLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
-    console.log('check entering lobby');
-    console.log('clientIDRes', clientIdRes);
-    console.log('clientID.current', clientId.current);
-    
+    console.log("check entering lobby");
+    console.log("clientIDRes", clientIdRes);
+    console.log("clientID.current", clientId.current);
+
     if (clientIdRes === socket.id) {
-      console.log('salut ca va ?');
+      console.log("salut ca va ?");
       setIsInLobby(isOnLobby);
     }
   };
@@ -88,6 +88,7 @@ function GameContainer() {
         <div className="GameContainer">
           <MiddleLine />
           <ScoreBoard socket={socket} />
+          <GameCustomization socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
           <Button onClick={handlePlayPause} style={buttonStyle}>
             {isPaused ? "Play" : "Pause"}

@@ -105,41 +105,6 @@ export class GameLoopService implements OnModuleInit {
     }
   }
 
-  // printGameData() {
-  //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
-  // }
-
-  // private updateRayUp = (gameState: GameState) => {
-  //   if (gameState.gameState.ballState.ballDirection === 'right') {
-  //     gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
-  //     gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
-  //     gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //     gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-  //     return gameState.gameState.ballRayUp;
-  //   } else {
-  //     gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x;
-  //     gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
-  //     gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //     gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-  //     return gameState.gameState.ballRayUp;
-  //   }
-  // }
-
-  // private updateRayDown = (gameState: GameState) => {
-  //   if (gameState.gameState.ballState.ballDirection === 'right') {
-  //     gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
-  //     gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
-  //     gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //     gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
-  //     return gameState.gameState.ballRayDown;
-  //   } else {
-  //     gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x;
-  //     gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
-  //     gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-  //     gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
-  //     return gameState.gameState.ballRayDown;
-  //   }
-  // }
 
   private updateBall = () => {
     for (const [key, lobby] of lobbies) {
@@ -153,7 +118,9 @@ export class GameLoopService implements OnModuleInit {
         lobby.gameState.gameState.ballState.ballDY,
         lobby.gameState.gameState.score,
         lobby.gameState.gameState.ballRayUp,
-        lobby.gameState.gameState.ballState.ballSpeed
+        lobby.gameState.gameState.ballState.ballSpeed,
+        lobby.gameState.gameState.p1Size,
+        lobby.gameState.gameState.p2Size,
       )
       if (ballState) {
         lobby.gameState.gameState.ballState = ballState;

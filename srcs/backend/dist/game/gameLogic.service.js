@@ -14,7 +14,7 @@ const gameState_1 = require("./gameState");
 const ballSize = 20 / 1200.0;
 let GameLogicService = class GameLogicService {
     constructor() {
-        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay, ballSpeed) => {
+        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay, ballSpeed, paddleWidth, paddleHeight) => {
             const normBallX = ballPos.x;
             const normBallY = ballPos.y;
             const normP1Y = p1Pos.y;

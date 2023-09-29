@@ -32,14 +32,29 @@ export class GameState {
     console.log(this.gameState);
   }
 
+  private playerSize = {
+    p1Size: 150 / 1200.0,
+    p2Size: 150 / 1200.0,
+  }
+
+  public setP1Size = (num: number) => {
+    this.playerSize.p1Size = this.playerSize.p1Size * num;
+  }
+
+  public setP2Size = (num: number) => {
+    this.playerSize.p2Size = this.playerSize.p2Size * num;
+  }
+
   gameState = {
+    p1Size: this.playerSize.p1Size,
+    p2Size: this.playerSize.p2Size,
     p1pos: {
       x: paddleGap,
-      y: (0.5) - gameConfig.paddleHeight / 2,
+      y: (0.5) - this.playerSize.p1Size / 2,
     },
     p2pos: {
       x: 1 - paddleGap - gameConfig.paddleWidth,
-      y: (0.5) - gameConfig.paddleHeight / 2,
+      y: (0.5) - this.playerSize.p2Size / 2,
     },
     ballState: {
       ballDirection: 'right',

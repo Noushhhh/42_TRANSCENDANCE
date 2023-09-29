@@ -22,6 +22,8 @@ export class GameLogicService {
     scoreBoard: { p1Score: number, p2Score: number },
     ballRay: { x1: number, y1: number, x2: number, y2: number },
     ballSpeed: number,
+    paddleWidth: number,
+    paddleHeight: number,
   ) => {
     const normBallX = ballPos.x;
     const normBallY = ballPos.y;
