@@ -1,27 +1,99 @@
 "use strict";
-// import { Injectable } from '@nestjs/common';
-// import { speakeasy } from 'speakeasy';
-// @Injectable()
-// export class TwoFaService {
-//     generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-//         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-//         const otpauthUrl = speakeasy.otpauthURL({
-//           secret: secret.base32,
-//           label: `MyApp:${userId}`, // Customize the label as needed
-//           issuer: 'MyApp', // Customize the issuer as needed
-//         });
-//         return { secret: secret.base32, otpauthUrl };
-//       }
-// }
-//   async generateQRcode(id: string) {
-//     const secretInfos = speakeasy.generateSecret( {
-//       name: "ft_Transcendence"
-//     });
-//     await this.userService.set2faSecret(secretInfos.ascii, id);
-//     const QRcode = await qrcode.toDataURL(secretInfos.otpauth_url);
-//     await this.userService.setQrCode(QRcode, id);
-//     return (QRcode);
-//   }
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TwoFaService = void 0;
+const common_1 = require("@nestjs/common");
+const prisma_service_1 = require("../../prisma/prisma.service");
+const speakeasy = __importStar(require("speakeasy"));
+const qrcode = __importStar(require("qrcode"));
+let TwoFaService = class TwoFaService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    generateTwoFASecret(userId) {
+        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
+        const otpauthUrl = speakeasy.otpauthURL({
+            secret: secret.base32,
+            label: `ft_transcendance:${userId}`,
+            issuer: 'ft_transcendance',
+        });
+        return { secret: secret.base32, otpauthUrl };
+    }
+    verifyTwoFACode(userId, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFASecret || '',
+                encoding: 'base32',
+                token: code,
+            });
+            return verified;
+        });
+    }
+    generateQrCode(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const qrCodeDataURL = yield qrcode.toDataURL(data);
+                return qrCodeDataURL;
+            }
+            catch (error) {
+                throw new Error('Failed to generate QR code.');
+            }
+        });
+    }
+};
+exports.TwoFaService = TwoFaService;
+exports.TwoFaService = TwoFaService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+], TwoFaService);
 //   /**
 //    * Check if entered code for google authentificator is valid
 //    * @param token 

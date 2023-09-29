@@ -1,13 +1,33 @@
-// import * as speakeasy from 'speakeasy';
+import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { TwoFaService } from './2FA.service';
 
-// import { Controller } from "@nestjs/common";
+@Controller('2fa')
+export class TwoFaController {
+  constructor(private readonly twoFaService: TwoFaService) {}
 
-// @Controller('TwoFA')
-// export class TwoFAController {
+  @Get('generate-secret/:userId')
+  async generateSecret(@Param('userId') userId: number) {
+    const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(userId);
+    return { secret, otpauthUrl };
+  }
 
-//     @Post ('Enable2FA')
-//     async enable2FA()
-// }
+  @Post('verify-code/:userId')
+  async verifyCode(
+    @Param('userId') userId: number,
+    @Body() body: { code: string }
+  ) {
+    const isValid = await this.twoFaService.verifyTwoFACode(userId, body.code);
+    return { isValid };
+  }
+
+//   @Get('generate-qr-code/:userId')
+//   async generateQrCode(@Param('userId') userId: number) {
+//     // const otpauthUrl = this.twoFaService.generateOtpauthUrl(userId);
+//     const qrCodeDataURL = await this.twoFaService.generateQrCode(otpauthUrl);
+//     return { qrCodeDataURL };
+//   }
+}
+
 
 //     async generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
 //         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
