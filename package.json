@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@nestjs/class-transformer": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.2"
   }
 }

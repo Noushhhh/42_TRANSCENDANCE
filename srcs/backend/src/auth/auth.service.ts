@@ -227,7 +227,7 @@ export class AuthService {
           client_id: process.env.UID_42,
           client_secret: process.env.SECRET_42,
           code: code,
-          redirect_uri: 'http://localhost:4000/api/auth/token',
+          redirect_uri: 'http://localhost:4000/api/auth/callback42',
         };
         return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
       }
@@ -266,15 +266,18 @@ export class AuthService {
         }
       
         try {
-            let avatarUrl;
-            if (userInfo.image.link === null) {
-                // Generate a random avatar URL or use a default one
-                avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
-            } else {
-                avatarUrl = userInfo.image.link;
-            }
-          // const { secret, otpauthUrl } = TwoFAService.generateTwoFASecret(user.id);
-
+            // let avatarUrl;
+            // if (userInfo.image.link === null) {
+            //     // Generate a random avatar URL or use a default one
+            //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+            // } else {
+            //     avatarUrl = userInfo.image.link;
+            // }
+          let avatarUrl;
+          if (userInfo.image.link !== null) {
+            // use the 42 profile picture if not null
+             avatarUrl = avatarUrl = userInfo.image.link;
+          }
           const user = await this.prisma.user.create({
             data: {
                 id: userInfo.id,
@@ -307,7 +310,6 @@ export class AuthService {
                 username,
             },
         });
-
     }
 
     generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
@@ -317,7 +319,6 @@ export class AuthService {
         label: `ft_transcendance:${userId}`, // Customize the label as needed
         issuer: 'ft_transcendance', // Customize the issuer as needed
       });
-    
       return { secret: secret.base32, otpauthUrl };
     }
 
