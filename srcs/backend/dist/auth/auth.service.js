@@ -65,6 +65,7 @@ let AuthService = class AuthService {
             throw new Error("JWT_SECRET environment variable not set!");
         }
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashPassword = yield argon.hash(dto.password);
@@ -89,6 +90,7 @@ let AuthService = class AuthService {
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
@@ -106,10 +108,12 @@ let AuthService = class AuthService {
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
-            return this.signToken(user.id, user.username, res);
+            const result = yield this.signToken(user.id, user.username, res);
+            res.status(result.statusCode).send({ valid: result.valid, message: 'Authentication successful' });
         });
     }
-    signToken(userId, email, res) {
+    // ─────────────────────────────────────────────────────────────────────────────
+    generateAndSetTokens(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 sub: userId,
@@ -121,68 +125,138 @@ let AuthService = class AuthService {
                 secret: secret,
             });
             // Generate a refresh token
-            const refreshToken = this.createRefreshToken(userId, email);
-            // Save refresh token in an HttpOnly cookie
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-            });
+            const refreshToken = yield this.createRefreshToken(userId);
+            if (refreshToken) {
+                // Save refresh token in an HttpOnly cookie
+                res.cookie('refreshToken', refreshToken.refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: (refreshToken.ExpirationDate.getTime() - Date.now())
+                });
+            }
             // Existing JWT token cookie
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'strict',
-                maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+                maxAge: 1000 * 60 * 15
             });
-            res.status(200).send({ message: 'Authentication successful' });
+            return { token, refreshToken };
         });
     }
-    createRefreshToken(userId, userName) {
+    // ─────────────────────────────────────────────────────────────────────────────
+    signToken(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { token, refreshToken } = yield this.generateAndSetTokens(userId, email, res);
+            if (!refreshToken) {
+                return ({
+                    statusCode: 409,
+                    valid: false,
+                    message: "Problem creating refresh token"
+                });
+            }
+            // Decode the token to get the expiration time
+            const decodedToken = jwt.verify(token, this.JWT_SECRET);
+            if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+                // Set the tokenExpires cookie with the decoded expiration time
+                res.cookie('tokenExpires', new Date(decodedToken.exp * 1000).toISOString(), {
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 15
+                });
+            }
+            else {
+                return ({
+                    statusCode: 409,
+                    valid: false,
+                    message: "Impossible to decode token to create expiration time"
+                });
+            }
+            return ({
+                statusCode: 200,
+                valid: true,
+                message: "Authentication successful"
+            });
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    createRefreshToken(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Fetch the user's username using the userId
+            const user = yield this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { username: true },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
             const refreshToken = (0, crypto_1.randomBytes)(40).toString('hex'); // Generates a random 40-character hex string
             const expiration = new Date();
             expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
-            // Save refreshToken to database along with userId
-            yield this.prisma.refreshToken.create({
-                data: {
-                    token: refreshToken,
-                    userId: userId,
-                    expiresAt: expiration,
-                    userName: userName
-                }
-            });
-            return refreshToken;
+            try {
+                // Save refreshToken to database along with userId and userName
+                yield this.prisma.refreshToken.create({
+                    data: {
+                        token: refreshToken,
+                        userId: userId,
+                        userName: user.username,
+                        expiresAt: expiration,
+                    },
+                });
+                return ({ ExpirationDate: expiration, refreshToken: refreshToken });
+            }
+            catch (error) {
+                return null;
+            }
         });
     }
-    checkTokenValidity(req, res) {
+    // ─────────────────────────────────────────────────────────────────────────────
+    checkTokenValidity(req) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
-            console.log("passing by checktokenvalidity");
-            console.log(req.cookies);
-            if (!token)
-                return res.status(401).json({ valid: false, message: "Token Missing" });
+            if (!token) {
+                return ({
+                    statusCode: 401,
+                    valid: false,
+                    message: "Token Missing"
+                });
+            }
             try {
                 const result = jwt.verify(token, this.JWT_SECRET);
                 console.log(result);
-                return res.status(200).json({ valid: true, message: "Token is valid" });
+                return ({
+                    statusCode: 200,
+                    valid: true,
+                    message: "Token is valid"
+                });
             }
             catch (error) {
-                return res.status(401).json({ valid: false, message: "Invalid Token" });
+                return ({
+                    statusCode: 401,
+                    valid: false,
+                    message: "Invalid token" + error
+                });
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signout(res) {
-        // Clear the JWT cookie or session
-        try {
-            res.clearCookie('token'); // assuming your token is saved in a cookie named 'token'
-            return res.status(200).send({ message: 'Signed out successfully' });
-        }
-        catch (error) {
-            console.error(error);
-            return res.status(401).send({ message: "Cookie not found" });
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Clear the JWT and refresh token cookies
+                res.clearCookie('token');
+                res.clearCookie('refreshToken');
+                res.clearCookie('tokenExpires');
+                return ({ statusCode: 200, valid: true, message: "Signed out successfully" });
+            }
+            catch (error) {
+                console.error(error);
+                return ({
+                    statusCode: 401, valid: false, message: " Error signing out" + error
+                });
+            }
+        });
     }
     signToken42(req) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -352,14 +426,21 @@ let AuthService = class AuthService {
                 });
             }
             // Generate a new access token
-            const newAccessToken = yield this.signToken(storedToken.userId, storedToken.userName, res);
-            // Send the new access token to the client
-            res.status(200).json({ access_token: newAccessToken });
-            return ({
-                statusCode: 200,
-                valid: true,
-                message: "New access token created successfully"
-            });
+            try {
+                yield this.signToken(storedToken.userId, storedToken.userName, res);
+                return ({
+                    statusCode: 200,
+                    valid: true,
+                    message: "New access token created successfully"
+                });
+            }
+            catch (error) {
+                return ({
+                    statusCode: 409,
+                    valid: false,
+                    message: error
+                });
+            }
         });
     }
 };

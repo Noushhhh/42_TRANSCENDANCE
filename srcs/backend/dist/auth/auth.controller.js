@@ -45,19 +45,26 @@ let AuthController = class AuthController {
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("passing by checkTokenValidity");
-            return this.authService.checkTokenValidity(req, res);
+            const result = yield this.authService.checkTokenValidity(req);
+            return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
         });
     }
     refreshToken(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("passing by checkTokenValidity");
-            const result = yield this.refreshToken(req, res);
-            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+            try {
+                const result = yield this.authService.refreshToken(req, res);
+                return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+            }
+            catch (error) {
+                console.error('Error in refreshToken controller:', error);
+                return res.status(500).send({ message: 'Internal server error' });
+            }
         });
     }
     signout(res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.signout(res);
+            const result = yield this.authService.signout(res);
+            return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
         });
     }
     // change name to 42-callback 

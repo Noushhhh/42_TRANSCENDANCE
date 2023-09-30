@@ -7,7 +7,7 @@ export const useSignOut = () => {
     const handleSignOut = async () => {
         // Using React Router's hook to get the navigate function.
         try {
-            const response = await fetch('http://localhost:4000/api/auth/signout', {
+            const response = await fetch('http://localhost:8081/api/auth/signout', {
                 method: 'GET',
                 credentials: 'include', // This ensures cookies are sent with the request, important for session-based authentication.
             });

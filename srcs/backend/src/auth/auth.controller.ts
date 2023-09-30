@@ -23,24 +23,27 @@ export class AuthController {
     }
 
     @Get('checkTokenValidity')
-    async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
+    async checkTokenValidity(@Req() req: Request, @Res() res: Response): Promise<Response> {
         console.log("passing by checkTokenValidity");
-        return this.authService.checkTokenValidity(req, res);
+        const result: any = await this.authService.checkTokenValidity(req);
+        return res.status(result.statusCode).send({valid:result.valid, message: result.message});
     }
 
     @Post('refreshToken')
     async refreshToken(@Req() req: Request, @Res() res: Response): Promise<Response> {
-        console.log("passing by checkTokenValidity");
-        const result = await this.refreshToken(req, res);
-        return res.status(result.statusCode).json({valid:result.valid, message: result.message});
-    }
-
-
-
+        try {
+          const result: any = await this.authService.refreshToken(req, res);
+          return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+        } catch (error) {
+          console.error('Error in refreshToken controller:', error);
+          return res.status(500).send({ message: 'Internal server error' });
+        }
+      }
 
     @Get('signout')
-    async signout(@Res() res: Response){
-        return this.authService.signout(res);
+    async signout(@Res() res: Response): Promise<Response>{
+        const result: any = await this.authService.signout(res);
+        return res.status(result.statusCode).send({valid: result.valid, message: result.message});
     }
 
     // change name to 42-callback 
@@ -65,7 +68,6 @@ export class AuthController {
             res.redirect('/error2');
         }
     }
-
     // @Post('enable2FA')
     // async enable2FA()
 

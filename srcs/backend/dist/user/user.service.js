@@ -74,6 +74,7 @@ let UserService = class UserService {
                 }
             }
             catch (error) {
+                console.error(`Passing by isClientRegistered ${error}`);
                 return { statusCode: 401, valid: false, message: error };
             }
         });

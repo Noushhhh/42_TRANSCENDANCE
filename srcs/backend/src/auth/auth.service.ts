@@ -25,6 +25,8 @@ export class AuthService {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────────
+
     async signup(dto: AuthDto, res: Response) {
         const hashPassword = await argon.hash(dto.password);
         try {
@@ -46,6 +48,7 @@ export class AuthService {
             throw error;
         }
     }
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async signin(dto: AuthDto, res: Response) {
         // find user with username
@@ -66,14 +69,12 @@ export class AuthService {
             throw new ForbiddenException('Incorrect password',);
 
         // send back the token
-        return this.signToken(user.id, user.username, res);
+        const result = await this.signToken(user.id, user.username, res);
+        res.status(result.statusCode).send({ valid: result.valid, message: 'Authentication successful' });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
 
-    async signToken(
-        userId: number,
-        email: string,
-        res: Response
-    ): Promise<void> {
+    async generateAndSetTokens(userId: number, email: string, res: Response): Promise<{ token: string, refreshToken: any }> {
         const payload = {
             sub: userId,
             email,
@@ -86,77 +87,154 @@ export class AuthService {
                 secret: secret,
             },
         );
-
+    
         // Generate a refresh token
-        const refreshToken = this.createRefreshToken(userId, email);
-
-        // Save refresh token in an HttpOnly cookie
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: true, // set it to false if you're not using HTTPS
-            sameSite: 'strict',
-            maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-        });
-
+        const refreshToken = await this.createRefreshToken(userId);
+    
+        if (refreshToken) {
+            // Save refresh token in an HttpOnly cookie
+            res.cookie('refreshToken', refreshToken.refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: (refreshToken.ExpirationDate.getTime() - Date.now())
+            });
+        }
+    
         // Existing JWT token cookie
         res.cookie('token', token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+            maxAge: 1000 * 60 * 15
         });
+    
+        return { token, refreshToken };
+    }
+    
 
-        res.status(200).send({ message: 'Authentication successful' });
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    async signToken(userId: number, email: string, res: Response): Promise<any> {
+        const { token, refreshToken } = await this.generateAndSetTokens(userId, email, res);
+
+        if (!refreshToken) {
+            return ({
+                statusCode: 409,
+                valid: false,
+                message: "Problem creating refresh token"
+            });
+        }
+
+        // Decode the token to get the expiration time
+        const decodedToken = jwt.verify(token, this.JWT_SECRET);
+
+        if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+            // Set the tokenExpires cookie with the decoded expiration time
+            res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(), {
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 1000 * 60 * 15
+            });
+        } else {
+            return ({
+                statusCode: 409,
+                valid: false,
+                message: "Impossible to decode token to create expiration time"
+            });
+        }
+        return ({
+            statusCode: 200,
+            valid: true,
+            message: "Authentication successful"
+        });
     }
 
-    async createRefreshToken(userId: number, userName: string): Promise<string> {
+
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    async createRefreshToken(userId: number): Promise<{
+        ExpirationDate: Date,
+        refreshToken: string
+    } | null> {
+        // Fetch the user's username using the userId
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { username: true },
+        });
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
 
         const expiration = new Date();
-
         expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
 
-        // Save refreshToken to database along with userId
-        await this.prisma.refreshToken.create({
-            data: {
-                token: refreshToken,
-                userId: userId,
-                expiresAt: expiration,
-                userName: userName
-            }
-        });
-
-        return refreshToken;
+        try {
+            // Save refreshToken to database along with userId and userName
+            await this.prisma.refreshToken.create({
+                data: {
+                    token: refreshToken,
+                    userId: userId,
+                    userName: user.username,
+                    expiresAt: expiration,
+                },
+            });
+            return ({ ExpirationDate: expiration, refreshToken: refreshToken });
+        } catch (error) {
+            return null;
+        }
     }
 
-    async checkTokenValidity(req: Request, res: Response) {
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    async checkTokenValidity(req: Request) {
         const token = req.cookies.token;
 
-        console.log("passing by checktokenvalidity");
-        console.log(req.cookies);
-
-        if (!token)
-            return res.status(401).json({ valid: false, message: "Token Missing" });
+        if (!token) {
+            return ({
+                statusCode: 401,
+                valid: false,
+                message: "Token Missing"
+            })
+        }
 
         try {
             const result = jwt.verify(token, this.JWT_SECRET);
             console.log(result);
-            return res.status(200).json({ valid: true, message: "Token is valid" });
+            return ({
+                statusCode: 200,
+                valid: true,
+                message: "Token is valid"
+            })
         } catch (error) {
-            return res.status(401).json({ valid: false, message: "Invalid Token" });
+            return ({
+                statusCode: 401,
+                valid: false,
+                message: "Invalid token" + error
+            })
         }
     }
 
-    signout(res: Response): Response {
-        // Clear the JWT cookie or session
+    // ─────────────────────────────────────────────────────────────────────────────
+    async signout(res: Response) {
         try {
-            res.clearCookie('token'); // assuming your token is saved in a cookie named 'token'
-            return res.status(200).send({ message: 'Signed out successfully' });
+            // Clear the JWT and refresh token cookies
+            res.clearCookie('token');
+            res.clearCookie('refreshToken');
+            res.clearCookie('tokenExpires');
+
+            return ({ statusCode: 200, valid: true, message: "Signed out successfully" });
         } catch (error) {
-           console.error(error); 
-           return res.status(401).send({message: "Cookie not found"});
+            console.error(error);
+            return ({
+                statusCode: 401, valid: false, message: " Error signing out" + error
+            })
         }
-    }    
+    }
+
 
     async signToken42(@Req() req: any) {
         const code = req.query['code'];
@@ -176,8 +254,8 @@ export class AuthService {
             throw error;
         }
     }
-    
-      
+
+
     async exchangeCodeForToken(code: string): Promise<string | null> {
         try {
             const response = await this.sendAuthorizationCodeRequest(code);
@@ -322,15 +400,21 @@ export class AuthService {
         }
 
         // Generate a new access token
-        const newAccessToken = await this.signToken(storedToken.userId, storedToken.userName, res);
+        try {
+            await this.signToken(storedToken.userId, storedToken.userName, res);
+            return ({
+                statusCode: 200,
+                valid: true,
+                message: "New access token created successfully"
+            })
 
-        // Send the new access token to the client
-        res.status(200).json({ access_token: newAccessToken });
-        return ({
-            statusCode: 200,
-            valid: true,
-            message: "New access token created successfully"
-        })
+        } catch (error) {
+            return ({
+                statusCode: 409,
+                valid: false,
+                message: error
+            })
+        }
+
     }
-
 }
