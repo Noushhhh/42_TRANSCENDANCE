@@ -27,8 +27,8 @@ const StyledDiv = styled.div`
 `;
 
 const Dot = styled.div`
-  width: 10px;
-  height: 10px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background-color: white;
   animation: ${dotAnimation} 1s infinite;
@@ -44,13 +44,18 @@ const WaitingForPlayer = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        fontSize: "3rem",
+        fontSize: "1rem",
       }}
     >
       <StyledDiv>
         <div
           className="dots-container"
-          style={{ display: "flex",alignItems: "baseline", gap: "10px", color: "white" }}
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: "3px",
+            color: "white",
+          }}
         >
           <p>Waiting for player</p>
           <Dot />

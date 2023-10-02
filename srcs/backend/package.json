@@ -49,6 +49,7 @@
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
     "@types/jest": "^29.5.4",
+    "@types/qrcode": "^1.5.2",
     "@types/speakeasy": "^2.0.8",
     "nodemon": "^2.0.22",
     "prisma": "^5.3.1",

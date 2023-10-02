@@ -13,14 +13,12 @@ exports.GameLobbyService = void 0;
 const common_1 = require("@nestjs/common");
 const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
-const socket_service_1 = require("../socket/socket.service");
 const gameState_1 = require("./gameState");
-const chat_gateway_1 = require("../socket/chat.gateway");
+const gameSockets_1 = require("./gameSockets");
 let GameLobbyService = class GameLobbyService {
-    constructor(gatewayOut, socketMap, io) {
+    constructor(gatewayOut, socketMap) {
         this.gatewayOut = gatewayOut;
         this.socketMap = socketMap;
-        this.io = io;
     }
     printLobbies() {
         lobbies_1.lobbies.forEach((value, key) => {
@@ -35,7 +33,7 @@ let GameLobbyService = class GameLobbyService {
         this.gatewayOut.updateLobbiesGameState();
         const player = this.socketMap.getSocket(playerId);
         if (this.isInLobby(player)) {
-            console.log('Already in a lobby', player);
+            console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
             return;
         }
         for (const [key, value] of lobbies_1.lobbies) {
@@ -50,7 +48,9 @@ let GameLobbyService = class GameLobbyService {
                 this.gatewayOut.isInLobby(true, player);
                 if (value.player1 != null && value.player2 != null) {
                     this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
-                    value.gameState.gameState.isLobbyFull === true;
+                    value.gameState.gameState.isLobbyFull = true;
+                    // @to-do implement the function that add +1 game to each player
+                    // in the statistics object
                 }
                 return;
             }
@@ -86,6 +86,7 @@ let GameLobbyService = class GameLobbyService {
                 }
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
             if (((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === player.id) {
@@ -94,6 +95,7 @@ let GameLobbyService = class GameLobbyService {
                 }
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
         }
@@ -108,14 +110,14 @@ let GameLobbyService = class GameLobbyService {
         }
     }
     getAllClientsInARoom(roomName) {
-        const clients = this.io.server.sockets.adapter.rooms.get(`${roomName}`);
+        const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
         if (!clients) {
             console.log('No clients in this room');
             return;
         }
         for (const clientId of clients) {
             //this is the socket of each client in the room.
-            const clientSocket = this.io.server.sockets.sockets.get(clientId);
+            const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
             console.log(clientSocket === null || clientSocket === void 0 ? void 0 : clientSocket.id);
         }
     }
@@ -181,6 +183,5 @@ exports.GameLobbyService = GameLobbyService;
 exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
-        socket_service_1.SocketService,
-        chat_gateway_1.ChatGateway])
+        gameSockets_1.gameSockets])
 ], GameLobbyService);

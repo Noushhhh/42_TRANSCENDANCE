@@ -246,7 +246,7 @@ let AuthService = class AuthService {
                 client_id: process.env.UID_42,
                 client_secret: process.env.SECRET_42,
                 code: code,
-                redirect_uri: 'http://localhost:4000/api/auth/token',
+                redirect_uri: 'http://localhost:4000/api/auth/callback42',
             };
             return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
         });
@@ -287,15 +287,18 @@ let AuthService = class AuthService {
                 return existingUser;
             }
             try {
+                // let avatarUrl;
+                // if (userInfo.image.link === null) {
+                //     // Generate a random avatar URL or use a default one
+                //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                // } else {
+                //     avatarUrl = userInfo.image.link;
+                // }
                 let avatarUrl;
-                if (userInfo.image.link === null) {
-                    // Generate a random avatar URL or use a default one
-                    avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                if (userInfo.image.link !== null) {
+                    // use the 42 profile picture if not null
+                    avatarUrl = avatarUrl = userInfo.image.link;
                 }
-                else {
-                    avatarUrl = userInfo.image.link;
-                }
-                // const { secret, otpauthUrl } = TwoFAService.generateTwoFASecret(user.id);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,

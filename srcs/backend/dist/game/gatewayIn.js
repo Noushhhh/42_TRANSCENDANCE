@@ -17,12 +17,20 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
-const data_service_1 = require("./data.service");
+const gameSockets_1 = require("./gameSockets");
 let GatewayIn = class GatewayIn {
-    constructor(gameLoop, gameLobby, gameData) {
+    constructor(gameLoop, gameLobby, gameSockets) {
         this.gameLoop = gameLoop;
         this.gameLobby = gameLobby;
-        this.gameData = gameData;
+        this.gameSockets = gameSockets;
+    }
+    onModuleInit() {
+        this.gameSockets.server = this.server;
+    }
+    handleConnection(socket) {
+        const clientId = socket.id;
+        this.gameSockets.setSocket(clientId, socket);
+        socket.setMaxListeners(11);
     }
     handleDisconnect(client) {
         console.log('client disconnected', client.id);
@@ -45,6 +53,12 @@ let GatewayIn = class GatewayIn {
     }
     requestGameState(client) {
         this.gameLobby.sendLobbyGameState(client);
+    }
+    getPaddleSize(client, num) {
+        console.log("je recois: ", num);
+    }
+    removeFromLobby(client) {
+        this.gameLobby.removePlayerFromLobby(client);
     }
 };
 exports.GatewayIn = GatewayIn;
@@ -97,6 +111,21 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "requestGameState", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('updatePaddleSize'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Number]),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "getPaddleSize", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('removeFromLobby'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "removeFromLobby", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
@@ -105,5 +134,5 @@ exports.GatewayIn = GatewayIn = __decorate([
     }),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
         gameLobby_service_1.GameLobbyService,
-        data_service_1.GameDataService])
+        gameSockets_1.gameSockets])
 ], GatewayIn);

@@ -26,6 +26,7 @@ export class ChatGateway implements OnModuleInit, OnGatewayConnection, OnGateway
 
             
         });
+
     }
 
     getSocketById(socketId: string) {
@@ -36,6 +37,7 @@ export class ChatGateway implements OnModuleInit, OnGatewayConnection, OnGateway
         console.log("amn i here ???????????");
         const clientId = socket.id;
         this.socketService.setSocket(clientId, socket);
+        socket.setMaxListeners(11);
     }
 
     // map with, key = userId, string = socketId

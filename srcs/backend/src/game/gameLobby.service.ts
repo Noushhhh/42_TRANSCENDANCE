@@ -2,17 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { GatewayOut } from './gatewayOut';
 import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
-import { SocketService } from '../socket/socket.service';
 import { GameState } from './gameState';
-import { ChatGateway } from '../socket/chat.gateway';
+import { gameSockets } from './gameSockets';
 
 @Injectable()
 export class GameLobbyService {
 
   constructor(
     private readonly gatewayOut: GatewayOut,
-    private readonly socketMap: SocketService,
-    private readonly io: ChatGateway,
+    private readonly socketMap: gameSockets,
   ) { }
 
   private printLobbies() {
@@ -29,7 +27,7 @@ export class GameLobbyService {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
-      console.log('Already in a lobby', player);
+      console.log('Already in a lobby', player?.id);
       return;
     }
 
@@ -44,7 +42,9 @@ export class GameLobbyService {
         this.gatewayOut.isInLobby(true, player);
         if (value.player1 != null && value.player2 != null) {
           this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
-          value.gameState.gameState.isLobbyFull === true;
+          value.gameState.gameState.isLobbyFull = true;
+          // @to-do implement the function that add +1 game to each player
+          // in the statistics object
         }
         return;
       }
@@ -81,6 +81,7 @@ export class GameLobbyService {
         }
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
       if (value.player2?.id === player.id) {
@@ -89,6 +90,7 @@ export class GameLobbyService {
         }
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
     }
@@ -104,7 +106,7 @@ export class GameLobbyService {
   }
 
   getAllClientsInARoom(roomName: string) {
-    const clients = this.io.server.sockets.adapter.rooms.get(`${roomName}`);
+    const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
     if (!clients) {
       console.log('No clients in this room');
       return;
@@ -112,7 +114,7 @@ export class GameLobbyService {
     for (const clientId of clients) {
 
       //this is the socket of each client in the room.
-      const clientSocket = this.io.server.sockets.sockets.get(clientId);
+      const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
 
       console.log(clientSocket?.id);
     }

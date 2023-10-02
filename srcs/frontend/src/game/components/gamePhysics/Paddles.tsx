@@ -17,22 +17,10 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
   useEffect(() => {
     initPlayersSize();
-    socket.on("updateGameState", (gameState: data.GameState) => {
-      const normP1Pos: Vector2d = {
-        x: gameState.p1pos.x * gameConfig.konvaWidth,
-        y: gameState.p1pos.y * gameConfig.konvaHeight,
-      };
-
-      const normP2Pos: Vector2d = {
-        x: gameState.p2pos.x * gameConfig.konvaWidth,
-        y: gameState.p2pos.y * gameConfig.konvaHeight,
-      };
-      updateP1pos(normP1Pos);
-      updateP2pos(normP2Pos);
-    });
+    socket.on("updateGameState", updateGameStatePaddle);
 
     return () => {
-      socket.off("updateGameState");
+      socket.off("updateGameState", updateGameStatePaddle);
     };
   }, [socket]);
 
@@ -43,6 +31,20 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
       window.removeEventListener("resize", resizeEvent);
     };
   });
+
+  const updateGameStatePaddle = (gameState: data.GameState) => {
+    const normP1Pos: Vector2d = {
+      x: gameState.p1pos.x * gameConfig.konvaWidth,
+      y: gameState.p1pos.y * gameConfig.konvaHeight,
+    };
+
+    const normP2Pos: Vector2d = {
+      x: gameState.p2pos.x * gameConfig.konvaWidth,
+      y: gameState.p2pos.y * gameConfig.konvaHeight,
+    };
+    updateP1pos(normP1Pos);
+    updateP2pos(normP2Pos);
+  };
 
   const resizeEvent = () => {
     socket.emit("requestGameState");

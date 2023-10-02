@@ -13,18 +13,16 @@ exports.GatewayOut = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const lobbies_1 = require("./lobbies");
-const socket_service_1 = require("../socket/socket.service");
-const chat_gateway_1 = require("../socket/chat.gateway");
+const gameSockets_1 = require("./gameSockets");
 let GatewayOut = class GatewayOut {
-    constructor(socketMap, io) {
+    constructor(socketMap) {
         this.socketMap = socketMap;
-        this.io = io;
     }
     updateGameState(gameState) {
         this.server.emit('updateGameState', gameState);
     }
     emitToRoom(roomName, event, data) {
-        this.io.server.to(roomName).emit(event, data);
+        this.server.to(roomName).emit(event, data);
     }
     emitToUser(userId, event, data) {
         var _a;
@@ -50,5 +48,5 @@ exports.GatewayOut = GatewayOut = __decorate([
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [socket_service_1.SocketService, chat_gateway_1.ChatGateway])
+    __metadata("design:paramtypes", [gameSockets_1.gameSockets])
 ], GatewayOut);
