@@ -22,14 +22,26 @@ let GameState = class GameState {
             paddleHeight: data_1.gameConfig.paddleHeight,
             paddleWidth: data_1.gameConfig.paddleWidth,
         };
+        this.playerSize = {
+            p1Size: 150 / 1200.0,
+            p2Size: 150 / 1200.0,
+        };
+        this.setP1Size = (num) => {
+            this.playerSize.p1Size = this.playerSize.p1Size * num;
+        };
+        this.setP2Size = (num) => {
+            this.playerSize.p2Size = this.playerSize.p2Size * num;
+        };
         this.gameState = {
+            p1Size: this.playerSize.p1Size,
+            p2Size: this.playerSize.p2Size,
             p1pos: {
                 x: exports.paddleGap,
-                y: (0.5) - data_1.gameConfig.paddleHeight / 2,
+                y: (0.5) - this.playerSize.p1Size / 2,
             },
             p2pos: {
                 x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
-                y: (0.5) - data_1.gameConfig.paddleHeight / 2,
+                y: (0.5) - this.playerSize.p2Size / 2,
             },
             ballState: {
                 ballDirection: 'right',
@@ -39,6 +51,7 @@ let GameState = class GameState {
                     x: 0.5 - BALL_SIZE / 2,
                     y: 0.5 - BALL_SIZE / 2,
                 },
+                ballSpeed: 12.5 / 1200.0,
             },
             ballRayUp: {
                 x1: 0.5,
@@ -64,7 +77,8 @@ let GameState = class GameState {
             ballDX: 0,
             ballDY: 0,
             ballPos: this.ballPos,
-            scoreBoard: this.gameState.score
+            scoreBoard: this.gameState.score,
+            ballSpeed: 12.5 / 1200.0,
         };
     }
     printGameState() {
