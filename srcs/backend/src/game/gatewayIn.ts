@@ -9,6 +9,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
+import { gameSockets } from './gameSockets';
+import { OnModuleInit } from '@nestjs/common';
 
 type GameDataArray = [
   konvaHeight: number,
@@ -22,15 +24,26 @@ type GameDataArray = [
     origin: '*',
   },
 })
-export class GatewayIn implements OnGatewayDisconnect {
+export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   @WebSocketServer()
   server!: Server;
 
   constructor(
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
+    private readonly gameSockets: gameSockets,
   ) { }
-    
+
+  onModuleInit() {
+    this.gameSockets.server = this.server;
+  }
+
+  handleConnection(socket: Socket) {
+    const clientId = socket.id;
+    this.gameSockets.setSocket(clientId, socket);
+    socket.setMaxListeners(11);
+  }
+
   handleDisconnect(client: Socket) {
     console.log('client disconnected', client.id);
     this.gameLobby.removePlayerFromLobby(client);

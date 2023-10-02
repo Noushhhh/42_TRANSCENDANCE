@@ -17,10 +17,20 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
+const gameSockets_1 = require("./gameSockets");
 let GatewayIn = class GatewayIn {
-    constructor(gameLoop, gameLobby) {
+    constructor(gameLoop, gameLobby, gameSockets) {
         this.gameLoop = gameLoop;
         this.gameLobby = gameLobby;
+        this.gameSockets = gameSockets;
+    }
+    onModuleInit() {
+        this.gameSockets.server = this.server;
+    }
+    handleConnection(socket) {
+        const clientId = socket.id;
+        this.gameSockets.setSocket(clientId, socket);
+        socket.setMaxListeners(11);
     }
     handleDisconnect(client) {
         console.log('client disconnected', client.id);
@@ -123,5 +133,6 @@ exports.GatewayIn = GatewayIn = __decorate([
         },
     }),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
-        gameLobby_service_1.GameLobbyService])
+        gameLobby_service_1.GameLobbyService,
+        gameSockets_1.gameSockets])
 ], GatewayIn);

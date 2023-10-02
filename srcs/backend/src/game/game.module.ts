@@ -6,12 +6,11 @@ import { GameController } from './game.controller';
 import { GatewayIn } from './gatewayIn';
 import { GatewayOut } from './gatewayOut';
 import { SocketModule } from '../socket/SocketModule';
-import { SocketEvents } from '../socket/SocketEvents';
-import { SocketService } from '../socket/socket.service';
 import { GameDataService } from './data.service';
+import { gameSockets } from './gameSockets';
 
 @Module({
-  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, SocketEvents, SocketService, GameDataService],
+  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, GameDataService, gameSockets],
   controllers: [GameController],
   imports: [SocketModule],
 })

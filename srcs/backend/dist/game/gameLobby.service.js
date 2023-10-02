@@ -13,14 +13,12 @@ exports.GameLobbyService = void 0;
 const common_1 = require("@nestjs/common");
 const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
-const socket_service_1 = require("../socket/socket.service");
 const gameState_1 = require("./gameState");
-const SocketEvents_1 = require("../socket/SocketEvents");
+const gameSockets_1 = require("./gameSockets");
 let GameLobbyService = class GameLobbyService {
-    constructor(gatewayOut, socketMap, io) {
+    constructor(gatewayOut, socketMap) {
         this.gatewayOut = gatewayOut;
         this.socketMap = socketMap;
-        this.io = io;
     }
     printLobbies() {
         lobbies_1.lobbies.forEach((value, key) => {
@@ -30,8 +28,6 @@ let GameLobbyService = class GameLobbyService {
             console.log("|", value.gameState.gameState.p1pos.y, "|");
             console.log("------------------");
         });
-    }
-    newGame(playerId) {
     }
     addPlayerToLobby(playerId) {
         this.gatewayOut.updateLobbiesGameState();
@@ -114,14 +110,14 @@ let GameLobbyService = class GameLobbyService {
         }
     }
     getAllClientsInARoom(roomName) {
-        const clients = this.io.server.sockets.adapter.rooms.get(`${roomName}`);
+        const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
         if (!clients) {
             console.log('No clients in this room');
             return;
         }
         for (const clientId of clients) {
             //this is the socket of each client in the room.
-            const clientSocket = this.io.server.sockets.sockets.get(clientId);
+            const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
             console.log(clientSocket === null || clientSocket === void 0 ? void 0 : clientSocket.id);
         }
     }
@@ -187,6 +183,5 @@ exports.GameLobbyService = GameLobbyService;
 exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
-        socket_service_1.SocketService,
-        SocketEvents_1.SocketEvents])
+        gameSockets_1.gameSockets])
 ], GameLobbyService);

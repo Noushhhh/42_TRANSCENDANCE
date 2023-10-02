@@ -2,17 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { GatewayOut } from './gatewayOut';
 import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
-import { SocketService } from '../socket/socket.service';
 import { GameState } from './gameState';
-import { SocketEvents } from '../socket/SocketEvents';
+import { gameSockets } from './gameSockets';
 
 @Injectable()
 export class GameLobbyService {
 
   constructor(
     private readonly gatewayOut: GatewayOut,
-    private readonly socketMap: SocketService,
-    private readonly io: SocketEvents,
+    private readonly socketMap: gameSockets,
   ) { }
 
   private printLobbies() {
@@ -23,10 +21,6 @@ export class GameLobbyService {
       console.log("|", value.gameState.gameState.p1pos.y, "|")
       console.log("------------------")
     })
-  }
-
-  newGame(playerId: string) {
-
   }
 
   addPlayerToLobby(playerId: string): void {
@@ -112,7 +106,7 @@ export class GameLobbyService {
   }
 
   getAllClientsInARoom(roomName: string) {
-    const clients = this.io.server.sockets.adapter.rooms.get(`${roomName}`);
+    const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
     if (!clients) {
       console.log('No clients in this room');
       return;
@@ -120,7 +114,7 @@ export class GameLobbyService {
     for (const clientId of clients) {
 
       //this is the socket of each client in the room.
-      const clientSocket = this.io.server.sockets.sockets.get(clientId);
+      const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
 
       console.log(clientSocket?.id);
     }
