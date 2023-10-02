@@ -1,7 +1,7 @@
-import { ForbiddenException, Req, Injectable } from '@nestjs/common';
+import { ForbiddenException, Req, Injectable, UnauthorizedException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 // import * as qrcode from 'qrcode';
 import * as speakeasy from 'speakeasy';
+
 
 @Injectable()
 export class AuthService {

@@ -10,12 +10,14 @@ exports.UserModule = void 0;
 const common_1 = require("@nestjs/common");
 const user_controller_1 = require("./user.controller");
 const config_1 = require("@nestjs/config");
+const jwt_service_1 = require("../jwt/jwt.service"); // Import JwtAuthService
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
     (0, common_1.Module)({
+        providers: [jwt_service_1.JwtAuthService, config_1.ConfigService],
         controllers: [user_controller_1.UserController],
-        providers: [config_1.ConfigService]
+        // providers:[ConfigService]
     })
 ], UserModule);

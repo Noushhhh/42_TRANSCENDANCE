@@ -1,12 +1,29 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client'
+import { Req} from '@nestjs/common';
+import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
+import * as jwt from 'jsonwebtoken';
+
+// import { User } from '@prisma/client'
 
 @Injectable()
 export class UserService {
         constructor(
-            private prisma: PrismaService,
+            // private prisma: PrismaService,
+            private config: ConfigService,
         ) {}
+
+        getMe(@Req() req: Request) {
+            try {
+                console.log('get me called');
+                const jwtCookie = req.cookies['token'];
+                const secret = this.config.get('JWT_SECRET');
+                const user = jwt.verify(jwtCookie, secret);
+                return user;
+            } catch (error){
+                console.log(error);
+            }
+        }
 }
 // // //     async set2faSecret(secret: string, id: string) {
 // // //         const user = await this.usersRepository.findOneBy({id});

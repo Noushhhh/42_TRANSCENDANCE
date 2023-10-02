@@ -56,7 +56,5 @@ export class AuthController {
     async enable2FA () {
 
     }
-    // async enable2FA() {
 
-    // }
 }

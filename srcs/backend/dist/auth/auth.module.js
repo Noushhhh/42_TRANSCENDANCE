@@ -11,14 +11,22 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
-const jwt_strategy_1 = require("../strategy/jwt.strategy");
+const jwt_strategy_1 = require("../strategies/jwt.strategy");
+const passport_1 = require("@nestjs/passport");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
-        imports: [jwt_1.JwtModule.register({})],
+        imports: [
+            passport_1.PassportModule,
+            jwt_1.JwtModule.register({
+                secret: 'your-secret-key',
+                signOptions: { expiresIn: '15mn' },
+            })
+        ],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
+        exports: [auth_service_1.AuthService, jwt_1.JwtModule],
     })
 ], AuthModule);
