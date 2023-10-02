@@ -15,7 +15,7 @@ const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const socket_service_1 = require("../socket/socket.service");
 const gameState_1 = require("./gameState");
-const SocketEvents_1 = require("../socket/SocketEvents");
+const chat_gateway_1 = require("../socket/chat.gateway");
 let GameLobbyService = class GameLobbyService {
     constructor(gatewayOut, socketMap, io) {
         this.gatewayOut = gatewayOut;
@@ -182,5 +182,5 @@ exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
         socket_service_1.SocketService,
-        SocketEvents_1.SocketEvents])
+        chat_gateway_1.ChatGateway])
 ], GameLobbyService);

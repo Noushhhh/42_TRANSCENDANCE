@@ -61,7 +61,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           type: 0,
         }
       );
-      fetchUser(setChannelHeader, userId, socket);
+      await fetchUser(setChannelHeader, userId, socket);
     }
     handleClose();
   };
@@ -73,6 +73,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handleBlockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
     await blockUser(userId, user.id);
+    await fetchUser(setChannelHeader, userId, socket);
     console.log('blocked');
     handleClose();
   };
@@ -80,6 +81,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handleUnblockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
     await unblockUser(userId, user.id);
+    await fetchUser(setChannelHeader, userId, socket);
     console.log('Unblocked');
     handleClose();
   };

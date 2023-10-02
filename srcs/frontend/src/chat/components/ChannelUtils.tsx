@@ -456,6 +456,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: 'include',
     };
 
     for (const user of userList) {

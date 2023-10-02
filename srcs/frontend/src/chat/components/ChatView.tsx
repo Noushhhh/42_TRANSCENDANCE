@@ -32,10 +32,13 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   }
 
   useEffect(() => {
-    setConversationFetched([]);
-    setMessages([]);
-    if (channelId !== -1)
-      fetchConversation(userId, channelId, addMsgToFetchedConversation);
+    const callFetchConversation = async () => {  
+      setConversationFetched([]);
+      setMessages([]);
+      if (channelId !== -1)
+        await fetchConversation(userId, channelId, addMsgToFetchedConversation);
+    }
+    callFetchConversation();
   }, ([channelId]));
 
   return (

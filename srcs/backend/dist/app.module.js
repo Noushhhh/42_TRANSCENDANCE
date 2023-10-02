@@ -13,7 +13,7 @@ const config_1 = require("@nestjs/config");
 const app_service_1 = require("./app.service");
 const auth_module_1 = require("./auth/auth.module");
 const user_module_1 = require("./user/user.module");
-const SocketModule_1 = require("./socket/SocketModule");
+const socket_module_1 = require("./socket/socket.module");
 // import { PrismaModule } from './prisma/prisma.module';
 const chat_controller_1 = require("./chat/chat.controller");
 const chat_service_1 = require("./chat/chat.service");
@@ -21,7 +21,7 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const prisma_service_1 = require("./prisma/prisma.service");
 const chat_module_1 = require("./chat/chat.module");
 const game_module_1 = require("./game/game.module");
-const SocketEvents_1 = require("./socket/SocketEvents");
+const chat_gateway_1 = require("./socket/chat.gateway");
 const socket_service_1 = require("./socket/socket.service");
 let AppModule = class AppModule {
 };
@@ -32,12 +32,12 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             user_module_1.UserModule,
             config_1.ConfigModule.forRoot({}),
-            SocketModule_1.SocketModule,
+            socket_module_1.SocketModule,
             chat_module_1.ChatModule,
             prisma_module_1.PrismaModule,
             game_module_1.GameModule
         ],
         controllers: [app_controller_1.AppController, chat_controller_1.ChatController],
-        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, SocketEvents_1.SocketEvents, socket_service_1.SocketService],
+        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, chat_gateway_1.ChatGateway, socket_service_1.SocketService],
     })
 ], AppModule);

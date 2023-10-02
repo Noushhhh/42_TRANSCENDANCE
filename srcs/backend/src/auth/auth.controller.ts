@@ -22,7 +22,6 @@ export class AuthController {
 
     @Get('checkTokenValidity')
     async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
-        console.log("passing by checkTokenValidity");
         return this.authService.checkTokenValidity(req, res);
     }
 

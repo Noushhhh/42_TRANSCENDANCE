@@ -34,12 +34,10 @@ function ContentMessage( { channelInfo, setChannelInfo } : contentMessageProps) 
     const addMessage = async (newMessage: Message, messageType: string) => {
         console.log(newMessage);
         newMessage.messageType = messageType;
-        const blockedUsers: number[] = await getBlockedUsersById(userId);
-        if (blockedUsers.some(id => id === newMessage.senderId)){
-            console.log("am i here ??");
-            return ;
-        }
-        console.log("or here ??");
+        // const blockedUsers: number[] = await getBlockedUsersById(userId);
+        // if (blockedUsers.some(id => id === newMessage.senderId)){
+        //     return ;
+        // }
         setMessages([...messages, newMessage]);
     }
 
@@ -47,7 +45,7 @@ function ContentMessage( { channelInfo, setChannelInfo } : contentMessageProps) 
         <div className={`ContentMessage ${contentMessageWidth}`}>
             <HeaderChatBox channelInfo={channelInfo} setChannelInfo={setChannelInfo}/>
             <ChatView isChannelInfoDisplay={channelInfo} userId={userId} messages={messages} setMessages={setMessages}/>
-            <ChatPrompt simulatedUserId={userId} addMessage={addMessage} />
+            <ChatPrompt addMessage={addMessage} />
         </div>
     )   
 }

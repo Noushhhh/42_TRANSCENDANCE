@@ -34,7 +34,6 @@ let ChatController = class ChatController {
     ;
     getAllConvFromId(userIdDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("get all conv called");
             return this.chatService.getAllConvFromId(userIdDto.userId);
         });
     }
@@ -59,10 +58,10 @@ let ChatController = class ChatController {
             }
         });
     }
-    addMessageToChannelId(id, message) {
+    addMessageToChannelId(message) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return this.chatService.addMessageToChannelId(id, message);
+                return this.chatService.addMessageToChannelId(message);
             }
             catch (error) {
                 throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
@@ -186,11 +185,7 @@ __decorate([
     (0, common_1.Post)('getAllConvFromId'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-<<<<<<< HEAD
-    __metadata("design:paramtypes", [typeof (_a = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _a : Object]),
-=======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
->>>>>>> origin/main
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllConvFromId", null);
 __decorate([
@@ -215,11 +210,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllMessagesByChannelId", null);
 __decorate([
-    (0, common_1.Post)('addMessageToChannel/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)('addMessageToChannel'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addMessageToChannelId", null);
 __decorate([
@@ -381,11 +375,7 @@ __decorate([
     (0, common_1.Post)('getBlockedUsersById'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-<<<<<<< HEAD
-    __metadata("design:paramtypes", [typeof (_b = typeof chat_dto_1.UserIdDto !== "undefined" && chat_dto_1.UserIdDto) === "function" ? _b : Object]),
-=======
     __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
->>>>>>> origin/main
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getBlockedUsersById", null);
 exports.ChatController = ChatController = __decorate([

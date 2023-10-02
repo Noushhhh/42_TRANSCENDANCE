@@ -88,10 +88,6 @@ export class AuthService {
 
         // Generate a refresh token
         const refreshToken = this.createRefreshToken(userId);
-        console.log('refresh token = ');
-        console.log(refreshToken);
-        console.log('token = ');
-        console.log(token);
 
         // Save refresh token in an HttpOnly cookie
         res.cookie('refreshToken', refreshToken, {
@@ -137,7 +133,6 @@ export class AuthService {
     async checkTokenValidity(req: Request, res: Response) {
         const token = req.cookies.token;
 
-        console.log("passing by checktokenvalidity");
         if (!token)
             return res.status(401).json({ valid: false, message: "Token Missing" });
 

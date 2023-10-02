@@ -4,7 +4,7 @@ import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
 import { SocketService } from '../socket/socket.service';
 import { GameState } from './gameState';
-import { SocketEvents } from '../socket/SocketEvents';
+import { ChatGateway } from '../socket/chat.gateway';
 
 @Injectable()
 export class GameLobbyService {
@@ -12,7 +12,7 @@ export class GameLobbyService {
   constructor(
     private readonly gatewayOut: GatewayOut,
     private readonly socketMap: SocketService,
-    private readonly io: SocketEvents,
+    private readonly io: ChatGateway,
   ) { }
 
   private printLobbies() {

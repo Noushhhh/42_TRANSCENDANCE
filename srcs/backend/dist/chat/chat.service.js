@@ -45,7 +45,7 @@ exports.ChatService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-const SocketEvents_1 = require("../socket/SocketEvents");
+const chat_gateway_1 = require("../socket/chat.gateway");
 const argon = __importStar(require("argon2"));
 const common_2 = require("@nestjs/common");
 const common_3 = require("@nestjs/common");
@@ -54,9 +54,9 @@ let ChatService = class ChatService {
     // "private" to keep utilisation of the service inside the class
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
-    socketEvents) {
+    chatGateway) {
         this.prisma = prisma;
-        this.socketEvents = socketEvents;
+        this.chatGateway = chatGateway;
     }
     getAllConvFromId(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -167,7 +167,7 @@ let ChatService = class ChatService {
             return filteredMessages;
         });
     }
-    addMessageToChannelId(channId, message) {
+    addMessageToChannelId(message) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.prisma.message.create({
                 data: message,
@@ -287,7 +287,7 @@ let ChatService = class ChatService {
                 yield this.prisma.channel.delete({
                     where: { id: channelId },
                 });
-                this.socketEvents.alertChannelDeleted(callerId, channelId);
+                this.chatGateway.alertChannelDeleted(callerId, channelId);
                 return true;
             }
             const response = yield this.prisma.channel.update({
@@ -333,7 +333,7 @@ let ChatService = class ChatService {
                     yield this.prisma.channel.delete({
                         where: { id: channelId },
                     });
-                    this.socketEvents.alertChannelDeleted(callerId, channelId);
+                    this.chatGateway.alertChannelDeleted(callerId, channelId);
                     return true;
                 }
                 yield this.kickUserFromChannel(userId, channelId, callerId);
@@ -365,7 +365,7 @@ let ChatService = class ChatService {
                 yield this.prisma.channel.delete({
                     where: { id: channelId },
                 });
-                this.socketEvents.alertChannelDeleted(userId, channelId);
+                this.chatGateway.alertChannelDeleted(userId, channelId);
                 return true;
             }
             const response = yield this.prisma.channel.update({
@@ -438,46 +438,41 @@ let ChatService = class ChatService {
     }
     removeAdminFromChannel(inviterIdStr, invitedIdStr, channelIdStr) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const inviterId = Number(inviterIdStr);
-                const invitedId = Number(invitedIdStr);
-                const channelId = Number(channelIdStr);
-                if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
-                    throw new Error("Wrong parameters passed to addAdminToChannel");
-                }
-                if (inviterId === invitedId) {
-                    throw new Error("You can't kick yourself");
-                }
-                if ((yield this.isAdmin(inviterId, channelId)) === false) {
-                    throw new common_1.HttpException("Only admins can remove others admins", common_1.HttpStatus.FORBIDDEN);
-                }
-                if ((yield this.isAdmin(invitedId, channelId)) === false) {
-                    throw new common_1.HttpException(`user: ${invitedId} is not admin in this channel`, common_1.HttpStatus.FORBIDDEN);
-                }
-                if ((yield this.isUserIsInChannel(invitedIdStr, channelId)) === false) {
-                    throw new Error("addAdminToChannel: user you want to add to admin is not in channel");
-                }
-                const userToAdd = yield this.prisma.user.findUnique({
-                    where: { id: invitedId }
-                });
-                if (!userToAdd)
-                    return false;
-                const response = yield this.prisma.channel.update({
-                    where: { id: channelId },
-                    data: {
-                        admins: {
-                            disconnect: {
-                                id: invitedId,
-                            }
+            const inviterId = Number(inviterIdStr);
+            const invitedId = Number(invitedIdStr);
+            const channelId = Number(channelIdStr);
+            if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
+                throw new Error("Wrong parameters passed to addAdminToChannel");
+            }
+            if (inviterId === invitedId) {
+                throw new Error("You can't kick yourself");
+            }
+            if ((yield this.isAdmin(inviterId, channelId)) === false) {
+                console.log("passing here");
+                throw new common_1.HttpException("Only admins can remove others admins", common_1.HttpStatus.FORBIDDEN);
+            }
+            if ((yield this.isAdmin(invitedId, channelId)) === false) {
+                console.log("passing here2");
+                throw new common_1.HttpException(`user: ${invitedId} is not admin in this channel`, common_1.HttpStatus.FORBIDDEN);
+            }
+            if ((yield this.isUserIsInChannel(invitedIdStr, channelId)) === false) {
+                throw new common_1.HttpException(`user: ${invitedId} is not in channel`, common_1.HttpStatus.FORBIDDEN);
+            }
+            const userToAdd = yield this.prisma.user.findUnique({
+                where: { id: invitedId }
+            });
+            if (!userToAdd)
+                return false;
+            const response = yield this.prisma.channel.update({
+                where: { id: channelId },
+                data: {
+                    admins: {
+                        disconnect: {
+                            id: invitedId,
                         }
                     }
-                });
-                if (!response)
-                    throw new Error("removeAdmin: error posting data");
-            }
-            catch (error) {
-                throw new Error("Error in removeAdminFromChannel");
-            }
+                }
+            });
             return true;
         });
     }
@@ -536,7 +531,7 @@ let ChatService = class ChatService {
                 });
             }
             catch (error) {
-                throw new Error("Error updating database");
+                throw new common_2.ForbiddenException('channel not found');
             }
         });
     }
@@ -685,5 +680,5 @@ exports.ChatService = ChatService;
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        SocketEvents_1.SocketEvents])
+        chat_gateway_1.ChatGateway])
 ], ChatService);

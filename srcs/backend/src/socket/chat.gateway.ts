@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SocketService } from './socket.service';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 @WebSocketGateway({
@@ -10,16 +11,20 @@ import { SocketService } from './socket.service';
         origin: '*',
     },
 })
-export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
 
     @WebSocketServer()
     server!: Server;
 
-    constructor(private readonly socketService: SocketService) { }
+    constructor(private readonly socketService: SocketService,
+                private chatService: ChatService
+                ) { }
 
     onModuleInit() {
         this.server.on('connection', (socket) => {
-            console.log('client connected', socket.id);
+            console.log('client connected (chat gateway=>)', socket.id);
+
+            
         });
     }
 
@@ -28,6 +33,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
     }
 
     handleConnection(socket: Socket) {
+        console.log("amn i here ???????????");
         const clientId = socket.id;
         this.socketService.setSocket(clientId, socket);
     }
@@ -43,6 +49,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
     @SubscribeMessage('setNewUserConnected')
     handleSetNewUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket) {
         this.listUserConnected.set(userId, client.id);
+        this.readMap(this.listUserConnected);
         this.server.emit("changeConnexionState");
     }
 
@@ -60,6 +67,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
             if (client.id === value)
                 this.listUserConnected.delete(key);
         }
+        console.log(`client disconnected (chat gateway): ${client.id}`);
         this.server.emit("changeConnexionState");
         const clientId = client.id;
         this.socketService.removeSocket(clientId);
@@ -67,7 +75,15 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('message')
     handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
+
+        // traiter le message: extraire le channelId du message
+        // connaitre tous les users qui sont dans le channelId du message
+        // renvoyer (socket.emit()) le contenu du message aux users appropries
+
         this.server.emit('message', client.id, data);
+
+        console.log('handleMessage called server side :');
+        console.log(client.id);
     }
 
     alertChannelDeleted(userId: number, channelId: number) {

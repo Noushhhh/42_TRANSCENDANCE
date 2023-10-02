@@ -59,8 +59,6 @@ function MessageSide() {
     needReload == false ? setNeedReload(true) : setNeedReload(false);
   })
 
-  const dummyFunction = () => { };
-
   useEffect(() => {
     fetchUser(setChannelHeader, userId, socket);
     return () => {
@@ -77,7 +75,7 @@ function MessageSide() {
           <ChannelManagerMenu stateMessageToClick={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} />
           <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
         </div>)}
-      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={dummyFunction} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
+      <SearchBarResults inputValue={inputValue} displayResults={displayResults} showUserMenu={true} addUserToList={() => {}} onlySearchInChannel={false} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
 
       {stateMessageToClick[0] || stateMessageToClick[1] ?
         <ChannelManager display={stateMessageToClick} setStateMessageToClick={setStateMessageToClick} />

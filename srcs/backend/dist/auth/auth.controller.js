@@ -42,7 +42,6 @@ let AuthController = class AuthController {
     }
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("passing by checkTokenValidity");
             return this.authService.checkTokenValidity(req, res);
         });
     }

@@ -34,7 +34,6 @@ export class ChatController {
     @Post('getAllConvFromId')
     async getAllConvFromId(
         @Body()userIdDto: UserIdDto) {
-        console.log("get all conv called");
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
@@ -59,12 +58,11 @@ export class ChatController {
         }
     }
 
-    @Post('addMessageToChannel/:id')
+    @Post('addMessageToChannel')
     async addMessageToChannelId(
-        @Param('id') id: number,
         @Body() message: MessageToStore) {
         try {
-            return this.chatService.addMessageToChannelId(id, message);
+            return this.chatService.addMessageToChannelId(message);
         } catch (error) {
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
         }

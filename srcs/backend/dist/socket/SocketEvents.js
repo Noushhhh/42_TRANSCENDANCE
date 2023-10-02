@@ -17,21 +17,24 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const common_1 = require("@nestjs/common");
 const socket_service_1 = require("./socket.service");
+const chat_service_1 = require("../chat/chat.service");
 let SocketEvents = class SocketEvents {
-    constructor(socketService) {
+    constructor(socketService, chatService) {
         this.socketService = socketService;
+        this.chatService = chatService;
         // map with, key = userId, string = socketId
         this.listUserConnected = new Map();
     }
     onModuleInit() {
         this.server.on('connection', (socket) => {
-            console.log('client connected', socket.id);
+            console.log('client connected (chat gateway=>)', socket.id);
         });
     }
     getSocketById(socketId) {
         return this.server.sockets.sockets.get(socketId);
     }
     handleConnection(socket) {
+        console.log("amn i here ???????????");
         const clientId = socket.id;
         this.socketService.setSocket(clientId, socket);
     }
@@ -41,6 +44,7 @@ let SocketEvents = class SocketEvents {
     }
     handleSetNewUserConnected(userId, client) {
         this.listUserConnected.set(userId, client.id);
+        this.readMap(this.listUserConnected);
         this.server.emit("changeConnexionState");
     }
     handleIsUserConnected(userId, client) {
@@ -55,12 +59,18 @@ let SocketEvents = class SocketEvents {
             if (client.id === value)
                 this.listUserConnected.delete(key);
         }
+        console.log(`client disconnected (chat gateway): ${client.id}`);
         this.server.emit("changeConnexionState");
         const clientId = client.id;
         this.socketService.removeSocket(clientId);
     }
     handleMessage(data, client) {
+        // traiter le message: extraire le channelId du message
+        // connaitre tous les users qui sont dans le channelId du message
+        // renvoyer (socket.emit()) le contenu du message aux users appropries
         this.server.emit('message', client.id, data);
+        console.log('handleMessage called server side :');
+        console.log(client.id);
     }
     alertChannelDeleted(userId, channelId) {
         const socketId = this.listUserConnected.get(userId);
@@ -118,5 +128,6 @@ exports.SocketEvents = SocketEvents = __decorate([
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [socket_service_1.SocketService])
+    __metadata("design:paramtypes", [socket_service_1.SocketService,
+        chat_service_1.ChatService])
 ], SocketEvents);
