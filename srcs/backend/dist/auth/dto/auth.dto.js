@@ -1,23 +1,4 @@
 "use strict";
-/* import {
-    IsNotEmpty,
-    IsString,
-} from 'class-validator';
-
-export class AuthDto {
-    @IsString()
-    @IsNotEmpty()
-    username!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    sword!: string;
-//
-    constructor(username: string, password: string) {
-        this.username = username;
-        this.password = password;
-    }
-} */
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -36,14 +17,12 @@ class AuthDto {
 }
 exports.AuthDto = AuthDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AuthDto.prototype, "username", void 0);
 __decorate([
-    (0, class_validator_1.IsString)()
-    // Decorator to ensure that 'password' field cannot be empty
-    ,
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AuthDto.prototype, "password", void 0);

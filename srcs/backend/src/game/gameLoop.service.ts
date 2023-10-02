@@ -5,9 +5,11 @@ import { lobbies } from './lobbies';
 import { Socket } from 'socket.io';
 import { gameConfig } from './data';
 import { GameState } from './gameState';
+import { paddleGap } from './gameState';
 
 const RAY_LENGHT = 35 / 1200;
 const BALL_SIZE = 20 / 1200.0;
+const SCORE_TO_WIN = 3;
 
 interface Vector2d {
   x: number;
@@ -61,7 +63,6 @@ export class GameLoopService implements OnModuleInit {
       setTimeout(() => {
         this.gameLoop();
       }, 1000 / 60);
-      // }, 1000 / 60);
     }
   }
 
@@ -106,41 +107,6 @@ export class GameLoopService implements OnModuleInit {
     }
   }
 
-  // printGameData() {
-  //   // console.log("print 3: ", gameConfig.konvaHeight, gameConfig.konvaWidth);
-  // }
-
-  private updateRayUp = (gameState: GameState) => {
-    if (gameState.gameState.ballState.ballDirection === 'right') {
-      gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
-      gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
-      gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-      gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-      return gameState.gameState.ballRayUp;
-    } else {
-      gameState.gameState.ballRayUp.x1 = gameState.gameState.ballState.ballPos.x;
-      gameState.gameState.ballRayUp.y1 = gameState.gameState.ballState.ballPos.y;
-      gameState.gameState.ballRayUp.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-      gameState.gameState.ballRayUp.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180);
-      return gameState.gameState.ballRayUp;
-    }
-  }
-
-  private updateRayDown = (gameState: GameState) => {
-    if (gameState.gameState.ballState.ballDirection === 'right') {
-      gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x + BALL_SIZE;
-      gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
-      gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x + RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-      gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y + RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
-      return gameState.gameState.ballRayDown;
-    } else {
-      gameState.gameState.ballRayDown.x1 = gameState.gameState.ballState.ballPos.x;
-      gameState.gameState.ballRayDown.y1 = gameState.gameState.ballState.ballPos.y + BALL_SIZE;
-      gameState.gameState.ballRayDown.x2 = gameState.gameState.ballState.ballPos.x - RAY_LENGHT * Math.cos((0 * Math.PI) / 180);
-      gameState.gameState.ballRayDown.y2 = gameState.gameState.ballState.ballPos.y - RAY_LENGHT * Math.sin((0 * Math.PI) / 180) + BALL_SIZE;
-      return gameState.gameState.ballRayDown;
-    }
-  }
 
   private updateBall = () => {
     for (const [key, lobby] of lobbies) {
@@ -154,15 +120,37 @@ export class GameLoopService implements OnModuleInit {
         lobby.gameState.gameState.ballState.ballDY,
         lobby.gameState.gameState.score,
         lobby.gameState.gameState.ballRayUp,
+        lobby.gameState.gameState.ballState.ballSpeed,
+        lobby.gameState.gameState.p1Size,
+        lobby.gameState.gameState.p2Size,
       )
       if (ballState) {
         lobby.gameState.gameState.ballState = ballState;
-        lobby.gameState.gameState.ballRayUp = this.updateRayUp(lobby.gameState);
-        lobby.gameState.gameState.ballRayDown = this.updateRayDown(lobby.gameState);
       }
       const score = ballState?.scoreBoard;
-      if (score) lobby.gameState.gameState.score = score;
+      if (score) {
+        lobby.gameState.gameState.score = score;
+        if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
+          // @to-do 
+          // Implement function to push the victory of the player
+          // in the statistic object
 
+          // Implement function that stop the game
+          // Create a Play Again function
+          console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
+          lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
+          lobby.gameState.gameState.p1pos = {
+            x: paddleGap,
+            y: (0.5) - lobby.gameState.gameState.p1Size / 2,
+          }
+          lobby.gameState.gameState.p2pos = {
+            x: 1 - paddleGap - gameConfig.paddleWidth,
+            y: (0.5) - lobby.gameState.gameState.p2Size / 2,
+          }
+          lobby.gameState.gameState.isPaused = true;
+          this.gatewayOut.emitToRoom(key, 'newGame', true);
+        }
+      }
     }
   };
 }

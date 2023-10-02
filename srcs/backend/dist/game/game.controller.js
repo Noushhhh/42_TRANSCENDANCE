@@ -16,16 +16,15 @@ exports.GameController = void 0;
 const common_1 = require("@nestjs/common");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
-const socket_service_1 = require("../socket/socket.service");
 const common_2 = require("@nestjs/common");
 let GameController = class GameController {
-    constructor(gameLoopService, gameLobby, socket) {
+    constructor(gameLoopService, gameLobby) {
         this.gameLoopService = gameLoopService;
         this.gameLobby = gameLobby;
-        this.socket = socket;
     }
     connectToLobby(clientId) {
         this.gameLobby.addPlayerToLobby(clientId);
+        return { test: 'bidule' };
     }
     play() {
         this.gameLoopService.startGameLoop();
@@ -59,6 +58,5 @@ __decorate([
 exports.GameController = GameController = __decorate([
     (0, common_1.Controller)('game'),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
-        gameLobby_service_1.GameLobbyService,
-        socket_service_1.SocketService])
+        gameLobby_service_1.GameLobbyService])
 ], GameController);

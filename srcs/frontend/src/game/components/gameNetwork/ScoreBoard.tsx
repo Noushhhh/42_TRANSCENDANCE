@@ -7,14 +7,16 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const [p2Score, setP2Score] = useState(0);
 
   useEffect(() => {
-    socket.on("updateGameState", (gameState: GameState) => {
-      setP1Score(gameState.score.p1Score);
-      setP2Score(gameState.score.p2Score);
-    });
+    socket.on("updateGameState", updateGameStateListener);
     return () => {
-      socket.off("updateGameState");
+      socket.off("updateGameState", updateGameStateListener);
     };
   }, [socket]);
+
+  const updateGameStateListener = (gameState: GameState) => {
+    setP1Score(gameState.score.p1Score);
+    setP2Score(gameState.score.p2Score);
+  };
 
   return (
     <div
@@ -23,7 +25,7 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
         display: "flex",
         justifyContent: "space-around",
         alignItems: "center",
-        fontSize: "5rem",
+        fontSize: "1rem",
         width: "70%",
       }}
     >
