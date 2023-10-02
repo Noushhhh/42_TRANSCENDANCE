@@ -30,7 +30,6 @@ let GameController = class GameController {
     }
     play() {
         this.gameLoopService.startGameLoop();
-        console.log("je suis ici");
         return { msg: 'started' };
     }
     stop() {

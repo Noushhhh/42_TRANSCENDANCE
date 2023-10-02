@@ -31,6 +31,8 @@ let GameLobbyService = class GameLobbyService {
             console.log("------------------");
         });
     }
+    newGame(playerId) {
+    }
     addPlayerToLobby(playerId) {
         this.gatewayOut.updateLobbiesGameState();
         const player = this.socketMap.getSocket(playerId);
@@ -88,6 +90,7 @@ let GameLobbyService = class GameLobbyService {
                 }
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
             if (((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === player.id) {
@@ -96,6 +99,7 @@ let GameLobbyService = class GameLobbyService {
                 }
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
         }

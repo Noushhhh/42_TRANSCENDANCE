@@ -147,8 +147,8 @@ export class GameLoopService implements OnModuleInit {
             x: 1 - paddleGap - gameConfig.paddleWidth,
             y: (0.5) - lobby.gameState.gameState.p2Size / 2,
           }
-          this.gatewayOut.emitToRoom(key, "gameEnd", true);
           lobby.gameState.gameState.isPaused = true;
+          this.gatewayOut.emitToRoom(key, 'newGame', true);
         }
       }
     }

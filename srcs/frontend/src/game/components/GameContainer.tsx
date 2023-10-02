@@ -10,6 +10,7 @@ import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
 import GameCustomization from "./gamePhysics/GameCustomization";
 import { useLocation } from "react-router-dom";
+import AutoLaunch from "./gameNetwork/AutoLaunch";
 
 const buttonStyle: React.CSSProperties = {
   position: "absolute",
@@ -26,7 +27,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
-  const [gameEnd, setGameEnd] = useState<boolean>(false);
   const clientId = useRef<string>("");
   const gameLaunched = useRef<boolean>(false);
   const location = useLocation();
@@ -37,6 +37,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
     socket.on("isOnLobby", isInLobbyListener);
     socket.on("isLobbyFull", isLobbyFullListener);
     socket.on("gameEnd", handleGameEnd);
+    socket.on("newGame", handleNewGame);
 
     return () => {
       socket.off("connect", connectListener);
@@ -44,30 +45,25 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       socket.off("isOnLobby", isInLobbyListener);
       socket.off("isLobbyFull", isLobbyFullListener);
       socket.off("gameEnd", handleGameEnd);
+      socket.off("newGame", handleNewGame);
     };
   }, []);
 
   useEffect(() => {
-    console.log("location changed");
-
     return () => {
       if (isInLobby) {
         socket.emit("removeFromLobby");
-        console.log("client was in lobby and he just left");
-      } else {
-        console.log("leaving the component");
       }
     };
   }, [location.pathname, isInLobby]);
 
-  useEffect(() => {
-    if (isInLobby && isLobbyFull && !gameLaunched) {
-      setTimeout(() => {
-        start();
-        setGameLaunchedRef();
-      }, 1500);
-    }
-  }, []);
+  const handleNewGame = () => {
+    setTimeout(() => {
+      start();
+      setGameLaunchedRef();
+      handlePlayPause();
+    }, 1500);
+  };
 
   const setGameLaunchedRef = () => {
     gameLaunched.current = true;
@@ -99,9 +95,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const handleGameEnd = () => {
-    console.log("game's finised");
     setIsPaused(true);
-    setGameEnd(true);
   };
 
   const start = () => {
@@ -128,6 +122,11 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           <Button onClick={() => handlePlayPause()} style={buttonStyle}>
             {isPaused ? "Play" : "Pause"}
           </Button>
+          <AutoLaunch
+            start={start}
+            setGameLaunchedRef={setGameLaunchedRef}
+            handlePlayPause={handlePlayPause}
+          />
         </div>
       );
     }

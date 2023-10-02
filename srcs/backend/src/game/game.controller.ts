@@ -22,7 +22,6 @@ export class GameController {
   @Get('play')
   play() {
     this.gameLoopService.startGameLoop();
-    console.log("je suis ici");
     return { msg: 'started' };
   }
 

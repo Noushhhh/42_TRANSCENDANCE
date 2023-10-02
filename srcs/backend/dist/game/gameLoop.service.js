@@ -54,8 +54,8 @@ let GameLoopService = class GameLoopService {
                             x: 1 - gameState_1.paddleGap - data_1.gameConfig.paddleWidth,
                             y: (0.5) - lobby.gameState.gameState.p2Size / 2,
                         };
-                        this.gatewayOut.emitToRoom(key, "gameEnd", true);
                         lobby.gameState.gameState.isPaused = true;
+                        this.gatewayOut.emitToRoom(key, 'newGame', true);
                     }
                 }
             }

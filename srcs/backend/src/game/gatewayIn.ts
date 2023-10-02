@@ -30,7 +30,7 @@ export class GatewayIn implements OnGatewayDisconnect {
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
   ) { }
-
+    
   handleDisconnect(client: Socket) {
     console.log('client disconnected', client.id);
     this.gameLobby.removePlayerFromLobby(client);

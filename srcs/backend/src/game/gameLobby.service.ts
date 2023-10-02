@@ -25,6 +25,10 @@ export class GameLobbyService {
     })
   }
 
+  newGame(playerId: string) {
+
+  }
+
   addPlayerToLobby(playerId: string): void {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
@@ -83,6 +87,7 @@ export class GameLobbyService {
         }
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
       if (value.player2?.id === player.id) {
@@ -91,6 +96,7 @@ export class GameLobbyService {
         }
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
     }
