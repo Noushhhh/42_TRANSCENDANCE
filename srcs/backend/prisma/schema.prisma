@@ -19,9 +19,13 @@ model User {
   // add unique constraint to id ? 
   id                  Int           @id @default(autoincrement()) 
   username            String        @unique
-  avatar              String?
+  avatar              String        @default("https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg")
 
   hashPassword        String
+
+  twoFASecret         String?
+  twoFAUrl            String?
+
   refreshToken        RefreshToken[]
 
   firstConnexion      Boolean       @default (true)

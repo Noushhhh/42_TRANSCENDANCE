@@ -1,6 +1,5 @@
 import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Transform } from 'class-transformer';
 
 
 class CommonChannelNameDto {
@@ -13,9 +12,22 @@ class CommonChannelNameDto {
 class CommonChannelIdDto {
     @IsInt()
     @Min(0)
+    @Type(() => Number)
     channelId!: number;
 }
+
+class CommonUserIdDto {
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    userId!: number;
+}
+
 export class ChannelNameDto extends CommonChannelNameDto {}
+
+export class ChannelIdDto extends CommonChannelIdDto {}
+
+export class UserIdDto extends CommonUserIdDto {}
 
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()

@@ -1,12 +1,9 @@
 // Import necessary libraries and styles.
 import React from "react";
-// import axios from 'axios';
+import axios from 'axios';
 import { useNavigate} from "react-router-dom";
 import '../styles/generalStyles.css';
 
-
-const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-18a39bac72b776af2fd5f62fa678fe5a734e9e5d8c4fe99f2ff1c7041a1d990a&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
-// const authorizeUrl = 'https://api.intra.42.fr/oauth/authorize?client_id=' + process.env.UID_42 + '&redirect_uri=' + 'http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Ftoken&response_type=code';
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {
@@ -24,10 +21,19 @@ const AuthChoice: React.FC = () => {
         navigate('/signup');
     };
 
-    async function handleSignin42Nav() {
-        // const authorizeUrl = axios.get(/)
-        window.location.href = authorizeUrl;
-      }
+    let url42 = () => {
+        return axios.get('http://localhost:4000/api/auth/42Url')
+    }
+
+    const handleSignin42Nav = async () => {
+        await url42()
+        .then(response_url => {
+            window.location.href = (response_url.data);
+        })
+        .catch(error => {
+            console.log(error);
+        });
+    }
 
     // Return the JSX for the component.
     return (
