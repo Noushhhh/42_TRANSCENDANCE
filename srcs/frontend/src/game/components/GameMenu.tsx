@@ -10,7 +10,7 @@ interface GameMenuProps {
 const GameMenu: FC<GameMenuProps> = ({ socket }) => {
   const clientId = useRef<string>("");
 
-  // @todo REMOVE LOCALHOST
+  // @to-do REMOVE LOCALHOST
   const lobby = () => {
     fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`)
       .then((response) => response.json())

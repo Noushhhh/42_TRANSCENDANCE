@@ -9,7 +9,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
-import { GameDataService } from './data.service';
 
 type GameDataArray = [
   konvaHeight: number,
@@ -30,7 +29,6 @@ export class GatewayIn implements OnGatewayDisconnect {
   constructor(
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
-    private readonly gameData: GameDataService,
   ) { }
 
   handleDisconnect(client: Socket) {
@@ -71,5 +69,10 @@ export class GatewayIn implements OnGatewayDisconnect {
   @SubscribeMessage('updatePaddleSize')
   getPaddleSize(@ConnectedSocket() client: Socket, @MessageBody() num: number) {
     console.log("je recois: ", num);
+  }
+
+  @SubscribeMessage('removeFromLobby')
+  removeFromLobby(@ConnectedSocket() client: Socket) {
+    this.gameLobby.removePlayerFromLobby(client);
   }
 }

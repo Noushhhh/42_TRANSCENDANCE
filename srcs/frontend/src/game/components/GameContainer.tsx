@@ -9,6 +9,7 @@ import Button from "./common/Button";
 import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
 import GameCustomization from "./gamePhysics/GameCustomization";
+import { useLocation } from "react-router-dom";
 
 const buttonStyle: React.CSSProperties = {
   position: "absolute",
@@ -28,22 +29,36 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const [gameEnd, setGameEnd] = useState<boolean>(false);
   const clientId = useRef<string>("");
   const gameLaunched = useRef<boolean>(false);
+  const location = useLocation();
 
   useEffect(() => {
     socket.on("connect", connectListener);
     socket.on("updateGameState", updateGameStateListener);
-    socket.on("isOnLobby", isOnLobbyListener);
+    socket.on("isOnLobby", isInLobbyListener);
     socket.on("isLobbyFull", isLobbyFullListener);
     socket.on("gameEnd", handleGameEnd);
 
     return () => {
       socket.off("connect", connectListener);
       socket.off("updateGameState", updateGameStateListener);
-      socket.off("isOnLobby", isOnLobbyListener);
+      socket.off("isOnLobby", isInLobbyListener);
       socket.off("isLobbyFull", isLobbyFullListener);
       socket.off("gameEnd", handleGameEnd);
     };
   }, []);
+
+  useEffect(() => {
+    console.log("location changed");
+
+    return () => {
+      if (isInLobby) {
+        socket.emit("removeFromLobby");
+        console.log("client was in lobby and he just left");
+      } else {
+        console.log("leaving the component");
+      }
+    };
+  }, [location.pathname, isInLobby]);
 
   useEffect(() => {
     if (isInLobby && isLobbyFull && !gameLaunched) {
@@ -66,11 +81,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
     setIsPaused(gameState.isPaused);
   };
 
-  const isOnLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
-    console.log("check entering lobby");
-    console.log("clientIDRes", clientIdRes);
-    console.log("clientID.current", clientId.current);
-
+  const isInLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
     if (clientIdRes === socket.id) {
       setIsInLobby(isOnLobby);
     }
