@@ -21,6 +21,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
         this.server.on('connection', (socket) => {
             console.log('client connected', socket.id);
         });
+
     }
 
     getSocketById(socketId: string) {
@@ -30,6 +31,7 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
     handleConnection(socket: Socket) {
         const clientId = socket.id;
         this.socketService.setSocket(clientId, socket);
+        socket.setMaxListeners(11);
     }
 
     // map with, key = userId, string = socketId

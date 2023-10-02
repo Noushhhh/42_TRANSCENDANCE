@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import Button from "./common/Button";
@@ -17,27 +17,46 @@ const buttonStyle: React.CSSProperties = {
   fontSize: "0.5rem",
 };
 
-const socket = io("http://localhost:4000");
+interface GameContainerProps {
+  socket: Socket;
+}
 
-function GameContainer() {
-  const [isPaused, setIsPaused] = useState(true);
-  const [isInLobby, setIsInLobby] = useState(false);
-  const [isLobbyFull, setIsLobbyFull] = useState(false);
+const GameContainer: FC<GameContainerProps> = ({ socket }) => {
+  const [isPaused, setIsPaused] = useState<boolean>(true);
+  const [isInLobby, setIsInLobby] = useState<boolean>(false);
+  const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
+  const [gameEnd, setGameEnd] = useState<boolean>(false);
   const clientId = useRef<string>("");
+  const gameLaunched = useRef<boolean>(false);
 
   useEffect(() => {
     socket.on("connect", connectListener);
     socket.on("updateGameState", updateGameStateListener);
     socket.on("isOnLobby", isOnLobbyListener);
     socket.on("isLobbyFull", isLobbyFullListener);
+    socket.on("gameEnd", handleGameEnd);
 
     return () => {
       socket.off("connect", connectListener);
       socket.off("updateGameState", updateGameStateListener);
       socket.off("isOnLobby", isOnLobbyListener);
       socket.off("isLobbyFull", isLobbyFullListener);
+      socket.off("gameEnd", handleGameEnd);
     };
   }, []);
+
+  useEffect(() => {
+    if (isInLobby && isLobbyFull && !gameLaunched) {
+      setTimeout(() => {
+        start();
+        setGameLaunchedRef();
+      }, 1500);
+    }
+  }, []);
+
+  const setGameLaunchedRef = () => {
+    gameLaunched.current = true;
+  };
 
   const connectListener = () => {
     clientId.current = socket.id;
@@ -53,7 +72,6 @@ function GameContainer() {
     console.log("clientID.current", clientId.current);
 
     if (clientIdRes === socket.id) {
-      console.log("salut ca va ?");
       setIsInLobby(isOnLobby);
     }
   };
@@ -67,6 +85,12 @@ function GameContainer() {
     setIsPaused(!isPaused);
     if (isPaused === true) start();
     // else stop();
+  };
+
+  const handleGameEnd = () => {
+    console.log("game's finised");
+    setIsPaused(true);
+    setGameEnd(true);
   };
 
   const start = () => {
@@ -90,7 +114,7 @@ function GameContainer() {
           <ScoreBoard socket={socket} />
           <GameCustomization socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
-          <Button onClick={handlePlayPause} style={buttonStyle}>
+          <Button onClick={() => handlePlayPause()} style={buttonStyle}>
             {isPaused ? "Play" : "Pause"}
           </Button>
         </div>
@@ -100,6 +124,6 @@ function GameContainer() {
   //  else if (isInLobby === false) {
   // }
   return <GameMenu socket={socket} />;
-}
+};
 
 export default GameContainer;

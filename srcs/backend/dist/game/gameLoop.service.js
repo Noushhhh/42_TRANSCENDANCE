@@ -15,8 +15,10 @@ const gameLogic_service_1 = require("./gameLogic.service");
 const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const data_1 = require("./data");
+const gameState_1 = require("./gameState");
 const RAY_LENGHT = 35 / 1200;
 const BALL_SIZE = 20 / 1200.0;
+const SCORE_TO_WIN = 3;
 const moveSpeed = 6 / 800.0;
 let GameLoopService = class GameLoopService {
     constructor(gameLogicService, gatewayOut) {
@@ -34,8 +36,28 @@ let GameLoopService = class GameLoopService {
                     lobby.gameState.gameState.ballState = ballState;
                 }
                 const score = ballState === null || ballState === void 0 ? void 0 : ballState.scoreBoard;
-                if (score)
+                if (score) {
                     lobby.gameState.gameState.score = score;
+                    if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
+                        // @to-do 
+                        // Implement function to push the victory of the player
+                        // in the statistic object
+                        // Implement function that stop the game
+                        // Create a Play Again function
+                        console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
+                        lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
+                        lobby.gameState.gameState.p1pos = {
+                            x: gameState_1.paddleGap,
+                            y: (0.5) - lobby.gameState.gameState.p1Size / 2,
+                        };
+                        lobby.gameState.gameState.p2pos = {
+                            x: 1 - gameState_1.paddleGap - data_1.gameConfig.paddleWidth,
+                            y: (0.5) - lobby.gameState.gameState.p2Size / 2,
+                        };
+                        this.gatewayOut.emitToRoom(key, "gameEnd", true);
+                        lobby.gameState.gameState.isPaused = true;
+                    }
+                }
             }
         };
         this.gameLoopRunning = false;

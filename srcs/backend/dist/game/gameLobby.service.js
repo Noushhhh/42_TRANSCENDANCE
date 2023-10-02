@@ -50,7 +50,9 @@ let GameLobbyService = class GameLobbyService {
                 this.gatewayOut.isInLobby(true, player);
                 if (value.player1 != null && value.player2 != null) {
                     this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
-                    value.gameState.gameState.isLobbyFull === true;
+                    value.gameState.gameState.isLobbyFull = true;
+                    // @to-do implement the function that add +1 game to each player
+                    // in the statistics object
                 }
                 return;
             }

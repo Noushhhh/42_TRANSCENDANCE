@@ -34,6 +34,7 @@ let SocketEvents = class SocketEvents {
     handleConnection(socket) {
         const clientId = socket.id;
         this.socketService.setSocket(clientId, socket);
+        socket.setMaxListeners(11);
     }
     readMap(map) {
         console.log('readmap:');
