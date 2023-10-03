@@ -1,7 +1,7 @@
 import { ForbiddenException, Req, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -22,6 +22,7 @@ export class AuthService {
         private usersService: UsersService,
         private prisma: PrismaService,
         private jwt: JwtService,
+        private jwtService: JwtService,
     ) {
         this.JWT_SECRET = process.env.JWT_SECRET;
 
@@ -59,12 +60,12 @@ export class AuthService {
         if (!user)
             throw new ForbiddenException('Username not found',);
 
-        // compare password
-        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+        // // compare password
+        // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
 
-        // if password wrong throw exception
-        if (!passwordMatch)
-            throw new ForbiddenException('Incorrect password',);
+        // // if password wrong throw exception
+        // if (!passwordMatch)
+        //     throw new ForbiddenException('Incorrect password',);
         // send back the token
         return this.signToken(user.id, user.username, res);
     }

@@ -60,10 +60,11 @@ const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
 let AuthService = class AuthService {
-    constructor(usersService, prisma, jwt) {
+    constructor(usersService, prisma, jwt, jwtService) {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
+        this.jwtService = jwtService;
         this.JWT_SECRET = process.env.JWT_SECRET;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -100,11 +101,11 @@ let AuthService = class AuthService {
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
-            // compare password
-            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
-            // if password wrong throw exception
-            if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
+            // // compare password
+            // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+            // // if password wrong throw exception
+            // if (!passwordMatch)
+            //     throw new ForbiddenException('Incorrect password',);
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
@@ -388,5 +389,6 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         prisma_service_1.PrismaService,
+        jwt_1.JwtService,
         jwt_1.JwtService])
 ], AuthService);

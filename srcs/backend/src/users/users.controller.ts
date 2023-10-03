@@ -6,7 +6,7 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
-import { JwtAuthGuard } from '../auth/guard/jwt.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UsersService } from './users.service';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 
@@ -38,8 +38,6 @@ export class UsersController
     getUserWithId(userId: number): Promise<User | undefined>{
         return this.getUserWithId(userId);
     }
-
-    
 
     
 }

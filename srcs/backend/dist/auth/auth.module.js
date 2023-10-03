@@ -9,10 +9,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const auth_controller_1 = require("./auth.controller");
+// import { AuthController } from './auth.controller';
 const auth_service_1 = require("./auth.service");
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 const users_module_1 = require("../users/users.module");
+const passport_1 = require("@nestjs/passport");
+const local_auth_strategy_1 = require("../strategies/local-auth.strategy");
+const constants_1 = require("./constants/constants");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -20,14 +23,15 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
+            passport_1.PassportModule,
             jwt_1.JwtModule.register({
-                global: true,
-                secret: process.env.JWT_SECRET,
+                secret: constants_1.jwtConstants.secret,
                 signOptions: { expiresIn: '60 * 15s' }
             }),
         ],
-        providers: [auth_service_1.AuthService],
-        controllers: [auth_controller_1.AuthController],
+        // imports: [UsersModule, PassportModule],
+        providers: [auth_service_1.AuthService, local_auth_strategy_1.LocalStrategy],
+        // controllers: [AuthController],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
