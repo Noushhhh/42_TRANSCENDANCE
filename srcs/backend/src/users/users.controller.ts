@@ -5,9 +5,11 @@ import { Prisma, User } from '@prisma/client';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+// import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 
-import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
+// import { UsersService } from './users.service';
+import { AuthService } from '../auth/auth.service';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 
 @Controller ('users')
@@ -15,10 +17,12 @@ export class UsersController
 {
     constructor(
         private config: ConfigService,
+        // private authService: AuthService,
         // private UsersService: UsersService,
         // private prisma: PrismaService,
         ){};
     @UseGuards(JwtAuthGuard)
+    // @UseGuards(LocalAuthGuard)
     @Get ('me')
     getMe(@Req() req: Request)
     {
@@ -39,5 +43,5 @@ export class UsersController
         return this.getUserWithId(userId);
     }
 
-    
+
 }

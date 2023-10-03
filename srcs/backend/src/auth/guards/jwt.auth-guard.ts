@@ -61,25 +61,31 @@
 // }
 
 
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import * as jwt from 'jsonwebtoken';
+// import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+// import { Observable } from 'rxjs';
+// import * as jwt from 'jsonwebtoken';
+
+// @Injectable()
+// export class JwtAuthGuard implements CanActivate {
+//   constructor(private readonly JWT_SECRET: string) {}
+
+//   canActivate(
+//     context: ExecutionContext,
+//   ): boolean | Promise<boolean> | Observable<boolean> {
+//     const request = context.switchToHttp().getRequest();
+//     const token = request.cookies.token;
+
+//     try {
+//       jwt.verify(token, this.JWT_SECRET);
+//       return true;
+//     } catch (error) {
+//       return false;
+//     }
+//   }
+// }
+
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly JWT_SECRET: string) {}
-
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const token = request.cookies.token;
-
-    try {
-      jwt.verify(token, this.JWT_SECRET);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-}
+export class JwtAuthGuard extends AuthGuard('jwt') {}

@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
+import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +17,7 @@ export class AuthController {
 
     // @HttpCode(HttpStatus.OK)
     @Public()
+    @UseGuards(LocalAuthGuard)
     @Post('signin') // delete async, has to signin and cannot do anything else
     async signin(@Body() dto: AuthDto, @Res() res: Response) {
         return this.authService.signin(dto, res);
