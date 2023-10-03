@@ -8,6 +8,13 @@ import { Response, Request } from 'express'
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    @Get('token')
+    async getToken(@Req() req: Request) {
+        // Extract the access token from the request cookies
+        const accessToken = req.cookies['token'];
+        return { accessToken}
+    }
+
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {

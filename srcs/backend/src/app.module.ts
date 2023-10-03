@@ -14,6 +14,8 @@ import { ChatModule } from './chat/chat.module';
 import { GameModule } from './game/game.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { listUserConnected } from './chat/socket.service';
+import { AuthService } from './auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -25,6 +27,6 @@ import { listUserConnected } from './chat/socket.service';
     GameModule
   ],
   controllers: [AppController, ChatController],
-  providers: [AppService, ChatService, PrismaService, ChatGateway, listUserConnected],
+  providers: [AppService, ChatService, PrismaService, ChatGateway, listUserConnected, AuthService, JwtService],
 })
 export class AppModule {}

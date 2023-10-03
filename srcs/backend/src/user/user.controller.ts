@@ -16,7 +16,6 @@ export class UserController
     getMe(@Req() req: Request)
     {
         try {
-            console.log('get me called');
             const jwtCookie = req.cookies['token'];
             const secret = this.config.get('JWT_SECRET');
             const user = jwt.verify(jwtCookie, secret);

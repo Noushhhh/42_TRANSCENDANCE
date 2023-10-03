@@ -10,101 +10,65 @@ import { SocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
 
-interface ChatBoxContainerProps {
-  socket: Socket;
+
+const ChatBoxContainer = () => {
+
+  const [userId, setUserId] = useState<number>(-1);
+  const [channelId, setChannelId] = useState<number>(-1);
+  const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
+  const [channelInfo, setChannelInfo] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchAccessToken = async () => {
+      const response = await fetch('http://localhost:4000/api/auth/token', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      const accessToken = data.accessToken;
+
+      const socket: Socket = io('http://localhost:4000', {
+        auth: {
+          token: accessToken,
+        },
+      });
+      setSocket(socket);
+
+      // Your socket event handling logic here
+    };
+
+    fetchAccessToken();
+  }, []);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userIdFetched: number = await getMyUserId();
+      setUserId(userIdFetched);
+    };
+    getUser();
+  }, []);
+
+
+  if (userId === -1 || socket === undefined)
+    return (<p>loader</p>)
+
+  return (
+    <div className="ChatBoxContainer">
+      <div className="MessageContainer">
+        <ChannelIdContext.Provider value={{ channelId, setChannelId }}>
+          <SocketContext.Provider value={socket}>
+            <ChannelHeaderContext.Provider value={{ channelHeader, setChannelHeader }}>
+              <UserIdContext.Provider value={{ userId, setUserId }}>
+                <MessageSide />
+                <ContentMessage channelInfo={channelInfo} setChannelInfo={setChannelInfo} />
+                <ChannelInfo isChannelInfoDisplay={channelInfo} setChannelInfo={setChannelInfo} />
+              </UserIdContext.Provider>
+            </ChannelHeaderContext.Provider>
+          </SocketContext.Provider>
+        </ChannelIdContext.Provider>
+      </div>
+    </div>
+  );
 }
-// To remove if everything works
-// const socket = io("http://localhost:4000");
-
-const ChatBoxContainer: FC<ChatBoxContainerProps> = ({ socket }) => {
-
-    const [userId, setUserId] = useState<number>(-1);
-    const [channelId, setChannelId] = useState<number>(-1);
-    const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
-    const [channelInfo, setChannelInfo] = useState<boolean>(false);
-    
-    socket.on('connect', () => {
-        socket.emit('setNewUserConnected', userId);
-    });
-
-    console.log("socket id: ", socket);
-
-    useEffect(() => {
-        const getUser = async () => {
-            const userIdFetched: number = await getMyUserId();
-            setUserId(userIdFetched);
-        };
-        getUser();
-    }, []);
-
-    if (userId === -1)
-        return (<p>loader</p>)
-    
-    return (
-            <div className="ChatBoxContainer">
-                <div className="MessageContainer">
-                    <ChannelIdContext.Provider value={{ channelId, setChannelId }}>
-                    <SocketContext.Provider value={socket}>
-                    <ChannelHeaderContext.Provider value={{ channelHeader, setChannelHeader }}>
-                    <UserIdContext.Provider value={{userId, setUserId}}>
-                        <MessageSide />
-                        <ContentMessage channelInfo={channelInfo} setChannelInfo={setChannelInfo} />
-                        <ChannelInfo isChannelInfoDisplay={channelInfo} setChannelInfo={setChannelInfo}/>
-                    </UserIdContext.Provider>
-                    </ChannelHeaderContext.Provider>
-                    </SocketContext.Provider>
-                    </ChannelIdContext.Provider>
-                </div>
-            </div>
-    );
-
-}
-
-// const ChatBoxContainer: FC<ChatBoxContainerProps> = ({ socket }) => {
-//   const [simulatedUserId] = useState<number>(1);
-//   const [channelId, setChannelId] = useState<number>(-1);
-//   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
-//   const [channelInfo, setChannelInfo] = useState<boolean>(false);
-
-//   useEffect(() => {
-//     socket.on("connect", setNewUserConnected);
-
-//     return () => {
-//       socket.off("connect", setNewUserConnected);
-//     };
-//   });
-
-//   const setNewUserConnected = () => {
-//     socket.emit("setNewUserConnected", simulatedUserId);
-//   };
-
-//   return (
-//     <div className="ChatBoxContainer">
-//       <div className="MessageContainer">
-//         <ChannelIdContext.Provider value={{ channelId, setChannelId }}>
-//           <SocketContext.Provider value={socket}>
-//             <ChannelHeaderContext.Provider
-//               value={{ channelHeader, setChannelHeader }}
-//             >
-//               <UserIdContext.Provider value={simulatedUserId}>
-//                 <MessageSide />
-//                 <ContentMessage
-//                   channelInfo={channelInfo}
-//                   setChannelInfo={setChannelInfo}
-//                   userId={simulatedUserId}
-//                   simulatedUserId={simulatedUserId}
-//                 />
-//                 <ChannelInfo
-//                   isChannelInfoDisplay={channelInfo}
-//                   setChannelInfo={setChannelInfo}
-//                 />
-//               </UserIdContext.Provider>
-//             </ChannelHeaderContext.Provider>
-//           </SocketContext.Provider>
-//         </ChannelIdContext.Provider>
-//       </div>
-//     </div>
-//   );
-// };
-
 export default ChatBoxContainer;

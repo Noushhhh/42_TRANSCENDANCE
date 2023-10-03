@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody, OnGatewayDisconnect, WsException } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody, OnGatewayDisconnect, OnGatewayConnection, WsException } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
 import { Injectable, Inject,  OnModuleInit } from '@nestjs/common';
@@ -13,40 +13,40 @@ import { listUserConnected } from './socket.service';
         origin: '*',
     },
 })
-export class ChatGateway implements OnModuleInit, OnGatewayDisconnect {
+export class ChatGateway implements OnModuleInit {
 
     @WebSocketServer()
     server!: Server;
 
-    // constructor(@Inject(ChatService) private readonly chatService: ChatService) {}
-    // constructor( private chatService: ChatService ) {}
-    constructor(private listUser: listUserConnected) {};
+    constructor(private listUser: listUserConnected,
+                private authService: AuthService) {};
 
     onModuleInit() {
         // middleware to check if client-socket can connect to our gateway
         this.server.use( async (socket, next) => {
-            if (socket.handshake.auth.token === "mon-token"){
-                socket.data.userId = 1;
-                console.log('valid-token');
-                this.listUser.listUserConnected.set(socket.data.userId, socket.id)
-                this.listUser.readMap();
-                // this.listUserConnected.set(socket.data.userId, socket.id);
-                // this.readMap(this.listUserConnected);
+
+            // check token validity return the userId if correspond to associated token
+            // return null if token is invalid
+            const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
+
+            if (response){
+                socket.data.userId = response;
+                // next allow us to accept the incoming socket as the token is valid
                 next();
-            }
-            else{
-                console.log('invalid-token');
+            } else{
                 next(new WsException('invalid token'));
             }
         })
         this.server.on('connection', async (socket) => {
-            console.log('client connected (chat gateway=>)', socket.id);
-            // this.readMap(this.listUserConnected);
-            // this.nouveaufichier.setSocket(id);
-            console.log('test1');
-            // const conversationIds: number[] = await this.chatService.getAllConvFromId(socket.data.userId);
-            // console.log("number convs:");
-            // console.log(conversationIds);
+            this.listUser.listUserConnected.set(socket.data.userId, socket.id);
+            console.log(`userId ${socket.data.userId} is connected`);
+            this.listUser.readMap();
+
+            socket.on('disconnect', async () => {
+                console.log(`userId: ${socket.data.userId} is disconnected`);
+                this.listUser.listUserConnected.delete(socket.data.userId);
+                this.listUser.readMap();
+            })
         });
     }
 
@@ -65,23 +65,21 @@ export class ChatGateway implements OnModuleInit, OnGatewayDisconnect {
         return connectedSockets.has(socketId); // is the socketId of our clients is in this map ?
     }
 
-    handleDisconnect(@ConnectedSocket() client: Socket) {
-        for (const [key, value] of this.listUser.listUserConnected.entries()) {
-            if (client.id === value)
-                this.listUser.listUserConnected.delete(key);
-        }
-        console.log(`client disconnected (chat gateway): ${client.id}`);
-        this.server.emit("changeConnexionState");
-        const clientId = client.id;
-        // this.socketService.removeSocket(clientId);
-    }
+    // remove this old HandleDisconnect if new logic is working
+
+    // handleDisconnect(@ConnectedSocket() client: Socket) {
+    //     for (const [key, value] of this.listUser.listUserConnected.entries()) {
+    //         if (client.id === value)
+    //             this.listUser.listUserConnected.delete(key);
+    //     }
+    //     console.log(`client disconnected (chat gateway): ${client.id}`);
+    //     this.server.emit("changeConnexionState");
+    //     const clientId = client.id;
+    //     // this.socketService.removeSocket(clientId);
+    // }
 
     @SubscribeMessage('message')
     handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
-
-        // traiter le message: extraire le channelId du message
-        // connaitre tous les users qui sont dans le channelId du message
-        // renvoyer (socket.emit()) le contenu du message aux users appropries
 
         this.server.emit('message', client.id, data);
     }

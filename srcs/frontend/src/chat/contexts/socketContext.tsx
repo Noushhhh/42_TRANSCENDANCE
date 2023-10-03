@@ -7,7 +7,7 @@ export function useSocketContext(){
     const instance = useContext(SocketContext);
 
     if (instance === undefined){
-        throw new Error("SocketContext must be used with ChannelIdContext.Provider")
+        throw new Error("SocketContext must be used with SocketContext.Provider")
     }
 
     return instance;

@@ -156,6 +156,23 @@ let AuthService = class AuthService {
             return refreshToken;
         });
     }
+    checkOnlyTokenValidity(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!token)
+                throw new common_1.ForbiddenException("Token not provided");
+            try {
+                const user = jwt.verify(token, this.JWT_SECRET);
+                if (!user)
+                    return null;
+                if (user.sub)
+                    return Number(user.sub);
+            }
+            catch (error) {
+                return null;
+            }
+            return null;
+        });
+    }
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;

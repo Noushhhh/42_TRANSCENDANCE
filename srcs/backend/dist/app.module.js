@@ -23,6 +23,8 @@ const chat_module_1 = require("./chat/chat.module");
 const game_module_1 = require("./game/game.module");
 const chat_gateway_1 = require("./chat/chat.gateway");
 const socket_service_1 = require("./chat/socket.service");
+const auth_service_1 = require("./auth/auth.service");
+const jwt_1 = require("@nestjs/jwt");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -37,6 +39,6 @@ exports.AppModule = AppModule = __decorate([
             game_module_1.GameModule
         ],
         controllers: [app_controller_1.AppController, chat_controller_1.ChatController],
-        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, chat_gateway_1.ChatGateway, socket_service_1.listUserConnected],
+        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, chat_gateway_1.ChatGateway, socket_service_1.listUserConnected, auth_service_1.AuthService, jwt_1.JwtService],
     })
 ], AppModule);

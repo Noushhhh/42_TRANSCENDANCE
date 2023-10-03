@@ -39,13 +39,20 @@ function ChannelSettings({
     ? "isDisplaySettings"
     : "isReduceSettings";
 
-  useEffect(() => {
-    socket.on("channelDeleted", channelDeletedEvent);
+  // useEffect(() => {
+  //   socket.on("channelDeleted", channelDeletedEvent);
 
-    return () => {
-      socket.off("channelDeleted", channelDeletedEvent);
-    };
+  //   return () => {
+  //     socket.off("channelDeleted", channelDeletedEvent);
+  //   };
+  // });
+
+  socket.on("channelDeleted", (channelId: number) => {
+    console.log(`ping received client-side with id: ${channelId}`);
+    setdisplayMenu(true);
+    setChannelId(-1);
   });
+
 
   const channelDeletedEvent = (channelId: number) => {
     console.log(`ping received client-side with id: ${channelId}`);
