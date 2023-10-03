@@ -91,7 +91,8 @@ __decorate([
 ], AuthController.prototype, "signup", null);
 __decorate([
     (0, public_decorators_1.Public)(),
-    (0, common_1.Post)('signin'),
+    (0, common_1.Post)('signin') // delete async, has to signin and cannot do anything else
+    ,
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),

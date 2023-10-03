@@ -65,9 +65,21 @@ export class AuthService {
         // if password wrong throw exception
         if (!passwordMatch)
             throw new ForbiddenException('Incorrect password',);
-
         // send back the token
         return this.signToken(user.id, user.username, res);
+    }
+
+    async validateUser(dto: AuthDto): Promise <any>{
+      const user = await this.usersService.findUserByUsername(dto.username);
+      if (!user)
+            throw new ForbiddenException('Username not found',);
+        // compare password
+        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+
+        // if password wrong throw exception
+        if (!passwordMatch)
+            throw new ForbiddenException('Incorrect password',);
+        return user;
     }
 
     async signToken(
