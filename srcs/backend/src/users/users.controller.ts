@@ -15,8 +15,8 @@ export class UsersController
 {
     constructor(
         private config: ConfigService,
-        // private UsersService: UsersService
-        private prisma: PrismaService,
+        // private UsersService: UsersService,
+        // private prisma: PrismaService,
         ){};
     @UseGuards(JwtAuthGuard)
     @Get ('me')

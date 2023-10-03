@@ -113,12 +113,14 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.usersService.findUserByUsername(dto.username);
             if (!user)
-                throw new common_1.ForbiddenException('Username not found');
+                return null;
+            // throw new ForbiddenException('Username not found',);
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
             if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
+                return null;
+            // throw new ForbiddenException('Incorrect password',);
             return user;
         });
     }
