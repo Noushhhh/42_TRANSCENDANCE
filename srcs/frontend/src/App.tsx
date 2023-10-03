@@ -22,7 +22,18 @@ import "./App.css";
 
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:4000");
+const socket = io("http://localhost:4000", {
+  auth: {
+    token: "mon-token"
+  }
+});
+
+socket.on("connect_error", (error) => {
+  console.error("Échec de la connexion au serveur WebSocket:", error);
+  // Vous pouvez gérer l'erreur de connexion ici
+});
+
+
 console.log("socket id: ", socket);
 
 {

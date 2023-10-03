@@ -1,10 +1,11 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Inject, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType } from "@prisma/client";
-import { ChatGateway } from "../socket/chat.gateway";
+import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
+import { listUserConnected } from "./socket.service";
 
 interface MessageToStore {
   channelId: number;
@@ -33,7 +34,8 @@ export class ChatService {
     // "private" to keep utilisation of the service inside the class
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
-    private readonly chatGateway: ChatGateway
+    // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
+    private readonly listUser: listUserConnected,
   ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
@@ -46,7 +48,7 @@ export class ChatService {
     });
 
     if (!user) {
-      throw new Error(`User with ID ${userId} not found.`);
+      throw new ForbiddenException(`User with ID ${userId} not found.`);
     }
 
     const conversationIds = user.conversations.map((conversation) => conversation.id);
@@ -305,7 +307,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.chatGateway.alertChannelDeleted(callerId, channelId);
+      this.listUser.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
       return true;
     }
 
@@ -359,7 +361,7 @@ export class ChatService {
         await this.prisma.channel.delete({
           where: { id: channelId },
         })
-        this.chatGateway.alertChannelDeleted(callerId, channelId);
+        this.listUser.alertChannelDeleted(callerId, channelId);
         return true;
       }
 
@@ -395,7 +397,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.chatGateway.alertChannelDeleted(userId, channelId);
+      this.listUser.alertChannelDeleted(userId, channelId);
       return true;
     }
 
@@ -744,5 +746,3 @@ export class ChatService {
   }
 
 }
-
-

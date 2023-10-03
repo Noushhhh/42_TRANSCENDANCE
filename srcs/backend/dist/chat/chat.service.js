@@ -45,18 +45,19 @@ exports.ChatService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-const chat_gateway_1 = require("../socket/chat.gateway");
 const argon = __importStar(require("argon2"));
 const common_2 = require("@nestjs/common");
 const common_3 = require("@nestjs/common");
+const socket_service_1 = require("./socket.service");
 let ChatService = class ChatService {
     constructor(prisma, 
     // "private" to keep utilisation of the service inside the class
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
-    chatGateway) {
+    // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
+    listUser) {
         this.prisma = prisma;
-        this.chatGateway = chatGateway;
+        this.listUser = listUser;
     }
     getAllConvFromId(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -66,7 +67,7 @@ let ChatService = class ChatService {
                 include: { conversations: true },
             });
             if (!user) {
-                throw new Error(`User with ID ${userId} not found.`);
+                throw new common_2.ForbiddenException(`User with ID ${userId} not found.`);
             }
             const conversationIds = user.conversations.map((conversation) => conversation.id);
             return conversationIds;
@@ -287,7 +288,7 @@ let ChatService = class ChatService {
                 yield this.prisma.channel.delete({
                     where: { id: channelId },
                 });
-                this.chatGateway.alertChannelDeleted(callerId, channelId);
+                this.listUser.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
                 return true;
             }
             const response = yield this.prisma.channel.update({
@@ -333,7 +334,7 @@ let ChatService = class ChatService {
                     yield this.prisma.channel.delete({
                         where: { id: channelId },
                     });
-                    this.chatGateway.alertChannelDeleted(callerId, channelId);
+                    this.listUser.alertChannelDeleted(callerId, channelId);
                     return true;
                 }
                 yield this.kickUserFromChannel(userId, channelId, callerId);
@@ -365,7 +366,7 @@ let ChatService = class ChatService {
                 yield this.prisma.channel.delete({
                     where: { id: channelId },
                 });
-                this.chatGateway.alertChannelDeleted(userId, channelId);
+                this.listUser.alertChannelDeleted(userId, channelId);
                 return true;
             }
             const response = yield this.prisma.channel.update({
@@ -680,5 +681,5 @@ exports.ChatService = ChatService;
 exports.ChatService = ChatService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        chat_gateway_1.ChatGateway])
+        socket_service_1.listUserConnected])
 ], ChatService);

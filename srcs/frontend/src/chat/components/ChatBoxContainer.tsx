@@ -27,6 +27,8 @@ const ChatBoxContainer: FC<ChatBoxContainerProps> = ({ socket }) => {
         socket.emit('setNewUserConnected', userId);
     });
 
+    console.log("socket id: ", socket);
+
     useEffect(() => {
         const getUser = async () => {
             const userIdFetched: number = await getMyUserId();
