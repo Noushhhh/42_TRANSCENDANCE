@@ -94,21 +94,3 @@ exports.TwoFaService = TwoFaService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], TwoFaService);
-//   /**
-//    * Check if entered code for google authentificator is valid
-//    * @param token 
-//    * @param secret 
-//    * @returns 
-//    */
-//   async is2faCodeValid(token: string, secret:string) {
-//     const isCodeValid = speakeasy.totp.verify(
-//     { 
-//       token,
-//       secret,
-//     });
-//     if (!isCodeValid) {
-//       throw new UnauthorizedException('Wrong authentication code');
-//     }
-//     return (true);
-//   }
-// }

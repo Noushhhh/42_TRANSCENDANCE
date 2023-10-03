@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
@@ -14,8 +14,9 @@ export class AuthController {
         return this.authService.signup(dto, res);
     }
 
+    // @HttpCode(HttpStatus.OK)
     @Public()
-    @Post('signin')
+    @Post('signin') // delete async, has to signin and cannot do anything else
     async signin(@Body() dto: AuthDto, @Res() res: Response) {
         return this.authService.signin(dto, res);
     }
@@ -57,7 +58,5 @@ export class AuthController {
     async enable2FA () {
 
     }
-    // async enable2FA() {
 
-    // }
 }

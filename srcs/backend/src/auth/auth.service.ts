@@ -11,6 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 // import * as qrcode from 'qrcode';
 import * as speakeasy from 'speakeasy';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly JWT_SECRET: string | any;
 
     constructor(
+        private usersService: UsersService,
         private prisma: PrismaService,
         private jwt: JwtService,
     ) {
@@ -52,7 +54,7 @@ export class AuthService {
 
     async signin(dto: AuthDto, res: Response) {
         // find user with username
-        const user = await this.findUserByUsername(dto.username);
+        const user = await this.usersService.findUserByUsername(dto.username);
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
@@ -266,13 +268,6 @@ export class AuthService {
         }
       
         try {
-            // let avatarUrl;
-            // if (userInfo.image.link === null) {
-            //     // Generate a random avatar URL or use a default one
-            //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
-            // } else {
-            //     avatarUrl = userInfo.image.link;
-            // }
           let avatarUrl;
           if (userInfo.image.link !== null) {
             // use the 42 profile picture if not null
@@ -304,14 +299,6 @@ export class AuthService {
         return password;
       }
 
-      private async findUserByUsername(username: string): Promise<User | null> {
-        return this.prisma.user.findUnique({
-            where: {
-                username,
-            },
-        });
-    }
-
     generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
       const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
       const otpauthUrl = speakeasy.otpauthURL({
@@ -342,7 +329,13 @@ export class AuthService {
       return verified;
     }
 
-    async enable2FA(){
+    async enable2FA(userId: number) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          TwoFA: true,
+        },
+      });
 
     }
 

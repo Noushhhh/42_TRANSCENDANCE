@@ -30,14 +30,63 @@ let TwoFaController = class TwoFaController {
     }
     generateSecret(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(userId);
-            return { secret, otpauthUrl };
+            try {
+                const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(userId);
+                return { secret, otpauthUrl };
+            }
+            catch (error) {
+                if (error === 'User not found') {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.NOT_FOUND);
+                }
+                else if (error instanceof Error) {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                else {
+                    throw new common_1.HttpException('An unexpected error occurred.', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
         });
     }
     verifyCode(userId, body) {
         return __awaiter(this, void 0, void 0, function* () {
-            const isValid = yield this.twoFaService.verifyTwoFACode(userId, body.code);
-            return { isValid };
+            try {
+                const isValid = yield this.twoFaService.verifyTwoFACode(userId, body.code);
+                if (!isValid) {
+                    throw new common_1.HttpException('Invalid code provided.', common_1.HttpStatus.BAD_REQUEST);
+                }
+                return { isValid };
+            }
+            catch (error) {
+                if (error === 'User not found') {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.NOT_FOUND);
+                }
+                else if (error instanceof Error) {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                else {
+                    throw new common_1.HttpException('An unexpected error occurred.', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        });
+    }
+    generateQrCode(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const otpauthUrl = this.twoFaService.generateOtpauthUrl(userId);
+                const qrCodeDataURL = yield this.twoFaService.generateQrCode(otpauthUrl);
+                return { qrCodeDataURL };
+            }
+            catch (error) {
+                if (error === 'User not found') {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.NOT_FOUND);
+                }
+                else if (error instanceof Error) {
+                    throw new common_1.HttpException(error, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                else {
+                    throw new common_1.HttpException('An unexpected error occurred.', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
         });
     }
 };
@@ -57,16 +106,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], TwoFaController.prototype, "verifyCode", null);
+__decorate([
+    (0, common_1.Get)('generate-qr-code/:userId'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], TwoFaController.prototype, "generateQrCode", null);
 exports.TwoFaController = TwoFaController = __decorate([
     (0, common_1.Controller)('2fa'),
     __metadata("design:paramtypes", [_2FA_service_1.TwoFaService])
 ], TwoFaController);
-//     async generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-//         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-//         const otpauthUrl = speakeasy.otpauthURL({
-//         secret: secret.base32,
-//         label: `MyApp:${userId}`, // Customize the label as needed
-//         issuer: 'MyApp', // Customize the issuer as needed
-//         });
-//         return { secret: secret.base32, otpauthUrl };
-//     }

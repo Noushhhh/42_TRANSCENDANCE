@@ -12,7 +12,7 @@ const app_controller_1 = require("./app.controller");
 const config_1 = require("@nestjs/config");
 const app_service_1 = require("./app.service");
 const auth_module_1 = require("./auth/auth.module");
-const user_module_1 = require("./user/user.module");
+const user_module_1 = require("./users/user.module");
 const SocketModule_1 = require("./socket/SocketModule");
 // import { PrismaModule } from './prisma/prisma.module';
 const chat_controller_1 = require("./chat/chat.controller");

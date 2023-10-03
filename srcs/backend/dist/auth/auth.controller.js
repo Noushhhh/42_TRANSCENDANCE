@@ -35,6 +35,7 @@ let AuthController = class AuthController {
             return this.authService.signup(dto, res);
         });
     }
+    // @HttpCode(HttpStatus.OK)
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.signin(dto, res);

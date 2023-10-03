@@ -292,13 +292,6 @@ let AuthService = class AuthService {
                 return existingUser;
             }
             try {
-                // let avatarUrl;
-                // if (userInfo.image.link === null) {
-                //     // Generate a random avatar URL or use a default one
-                //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
-                // } else {
-                //     avatarUrl = userInfo.image.link;
-                // }
                 let avatarUrl;
                 if (userInfo.image.link !== null) {
                     // use the 42 profile picture if not null
@@ -365,8 +358,14 @@ let AuthService = class AuthService {
             return verified;
         });
     }
-    enable2FA() {
+    enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    TwoFA: true,
+                },
+            });
         });
     }
 };
