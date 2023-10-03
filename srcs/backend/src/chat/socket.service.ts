@@ -14,6 +14,7 @@ export class listUserConnected {
             return this.server.sockets.sockets.get(socketId);
         } catch (error) {
             console.log("in error handler");
+            return undefined;
         }
     }
 
@@ -37,6 +38,8 @@ export class listUserConnected {
             console.log('1111111');
             throw new Error("socketId not found");
         }
+        this.readMap();
+        console.log(`socketId used for search in actual sockets: ${socketId}`);
         const socket: Socket | undefined = this.getSocketById(socketId);
         console.log(`socket = ${socket}`);
         if (!socket) {
