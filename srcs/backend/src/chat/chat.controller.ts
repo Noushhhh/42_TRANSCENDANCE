@@ -42,9 +42,9 @@ export class ChatController {
         return this.chatService.getLastMessage(id);
     }
 
-    @Get('getChannelHeader/:id')
-    async getChannelHeadersFromUserId(@Param('id') id: number): Promise<ChannelLight> {
-        return this.chatService.getChannelHeadersFromId(id);
+    @Post('getChannelHeader')
+    async getChannelHeadersFromUserId(@Body()pair: PairUserIdChannelId): Promise<ChannelLight> {
+        return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
     }
 
     @Post('getAllMessagesByChannelId')
@@ -121,11 +121,10 @@ export class ChatController {
         return this.chatService.banUserFromChannel(userId, channelId, callerId);
     }
 
-    @Post('leaveChannel/:userId/:channelId')
+    @Post('leaveChannel')
     async leaveChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.leaveChannel(userId, channelId);
+        @Body() pair: PairUserIdChannelId): Promise<boolean> {
+        return this.chatService.leaveChannel(pair.userId, pair.channelId);
     }
 
     @Get('getNumberUsersInChannel/:channelId')

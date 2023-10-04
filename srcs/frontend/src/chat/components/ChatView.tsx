@@ -36,8 +36,12 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     const callFetchConversation = async () => {  
       setConversationFetched([]);
       setMessages([]);
-      if (channelId !== -1)
-        await fetchConversation(userId, channelId, addMsgToFetchedConversation);
+      try {
+        if (channelId !== -1)
+          await fetchConversation(userId, channelId, addMsgToFetchedConversation);
+      } catch (error) {
+        console.log('error while fetching conv');
+      }
     }
     callFetchConversation();
   }, ([channelId]));

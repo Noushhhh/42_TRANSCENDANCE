@@ -52,7 +52,7 @@ export class ChatGateway implements OnModuleInit {
 
     @SubscribeMessage('setNewUserConnected')
     handleSetNewUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket) {
-        this.listUser.listUserConnected.set(userId, client.id);
+        // this.listUser.listUserConnected.set(userId, client.id);
         this.server.emit("changeConnexionState");
     }
 

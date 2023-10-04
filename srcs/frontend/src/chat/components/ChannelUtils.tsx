@@ -59,8 +59,9 @@ export const fetchUser = async (
   console.log("user id = ");
   console.log(userId);
 
-  try {
+  console.log("fetch user called");
 
+  try {
 
     const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
       method: "POST",
@@ -76,7 +77,16 @@ export const fetchUser = async (
     const listChannelId = await response.json();
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
-      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader/${id}`);
+      const channelId = Number(id);
+      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json", // Add appropriate headers if needed
+        },
+        body: JSON.stringify({ channelId, userId }), // Include the data you want to send in the request body
+      }
+      );
       const header: Channel = await response.json();
 
       let channelInfo: isChannelNameConnected | null = {
@@ -274,19 +284,16 @@ export const leaveChannel = async (
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
   socket: Socket): Promise<boolean> => {
 
-  if (isNaN(channelId) || channelId <= 0 || isNaN(userId) || userId <= 0) {
-    throw new Error("Invalid parameters");
-  }
-
   const requestOptions: RequestInit = {
     method: "POST",
     headers: {
       "Content-Type": "application/json", // Add appropriate headers if needed
     },
+    credentials: 'include',
     body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
   };
 
-  const response = await fetch(`http://localhost:4000/api/chat/leaveChannel/${userId}/${channelId}`, requestOptions);
+  const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
   if (!response)
     return false;
 
@@ -645,6 +652,8 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
       body: JSON.stringify({ userId, channelId })
     });
     const messageList = await response.json();
+    if (!messageList)
+      return;
     messageList.map((message: Message) => {
       userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
       addMsgToFetchedConversation(message)

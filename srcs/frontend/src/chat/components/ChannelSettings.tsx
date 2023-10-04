@@ -11,6 +11,7 @@ interface ChannelSettingsProps {
   settingsChannel: boolean;
   setSettingsChannel: React.Dispatch<React.SetStateAction<boolean>>;
   setdisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface MenuItem {
@@ -23,41 +24,28 @@ interface MenuItem {
   action: string;
 }
 
-function ChannelSettings({
-  settingsChannel,
-  setSettingsChannel,
-  setdisplayMenu,
-}: ChannelSettingsProps): JSX.Element {
-  const [isSettingsMenuDisplay, setisSettingsMenuDisplay] =
-    useState<boolean>(false);
+function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, setChannelInfo }: ChannelSettingsProps): JSX.Element {
+  
+  const [isSettingsMenuDisplay, setisSettingsMenuDisplay] = useState<boolean>(false);
   const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
 
   const socket: Socket = useSocketContext();
-  const setChannelId = useSetChannelIdContext();
 
-  let isDisplay: string = settingsChannel
-    ? "isDisplaySettings"
-    : "isReduceSettings";
+  let isDisplay: string = settingsChannel ? "isDisplaySettings" : "isReduceSettings";
 
-  // useEffect(() => {
-  //   socket.on("channelDeleted", channelDeletedEvent);
+  useEffect(() => {
+    socket.on("channelDeleted", channelDeletedEvent);
 
-  //   return () => {
-  //     socket.off("channelDeleted", channelDeletedEvent);
-  //   };
-  // });
-
-  socket.on("channelDeleted", (channelId: number) => {
-    console.log(`ping received client-side with id: ${channelId}`);
-    setdisplayMenu(true);
-    setChannelId(-1);
+    return () => {
+      socket.off("channelDeleted", channelDeletedEvent);
+    };
   });
-
 
   const channelDeletedEvent = (channelId: number) => {
     console.log(`ping received client-side with id: ${channelId}`);
+    setChannelInfo(false);
+    setisSettingsMenuDisplay(false);
     setdisplayMenu(true);
-    setChannelId(-1);
   };
 
   const goToSubmenu = (item: MenuItem) => {
@@ -118,6 +106,7 @@ function ChannelSettings({
     if (settingsChannel === true) setSettingsChannel(false);
     setdisplayMenu(true);
   };
+
 
   return (
     <div>

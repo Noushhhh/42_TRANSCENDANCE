@@ -9,7 +9,7 @@ import {
   useChannelHeaderContext,
   useSetChannelHeaderContext,
 } from "../contexts/channelHeaderContext";
-import { fetchUser } from "./ChannelUtils";
+import { fetchUser, leaveChannel } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import ChannelManagerMenu from "./ChannelManagerMenu";
@@ -22,10 +22,7 @@ function MessageSide() {
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
-  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([
-    false,
-    false,
-  ]); // index 0 = create, index 1 = join
+  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([ false, false ]); // index 0 = create, index 1 = join
   const [headerTitle, setHeaderTitle] = useState<string>("");
 
   const fetchBoolean = useRef(false);
@@ -37,6 +34,19 @@ function MessageSide() {
   const setStateMessageToFalse = () => {
     setStateMessageToClick([false, false]);
   };
+
+  useEffect(() => {
+    socket.on("channelDeleted", channelDeletedEvent);
+
+    return () => {
+      socket.off("channelDeleted", channelDeletedEvent);
+    };
+  });
+
+ const channelDeletedEvent = async (channelId: number) => {
+   console.log(`ping received client-side(MessageSide ==>) with id: ${channelId}`);
+   await leaveChannel(userId, channelId, setChannelHeader, socket);
+ };
 
   useEffect(() => {
     if (stateMessageToClick[0] === true) {
@@ -71,8 +81,11 @@ function MessageSide() {
     needReload === false ? setNeedReload(true) : setNeedReload(false);
   };
 
-  useEffect(() => {
-    fetchUser(setChannelHeader, userId, socket);
+  useEffect( () => {
+    const callFetchUser = async () => {
+      await fetchUser(setChannelHeader, userId, socket);
+    }
+    callFetchUser();
     return () => {
       fetchBoolean.current = true;
     };

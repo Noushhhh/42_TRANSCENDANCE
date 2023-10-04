@@ -85,16 +85,9 @@ export class ChatService {
     return lastMessage.content;
   }
 
-  async getChannelHeadersFromId(id: number): Promise<ChannelLight> {
-
-    const channelId = Number(id);
-
-    if (isNaN(channelId) || channelId <= 0) {
-      throw new Error("Bad arguments");
-    }
+  async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
 
     try {
-
       const channel = await this.prisma.channel.findUnique({
         where: {
           id: channelId,
@@ -111,19 +104,27 @@ export class ChatService {
       });
 
       if (!channel) {
-        throw new Error("getChannelHeadersFromId: channel doesnt exist");
+        throw new ForbiddenException("Channel does not exist");
       }
 
-      const lastMessage = channel?.messages[0];
+      let lastMessage = channel.messages[0];
 
       const numberParticipants = channel.participants.length;
 
       const channelHeader: ChannelLight = {
         name: numberParticipants > 2 ? channel.name : "",
         lastMsg: lastMessage ? lastMessage.content : '',
-        dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+        dateLastMsg: lastMessage ? lastMessage.createdAt : null,
         channelId,
       };
+
+      let userBlockedLastMessageSender: boolean = false;
+  
+      if (lastMessage)
+        userBlockedLastMessageSender = await this.isUserIsBlockedBy(userId, lastMessage.senderId);
+
+      if (userBlockedLastMessageSender)
+        channelHeader.lastMsg = "";
 
       return channelHeader;
     }
@@ -210,7 +211,7 @@ export class ChatService {
     })
 
     if (!users) {
-      throw new Error("Failed to fetch data");
+      throw new ForbiddenException("No user found");
     }
     // const logins = users.map(user => user.username);
     return users;
@@ -535,7 +536,7 @@ export class ChatService {
     return true;
   }
 
-  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string,): Promise<User[]> {
+  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string): Promise<User[]> {
 
     const channelId: number = Number(channelIdStr);
 

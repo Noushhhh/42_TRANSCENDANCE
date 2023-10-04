@@ -1,6 +1,13 @@
 import { Socket, Server } from "socket.io";
 import { WebSocketServer, WebSocketGateway } from '@nestjs/websockets';
+import { Injectable } from "@nestjs/common";
 
+@Injectable()
+@WebSocketGateway({
+    cors: {
+        origin: '*',
+    },
+})
 export class listUserConnected {
 
     @WebSocketServer()
@@ -18,35 +25,39 @@ export class listUserConnected {
         }
     }
 
-    readMap() {
-        console.log('readmap:');
-        if (this.listUserConnected) {
-            for (const [clé, valeur] of this.listUserConnected) {
-                console.log(`Clé: ${clé}, Valeur: ${valeur}`);
-            }
+    readMap = async () => {
+        const socks = await this.server.fetchSockets ();
+        for (const sock of socks)
+        {
+            console.log(sock.id, sock.data.userId);
         }
-        else
-            console.log('0 clients connected');
+        // console.log('readmap:');
+        // if (this.listUserConnected) {
+        //     for (const [clé, valeur] of this.listUserConnected) {
+        //         console.log(`Clé: ${clé}, Valeur: ${valeur}`);
+        //     }
+        // }
+        // else
+        //     console.log('0 clients connected');
     }
 
     alertChannelDeleted(userId: number, channelId: number) {
-        console.log('00000000');
-        console.log(`userId used to search = ${userId}`);
+        console.log('channelDeleted called server-side');
         this.readMap();
-        const socketId: string | undefined = this.listUserConnected.get(userId);
-        if (!socketId) {
-            console.log('1111111');
-            throw new Error("socketId not found");
-        }
-        this.readMap();
-        console.log(`socketId used for search in actual sockets: ${socketId}`);
-        const socket: Socket | undefined = this.getSocketById(socketId);
-        console.log(`socket = ${socket}`);
-        if (!socket) {
-            console.log('222222');
-            throw new Error("socket not found");
-        }
-        console.log("ping server-side channel deleted", channelId);
-        socket.emit('channelDeleted', channelId);
+        this.server.emit('channelDeleted', channelId);
+        // const socketId: string | undefined = this.listUserConnected.get(userId);
+        // if (!socketId) {
+        //     throw new Error("socketId not found");
+        // }
+        // this.readMap();
+        // console.log(`socketId used for search in actual sockets: ${socketId}`);
+        // const socket: Socket | undefined = this.getSocketById(socketId);
+        // console.log(`socket = ${socket}`);
+        // if (!socket) {
+        //     console.log('222222');
+        //     throw new Error("socket not found");
+        // }
+        // console.log("ping server-side channel deleted", channelId);
+        // socket.emit('channelDeleted', channelId);
     }
 }

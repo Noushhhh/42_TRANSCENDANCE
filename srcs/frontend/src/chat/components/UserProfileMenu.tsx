@@ -4,7 +4,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import { useState } from 'react';
 import axios from 'axios';
-import { isChannelExist, fetchUser, blockUser, unblockUser, isUserIsBlockedBy } from './ChannelUtils';
+import { isChannelExist, fetchUser, blockUser, unblockUser, isUserIsBlockedBy, fetchConversation } from './ChannelUtils';
 import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
@@ -74,6 +74,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     // Ajoutez ici la logique pour "Bloquer"
     await blockUser(userId, user.id);
     await fetchUser(setChannelHeader, userId, socket);
+    // await fetchConversation();
     console.log('blocked');
     handleClose();
   };
@@ -82,6 +83,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     // Ajoutez ici la logique pour "Bloquer"
     await unblockUser(userId, user.id);
     await fetchUser(setChannelHeader, userId, socket);
+    // await fetchUser(setChannelHeader, userId, socket);
     console.log('Unblocked');
     handleClose();
   };

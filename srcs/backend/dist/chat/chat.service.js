@@ -98,12 +98,8 @@ let ChatService = class ChatService {
             return lastMessage.content;
         });
     }
-    getChannelHeadersFromId(id) {
+    getChannelHeadersFromId(channelId, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const channelId = Number(id);
-            if (isNaN(channelId) || channelId <= 0) {
-                throw new Error("Bad arguments");
-            }
             try {
                 const channel = yield this.prisma.channel.findUnique({
                     where: {
@@ -120,16 +116,21 @@ let ChatService = class ChatService {
                     },
                 });
                 if (!channel) {
-                    throw new Error("getChannelHeadersFromId: channel doesnt exist");
+                    throw new common_2.ForbiddenException("Channel does not exist");
                 }
-                const lastMessage = channel === null || channel === void 0 ? void 0 : channel.messages[0];
+                let lastMessage = channel.messages[0];
                 const numberParticipants = channel.participants.length;
                 const channelHeader = {
                     name: numberParticipants > 2 ? channel.name : "",
                     lastMsg: lastMessage ? lastMessage.content : '',
-                    dateLastMsg: lastMessage ? lastMessage.createdAt : new Date(0),
+                    dateLastMsg: lastMessage ? lastMessage.createdAt : null,
                     channelId,
                 };
+                let userBlockedLastMessageSender = false;
+                if (lastMessage)
+                    userBlockedLastMessageSender = yield this.isUserIsBlockedBy(userId, lastMessage.senderId);
+                if (userBlockedLastMessageSender)
+                    channelHeader.lastMsg = "";
                 return channelHeader;
             }
             catch (error) {
@@ -204,7 +205,7 @@ let ChatService = class ChatService {
                 }
             });
             if (!users) {
-                throw new Error("Failed to fetch data");
+                throw new common_2.ForbiddenException("No user found");
             }
             // const logins = users.map(user => user.username);
             return users;

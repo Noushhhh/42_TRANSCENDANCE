@@ -42,9 +42,9 @@ let ChatController = class ChatController {
             return this.chatService.getLastMessage(id);
         });
     }
-    getChannelHeadersFromUserId(id) {
+    getChannelHeadersFromUserId(pair) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.chatService.getChannelHeadersFromId(id);
+            return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
         });
     }
     getAllMessagesByChannelId(PairIdDto) {
@@ -109,9 +109,9 @@ let ChatController = class ChatController {
             return this.chatService.banUserFromChannel(userId, channelId, callerId);
         });
     }
-    leaveChannel(userId, channelId) {
+    leaveChannel(pair) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.chatService.leaveChannel(userId, channelId);
+            return this.chatService.leaveChannel(pair.userId, pair.channelId);
         });
     }
     getNumberUsersInChannel(channelId) {
@@ -196,10 +196,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getLastMessage", null);
 __decorate([
-    (0, common_1.Get)('getChannelHeader/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Post)('getChannelHeader'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getChannelHeadersFromUserId", null);
 __decorate([
@@ -274,11 +274,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
-    (0, common_1.Post)('leaveChannel/:userId/:channelId'),
-    __param(0, (0, common_1.Param)('userId')),
-    __param(1, (0, common_1.Param)('channelId')),
+    (0, common_1.Post)('leaveChannel'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "leaveChannel", null);
 __decorate([

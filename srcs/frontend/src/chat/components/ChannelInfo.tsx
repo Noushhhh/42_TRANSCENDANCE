@@ -49,7 +49,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: MonComposantProps
                     <ConfirmationPopup Action={leaveChannel}/>
                 </div>
             </div>
-            <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} />
+            <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} setChannelInfo={setChannelInfo}/>
         </div>
     ) 
         : null;

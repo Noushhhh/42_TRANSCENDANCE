@@ -1,10 +1,14 @@
 import React from "react";
 
 interface TimeElapsedProps {
-  date: Date;
+  date: Date | null;
 }
 
 const TimeElapsed: React.FC<TimeElapsedProps> = ({ date }) => {
+
+  if (!date)
+    return null;
+
   const getTimeElapsed = (date: Date): string => {
     const currentDate = new Date();
     const timeDiff = currentDate.getTime() - date.getTime();
