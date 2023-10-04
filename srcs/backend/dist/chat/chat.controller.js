@@ -26,22 +26,15 @@ const common_1 = require("@nestjs/common");
 const chat_dto_1 = require("./dto/chat.dto");
 const chat_service_1 = require("./chat.service");
 require("./interfaces/chat.interface");
+const admin_guards_1 = require("./guards/admin.guards");
 let ChatController = class ChatController {
     constructor(chatService) {
         this.chatService = chatService;
     }
     ;
-    getAllConvFromId(id) {
-        return this.chatService.getAllConvFromId(id);
-    }
-    addChannel() {
+    getAllConvFromId(userIdDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.chatService.addChannel();
-        });
-    }
-    addMessage() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.chatService.addMessage();
+            return this.chatService.getAllConvFromId(userIdDto.userId);
         });
     }
     getLastMessage(id) {
@@ -54,10 +47,10 @@ let ChatController = class ChatController {
             return this.chatService.getChannelHeadersFromId(id);
         });
     }
-    getAllMessagesByChannelId(id) {
+    getAllMessagesByChannelId(PairIdDto) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const messages = this.chatService.getAllMessagesByChannelId(id);
+                const messages = this.chatService.getAllMessagesByChannelId(PairIdDto.userId, PairIdDto.channelId);
                 return messages;
             }
             catch (error) {
@@ -65,10 +58,10 @@ let ChatController = class ChatController {
             }
         });
     }
-    addMessageToChannelId(id, message) {
+    addMessageToChannelId(message) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return this.chatService.addMessageToChannelId(id, message);
+                return this.chatService.addMessageToChannelId(message);
             }
             catch (error) {
                 throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
@@ -107,6 +100,7 @@ let ChatController = class ChatController {
     }
     kickUserFromChannel(userId, channelId, callerId) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("kick user called");
             return this.chatService.kickUserFromChannel(userId, channelId, callerId);
         });
     }
@@ -165,27 +159,35 @@ let ChatController = class ChatController {
             return this.chatService.isUserIsBan(pair.channelId, pair.userId);
         });
     }
+    blockUser(pairIdDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.blockUser(pairIdDto.callerId, pairIdDto.targetId);
+        });
+    }
+    unblockUser(pairIdDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.unblockUser(pairIdDto.callerId, pairIdDto.targetId);
+        });
+    }
+    isUserIsBlockedBy(pairIdDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.isUserIsBlockedBy(pairIdDto.callerId, pairIdDto.targetId);
+        });
+    }
+    getBlockedUsersById(userIdDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.chatService.getBlockedUsersById(userIdDto.userId);
+        });
+    }
 };
 exports.ChatController = ChatController;
 __decorate([
-    (0, common_1.Get)('getAllConvFromId/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Post)('getAllConvFromId'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+    __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllConvFromId", null);
-__decorate([
-    (0, common_1.Post)('addChannel'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], ChatController.prototype, "addChannel", null);
-__decorate([
-    (0, common_1.Post)('addMessage'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], ChatController.prototype, "addMessage", null);
 __decorate([
     (0, common_1.Get)('getLastMsg/:id'),
     __param(0, (0, common_1.Param)('id')),
@@ -201,18 +203,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getChannelHeadersFromUserId", null);
 __decorate([
-    (0, common_1.Get)('getAllMessagesByChannelId/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Post)('getAllMessagesByChannelId'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllMessagesByChannelId", null);
 __decorate([
-    (0, common_1.Post)('addMessageToChannel/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)('addMessageToChannel'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addMessageToChannelId", null);
 __decorate([
@@ -253,6 +254,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "isAdmin", null);
 __decorate([
+    (0, common_1.UseGuards)(admin_guards_1.AdminGuard),
     (0, common_1.Post)('kickUserFromChannel/:userId/:channelId/:callerId'),
     __param(0, (0, common_1.Param)('userId')),
     __param(1, (0, common_1.Param)('channelId')),
@@ -262,6 +264,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "kickUserFromChannel", null);
 __decorate([
+    (0, common_1.UseGuards)(admin_guards_1.AdminGuard),
     (0, common_1.Post)('banUserFromChannel/:userId/:channelId/:callerId'),
     __param(0, (0, common_1.Param)('userId')),
     __param(1, (0, common_1.Param)('channelId')),
@@ -347,6 +350,34 @@ __decorate([
     __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "isUserIsBan", null);
+__decorate([
+    (0, common_1.Post)('blockUser'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [chat_dto_1.pairUserId]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "blockUser", null);
+__decorate([
+    (0, common_1.Post)('unblockUser'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [chat_dto_1.pairUserId]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "unblockUser", null);
+__decorate([
+    (0, common_1.Post)('isUserIsBlockedBy'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [chat_dto_1.pairUserId]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "isUserIsBlockedBy", null);
+__decorate([
+    (0, common_1.Post)('getBlockedUsersById'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [chat_dto_1.UserIdDto]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getBlockedUsersById", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     __metadata("design:paramtypes", [chat_service_1.ChatService])

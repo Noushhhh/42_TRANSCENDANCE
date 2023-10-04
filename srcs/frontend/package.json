@@ -27,7 +27,7 @@
     "socket.io-client": "^4.7.2",
     "socket.io-parser": "^4.2.4",
     "styled-components": "^6.0.8",
-    "web-vitals": "^3.4.0"
+    "web-vitals": "^3.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
