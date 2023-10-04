@@ -46,6 +46,7 @@
 //   @Get('generate-qr-code/:userId')
 //   async generateQrCode(@Param('userId') userId: number) {
 //     try {
+//       // const { otpauthURL,  qrCodeDataURL} = this.generateSecret(userId);
 //       const otpauthUrl = this.twoFaService.generateOtpauthUrl(userId);
 //       const qrCodeDataURL = await this.twoFaService.generateQrCode(otpauthUrl);
 //       return { qrCodeDataURL };

@@ -97,15 +97,16 @@ let AuthService = class AuthService {
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
+            console.log("dto==========", dto);
             const user = yield this.usersService.findUserByUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
             // // compare password
-            // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // // if password wrong throw exception
-            // if (!passwordMatch)
-            //     throw new ForbiddenException('Incorrect password',);
+            if (!passwordMatch)
+                throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
             return this.signToken(user.id, user.username, res);
         });
@@ -117,10 +118,10 @@ let AuthService = class AuthService {
                 return null;
             // throw new ForbiddenException('Username not found',);
             // compare password
-            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
+            // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
             // if password wrong throw exception
-            if (!passwordMatch)
-                return null;
+            // if (!passwordMatch)
+            // return null;
             // throw new ForbiddenException('Incorrect password',);
             return user;
         });

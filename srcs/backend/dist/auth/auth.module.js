@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-// import { AuthController } from './auth.controller';
+const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
 const jwt_strategy_1 = require("../strategies/jwt.strategy");
 const users_module_1 = require("../users/users.module");
@@ -26,12 +26,12 @@ exports.AuthModule = AuthModule = __decorate([
             passport_1.PassportModule,
             jwt_1.JwtModule.register({
                 secret: constants_1.jwtConstants.secret,
-                signOptions: { expiresIn: '60 * 15s' }
+                signOptions: { expiresIn: '15m' }
             }),
         ],
         // imports: [UsersModule, PassportModule],
         providers: [auth_service_1.AuthService, local_auth_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
-        // controllers: [AuthController],
+        controllers: [auth_controller_1.AuthController],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);

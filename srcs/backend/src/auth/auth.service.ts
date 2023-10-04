@@ -55,17 +55,17 @@ export class AuthService {
 
     async signin(dto: AuthDto, res: Response) {
         // find user with username
+        console.log("dto==========", dto);
         const user = await this.usersService.findUserByUsername(dto.username);
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
-
         // // compare password
-        // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
 
         // // if password wrong throw exception
-        // if (!passwordMatch)
-        //     throw new ForbiddenException('Incorrect password',);
+        if (!passwordMatch)
+            throw new ForbiddenException('Incorrect password',);
         // send back the token
         return this.signToken(user.id, user.username, res);
     }
@@ -76,10 +76,10 @@ export class AuthService {
         return null;
             // throw new ForbiddenException('Username not found',);
         // compare password
-        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+        // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
         // if password wrong throw exception
-        if (!passwordMatch)
-          return null;
+        // if (!passwordMatch)
+          // return null;
             // throw new ForbiddenException('Incorrect password',);
         return user;
     }
@@ -174,7 +174,7 @@ export class AuthService {
            console.error(error); 
            return res.status(401).send({message: "Cookie not found"});
         }
-    }    
+    }
 
     async signToken42(@Req() req: any, res: Response) {
       try {
