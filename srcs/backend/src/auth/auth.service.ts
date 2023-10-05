@@ -247,7 +247,6 @@ export class AuthService {
       private async getUserInfo(token: string): Promise<any> {
         try {
           const response = await this.sendUserInfoRequest(token);
-        //   const this.createUser(response.data);
           return response.data;
         } catch (error) {
           console.error('Error fetching user info:', error);

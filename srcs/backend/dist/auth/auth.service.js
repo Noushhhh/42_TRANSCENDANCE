@@ -273,7 +273,6 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendUserInfoRequest(token);
-                //   const this.createUser(response.data);
                 return response.data;
             }
             catch (error) {
