@@ -50,20 +50,4 @@ export class UsersService {
         }
     }
 
-    // async findUserByUsernameReq(@Request() req: Request) {
-    //     try {
-    //         const user = await this.prisma.user.findUnique({
-    //         where: {
-    //             username: req.user.username,
-    //         },
-    //     });
-    //     if (!user) {
-    //         throw new NotFoundException(`User not found with id ${usernameinput}`);
-    //     }
-    //     return user;
-    //     } catch (error) {
-    //         console.error(`Error fetching user with id ${usernameinput}`, error);
-    //         throw error;
-    //     }
-    // }
 }
