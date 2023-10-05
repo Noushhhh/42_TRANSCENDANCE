@@ -28,24 +28,14 @@ export class UsersController
         return this.UsersService.findUserWithUsername(username);
     }
 
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Post('enable2FA') 
-    async enable2FA (@Req() req: Request)  {
-        console.log("hellooo");
-        const userInfo = req.user;
-        console.log(userInfo);
-        // Here, generate the 2FA secret and URL. For simplicity, I'll just make up values:
-        // const twoFASecret = 'YOUR_GENERATED_2FA_SECRET';
-        // const twoFAUrl = 'YOUR_GENERATED_2FA_URL';
-
-        // Update the user's record with the 2FA information:
-        // const updatedUser = await this.usersService.enableTwoFAForUser(user.id, twoFASecret, twoFAUrl);
-
-        // if (!user) {
-            // throw new NotFoundException(`User with ID ${user.username} not found`);
-        // }
-        // user.TwoFA == true;
-
-        // return { message: '2FA enabled successfully', twoFAUrl };
+    async enable2FA (@Req() req: Request) {
+    const userInfo: any = req.user;
+    const updatedUser = await this.UsersService.enable2FAForUser(userInfo.id);
+    if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${userInfo.id} not found`);
     }
+    return { message: '2FA enabled successfully' }; //, twoFAUrl
+}
 }

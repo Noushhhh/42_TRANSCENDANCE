@@ -50,8 +50,8 @@ export class UsersService {
         }
     }
 
-    async enable2FA(userId: number) {
-        await this.prisma.user.update({
+    async enable2FAForUser(userId: number) {
+        return this.prisma.user.update({
           where: { id: userId },
           data: {
             TwoFA: true,
