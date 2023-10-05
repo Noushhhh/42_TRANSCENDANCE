@@ -40,6 +40,11 @@ let TwoFaController = class TwoFaController {
             return { isValid };
         });
     }
+    generateQrCode(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.twoFaService.generateQrCode(userId);
+        });
+    }
 };
 exports.TwoFaController = TwoFaController;
 __decorate([
@@ -57,16 +62,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], TwoFaController.prototype, "verifyCode", null);
+__decorate([
+    (0, common_1.Get)('generate-qr-code/:userId'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], TwoFaController.prototype, "generateQrCode", null);
 exports.TwoFaController = TwoFaController = __decorate([
     (0, common_1.Controller)('2fa'),
     __metadata("design:paramtypes", [_2FA_service_1.TwoFaService])
 ], TwoFaController);
-//     async generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-//         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-//         const otpauthUrl = speakeasy.otpauthURL({
-//         secret: secret.base32,
-//         label: `MyApp:${userId}`, // Customize the label as needed
-//         issuer: 'MyApp', // Customize the issuer as needed
-//         });
-//         return { secret: secret.base32, otpauthUrl };
-//     }

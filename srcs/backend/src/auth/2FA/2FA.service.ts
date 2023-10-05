@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as speakeasy from 'speakeasy';
-import * as qrcode from 'qrcode';
+// import * as qrcode from 'qrcode';
 
 @Injectable()
 export class TwoFaService {
@@ -38,12 +38,23 @@ export class TwoFaService {
         return verified;
       }
 
-    async generateQrCode(data: string): Promise<string> {
+      async generateQrCode(userId: number): Promise<string> {
         try {
-            const qrCodeDataURL = await qrcode.toDataURL(data);
-            return qrCodeDataURL;
+            const user: User | null = await this.prisma.user.findUnique({
+                where: {
+                  id: userId,
+                },
+            });
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+            if (!user.twoFAUrl) {
+                throw new NotFoundException('Otp URL not found');
+            }
+            return user.twoFAUrl;
         } catch (error) {
-            throw new Error('Failed to generate QR code.');
+            console.error(error);
+            throw new InternalServerErrorException('Failed to return QR code.');
         }
     }
 }

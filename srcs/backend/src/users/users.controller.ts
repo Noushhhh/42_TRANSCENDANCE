@@ -37,5 +37,5 @@ export class UsersController
         throw new NotFoundException(`User with ID ${userInfo.id} not found`);
     }
     return { message: '2FA enabled successfully' }; //, twoFAUrl
-}
+    }
 }

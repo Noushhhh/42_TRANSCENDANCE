@@ -45,7 +45,7 @@ exports.TwoFaService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const speakeasy = __importStar(require("speakeasy"));
-const qrcode = __importStar(require("qrcode"));
+// import * as qrcode from 'qrcode';
 let TwoFaService = class TwoFaService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -77,14 +77,25 @@ let TwoFaService = class TwoFaService {
             return verified;
         });
     }
-    generateQrCode(data) {
+    generateQrCode(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const qrCodeDataURL = yield qrcode.toDataURL(data);
-                return qrCodeDataURL;
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!user) {
+                    throw new common_1.NotFoundException('User not found');
+                }
+                if (!user.twoFAUrl) {
+                    throw new common_1.NotFoundException('Otp URL not found');
+                }
+                return user.twoFAUrl;
             }
             catch (error) {
-                throw new Error('Failed to generate QR code.');
+                console.error(error);
+                throw new common_1.InternalServerErrorException('Failed to return QR code.');
             }
         });
     }
