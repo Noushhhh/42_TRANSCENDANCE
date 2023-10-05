@@ -12,6 +12,9 @@ import axios from 'axios';
 // import * as qrcode from 'qrcode';
 import * as speakeasy from 'speakeasy';
 import { UsersService } from '../users/users.service';
+import { jwtConstants } from '../auth/constants/constants';
+import { min } from 'class-validator';
+
 
 @Injectable()
 export class AuthService {
@@ -24,7 +27,7 @@ export class AuthService {
         private jwt: JwtService,
         private jwtService: JwtService,
     ) {
-        this.JWT_SECRET = process.env.JWT_SECRET;
+        this.JWT_SECRET = jwtConstants.secret;
 
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -74,14 +77,7 @@ export class AuthService {
       const user = await this.usersService.findUserByUsername(dto.username);
       if (!user)
         return null;
-            // throw new ForbiddenException('Username not found',);
-        // compare password
-        // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-        // if password wrong throw exception
-        // if (!passwordMatch)
-          // return null;
-            // throw new ForbiddenException('Incorrect password',);
-        return user;
+      return user;
     }
 
     async signToken(
@@ -103,7 +99,7 @@ export class AuthService {
         );
 
         // Generate a refresh token
-        const refreshToken = this.createRefreshToken(userId);
+        const refreshToken = await this.createRefreshToken(userId);
         console.log('refresh token = ');
         console.log(refreshToken);
         console.log('token = ');
@@ -306,7 +302,7 @@ export class AuthService {
         }
       }
       
-      generateRandomPassword(): string {
+    generateRandomPassword(): string {
         const password =
           Math.random().toString(36).slice(2, 15) +
           Math.random().toString(36).slice(2, 15);

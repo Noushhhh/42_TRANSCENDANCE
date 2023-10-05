@@ -59,13 +59,14 @@ const axios_1 = __importDefault(require("axios"));
 // import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
+const constants_1 = require("../auth/constants/constants");
 let AuthService = class AuthService {
     constructor(usersService, prisma, jwt, jwtService) {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
         this.jwtService = jwtService;
-        this.JWT_SECRET = process.env.JWT_SECRET;
+        this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
         }
@@ -116,13 +117,6 @@ let AuthService = class AuthService {
             const user = yield this.usersService.findUserByUsername(dto.username);
             if (!user)
                 return null;
-            // throw new ForbiddenException('Username not found',);
-            // compare password
-            // const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-            // if password wrong throw exception
-            // if (!passwordMatch)
-            // return null;
-            // throw new ForbiddenException('Incorrect password',);
             return user;
         });
     }
@@ -138,7 +132,7 @@ let AuthService = class AuthService {
                 secret: secret,
             });
             // Generate a refresh token
-            const refreshToken = this.createRefreshToken(userId);
+            const refreshToken = yield this.createRefreshToken(userId);
             console.log('refresh token = ');
             console.log(refreshToken);
             console.log('token = ');
