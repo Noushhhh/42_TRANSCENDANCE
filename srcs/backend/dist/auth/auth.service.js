@@ -60,6 +60,7 @@ const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
 const constants_1 = require("../auth/constants/constants");
+// import { min } from 'class-validator';
 let AuthService = class AuthService {
     constructor(usersService, prisma, jwt, jwtService) {
         this.usersService = usersService;
@@ -99,7 +100,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
             console.log("dto==========", dto);
-            const user = yield this.usersService.findUserByUsername(dto.username);
+            const user = yield this.usersService.findUserWithUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
@@ -114,7 +115,7 @@ let AuthService = class AuthService {
     }
     validateUser(dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.usersService.findUserByUsername(dto.username);
+            const user = yield this.usersService.findUserWithUsername(dto.username);
             if (!user)
                 return null;
             return user;
@@ -142,7 +143,7 @@ let AuthService = class AuthService {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+                maxAge: 1000 * 60 * 60 * 24 * 30 * 30 // 30 days in milliseconds
             });
             // Existing JWT token cookie
             res.cookie('token', token, {

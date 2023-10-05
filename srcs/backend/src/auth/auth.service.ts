@@ -13,7 +13,7 @@ import axios from 'axios';
 import * as speakeasy from 'speakeasy';
 import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
-import { min } from 'class-validator';
+// import { min } from 'class-validator';
 
 
 @Injectable()
@@ -59,7 +59,7 @@ export class AuthService {
     async signin(dto: AuthDto, res: Response) {
         // find user with username
         console.log("dto==========", dto);
-        const user = await this.usersService.findUserByUsername(dto.username);
+        const user = await this.usersService.findUserWithUsername(dto.username);
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
@@ -74,7 +74,7 @@ export class AuthService {
     }
 
     async validateUser(dto: AuthDto): Promise <any> {
-      const user = await this.usersService.findUserByUsername(dto.username);
+      const user = await this.usersService.findUserWithUsername(dto.username);
       if (!user)
         return null;
       return user;
@@ -110,7 +110,7 @@ export class AuthService {
             httpOnly: true,
             secure: true, // set it to false if you're not using HTTPS
             sameSite: 'none',
-            maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+            maxAge: 1000 * 60 * 60 * 24 * 30 * 30  // 30 days in milliseconds
         });
 
         // Existing JWT token cookie

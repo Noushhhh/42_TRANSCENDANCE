@@ -8,18 +8,16 @@ export class UsersService {
         private prisma: PrismaService,
     ) {}
 
-    async findUserbyId(userId: number): Promise<User | undefined> {
+    async findUserWithId(userId: number): Promise<User | undefined> {
         try {
             const user = await this.prisma.user.findUnique({
                 where: {
                     id: userId,
                 },
             });
-
             if (!user) {
                 throw new NotFoundException(`User not found with id ${userId}`);
             }
-
             return user;
         } catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
@@ -27,7 +25,7 @@ export class UsersService {
         }
     }
     
-    async findUserByUsername(usernameinput: string): Promise<User | undefined> {
+    async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
         console.log("username INPUT ====", usernameinput);
         try {
             const user = await this.prisma.user.findUnique({
