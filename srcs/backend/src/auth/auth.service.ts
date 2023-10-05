@@ -13,16 +13,17 @@ import axios from 'axios';
 import * as speakeasy from 'speakeasy';
 import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
+import { TwoFaService } from './2FA/2FA.service';
 // import { min } from 'class-validator';
 
 
 @Injectable()
 export class AuthService {
-
     private readonly JWT_SECRET: string | any;
 
     constructor(
         private usersService: UsersService,
+        private twoFaService: TwoFaService,
         private prisma: PrismaService,
         private jwt: JwtService,
         // private jwtService: JwtService,
@@ -35,25 +36,24 @@ export class AuthService {
     }
 
     async signup(dto: AuthDto, res: Response) {
-        const hashPassword = await argon.hash(dto.password);
-        try {
-            const user = await this.prisma.user.create({
-                data: {
-                    username: dto.username,
-                    hashPassword,
-                },
-            });
-            console.log('signup calle');
-            return this.signToken(user.id, user.username, res);
-        } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                console.log(error)
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credentials taken');
-                }
-            }
-            throw error;
-        }
+      const hashPassword = await argon.hash(dto.password);
+      try {
+          const user = await this.prisma.user.create({
+              data: {
+                  username: dto.username,
+                  hashPassword,
+              },
+          });
+          return this.signToken(user.id, user.username, res);
+      } catch (error) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError) {
+              console.log(error)
+              if (error.code === 'P2002') {
+                  throw new ForbiddenException('Credentials taken');
+              }
+          }
+          throw error;
+      }
     }
 
     async signin(dto: AuthDto, res: Response) {
@@ -182,9 +182,8 @@ export class AuthService {
           const user = await this.createUser(userInfo, res);
           
           if (user.TwoFA == true){
-
+              // 
           }
-
           // Set both JWT token and refresh token as cookies
           const payload = {
               sub: user.id,
@@ -288,7 +287,7 @@ export class AuthService {
                 avatar: userInfo.image.link,
             },
           });
-          const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+          const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(user.id);
           user.twoFASecret = secret;
           user.twoFAUrl = otpauthUrl;
           console.log("User created", user);
@@ -305,45 +304,5 @@ export class AuthService {
           Math.random().toString(36).slice(2, 15);
         return password;
       }
-
-    generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-      const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-      const otpauthUrl = speakeasy.otpauthURL({
-        secret: secret.base32,
-        label: `ft_transcendance:${userId}`, // Customize the label as needed
-        issuer: 'ft_transcendance', // Customize the issuer as needed
-      });
-      return { secret: secret.base32, otpauthUrl };
-    }
-
-    async verifyTwoFACode(userId: number, code: string): Promise<boolean> {
-      const user: User | null = await this.prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
-    
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFASecret || '',
-        encoding: 'base32',
-        token: code,
-      });
-    
-      return verified;
-    }
-
-    async enable2FA(userId: number) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          TwoFA: true,
-        },
-      });
-
-    }
 
   }

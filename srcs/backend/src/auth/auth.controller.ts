@@ -57,9 +57,4 @@ export class AuthController {
         }
     }
 
-    @Post('enable2FA') 
-    async enable2FA () {
-
-    }
-
 }

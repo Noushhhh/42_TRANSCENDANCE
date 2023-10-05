@@ -78,10 +78,6 @@ let AuthController = class AuthController {
             }
         });
     }
-    enable2FA() {
-        return __awaiter(this, void 0, void 0, function* () {
-        });
-    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -133,12 +129,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "handle42Callback", null);
-__decorate([
-    (0, common_1.Post)('enable2FA'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "enable2FA", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

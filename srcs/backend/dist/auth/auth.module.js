@@ -16,6 +16,8 @@ const users_module_1 = require("../users/users.module");
 const passport_1 = require("@nestjs/passport");
 // import { LocalStrategy } from '../strategies/local-auth.strategy';
 const constants_1 = require("./constants/constants");
+// import { ConfigService } from '@nestjs/config';
+const _2FA_service_1 = require("./2FA/2FA.service");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -31,7 +33,7 @@ exports.AuthModule = AuthModule = __decorate([
         ],
         // imports: [UsersModule, PassportModule],
         // providers: [AuthService, LocalStrategy, JwtStrategy],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
+        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, _2FA_service_1.TwoFaService],
         controllers: [auth_controller_1.AuthController],
         exports: [auth_service_1.AuthService],
     })

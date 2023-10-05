@@ -56,14 +56,14 @@ const jwt_1 = require("@nestjs/jwt");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
-// import * as qrcode from 'qrcode';
-const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
 const constants_1 = require("../auth/constants/constants");
+const _2FA_service_1 = require("./2FA/2FA.service");
 // import { min } from 'class-validator';
 let AuthService = class AuthService {
-    constructor(usersService, prisma, jwt) {
+    constructor(usersService, twoFaService, prisma, jwt) {
         this.usersService = usersService;
+        this.twoFaService = twoFaService;
         this.prisma = prisma;
         this.jwt = jwt;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
@@ -81,7 +81,6 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
-                console.log('signup calle');
                 return this.signToken(user.id, user.username, res);
             }
             catch (error) {
@@ -210,6 +209,7 @@ let AuthService = class AuthService {
                 const userInfo = yield this.getUserInfo(token);
                 const user = yield this.createUser(userInfo, res);
                 if (user.TwoFA == true) {
+                    // 
                 }
                 // Set both JWT token and refresh token as cookies
                 const payload = {
@@ -316,7 +316,7 @@ let AuthService = class AuthService {
                         avatar: userInfo.image.link,
                     },
                 });
-                const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+                const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(user.id);
                 user.twoFASecret = secret;
                 user.twoFAUrl = otpauthUrl;
                 console.log("User created", user);
@@ -333,43 +333,6 @@ let AuthService = class AuthService {
             Math.random().toString(36).slice(2, 15);
         return password;
     }
-    generateTwoFASecret(userId) {
-        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-        const otpauthUrl = speakeasy.otpauthURL({
-            secret: secret.base32,
-            label: `ft_transcendance:${userId}`,
-            issuer: 'ft_transcendance', // Customize the issuer as needed
-        });
-        return { secret: secret.base32, otpauthUrl };
-    }
-    verifyTwoFACode(userId, code) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-            });
-            if (!user) {
-                throw new Error('User not found');
-            }
-            const verified = speakeasy.totp.verify({
-                secret: user.twoFASecret || '',
-                encoding: 'base32',
-                token: code,
-            });
-            return verified;
-        });
-    }
-    enable2FA(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    TwoFA: true,
-                },
-            });
-        });
-    }
 };
 exports.AuthService = AuthService;
 __decorate([
@@ -381,6 +344,7 @@ __decorate([
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
+        _2FA_service_1.TwoFaService,
         prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);
