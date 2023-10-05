@@ -27,7 +27,7 @@ export class AuthService {
 
     // ─────────────────────────────────────────────────────────────────────────────
 
-    async signup(dto: AuthDto, res: Response) {
+    async signup(dto: AuthDto) {
         const hashPassword = await argon.hash(dto.password);
         try {
             const user = await this.prisma.user.create({
@@ -36,8 +36,13 @@ export class AuthService {
                     hashPassword,
                 },
             });
-            return this.signToken(user.id, user.username, res);
+            // return this.signToken(user.id, user.username, res);
             // return user;
+            return ({
+                statusCode: 200,
+                valid: true,
+                message: "User Was create successfully"
+            })
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                 console.log(error)
@@ -45,8 +50,13 @@ export class AuthService {
                     throw new ForbiddenException('Credentials taken');
                 }
             }
-            throw error;
+            return ({
+                statusCode: 500,
+                valid: false,
+                message: "An error occurred while processing the request"
+            });
         }
+        
     }
     // ─────────────────────────────────────────────────────────────────────────────
 

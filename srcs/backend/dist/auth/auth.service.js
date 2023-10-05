@@ -66,7 +66,7 @@ let AuthService = class AuthService {
         }
     }
     // ─────────────────────────────────────────────────────────────────────────────
-    signup(dto, res) {
+    signup(dto) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashPassword = yield argon.hash(dto.password);
             try {
@@ -76,8 +76,13 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
-                return this.signToken(user.id, user.username, res);
+                // return this.signToken(user.id, user.username, res);
                 // return user;
+                return ({
+                    statusCode: 200,
+                    valid: true,
+                    message: "User Was create successfully"
+                });
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
@@ -86,7 +91,11 @@ let AuthService = class AuthService {
                         throw new common_1.ForbiddenException('Credentials taken');
                     }
                 }
-                throw error;
+                return ({
+                    statusCode: 500,
+                    valid: false,
+                    message: "An error occurred while processing the request"
+                });
             }
         });
     }

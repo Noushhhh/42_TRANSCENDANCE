@@ -4,6 +4,7 @@ import { AuthDto } from './dto';
 // import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
+import { ForbiddenException } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -12,8 +13,19 @@ export class AuthController {
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {
-        return this.authService.signup(dto, res);
+        console.log("passing by controller signup");
+        try {
+            const result: any = await this.authService.signup(dto);
+            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+        } catch (error) {
+            if (error instanceof ForbiddenException) {
+                return res.status(error.getStatus()).json({ valid: false, message: error.message });
+            }
+            // Handle other errors if necessary
+            return res.status(500).json({ valid: false, message: "An error occurred while processing the request" });
+        }
     }
+    
 
     @Public()
     @Post('signin')

@@ -27,13 +27,25 @@ const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 // import { AuthGuard } from '@nestjs/passport';
 const public_decorators_1 = require("../decorators/public.decorators");
+const common_2 = require("@nestjs/common");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.signup(dto, res);
+            console.log("passing by controller signup");
+            try {
+                const result = yield this.authService.signup(dto);
+                return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+            }
+            catch (error) {
+                if (error instanceof common_2.ForbiddenException) {
+                    return res.status(error.getStatus()).json({ valid: false, message: error.message });
+                }
+                // Handle other errors if necessary
+                return res.status(500).json({ valid: false, message: "An error occurred while processing the request" });
+            }
         });
     }
     signin(dto, res) {
