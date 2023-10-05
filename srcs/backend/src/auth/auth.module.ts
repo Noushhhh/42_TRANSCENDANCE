@@ -1,16 +1,17 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from '../strategies/local-auth.strategy';
+// import { LocalStrategy } from '../strategies/local-auth.strategy';
 import { jwtConstants } from './constants/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-      UsersModule,
+      forwardRef(() => UsersModule),
       PassportModule,
       JwtModule.register({
       secret: jwtConstants.secret,
@@ -18,7 +19,8 @@ import { jwtConstants } from './constants/constants';
   }), 
   ],
   // imports: [UsersModule, PassportModule],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  // providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

@@ -62,11 +62,10 @@ const users_service_1 = require("../users/users.service");
 const constants_1 = require("../auth/constants/constants");
 // import { min } from 'class-validator';
 let AuthService = class AuthService {
-    constructor(usersService, prisma, jwt, jwtService) {
+    constructor(usersService, prisma, jwt) {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
-        this.jwtService = jwtService;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -99,14 +98,13 @@ let AuthService = class AuthService {
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
-            console.log("dto==========", dto);
             const user = yield this.usersService.findUserWithUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
-            // // compare password
+            // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
-            // // if password wrong throw exception
+            // if password wrong throw exception
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
@@ -117,7 +115,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.usersService.findUserWithUsername(dto.username);
             if (!user)
-                return null;
+                throw new common_1.UnauthorizedException();
             return user;
         });
     }
@@ -384,6 +382,5 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         prisma_service_1.PrismaService,
-        jwt_1.JwtService,
         jwt_1.JwtService])
 ], AuthService);

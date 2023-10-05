@@ -24,24 +24,63 @@
 //   }
 // }
 
-import { ExtractJwt, Strategy } from 'passport-jwt';
+// import { ExtractJwt, Strategy } from 'passport-jwt';
+// import { PassportStrategy } from '@nestjs/passport';
+// import { Injectable } from '@nestjs/common';
+// import { jwtConstants } from '../auth/constants/constants';
+
+// @Injectable()
+// export class JwtStrategy extends PassportStrategy(Strategy) {
+//   constructor() {
+//     super({
+//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+//       ignoreExpiration: false,
+//       // secretOrKey: process.env.JWT_SECRET,
+//       secretOrKey: jwtConstants.secret,
+//     });
+//   }
+
+//   async validate(payload: any) {
+//     console.log("PAYLOAD==", payload);
+//     return { username: payload.username };
+//   }
+// }
+
+// jwt.strategy.ts
+import { Injectable, UnauthorizedException} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Strategy } from 'passport-jwt';
+import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
+
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      // secretOrKey: process.env.JWT_SECRET,
-      secretOrKey: jwtConstants.secret,
-    });
-  }
+    constructor(
+        private readonly userService: UsersService,
 
-  async validate(payload: any) {
-    console.log("PAYLOAD==", payload);
-    return { username: payload.username };
+    ) {
+        super({
+          jwtFromRequest: (req: any) => {
+            let token = null;
+            if (req && req.cookies) {
+                token = req.cookies['token'];
+            }
+            return token;
+        },
+            ignoreExpiration: false,
+            secretOrKey: jwtConstants.secret,
+            passReqToCallback: true
+        });
+    }
+
+    async validate(req: any, payload: any) {
+      console.log("PAYLOAD==", payload);
+      const user = await this.userService.findUserWithId(payload.sub);
+      if (!user) {
+          throw new UnauthorizedException();
+      }
+      return user;
   }
 }
+

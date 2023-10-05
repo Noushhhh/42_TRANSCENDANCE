@@ -26,7 +26,7 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
-const local_auth_guard_1 = require("./guards/local-auth.guard");
+// import { LocalAuthGuard } from './guards/local-auth.guard';
 // import { AuthGuard } from '@nestjs/passport';
 let AuthController = class AuthController {
     constructor(authService) {
@@ -39,6 +39,7 @@ let AuthController = class AuthController {
     }
     // @HttpCode(HttpStatus.OK)
     // @Public()
+    // @UseGuards(LocalAuthGuard)
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("Request ===", req.user);
@@ -93,7 +94,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
-    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
     (0, common_1.Post)('signin') // delete async, has to signin and cannot do anything else
     ,
     __param(0, (0, common_1.Body)()),
