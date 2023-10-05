@@ -280,7 +280,7 @@ export class AuthService {
           let avatarUrl;
           if (userInfo.image.link !== null) {
             // use the 42 profile picture if not null
-             avatarUrl = avatarUrl = userInfo.image.link;
+             avatarUrl = userInfo.image.link;
           }
           const user = await this.prisma.user.create({
             data: {
