@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { UsersModule } from './users/users.module';
 import { SocketModule } from './socket/SocketModule';
 // import { PrismaModule } from './prisma/prisma.module';
 import { ChatController } from './chat/chat.controller';
@@ -19,7 +19,7 @@ import { SocketService } from './socket/socket.service';
 @Module({
   imports: [
     AuthModule,
-    UserModule,
+    UsersModule,
     ConfigModule.forRoot({}),
     SocketModule,
     ChatModule,
