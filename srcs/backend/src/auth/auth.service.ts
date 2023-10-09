@@ -1,7 +1,7 @@
-import { ForbiddenException, Req, Injectable } from '@nestjs/common';
+import { ForbiddenException, Req, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +11,10 @@ import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 // import * as qrcode from 'qrcode';
 import * as speakeasy from 'speakeasy';
+import { UsersService } from '../users/users.service';
+import { jwtConstants } from '../auth/constants/constants';
+// import { min } from 'class-validator';
+
 
 @Injectable()
 export class AuthService {
@@ -18,10 +22,12 @@ export class AuthService {
     private readonly JWT_SECRET: string | any;
 
     constructor(
+        private usersService: UsersService,
         private prisma: PrismaService,
         private jwt: JwtService,
+        // private jwtService: JwtService,
     ) {
-        this.JWT_SECRET = process.env.JWT_SECRET;
+        this.JWT_SECRET = jwtConstants.secret;
 
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -52,20 +58,24 @@ export class AuthService {
 
     async signin(dto: AuthDto, res: Response) {
         // find user with username
-        const user = await this.findUserByUsername(dto.username);
+        const user = await this.usersService.findUserWithUsername(dto.username);
         // if user not found throw exception
         if (!user)
             throw new ForbiddenException('Username not found',);
-
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-
         // if password wrong throw exception
         if (!passwordMatch)
             throw new ForbiddenException('Incorrect password',);
-
         // send back the token
         return this.signToken(user.id, user.username, res);
+    }
+
+    async validateUser(dto: AuthDto): Promise <any> {
+      const user = await this.usersService.findUserWithUsername(dto.username);
+      if (!user)
+        throw new UnauthorizedException();      
+      return user;
     }
 
     async signToken(
@@ -87,7 +97,7 @@ export class AuthService {
         );
 
         // Generate a refresh token
-        const refreshToken = this.createRefreshToken(userId);
+        const refreshToken = await this.createRefreshToken(userId);
         console.log('refresh token = ');
         console.log(refreshToken);
         console.log('token = ');
@@ -98,7 +108,7 @@ export class AuthService {
             httpOnly: true,
             secure: true, // set it to false if you're not using HTTPS
             sameSite: 'none',
-            maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+            maxAge: 1000 * 60 * 60 * 24 * 30 * 30  // 30 days in milliseconds
         });
 
         // Existing JWT token cookie
@@ -158,7 +168,7 @@ export class AuthService {
            console.error(error); 
            return res.status(401).send({message: "Cookie not found"});
         }
-    }    
+    }
 
     async signToken42(@Req() req: any, res: Response) {
       try {
@@ -235,7 +245,6 @@ export class AuthService {
       private async getUserInfo(token: string): Promise<any> {
         try {
           const response = await this.sendUserInfoRequest(token);
-        //   const this.createUser(response.data);
           return response.data;
         } catch (error) {
           console.error('Error fetching user info:', error);
@@ -266,17 +275,10 @@ export class AuthService {
         }
       
         try {
-            // let avatarUrl;
-            // if (userInfo.image.link === null) {
-            //     // Generate a random avatar URL or use a default one
-            //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
-            // } else {
-            //     avatarUrl = userInfo.image.link;
-            // }
           let avatarUrl;
           if (userInfo.image.link !== null) {
             // use the 42 profile picture if not null
-             avatarUrl = avatarUrl = userInfo.image.link;
+             avatarUrl = userInfo.image.link;
           }
           const user = await this.prisma.user.create({
             data: {
@@ -297,20 +299,12 @@ export class AuthService {
         }
       }
       
-      generateRandomPassword(): string {
+    generateRandomPassword(): string {
         const password =
           Math.random().toString(36).slice(2, 15) +
           Math.random().toString(36).slice(2, 15);
         return password;
       }
-
-      private async findUserByUsername(username: string): Promise<User | null> {
-        return this.prisma.user.findUnique({
-            where: {
-                username,
-            },
-        });
-    }
 
     generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
       const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
@@ -342,7 +336,13 @@ export class AuthService {
       return verified;
     }
 
-    async enable2FA(){
+    async enable2FA(userId: number) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          TwoFA: true,
+        },
+      });
 
     }
 

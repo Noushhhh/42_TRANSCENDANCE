@@ -6,16 +6,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserModule = void 0;
+exports.UsersModule = void 0;
 const common_1 = require("@nestjs/common");
-const user_controller_1 = require("./user.controller");
-const config_1 = require("@nestjs/config");
-let UserModule = class UserModule {
+const users_controller_1 = require("./users.controller");
+const users_service_1 = require("./users.service");
+// import { ConfigService } from '@nestjs/config';
+let UsersModule = class UsersModule {
 };
-exports.UserModule = UserModule;
-exports.UserModule = UserModule = __decorate([
+exports.UsersModule = UsersModule;
+exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
-        controllers: [user_controller_1.UserController],
-        providers: [config_1.ConfigService]
+        controllers: [users_controller_1.UsersController],
+        providers: [users_service_1.UsersService]
+        // providers:[ConfigService]
     })
-], UserModule);
+], UsersModule);
