@@ -60,6 +60,9 @@ let GatewayIn = class GatewayIn {
     removeFromLobby(client) {
         this.gameLobby.removePlayerFromLobby(client);
     }
+    resizeEvent() {
+        this.gameLoop.resizeEvent();
+    }
 };
 exports.GatewayIn = GatewayIn;
 __decorate([
@@ -126,6 +129,12 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "removeFromLobby", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('resizeEvent'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "resizeEvent", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

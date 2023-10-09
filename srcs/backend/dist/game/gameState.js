@@ -53,17 +53,11 @@ let GameState = class GameState {
                 },
                 ballSpeed: 12.5 / 1200.0,
             },
-            ballRayUp: {
-                x1: 0.5,
-                y1: 0.5,
-                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
-            },
-            ballRayDown: {
-                x1: 0.5,
-                y1: 0.5,
-                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
+            spawnPowerUp: 0,
+            powerUpValueSet: false,
+            powerUp: {
+                x: -1,
+                y: -1,
             },
             isPaused: true,
             score: {

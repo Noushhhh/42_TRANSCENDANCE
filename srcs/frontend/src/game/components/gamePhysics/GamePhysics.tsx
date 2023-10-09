@@ -7,6 +7,7 @@ import Paddles from "./Paddles";
 import Ball from "./Ball";
 import Ray from "./Ray";
 import Konva from "konva";
+import PowerUp from "./gameCustomizations/PowerUp";
 
 type KonvaSize = [konvaWidth: number, konvaHeight: number];
 const GameConfigController = new data.GameConfig();
@@ -21,10 +22,6 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
 
   useEffect(() => {
     resizeEvent();
-    console.log(
-      GameConfigController.getKonvaHeight(),
-      GameConfigController.getKonvaWidth()
-    );
     window.addEventListener("resize", resizeEvent);
 
     return () => {
@@ -33,11 +30,13 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   }, []);
 
   const resizeEvent = () => {
+    console.log("ici: ", window.innerWidth, (window.innerWidth * 6) / 12);
     GameConfigController.setKonvaWidth(window.innerWidth);
     GameConfigController.setKonvaHeight((window.innerWidth * 6) / 12);
     stageRef.current?.width(window.innerWidth);
     stageRef.current?.height((window.innerWidth * 6) / 12);
     setKonvaSize([window.innerWidth, (window.innerWidth * 6) / 12]);
+    socket.emit('resizeEvent');
   };
 
   const ballPosRef = useRef<Vector2d>({
@@ -54,6 +53,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
       height={gameConfig.konvaHeight}
     >
       <Layer>
+        <PowerUp socket={socket}/>
         <Paddles socket={socket} isPaused={isPaused} />
         <Ball socket={socket} ballPosRef={ballPosRef} />
         <Ray socket={socket} />

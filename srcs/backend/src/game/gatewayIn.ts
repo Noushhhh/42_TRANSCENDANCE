@@ -88,4 +88,9 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   removeFromLobby(@ConnectedSocket() client: Socket) {
     this.gameLobby.removePlayerFromLobby(client);
   }
+
+  @SubscribeMessage('resizeEvent')
+  resizeEvent() {
+    this.gameLoop.resizeEvent();
+  }
 }

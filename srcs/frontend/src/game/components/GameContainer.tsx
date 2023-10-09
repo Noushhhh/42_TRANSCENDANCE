@@ -131,8 +131,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       );
     }
   }
-  //  else if (isInLobby === false) {
-  // }
   return <GameMenu socket={socket} />;
 };
 

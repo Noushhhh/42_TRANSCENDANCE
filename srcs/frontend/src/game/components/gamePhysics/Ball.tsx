@@ -1,12 +1,11 @@
-import React, { FC, useRef, useEffect, useState } from "react";
+import React, { FC, useRef, useEffect } from "react";
 import Konva from "konva";
-import { Circle, Rect } from "react-konva";
+import { Rect } from "react-konva";
 import { Vector2d } from "konva/lib/types";
 import * as data from "../../assets/data";
 import { gameConfig } from "../../assets/gameConfig";
 
 const Ball: FC<data.BallProps> = ({ socket }) => {
-  const circleRef = useRef<Konva.Circle>(null);
   const rectRef = useRef<Konva.Rect>(null);
 
   useEffect(() => {
