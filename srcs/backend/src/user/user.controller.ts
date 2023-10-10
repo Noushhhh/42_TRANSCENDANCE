@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 
 @Controller ('users')
-export class UserController 
+export class UserController
 {
     constructor(private config: ConfigService) {};
     // constructor (private UserService: User)
