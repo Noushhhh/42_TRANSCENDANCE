@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
-// import * as qrcode from 'qrcode';
+import * as qrcode from 'qrcode';
 import * as speakeasy from 'speakeasy';
 
 @Injectable()

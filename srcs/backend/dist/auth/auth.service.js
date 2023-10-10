@@ -56,7 +56,6 @@ const jwt_1 = require("@nestjs/jwt");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
-// import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
 let AuthService = class AuthService {
     constructor(prisma, jwt) {
