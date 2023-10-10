@@ -3,13 +3,8 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-<<<<<<< HEAD
-import { UserModule } from './user/user.module';
 // import { SocketModule } from './socket/socket.module';
-=======
 import { UsersModule } from './users/users.module';
-import { SocketModule } from './socket/SocketModule';
->>>>>>> origin
 // import { PrismaModule } from './prisma/prisma.module';
 import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
