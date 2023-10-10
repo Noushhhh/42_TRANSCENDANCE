@@ -1,14 +1,7 @@
-<<<<<<< HEAD
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import * as speakeasy from 'speakeasy';
-=======
-// import { Injectable } from '@nestjs/common';
-// import { PrismaService } from '../../prisma/prisma.service';
-// import { Prisma, User } from '@prisma/client';
-// import * as speakeasy from 'speakeasy';
->>>>>>> origin
 // import * as qrcode from 'qrcode';
 
 // @Injectable()
@@ -45,7 +38,6 @@ import * as speakeasy from 'speakeasy';
 //         return verified;
 //       }
 
-<<<<<<< HEAD
     // async generateQrCode(data: string): Promise<string> {
     //     try {
     //         const qrCodeDataURL = await qrcode.toDataURL(data);
@@ -70,14 +62,5 @@ import * as speakeasy from 'speakeasy';
 //     });
 //     if (!isCodeValid) {
 //       throw new UnauthorizedException('Wrong authentication code');
-=======
-//     async generateQrCode(data: string): Promise<string> {
-//         try {
-//             const qrCodeDataURL = await qrcode.toDataURL(data);
-//             return qrCodeDataURL;
-//         } catch (error) {
-//             throw new Error('Failed to generate QR code.');
-//         }
->>>>>>> origin
 //     }
 // }
