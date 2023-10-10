@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
-import * as speakeasy from 'speakeasy';
+// import { Injectable } from '@nestjs/common';
+// import { PrismaService } from '../../prisma/prisma.service';
+// import { Prisma, User } from '@prisma/client';
+// import * as speakeasy from 'speakeasy';
 // import * as qrcode from 'qrcode';
 
 // @Injectable()
@@ -38,28 +38,12 @@ import * as speakeasy from 'speakeasy';
 //         return verified;
 //       }
 
-    // async generateQrCode(data: string): Promise<string> {
-    //     try {
-    //         const qrCodeDataURL = await qrcode.toDataURL(data);
-    //         return qrCodeDataURL;
-    //     } catch (error) {
-    //         throw new Error('Failed to generate QR code.');
-    //     }
-    // }
-
-//   /**
-//    * Check if entered code for google authentificator is valid
-//    * @param token 
-//    * @param secret 
-//    * @returns 
-//    */
-//   async is2faCodeValid(token: string, secret:string) {
-//     const isCodeValid = speakeasy.totp.verify(
-//     { 
-//       token,
-//       secret,
-//     });
-//     if (!isCodeValid) {
-//       throw new UnauthorizedException('Wrong authentication code');
+//     async generateQrCode(data: string): Promise<string> {
+//         try {
+//             const qrCodeDataURL = await qrcode.toDataURL(data);
+//             return qrCodeDataURL;
+//         } catch (error) {
+//             throw new Error('Failed to generate QR code.');
+//         }
 //     }
 // }

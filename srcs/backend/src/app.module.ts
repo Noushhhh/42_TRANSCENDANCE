@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-// import { SocketModule } from './socket/socket.module';
 import { UsersModule } from './users/users.module';
 // import { PrismaModule } from './prisma/prisma.module';
 import { ChatController } from './chat/chat.controller';
