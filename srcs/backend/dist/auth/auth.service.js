@@ -308,17 +308,19 @@ let AuthService = class AuthService {
                     // use the 42 profile picture if not null
                     avatarUrl = userInfo.image.link;
                 }
+                const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(userInfo.id);
+                const twoFASecret = secret;
+                const twoFAUrl = otpauthUrl;
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
                         username: userInfo.login,
                         avatar: userInfo.image.link,
+                        twoFASecret: secret,
+                        twoFAUrl: otpauthUrl,
                     },
                 });
-                const { secret, otpauthUrl } = this.twoFaService.generateTwoFASecret(user.id);
-                user.twoFASecret = secret;
-                user.twoFAUrl = otpauthUrl;
                 console.log("User created", user);
                 return user;
             }

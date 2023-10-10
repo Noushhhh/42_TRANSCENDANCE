@@ -15,14 +15,18 @@ export class UsersController
     @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
+        console.log(req.user);
+        // return req.user?.id;
         return req.user;
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get('UserWithId')
     FindWithId(userId: number): Promise<User | undefined>{
         return this.UsersService.findUserWithId(userId);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined>{
         return this.UsersService.findUserWithUsername(username);
