@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
+const auth_service_1 = require("./auth/auth.service");
 let AppController = class AppController {
-    constructor(appService) {
+    constructor(appService, authService) {
         this.appService = appService;
+        this.authService = authService;
     }
     getHello() {
         // Call the `getHello` method of the `AppService`
@@ -40,5 +42,6 @@ __decorate([
 ], AppController.prototype, "getStatus", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService])
+    __metadata("design:paramtypes", [app_service_1.AppService,
+        auth_service_1.AuthService])
 ], AppController);

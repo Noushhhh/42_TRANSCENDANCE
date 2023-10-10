@@ -26,6 +26,8 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
+// import { LocalAuthGuard } from './guards/local-auth.guard';
+// import { AuthGuard } from '@nestjs/passport';
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -35,8 +37,12 @@ let AuthController = class AuthController {
             return this.authService.signup(dto, res);
         });
     }
-    signin(dto, res) {
+    // @HttpCode(HttpStatus.OK)
+    // @Public()
+    // @UseGuards(LocalAuthGuard)
+    signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("Request ===", req.user);
             return this.authService.signin(dto, res);
         });
     }
@@ -53,8 +59,7 @@ let AuthController = class AuthController {
     }
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-c601adb4ff1b1cb2a3beeecf17b0f6fdda957b3fda7f427d752162777499d169&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fapi%2Fauth%2Fcallback42&response_type=code";
-            // const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
+            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
             return (url);
         });
     }
@@ -89,12 +94,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
-    (0, public_decorators_1.Public)(),
-    (0, common_1.Post)('signin'),
+    (0, common_1.Post)('signin') // delete async, has to signin and cannot do anything else
+    ,
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_1.AuthDto, Object]),
+    __metadata("design:paramtypes", [dto_1.AuthDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signin", null);
 __decorate([

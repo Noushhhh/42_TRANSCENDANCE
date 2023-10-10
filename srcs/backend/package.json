@@ -20,7 +20,7 @@
     "@nestjs/config": "^2.3.4",
     "@nestjs/core": "^9.4.3",
     "@nestjs/jwt": "^10.1.0",
-    "@nestjs/passport": "^10.0.0",
+    "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^9.4.3",
     "@nestjs/platform-socket.io": "^9.4.3",
     "@nestjs/typeorm": "^9.0.1",
@@ -36,6 +36,7 @@
     "passport": "^0.6.0",
     "passport-42": "^1.2.6",
     "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
     "pg": "^8.11.0",
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.1.13",
@@ -47,8 +48,9 @@
     "typeorm": "^0.3.16"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.3",
+    "@types/cookie-parser": "^1.4.4",
     "@types/jest": "^29.5.4",
+    "@types/passport-local": "^1.0.36",
     "@types/qrcode": "^1.5.2",
     "@types/speakeasy": "^2.0.8",
     "nodemon": "^2.0.22",
