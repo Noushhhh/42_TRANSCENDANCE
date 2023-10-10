@@ -9,19 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserService = void 0;
+exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-let UserService = class UserService {
+let UsersService = class UsersService {
     constructor(prisma) {
         this.prisma = prisma;
     }
 };
-exports.UserService = UserService;
-exports.UserService = UserService = __decorate([
+exports.UsersService = UsersService;
+exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
-], UserService);
+], UsersService);
 // // //     async set2faSecret(secret: string, id: string) {
 // // //         const user = await this.usersRepository.findOneBy({id});
 // // //         user.twoFactorSecret = secret;
