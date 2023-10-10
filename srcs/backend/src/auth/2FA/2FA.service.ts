@@ -46,7 +46,6 @@ import * as speakeasy from 'speakeasy';
     //         throw new Error('Failed to generate QR code.');
     //     }
     // }
-}
 
 //   /**
 //    * Check if entered code for google authentificator is valid
