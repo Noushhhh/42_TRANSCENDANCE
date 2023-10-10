@@ -3,7 +3,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import { JwtGuard } from '../auth/guard/';
 // import { JwtStrategy } from '../strategy/jwt.strategy';
 
 @Controller ('users')
