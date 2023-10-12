@@ -8,6 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GameLobbyService = void 0;
 const common_1 = require("@nestjs/common");
@@ -15,10 +24,12 @@ const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const gameState_1 = require("./gameState");
 const gameSockets_1 = require("./gameSockets");
+const playerStatistics_service_1 = require("./playerStatistics.service");
 let GameLobbyService = class GameLobbyService {
-    constructor(gatewayOut, socketMap) {
+    constructor(gatewayOut, socketMap, playerStats) {
         this.gatewayOut = gatewayOut;
         this.socketMap = socketMap;
+        this.playerStats = playerStats;
     }
     printLobbies() {
         lobbies_1.lobbies.forEach((value, key) => {
@@ -29,38 +40,41 @@ let GameLobbyService = class GameLobbyService {
             console.log("------------------");
         });
     }
-    addPlayerToLobby(playerId) {
-        this.gatewayOut.updateLobbiesGameState();
-        const player = this.socketMap.getSocket(playerId);
-        if (this.isInLobby(player)) {
-            console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
-            return;
-        }
-        for (const [key, value] of lobbies_1.lobbies) {
-            if (!value.player1 || !value.player2) {
-                if (!value.player1) {
-                    value.player1 = player;
-                }
-                else if (!value.player2) {
-                    value.player2 = player;
-                }
-                player === null || player === void 0 ? void 0 : player.join(key);
-                this.gatewayOut.isInLobby(true, player);
-                if (value.player1 != null && value.player2 != null) {
-                    this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
-                    value.gameState.gameState.isLobbyFull = true;
-                    // @to-do implement the function that add +1 game to each player
-                    // in the statistics object
-                }
+    addPlayerToLobby(playerId, playerDbId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.gatewayOut.updateLobbiesGameState();
+            const player = this.socketMap.getSocket(playerId);
+            if (this.isInLobby(player)) {
+                console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
                 return;
             }
-        }
-        const lobbyName = `lobby${lobbies_1.lobbies.size}`;
-        const lobby = new lobbies_1.Lobby(player);
-        lobbies_1.lobbies.set(lobbyName, lobby);
-        player === null || player === void 0 ? void 0 : player.join(lobbyName);
-        this.gatewayOut.isInLobby(true, player);
-        this.getAllClientsInARoom(lobbyName);
+            for (const [key, value] of lobbies_1.lobbies) {
+                if (!value.player1 || !value.player2) {
+                    if (!value.player1) {
+                        value.player1 = player;
+                        value.gameState.gameState.p1Id = playerDbId;
+                    }
+                    else if (!value.player2) {
+                        value.player2 = player;
+                        value.gameState.gameState.p2Id = playerDbId;
+                    }
+                    player === null || player === void 0 ? void 0 : player.join(key);
+                    this.gatewayOut.isInLobby(true, player);
+                    if (value.player1 != null && value.player2 != null) {
+                        this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
+                        value.gameState.gameState.isLobbyFull = true;
+                        this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
+                    }
+                    return;
+                }
+            }
+            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
+            const lobby = new lobbies_1.Lobby(player, playerDbId);
+            lobbies_1.lobbies.set(lobbyName, lobby);
+            player === null || player === void 0 ? void 0 : player.join(lobbyName);
+            this.gatewayOut.isInLobby(true, player);
+            this.getAllClientsInARoom(lobbyName);
+        });
     }
     addSpectatorToLobby(spectatorId, lobbyName) {
         var _a;
@@ -84,8 +98,10 @@ let GameLobbyService = class GameLobbyService {
                 if (lobby) {
                     lobby.player1 = null;
                 }
+                const p2Id = value.gameState.gameState.p2Id;
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                value.gameState.gameState.p2Id = p2Id;
                 this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
@@ -93,8 +109,10 @@ let GameLobbyService = class GameLobbyService {
                 if (lobby) {
                     lobby.player2 = null;
                 }
+                const p1Id = value.gameState.gameState.p1Id;
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
+                value.gameState.gameState.p1Id = p1Id;
                 this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 return;
             }
@@ -140,9 +158,6 @@ let GameLobbyService = class GameLobbyService {
                     key,
                     player1: (_a = lobby === null || lobby === void 0 ? void 0 : lobby.player1) === null || _a === void 0 ? void 0 : _a.id,
                     player2: (_b = lobby === null || lobby === void 0 ? void 0 : lobby.player2) === null || _b === void 0 ? void 0 : _b.id,
-                    // Not necessarily required, we'll see. 
-                    // gameState: lobby.gameState,
-                    // ballState: lobby.gameState.ballState,
                 });
             });
             console.log("Lobbies here", serializedLobbies);
@@ -183,5 +198,6 @@ exports.GameLobbyService = GameLobbyService;
 exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
-        gameSockets_1.gameSockets])
+        gameSockets_1.gameSockets,
+        playerStatistics_service_1.playerStatistics])
 ], GameLobbyService);

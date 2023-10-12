@@ -43,6 +43,8 @@ let GameState = class GameState {
                 x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
                 y: (0.5) - this.playerSize.p2Size / 2,
             },
+            p1Id: 0,
+            p2Id: 0,
             ballState: {
                 ballDirection: 'right',
                 ballDX: 0,

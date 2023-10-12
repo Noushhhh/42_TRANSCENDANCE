@@ -11,6 +11,7 @@ import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { gameSockets } from './gameSockets';
 import { OnModuleInit } from '@nestjs/common';
+import { playerStatistics } from './playerStatistics.service';
 
 type GameDataArray = [
   konvaHeight: number,
@@ -32,6 +33,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
     private readonly gameSockets: gameSockets,
+    private readonly playerStats: playerStatistics,
   ) { }
 
   onModuleInit() {
@@ -92,5 +94,10 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   @SubscribeMessage('resizeEvent')
   resizeEvent() {
     this.gameLoop.resizeEvent();
+  }
+
+  @SubscribeMessage('addGameToPlayersStats')
+  addGameToPlayer() {
+    
   }
 }

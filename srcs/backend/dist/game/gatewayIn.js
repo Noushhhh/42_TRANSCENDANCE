@@ -18,11 +18,13 @@ const socket_io_1 = require("socket.io");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
 const gameSockets_1 = require("./gameSockets");
+const playerStatistics_service_1 = require("./playerStatistics.service");
 let GatewayIn = class GatewayIn {
-    constructor(gameLoop, gameLobby, gameSockets) {
+    constructor(gameLoop, gameLobby, gameSockets, playerStats) {
         this.gameLoop = gameLoop;
         this.gameLobby = gameLobby;
         this.gameSockets = gameSockets;
+        this.playerStats = playerStats;
     }
     onModuleInit() {
         this.gameSockets.server = this.server;
@@ -62,6 +64,8 @@ let GatewayIn = class GatewayIn {
     }
     resizeEvent() {
         this.gameLoop.resizeEvent();
+    }
+    addGameToPlayer() {
     }
 };
 exports.GatewayIn = GatewayIn;
@@ -135,6 +139,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "resizeEvent", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('addGameToPlayersStats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], GatewayIn.prototype, "addGameToPlayer", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
@@ -143,5 +153,6 @@ exports.GatewayIn = GatewayIn = __decorate([
     }),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
         gameLobby_service_1.GameLobbyService,
-        gameSockets_1.gameSockets])
+        gameSockets_1.gameSockets,
+        playerStatistics_service_1.playerStatistics])
 ], GatewayIn);

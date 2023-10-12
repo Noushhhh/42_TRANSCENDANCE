@@ -4,6 +4,7 @@ import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
 import { GameState } from './gameState';
 import { gameSockets } from './gameSockets';
+import { playerStatistics } from './playerStatistics.service';
 
 @Injectable()
 export class GameLobbyService {
@@ -11,6 +12,7 @@ export class GameLobbyService {
   constructor(
     private readonly gatewayOut: GatewayOut,
     private readonly socketMap: gameSockets,
+    private readonly playerStats: playerStatistics,
   ) { }
 
   private printLobbies() {
@@ -23,7 +25,7 @@ export class GameLobbyService {
     })
   }
 
-  addPlayerToLobby(playerId: string): void {
+  async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
@@ -35,23 +37,24 @@ export class GameLobbyService {
       if (!value.player1 || !value.player2) {
         if (!value.player1) {
           value.player1 = player;
+          value.gameState.gameState.p1Id = playerDbId;
         } else if (!value.player2) {
           value.player2 = player;
+          value.gameState.gameState.p2Id = playerDbId;
         }
         player?.join(key);
         this.gatewayOut.isInLobby(true, player);
         if (value.player1 != null && value.player2 != null) {
           this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
           value.gameState.gameState.isLobbyFull = true;
-          // @to-do implement the function that add +1 game to each player
-          // in the statistics object
+          this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
         }
         return;
       }
     }
 
     const lobbyName = `lobby${lobbies.size}`;
-    const lobby = new Lobby(player);
+    const lobby = new Lobby(player, playerDbId);
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);
@@ -79,8 +82,10 @@ export class GameLobbyService {
         if (lobby) {
           lobby.player1 = null;
         }
+        const p2Id = value.gameState.gameState.p2Id;
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        value.gameState.gameState.p2Id = p2Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
@@ -88,8 +93,10 @@ export class GameLobbyService {
         if (lobby) {
           lobby.player2 = null;
         }
+        const p1Id = value.gameState.gameState.p1Id;
         this.gatewayOut.isInLobby(false, player);
         value.gameState = new GameState();
+        value.gameState.gameState.p1Id = p1Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
@@ -137,9 +144,6 @@ export class GameLobbyService {
         key,
         player1: lobby?.player1?.id,
         player2: lobby?.player2?.id,
-        // Not necessarily required, we'll see. 
-        // gameState: lobby.gameState,
-        // ballState: lobby.gameState.ballState,
       }));
       console.log("Lobbies here", serializedLobbies);
       this.gatewayOut.emitToUser(player.id, "getAllLobbies", { lobbies: serializedLobbies });
