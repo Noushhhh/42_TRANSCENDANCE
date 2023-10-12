@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket, io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import Button from "./common/Button";
@@ -62,6 +62,17 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       start();
       setGameLaunchedRef();
       handlePlayPause();
+      fetch("http://localhost:4000/api/game/addGameToPlayer", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }, 1500);
   };
 
@@ -131,8 +142,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       );
     }
   }
-  //  else if (isInLobby === false) {
-  // }
   return <GameMenu socket={socket} />;
 };
 

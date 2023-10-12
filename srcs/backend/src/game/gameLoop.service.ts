@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { GameLogicService } from './gameLogic.service';
 import { GatewayOut } from './gatewayOut';
 import { lobbies } from './lobbies';
@@ -6,6 +6,7 @@ import { Socket } from 'socket.io';
 import { gameConfig } from './data';
 import { GameState } from './gameState';
 import { paddleGap } from './gameState';
+import { playerStatistics } from './playerStatistics.service';
 
 const RAY_LENGHT = 35 / 1200;
 const BALL_SIZE = 20 / 1200.0;
@@ -26,17 +27,18 @@ interface GameData {
 const moveSpeed = 6 / 800.0;
 
 @Injectable()
-export class GameLoopService implements OnModuleInit {
+export class GameLoopService {
   private gameLoopRunning: boolean;
 
   constructor(
     private readonly gameLogicService: GameLogicService,
     private readonly gatewayOut: GatewayOut,
+    private readonly playerStats: playerStatistics,
   ) {
     this.gameLoopRunning = false;
   }
 
-  onModuleInit() {
+  resizeEvent() {
     this.updateBall();
     this.updateGameState();
   }
@@ -65,6 +67,33 @@ export class GameLoopService implements OnModuleInit {
       }, 1000 / 60);
     }
   }
+
+  // private updateSpawnPowerUp() {
+  //   for (const [key, lobby] of lobbies) {
+  //     const gameState = lobby.gameState.gameState;
+  //     if (lobby.gameState.gameState.isPaused === true) continue;
+  //     if (!lobby.gameState.gameState.powerUpValueSet) {
+  //       lobby.gameState.gameState.powerUpValueSet = true;
+  //       lobby.gameState.gameState.powerUp.x = this.gameLogicService.getRandomFloat(0.2, 0.8, 3);
+  //     }
+  //     lobby.gameState.gameState.spawnPowerUp += 1;
+  //     if (lobby.gameState.gameState.spawnPowerUp > 50) {
+  //       lobby.gameState.gameState.powerUp.y += 0.0025;
+  //       if (lobby.gameState.gameState.powerUp.y > 1
+  //         || this.gameLogicService.hasBallTouchedPowerUp(
+  //           gameState.ballState.ballDirection,
+  //           gameState.ballState.ballPos.x,
+  //           gameState.ballState.ballPos.y,
+  //           gameState.powerUp.x,
+  //           gameState.powerUp.y,
+  //         ) !== 0) {
+  //         lobby.gameState.gameState.powerUp.y = -1;
+  //         lobby.gameState.gameState.powerUpValueSet = false;
+  //         console.log("je suis ici meme");
+  //       }
+  //     }
+  //   }
+  // }
 
   private updateGameState = () => {
     this.gatewayOut.updateLobbiesGameState();
@@ -107,6 +136,20 @@ export class GameLoopService implements OnModuleInit {
     }
   }
 
+  private hasBallTouchedPowerUp = () => {
+    for (const [key, lobby] of lobbies) {
+      if (lobby.gameState.gameState.isPaused === true) continue;
+
+      if (this.gameLogicService.hasBallTouchedPowerUp(
+        lobby.gameState.gameState.ballState.ballDirection,
+        lobby.gameState.gameState.ballState.ballPos.x,
+        lobby.gameState.gameState.ballState.ballPos.y,
+        lobby.gameState.gameState.powerUp.x,
+        lobby.gameState.gameState.powerUp.y,
+      ) !== 0) {
+      }
+    }
+  }
 
   private updateBall = () => {
     for (const [key, lobby] of lobbies) {
@@ -119,7 +162,6 @@ export class GameLoopService implements OnModuleInit {
         lobby.gameState.gameState.ballState.ballDX,
         lobby.gameState.gameState.ballState.ballDY,
         lobby.gameState.gameState.score,
-        lobby.gameState.gameState.ballRayUp,
         lobby.gameState.gameState.ballState.ballSpeed,
         lobby.gameState.gameState.p1Size,
         lobby.gameState.gameState.p2Size,
@@ -131,12 +173,8 @@ export class GameLoopService implements OnModuleInit {
       if (score) {
         lobby.gameState.gameState.score = score;
         if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
-          // @to-do 
-          // Implement function to push the victory of the player
-          // in the statistic object
-
-          // Implement function that stop the game
-          // Create a Play Again function
+          const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
+          this.playerStats.addWinToPlayer(winnerId);
           console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {
@@ -147,6 +185,7 @@ export class GameLoopService implements OnModuleInit {
             x: 1 - paddleGap - gameConfig.paddleWidth,
             y: (0.5) - lobby.gameState.gameState.p2Size / 2,
           }
+          lobby.gameState.gameState.ballState.ballDY = 0;
           lobby.gameState.gameState.isPaused = true;
           this.gatewayOut.emitToRoom(key, 'newGame', true);
         }

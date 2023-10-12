@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC } from "react";
 import Button from "./common/Button";
 import SpectateGame from "./gameNetwork/SpectateGame";
 import { Socket } from "socket.io-client";
@@ -8,11 +8,12 @@ interface GameMenuProps {
 }
 
 const GameMenu: FC<GameMenuProps> = ({ socket }) => {
-  const clientId = useRef<string>("");
-
   // @to-do REMOVE LOCALHOST
   const lobby = () => {
-    fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`)
+    fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`, {
+      method: "GET",
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
