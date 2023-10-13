@@ -65,7 +65,8 @@ let GatewayIn = class GatewayIn {
     resizeEvent() {
         this.gameLoop.resizeEvent();
     }
-    addGameToPlayer() {
+    getColor(client, color) {
+        this.gameLobby.changePlayerColor(client, color);
     }
 };
 exports.GatewayIn = GatewayIn;
@@ -140,11 +141,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "resizeEvent", null);
 __decorate([
-    (0, websockets_1.SubscribeMessage)('addGameToPlayersStats'),
+    (0, websockets_1.SubscribeMessage)('getColor'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [socket_io_1.Socket, String]),
     __metadata("design:returntype", void 0)
-], GatewayIn.prototype, "addGameToPlayer", null);
+], GatewayIn.prototype, "getColor", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

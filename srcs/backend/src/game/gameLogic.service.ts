@@ -4,7 +4,6 @@ import { paddleGap } from './gameState';
 
 // const ballSpeed = 10 / 1200.0;
 const ballSize = 20 / 1200.0;
-const powerUpSize = 180 / 1200;
 
 interface Vector2d {
   x: number;
@@ -112,28 +111,6 @@ export class GameLogicService {
       }
     }
   };
-
-  hasBallTouchedPowerUp = (ballDirection: string, ballX: number, ballY: number, PUX: number, PUY: number) => {
-    if (ballDirection === "right") {
-      if (
-        (ballX + ballSize > PUX && ballX < PUX + powerUpSize
-          && ballY + ballSize >= PUY && ballY + ballSize < PUY + powerUpSize / 2)
-        || // Touch by bottom condition
-        (ballX + ballSize > PUX && ballX < PUX + powerUpSize
-          && ballY <= PUY + powerUpSize && ballY + ballSize / 2 > PUY + powerUpSize)) {
-        console.log("p1 touched the PU");
-        return (1);
-      }
-    }
-    if (ballDirection === "left") {
-      if (ballX + ballSize > PUX && ballX < PUX + powerUpSize
-        && ballY >= PUY && ballY < PUY + powerUpSize / 2) {
-        console.log("p2 touched the PU");
-        return (2);
-      }
-    }
-    return 0;
-  }
 
   getRandomFloat(min: number, max: number, decimals: number) {
     const str = (Math.random() * (max - min) + min).toFixed(

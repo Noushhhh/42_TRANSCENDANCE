@@ -1,53 +1,57 @@
 import React, { FC, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { GameConfig, gameConfig } from "../../assets/gameConfig";
+import { ChangeEvent } from "react";
 
 interface GameCustomizationMenuProps {
-  setPaddleSizeValue: React.Dispatch<React.SetStateAction<number>>;
-  paddleSizeValue: number;
   socket: Socket;
+  setShowMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const elemStyle = {
-  position: "absolute",
-  margin: "0px",
-  padding: "0.5rem",
-  backgroundColor: "white",
-  borderRadius: "0.3rem",
-  color: "black",
+const colorInputStyle = {
+  width: "4rem",
+  height: "2rem",
+  marginBottom: "0.5rem",
 };
 
-const GameCustomizationMenu: FC<GameCustomizationMenuProps> = ({
-  paddleSizeValue,
-  setPaddleSizeValue,
-  socket,
-}) => {
-  const handlePaddleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const num = Number(event.target.value);
-    console.log(num);
-    setPaddleSizeValue(num);
-    gameConfig.paddleHeight = 150 * num;
+const GameCustomizationMenu: FC<GameCustomizationMenuProps> = ({ socket, setShowMenu }) => {
+  const [color, setColor] = useState<string>("#FFFFFF");
+
+  const handleColorChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setColor(event.target.value);
   };
 
-  const updatePaddleSize = () => {
-    socket.emit("updatePaddleSize", paddleSizeValue);
+  const sendColor = () => {
+    socket.emit("getColor", color);
+    setShowMenu(false);
   };
 
   return (
-    <div style={elemStyle}>
-      <label>
-        Paddle Size
-        <input
-          id="paddleSize"
-          type="range"
-          min={0.5}
-          max={2}
-          step={0.1}
-          value={paddleSizeValue}
-          onChange={handlePaddleInput}
-        />
-      </label>
-      <button onClick={updatePaddleSize}>Ok!</button>
+    <div
+      style={{
+        position: "absolute",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: "1",
+        margin: "0px",
+        padding: "0.5rem",
+        backgroundColor: "white",
+        borderRadius: "0.3rem",
+        color: "black",
+      }}
+    >
+      <p>Paddle color!</p>
+      <input
+        style={colorInputStyle}
+        type="color"
+        name="color"
+        id="color"
+        value={color}
+        onChange={handleColorChange}
+      />
+      <button onClick={sendColor}>Ok!</button>
     </div>
   );
 };

@@ -12,7 +12,6 @@ const data_1 = require("./data");
 const gameState_1 = require("./gameState");
 // const ballSpeed = 10 / 1200.0;
 const ballSize = 20 / 1200.0;
-const powerUpSize = 180 / 1200;
 let GameLogicService = class GameLogicService {
     constructor() {
         this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballSpeed, paddleWidth, paddleHeight) => {
@@ -100,26 +99,6 @@ let GameLogicService = class GameLogicService {
                     return { ballDirection, ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
                 }
             }
-        };
-        this.hasBallTouchedPowerUp = (ballDirection, ballX, ballY, PUX, PUY) => {
-            if (ballDirection === "right") {
-                if ((ballX + ballSize > PUX && ballX < PUX + powerUpSize
-                    && ballY + ballSize >= PUY && ballY + ballSize < PUY + powerUpSize / 2)
-                    || // Touch by bottom condition
-                        (ballX + ballSize > PUX && ballX < PUX + powerUpSize
-                            && ballY <= PUY + powerUpSize && ballY + ballSize / 2 > PUY + powerUpSize)) {
-                    console.log("p1 touched the PU");
-                    return (1);
-                }
-            }
-            if (ballDirection === "left") {
-                if (ballX + ballSize > PUX && ballX < PUX + powerUpSize
-                    && ballY >= PUY && ballY < PUY + powerUpSize / 2) {
-                    console.log("p2 touched the PU");
-                    return (2);
-                }
-            }
-            return 0;
         };
     }
     getRandomFloat(min, max, decimals) {

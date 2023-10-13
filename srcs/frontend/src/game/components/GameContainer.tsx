@@ -11,6 +11,7 @@ import MiddleLine from "./gamePhysics/MiddleLine";
 import GameCustomization from "./gamePhysics/GameCustomization";
 import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
+import * as data from "../assets/data";
 
 const buttonStyle: React.CSSProperties = {
   position: "absolute",

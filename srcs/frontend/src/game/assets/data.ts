@@ -41,24 +41,6 @@ export class GameConfig {
   }
 }
 
-export const p1Props = {
-  x: 10,
-  y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
-  width: gameConfig.paddleWidth,
-  height: gameConfig.paddleHeight,
-  fill: "white",
-  draggable: false,
-};
-
-export const p2Props = {
-  x: gameConfig.konvaWidth - 10 - gameConfig.paddleWidth,
-  y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
-  width: gameConfig.paddleWidth,
-  height: gameConfig.paddleHeight,
-  fill: "white",
-  draggable: false,
-};
-
 export interface GamePhysicsProps {
   isPaused: boolean;
   socket: Socket;
@@ -87,6 +69,10 @@ export interface GameState {
     x: number;
     y: number;
   };
+  p1Color: string,
+  p2Color: string,
+  p1Name: string,
+  p2Name: string,
   ballState: {
     ballDirection: string,
     ballDX: number,
@@ -95,12 +81,6 @@ export interface GameState {
       x: number;
       y: number;
     },
-  },
-  spawnPowerUp: 0,
-  powerUpValueSet: false,
-  powerUp: {
-    x: -1,
-    y: -1,
   },
   isPaused: boolean;
   score: {

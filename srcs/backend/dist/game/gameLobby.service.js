@@ -25,11 +25,13 @@ const lobbies_1 = require("./lobbies");
 const gameState_1 = require("./gameState");
 const gameSockets_1 = require("./gameSockets");
 const playerStatistics_service_1 = require("./playerStatistics.service");
+const users_service_1 = require("../users/users.service");
 let GameLobbyService = class GameLobbyService {
-    constructor(gatewayOut, socketMap, playerStats) {
+    constructor(gatewayOut, socketMap, playerStats, userService) {
         this.gatewayOut = gatewayOut;
         this.socketMap = socketMap;
         this.playerStats = playerStats;
+        this.userService = userService;
     }
     printLobbies() {
         lobbies_1.lobbies.forEach((value, key) => {
@@ -74,6 +76,22 @@ let GameLobbyService = class GameLobbyService {
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
             this.gatewayOut.isInLobby(true, player);
             this.getAllClientsInARoom(lobbyName);
+        });
+    }
+    addPlayerNameToLobby(playerId, playerSocketId) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const [key, lobby] of lobbies_1.lobbies) {
+                const gameState = lobby.gameState.gameState;
+                if (((_a = lobby.player1) === null || _a === void 0 ? void 0 : _a.id) === playerSocketId || ((_b = lobby.player2) === null || _b === void 0 ? void 0 : _b.id) === playerSocketId) {
+                    const user = yield this.userService.findUserWithId(playerId);
+                    if (user)
+                        gameState.p1Id === playerId ? gameState.p1Name = user === null || user === void 0 ? void 0 : user.username : gameState.p2Name = user === null || user === void 0 ? void 0 : user.username;
+                    else
+                        throw new Error("Player not found.");
+                    this.gatewayOut.emitToRoom(key, 'updateGameState', lobby.gameState.gameState);
+                }
+            }
         });
     }
     addSpectatorToLobby(spectatorId, lobbyName) {
@@ -193,11 +211,23 @@ let GameLobbyService = class GameLobbyService {
             }
         }
     }
+    changePlayerColor(player, color) {
+        var _a, _b, _c;
+        if (!player)
+            return;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
+                ((_c = value.player1) === null || _c === void 0 ? void 0 : _c.id) === player.id ? value.gameState.gameState.p1Color = color : value.gameState.gameState.p2Color = color;
+                this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
+            }
+        }
+    }
 };
 exports.GameLobbyService = GameLobbyService;
 exports.GameLobbyService = GameLobbyService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gatewayOut_1.GatewayOut,
         gameSockets_1.gameSockets,
-        playerStatistics_service_1.playerStatistics])
+        playerStatistics_service_1.playerStatistics,
+        users_service_1.UsersService])
 ], GameLobbyService);

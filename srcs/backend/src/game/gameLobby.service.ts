@@ -5,6 +5,7 @@ import { Socket } from 'socket.io';
 import { GameState } from './gameState';
 import { gameSockets } from './gameSockets';
 import { playerStatistics } from './playerStatistics.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class GameLobbyService {
@@ -13,6 +14,7 @@ export class GameLobbyService {
     private readonly gatewayOut: GatewayOut,
     private readonly socketMap: gameSockets,
     private readonly playerStats: playerStatistics,
+    private readonly userService: UsersService,
   ) { }
 
   private printLobbies() {
@@ -59,6 +61,20 @@ export class GameLobbyService {
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);
     this.getAllClientsInARoom(lobbyName);
+  }
+
+  async addPlayerNameToLobby(playerId: number, playerSocketId: string) {
+    for (const [key, lobby] of lobbies) {
+      const gameState = lobby.gameState.gameState;
+      if (lobby.player1?.id === playerSocketId || lobby.player2?.id === playerSocketId) {
+        const user = await this.userService.findUserWithId(playerId);
+        if (user)
+          gameState.p1Id === playerId ? gameState.p1Name = user?.username : gameState.p2Name = user?.username;
+        else
+          throw new Error("Player not found.");
+        this.gatewayOut.emitToRoom(key, 'updateGameState', lobby.gameState.gameState);
+      }
+    }
   }
 
   addSpectatorToLobby(spectatorId: string, lobbyName: string) {
@@ -174,6 +190,16 @@ export class GameLobbyService {
       if (value.player1?.id === player.id || value.player2?.id === player?.id) {
         this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
         return;
+      }
+    }
+  }
+
+  changePlayerColor(player: Socket, color: string) {
+    if (!player) return;
+    for (const [key, value] of lobbies) {
+      if (value.player1?.id === player.id || value.player2?.id === player?.id) {
+        value.player1?.id === player.id ? value.gameState.gameState.p1Color = color : value.gameState.gameState.p2Color = color
+        this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
       }
     }
   }

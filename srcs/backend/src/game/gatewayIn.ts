@@ -96,8 +96,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     this.gameLoop.resizeEvent();
   }
 
-  @SubscribeMessage('addGameToPlayersStats')
-  addGameToPlayer() {
-    
+  @SubscribeMessage('getColor')
+  getColor(@ConnectedSocket() client: Socket, @MessageBody() color: string) {
+    this.gameLobby.changePlayerColor(client, color);
   }
 }

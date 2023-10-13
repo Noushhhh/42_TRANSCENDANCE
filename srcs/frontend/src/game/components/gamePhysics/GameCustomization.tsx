@@ -8,7 +8,6 @@ interface GameCustomizationProps {
 
 const GameCustomization: FC<GameCustomizationProps> = ({ socket }) => {
   const [showMenu, setShowMenu] = useState<boolean>(false);
-  const [paddleSizeValue, setPaddleSizeValue] = useState<number>(1.25);
 
   return (
     <div style={{ position: "absolute", top: "5%", left: "5%" }}>
@@ -19,11 +18,7 @@ const GameCustomization: FC<GameCustomizationProps> = ({ socket }) => {
         Settings
       </button>
       {showMenu === true ? (
-        <GameCustomizationMenu
-          socket={socket}
-          paddleSizeValue={paddleSizeValue}
-          setPaddleSizeValue={setPaddleSizeValue}
-        />
+        <GameCustomizationMenu socket={socket} setShowMenu={setShowMenu} />
       ) : null}
     </div>
   );
