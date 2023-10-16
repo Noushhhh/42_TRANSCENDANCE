@@ -42,7 +42,7 @@ let GameLogicService = class GameLogicService {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - ballSize)) {
+                else if (normBallY + ballSize >= 0.99) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
@@ -79,7 +79,7 @@ let GameLogicService = class GameLogicService {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - ballSize)) {
+                else if (normBallY + ballSize >= 0.99) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle

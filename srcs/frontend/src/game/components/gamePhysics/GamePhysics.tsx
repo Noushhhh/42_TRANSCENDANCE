@@ -29,7 +29,6 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   }, []);
 
   const resizeEvent = () => {
-    console.log("ici: ", window.innerWidth, (window.innerWidth * 6) / 12);
     GameConfigController.setKonvaWidth(window.innerWidth);
     GameConfigController.setKonvaHeight((window.innerWidth * 6) / 12);
     stageRef.current?.width(window.innerWidth);
@@ -45,7 +44,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
 
   return (
     <Stage
-      style={{ backgroundColor: "#201F1F" }}
+      style={{ backgroundColor: "#161515" }}
       className="GamePhysics"
       ref={stageRef}
       width={gameConfig.konvaWidth}

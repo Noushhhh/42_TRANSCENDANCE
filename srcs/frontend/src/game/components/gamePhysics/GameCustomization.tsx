@@ -10,7 +10,7 @@ const GameCustomization: FC<GameCustomizationProps> = ({ socket }) => {
   const [showMenu, setShowMenu] = useState<boolean>(false);
 
   return (
-    <div style={{ position: "absolute", top: "5%", left: "5%" }}>
+    <div>
       <button
         style={{ fontSize: "0.5rem" }}
         onClick={() => setShowMenu(!showMenu)}

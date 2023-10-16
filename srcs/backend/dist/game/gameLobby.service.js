@@ -117,6 +117,8 @@ let GameLobbyService = class GameLobbyService {
                     lobby.player1 = null;
                 }
                 const p2Id = value.gameState.gameState.p2Id;
+                if (p2Id)
+                    this.playerStats.addWinToPlayer(p2Id);
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
                 value.gameState.gameState.p2Id = p2Id;
@@ -128,6 +130,8 @@ let GameLobbyService = class GameLobbyService {
                     lobby.player2 = null;
                 }
                 const p1Id = value.gameState.gameState.p1Id;
+                if (p1Id)
+                    this.playerStats.addWinToPlayer(p1Id);
                 this.gatewayOut.isInLobby(false, player);
                 value.gameState = new gameState_1.GameState();
                 value.gameState.gameState.p1Id = p1Id;
