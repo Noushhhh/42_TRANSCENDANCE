@@ -22,6 +22,7 @@ export class UsersController
     FindWithId(userId: number): Promise<User | undefined>{
         return this.UsersService.findUserWithId(userId);
     }
+    
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined>{
         return this.UsersService.findUserWithUsername(username);
