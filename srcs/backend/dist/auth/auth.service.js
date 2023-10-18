@@ -58,15 +58,12 @@ const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 // import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
-const users_service_1 = require("../users/users.service");
-const constants_1 = require("../auth/constants/constants");
 // import { min } from 'class-validator';
 let AuthService = class AuthService {
-    constructor(usersService, prisma, jwt) {
-        this.usersService = usersService;
+    constructor(prisma, jwt) {
         this.prisma = prisma;
         this.jwt = jwt;
-        this.JWT_SECRET = constants_1.jwtConstants.secret;
+        this.JWT_SECRET = process.env.JWT_SECRET;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
         }
@@ -98,7 +95,7 @@ let AuthService = class AuthService {
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
-            const user = yield this.usersService.findUserWithUsername(dto.username);
+            const user = yield this.findUserByUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
@@ -109,14 +106,6 @@ let AuthService = class AuthService {
                 throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
             return this.signToken(user.id, user.username, res);
-        });
-    }
-    validateUser(dto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.usersService.findUserWithUsername(dto.username);
-            if (!user)
-                throw new common_1.UnauthorizedException();
-            return user;
         });
     }
     signToken(userId, username, res) {
@@ -131,17 +120,13 @@ let AuthService = class AuthService {
                 secret: secret,
             });
             // Generate a refresh token
-            const refreshToken = yield this.createRefreshToken(userId);
-            console.log('refresh token = ');
-            console.log(refreshToken);
-            console.log('token = ');
-            console.log(token);
+            const refreshToken = this.createRefreshToken(userId);
             // Save refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 1000 * 60 * 60 * 24 * 30 * 30 // 30 days in milliseconds
+                maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
             });
             // Existing JWT token cookie
             res.cookie('token', token, {
@@ -172,10 +157,26 @@ let AuthService = class AuthService {
             return refreshToken;
         });
     }
+    checkOnlyTokenValidity(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!token)
+                throw new common_1.ForbiddenException("Token not provided");
+            try {
+                const user = jwt.verify(token, this.JWT_SECRET);
+                if (!user)
+                    return null;
+                if (user.sub)
+                    return Number(user.sub);
+            }
+            catch (error) {
+                return null;
+            }
+            return null;
+        });
+    }
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
-            console.log("passing by checktokenvalidity");
             if (!token)
                 return res.status(401).json({ valid: false, message: "Token Missing" });
             try {
@@ -272,6 +273,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendUserInfoRequest(token);
+                //   const this.createUser(response.data);
                 return response.data;
             }
             catch (error) {
@@ -303,10 +305,17 @@ let AuthService = class AuthService {
                 return existingUser;
             }
             try {
+                // let avatarUrl;
+                // if (userInfo.image.link === null) {
+                //     // Generate a random avatar URL or use a default one
+                //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                // } else {
+                //     avatarUrl = userInfo.image.link;
+                // }
                 let avatarUrl;
                 if (userInfo.image.link !== null) {
                     // use the 42 profile picture if not null
-                    avatarUrl = userInfo.image.link;
+                    avatarUrl = avatarUrl = userInfo.image.link;
                 }
                 const user = yield this.prisma.user.create({
                     data: {
@@ -328,10 +337,31 @@ let AuthService = class AuthService {
             }
         });
     }
-    generateRandomPassword() {
-        const password = Math.random().toString(36).slice(2, 15) +
-            Math.random().toString(36).slice(2, 15);
-        return password;
+    enable2FA(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    TwoFA: true,
+                },
+            });
+            generateRandomPassword();
+            string;
+            {
+                const password = Math.random().toString(36).slice(2, 15) +
+                    Math.random().toString(36).slice(2, 15);
+                return password;
+            }
+        });
+    }
+    findUserByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.prisma.user.findUnique({
+                where: {
+                    username,
+                },
+            });
+        });
     }
     generateTwoFASecret(userId) {
         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
@@ -360,14 +390,8 @@ let AuthService = class AuthService {
             return verified;
         });
     }
-    enable2FA(userId) {
+    enable2FA() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    TwoFA: true,
-                },
-            });
         });
     }
 };
@@ -380,7 +404,6 @@ __decorate([
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [users_service_1.UsersService,
-        prisma_service_1.PrismaService,
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);

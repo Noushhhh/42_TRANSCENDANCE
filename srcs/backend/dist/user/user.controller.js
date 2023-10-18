@@ -49,7 +49,6 @@ let UsersController = class UsersController {
     // constructor (private UserService: User)
     getMe(req) {
         try {
-            console.log('get me called');
             const jwtCookie = req.cookies['token'];
             const secret = this.config.get('JWT_SECRET');
             const user = jwt.verify(jwtCookie, secret);

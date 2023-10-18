@@ -2,7 +2,6 @@ import GameContainer from "./game/components/GameContainer";
 import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 // import AuthContainer from './auth/components/AuthContainer';
-
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import {
@@ -20,11 +19,6 @@ import {
 } from "./home/components/index";
 import "./App.css";
 
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:4000");
-console.log("socket id: ", socket);
-
 {
   /* <Navbar /> */
 }
@@ -39,6 +33,7 @@ console.log("socket id: ", socket);
 }
 
 const App: React.FC = () => {
+
   useActivityLogout();
   return (
     <Routes>
@@ -56,11 +51,11 @@ const App: React.FC = () => {
         }
       >
         {/* add here incremented route if user first connexion can access only user settings page */}
-        <Route path="chat" element={<ChatBoxContainer socket={socket} />} />
+        <Route path="chat" element={<ChatBoxContainer />} />
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="game" element={<GameContainer socket={socket} />} />
+        {/* <Route path="game" element={<GameContainer/>} /> */}
       </Route>
     </Routes>
   );

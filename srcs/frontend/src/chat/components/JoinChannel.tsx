@@ -1,15 +1,13 @@
 import React, { useState, useRef, ChangeEvent } from "react";
 import axios from "axios";
-import { ChannelNameDto } from '../../../../../backend/src/chat/dto/chat.dto';
 import ValidationButton from "./ValidationButton";
+import { ChannelNameDto } from "../../../../backend/src/chat/dto/chat.dto";
 import "../styles/JoinChannel.css";
-import { fetchUser, joinChannel } from "./ChannelUtils";
+import { fetchUser, joinChannel, isUserIsBan } from "./ChannelUtils";
 import { useUserIdContext } from "../contexts/userIdContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import JoinProtectedChannel from "./JoinProtectedChannel";
-import { isUserIsBan } from "./ChannelUtils";
-import { useChannelIdContext } from "../contexts/channelIdContext";
 
 enum ChannelType {
     PUBLIC,

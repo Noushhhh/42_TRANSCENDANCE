@@ -11,17 +11,18 @@ const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../prisma/prisma.module");
 const chat_controller_1 = require("./chat.controller");
 const chat_service_1 = require("./chat.service");
-const SocketEvents_1 = require("../socket/SocketEvents");
-const SocketModule_1 = require("../socket/SocketModule");
-const socket_service_1 = require("../socket/socket.service");
 const config_1 = require("@nestjs/config");
+const chat_gateway_1 = require("./chat.gateway");
+const socket_service_1 = require("./socket.service");
+const auth_service_1 = require("../auth/auth.service");
+const jwt_1 = require("@nestjs/jwt");
 let ChatModule = class ChatModule {
 };
 exports.ChatModule = ChatModule;
 exports.ChatModule = ChatModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, SocketModule_1.SocketModule],
+        imports: [prisma_module_1.PrismaModule, ChatModule],
         controllers: [chat_controller_1.ChatController],
-        providers: [chat_service_1.ChatService, socket_service_1.SocketService, SocketEvents_1.SocketEvents, config_1.ConfigService],
+        providers: [chat_service_1.ChatService, config_1.ConfigService, chat_gateway_1.ChatGateway, socket_service_1.listUserConnected, auth_service_1.AuthService, jwt_1.JwtService],
     })
 ], ChatModule);

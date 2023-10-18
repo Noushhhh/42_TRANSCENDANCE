@@ -3,7 +3,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GameState } from './types'
+import { GameState } from './types';
 import { lobbies } from './lobbies';
 import { gameSockets } from './gameSockets';
 

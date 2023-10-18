@@ -15,6 +15,8 @@ export class UsersController
     @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
+        console.log("api/users/me = ");
+        console.log(req.user);
         return req.user;
     }
 
@@ -22,7 +24,7 @@ export class UsersController
     FindWithId(userId: number): Promise<User | undefined>{
         return this.UsersService.findUserWithId(userId);
     }
-    
+
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined>{
         return this.UsersService.findUserWithUsername(username);
