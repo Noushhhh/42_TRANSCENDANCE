@@ -42,9 +42,8 @@ model User {
   mutedInChannels     Channel[]     @relation("MutedUsers")
 
   // Player statistics
-  gamesPlayed         Int             @default(0)
-  gamesWon            Int             @default(0)
-  matchHistory        MatchHistory[]
+  gamesPlayed         Int           @default(0)
+  gamesWon            Int           @default(0)
 
   @@map("users")
 }
