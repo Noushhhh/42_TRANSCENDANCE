@@ -20,7 +20,6 @@ export class GameLogicService {
     ballDX: number,
     ballDY: number,
     scoreBoard: { p1Score: number, p2Score: number },
-    ballRay: { x1: number, y1: number, x2: number, y2: number },
     ballSpeed: number,
     paddleWidth: number,
     paddleHeight: number,
@@ -56,7 +55,7 @@ export class GameLogicService {
       else if (normBallY < (0)) {
         ballDY = -ballDY;
         // Touch bot condition
-      } else if (normBallY > (1 - ballSize)) {
+      } else if (normBallY + ballSize >= 0.99) {
         ballDY = -ballDY;
       }
       // If the ball go after the left paddle
@@ -65,7 +64,7 @@ export class GameLogicService {
         ballPos.x = 0.5 - ballSize / 2;
         ballPos.y = 0.5 - ballSize / 2;
         ballDX = 0;
-        ballDY = 0;
+        ballDY = 0 + this.getRandomFloat(-0.013, 0.013, 6);
         scoreBoard.p2Score += 1;
         return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
         // Normal move to left condition
@@ -92,7 +91,7 @@ export class GameLogicService {
       else if (normBallY < 0) {
         ballDY = -ballDY;
         // Touch bot condition
-      } else if (normBallY > (1 - ballSize)) {
+      } else if (normBallY + ballSize >= 0.99) {
         ballDY = -ballDY;
       }
       // If the ball go after the left paddle
@@ -101,9 +100,9 @@ export class GameLogicService {
         ballPos.x = 0.5 - ballSize / 2;
         ballPos.y = 0.5 - ballSize / 2;
         ballDX = 0;
-        ballDY = 0;
+        ballDY = 0 + this.getRandomFloat(-0.013, 0.013, 6);
         scoreBoard.p1Score += 1;
-        return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
+        return { ballDirection: "left", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
         // Normal move to right condition
       } else {
         ballPos.x = ballPos.x + ballSpeed + Math.abs(ballDX);
@@ -112,4 +111,13 @@ export class GameLogicService {
       }
     }
   };
+
+  getRandomFloat(min: number, max: number, decimals: number) {
+    const str = (Math.random() * (max - min) + min).toFixed(
+      decimals,
+    );
+
+    return parseFloat(str);
+  }
 }
+

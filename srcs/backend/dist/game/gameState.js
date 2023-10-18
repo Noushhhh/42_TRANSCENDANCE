@@ -43,6 +43,12 @@ let GameState = class GameState {
                 x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
                 y: (0.5) - this.playerSize.p2Size / 2,
             },
+            p1Color: "#FFFFFF",
+            p2Color: "#FFFFFF",
+            p1Id: 0,
+            p2Id: 0,
+            p1Name: "",
+            p2Name: "",
             ballState: {
                 ballDirection: 'right',
                 ballDX: 0,
@@ -52,18 +58,6 @@ let GameState = class GameState {
                     y: 0.5 - BALL_SIZE / 2,
                 },
                 ballSpeed: 12.5 / 1200.0,
-            },
-            ballRayUp: {
-                x1: 0.5,
-                y1: 0.5,
-                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
-            },
-            ballRayDown: {
-                x1: 0.5,
-                y1: 0.5,
-                x2: 0.5 + RAY_LENGHT * Math.cos((0 * Math.PI) / 180),
-                y2: 0.5 + RAY_LENGHT * Math.sin((0 * Math.PI) / 180),
             },
             isPaused: true,
             score: {

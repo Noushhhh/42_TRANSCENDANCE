@@ -14,16 +14,16 @@ const gameLobby_service_1 = require("./gameLobby.service");
 const game_controller_1 = require("./game.controller");
 const gatewayIn_1 = require("./gatewayIn");
 const gatewayOut_1 = require("./gatewayOut");
-const SocketModule_1 = require("../socket/SocketModule");
 const data_service_1 = require("./data.service");
 const gameSockets_1 = require("./gameSockets");
+const playerStatistics_service_1 = require("./playerStatistics.service");
+const users_service_1 = require("../users/users.service");
 let GameModule = class GameModule {
 };
 exports.GameModule = GameModule;
 exports.GameModule = GameModule = __decorate([
     (0, common_1.Module)({
-        providers: [gameLogic_service_1.GameLogicService, gameLoop_service_1.GameLoopService, gameLobby_service_1.GameLobbyService, gatewayIn_1.GatewayIn, gatewayOut_1.GatewayOut, data_service_1.GameDataService, gameSockets_1.gameSockets],
+        providers: [gameLogic_service_1.GameLogicService, gameLoop_service_1.GameLoopService, gameLobby_service_1.GameLobbyService, gatewayIn_1.GatewayIn, gatewayOut_1.GatewayOut, data_service_1.GameDataService, gameSockets_1.gameSockets, playerStatistics_service_1.playerStatistics, users_service_1.UsersService],
         controllers: [game_controller_1.GameController],
-        imports: [SocketModule_1.SocketModule],
     })
 ], GameModule);

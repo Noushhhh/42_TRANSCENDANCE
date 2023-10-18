@@ -13,12 +13,13 @@ exports.lobbies = exports.Lobby = void 0;
 const common_1 = require("@nestjs/common");
 const gameState_1 = require("./gameState");
 let Lobby = class Lobby {
-    constructor(player) {
+    constructor(player, playerId) {
         this.player2 = null;
         this.spectators = [];
         this.gameState = new gameState_1.GameState();
         this.ballState = this.gameState.gameState.ballState;
         this.player1 = player;
+        this.gameState.gameState.p1Id = playerId;
     }
     printPlayersPos() {
         console.log("print 4: ", this.gameState.gameState.p1pos);
@@ -28,6 +29,6 @@ let Lobby = class Lobby {
 exports.Lobby = Lobby;
 exports.Lobby = Lobby = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Object])
+    __metadata("design:paramtypes", [Object, Number])
 ], Lobby);
 exports.lobbies = new Map();

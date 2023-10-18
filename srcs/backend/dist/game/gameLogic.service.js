@@ -14,7 +14,7 @@ const gameState_1 = require("./gameState");
 const ballSize = 20 / 1200.0;
 let GameLogicService = class GameLogicService {
     constructor() {
-        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballRay, ballSpeed, paddleWidth, paddleHeight) => {
+        this.ballMove = (ballDirection, ballPos, p1Pos, p2Pos, ballDX, ballDY, scoreBoard, ballSpeed, paddleWidth, paddleHeight) => {
             const normBallX = ballPos.x;
             const normBallY = ballPos.y;
             const normP1Y = p1Pos.y;
@@ -42,7 +42,7 @@ let GameLogicService = class GameLogicService {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - ballSize)) {
+                else if (normBallY + ballSize >= 0.99) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
@@ -51,7 +51,7 @@ let GameLogicService = class GameLogicService {
                     ballPos.x = 0.5 - ballSize / 2;
                     ballPos.y = 0.5 - ballSize / 2;
                     ballDX = 0;
-                    ballDY = 0;
+                    ballDY = 0 + this.getRandomFloat(-0.013, 0.013, 6);
                     scoreBoard.p2Score += 1;
                     return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
                     // Normal move to left condition
@@ -79,7 +79,7 @@ let GameLogicService = class GameLogicService {
                     ballDY = -ballDY;
                     // Touch bot condition
                 }
-                else if (normBallY > (1 - ballSize)) {
+                else if (normBallY + ballSize >= 0.99) {
                     ballDY = -ballDY;
                 }
                 // If the ball go after the left paddle
@@ -88,9 +88,9 @@ let GameLogicService = class GameLogicService {
                     ballPos.x = 0.5 - ballSize / 2;
                     ballPos.y = 0.5 - ballSize / 2;
                     ballDX = 0;
-                    ballDY = 0;
+                    ballDY = 0 + this.getRandomFloat(-0.013, 0.013, 6);
                     scoreBoard.p1Score += 1;
-                    return { ballDirection: "right", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
+                    return { ballDirection: "left", ballDX, ballDY, ballPos, scoreBoard, ballSpeed };
                     // Normal move to right condition
                 }
                 else {
@@ -100,6 +100,10 @@ let GameLogicService = class GameLogicService {
                 }
             }
         };
+    }
+    getRandomFloat(min, max, decimals) {
+        const str = (Math.random() * (max - min) + min).toFixed(decimals);
+        return parseFloat(str);
     }
 };
 exports.GameLogicService = GameLogicService;

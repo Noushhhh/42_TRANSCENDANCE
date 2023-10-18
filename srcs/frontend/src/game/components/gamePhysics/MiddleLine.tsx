@@ -3,12 +3,14 @@ import Konva from "konva";
 import { Rect } from "react-konva";
 
 const MiddleLine = () => {
-  const [divSize, setDivSize] = useState<number>(window.innerWidth * (6 / 12));
+  const [divSize, setDivSize] = useState<number>(
+    window.innerWidth * 0.8 * (6 / 12)
+  );
   const [traitGap, setTraitGap] = useState<number>(
-    (window.innerWidth * (6 / 12)) / 12
+    (window.innerWidth * 0.8 * (6 / 12)) / 12
   );
   const [traitWidth, setTraitWidth] = useState<number>(
-    (window.innerWidth * (6 / 12)) / 30
+    (window.innerWidth * 0.8 * (6 / 12)) / 30
   );
 
   const traitStyle = {
@@ -27,9 +29,9 @@ const MiddleLine = () => {
   });
 
   const updateDivSize = () => {
-    const divSize = window.innerWidth * (6 / 12);
-    const traitGap = (window.innerWidth * (6 / 12)) / 12;
-    const traitWidth = (window.innerWidth * (6 / 12)) / 30;
+    const divSize = window.innerWidth * 0.8 * (6 / 12);
+    const traitGap = (window.innerWidth * 0.8 * (6 / 12)) / 12;
+    const traitWidth = (window.innerWidth * 0.8 * (6 / 12)) / 30;
     setDivSize(divSize);
     setTraitGap(traitGap);
     setTraitWidth(traitWidth);

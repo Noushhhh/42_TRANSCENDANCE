@@ -2,22 +2,17 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket, io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
-import Button from "./common/Button";
+import PlayPauseButton from "./gameUtils/PlayPauseButton";
 import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
 import GameCustomization from "./gamePhysics/GameCustomization";
 import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
-
-const buttonStyle: React.CSSProperties = {
-  position: "absolute",
-  top: "5%",
-  right: "15%",
-  fontSize: "0.5rem",
-};
+import GameRules from "./gameUtils/GameRules";
+import GameButtonsBar from "./gameUtils/GameButtonsBar";
 
 interface GameContainerProps {
   socket: Socket;
@@ -62,6 +57,25 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       start();
       setGameLaunchedRef();
       handlePlayPause();
+      try {
+        fetch("http://localhost:4000/api/game/addGameToPlayer", {
+          method: "GET",
+          credentials: "include",
+        })
+          .then((response) => {
+            if (!response.ok)
+              throw new Error("HTTP error, status: " + response.status);
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } catch (error) {
+        console.log("player not found error: ", error);
+      }
     }, 1500);
   };
 
@@ -115,13 +129,14 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
     } else {
       return (
         <div className="GameContainer">
+          <GameButtonsBar
+            socket={socket}
+            isPaused={isPaused}
+            handlePlayPause={handlePlayPause}
+          />
           <MiddleLine />
           <ScoreBoard socket={socket} />
-          <GameCustomization socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
-          <Button onClick={() => handlePlayPause()} style={buttonStyle}>
-            {isPaused ? "Play" : "Pause"}
-          </Button>
           <AutoLaunch
             start={start}
             setGameLaunchedRef={setGameLaunchedRef}
@@ -131,8 +146,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       );
     }
   }
-  //  else if (isInLobby === false) {
-  // }
   return <GameMenu socket={socket} />;
 };
 
