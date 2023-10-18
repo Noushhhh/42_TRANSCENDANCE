@@ -23,7 +23,11 @@ export class UsersController
         return this.UsersService.findUserWithId(userId);
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
 =======
     
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
