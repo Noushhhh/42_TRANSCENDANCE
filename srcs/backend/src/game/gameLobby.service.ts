@@ -94,27 +94,53 @@ export class GameLobbyService {
   removePlayerFromLobby(player: Socket) {
     for (const [key, value] of lobbies) {
       const lobby = lobbies.get(key);
+      // If player one leave the game
       if (value.player1?.id === player.id) {
         if (lobby) {
           lobby.player1 = null;
         }
         const p2Id = value.gameState.gameState.p2Id;
-        if (p2Id)
+        // If there is a player 2, he wins
+        // There was a game so add this
+        // game to the player's match history
+        if (p2Id) {
           this.playerStats.addWinToPlayer(p2Id);
+          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+            value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
+            value.gameState.gameState.score.p2Score, true, false);
+          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+            value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
+            value.gameState.gameState.score.p1Score, false, true);
+        }
+        // Telling the client player 1 is not in a lobby anymore
         this.gatewayOut.isInLobby(false, player);
+        // Re init the room game state
         value.gameState = new GameState();
         value.gameState.gameState.p2Id = p2Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         return;
       }
+      // If player one leave the game
       if (value.player2?.id === player.id) {
         if (lobby) {
           lobby.player2 = null;
         }
         const p1Id = value.gameState.gameState.p1Id;
-        if (p1Id)
+        // If there is a player 1, he wins
+        // There was a game so add this
+        // game to the player's match history
+        if (p1Id) {
           this.playerStats.addWinToPlayer(p1Id);
+          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+            value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
+            value.gameState.gameState.score.p2Score, false, true);
+          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+            value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
+            value.gameState.gameState.score.p1Score, true, false);
+        }
+        // Telling the client player 1 is not in a lobby anymore
         this.gatewayOut.isInLobby(false, player);
+        // Re init the room game state
         value.gameState = new GameState();
         value.gameState.gameState.p1Id = p1Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);

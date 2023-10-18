@@ -131,8 +131,11 @@ export class GameLoopService {
       if (score) {
         lobby.gameState.gameState.score = score;
         if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
+          const gameState = lobby.gameState.gameState;
           const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
           this.playerStats.addWinToPlayer(winnerId);
+          this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false);
+          this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false);
           console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {
