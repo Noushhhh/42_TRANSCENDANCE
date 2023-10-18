@@ -41,6 +41,10 @@ model User {
   sentMessages        Message[]     @relation("MessagesSent")
   mutedInChannels     Channel[]     @relation("MutedUsers")
 
+  // Player statistics
+  gamesPlayed         Int             @default(0)
+  gamesWon            Int             @default(0)
+  matchHistory        MatchHistory[]
 
   @@map("users")
 }
@@ -103,4 +107,14 @@ model RefreshToken {
   expiresAt   DateTime 
 }
 
-
+model MatchHistory {
+  id            Int      @id @default(autoincrement())
+  date          DateTime @default(now())
+  player        User     @relation(fields: [playerId], references: [id])
+  playerId      Int
+  opponentName  String
+  selfScore     Int
+  opponentScore Int
+  playerLeft    Boolean @default(false)
+  opponentLeft  Boolean @default(false)
+}

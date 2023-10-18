@@ -17,14 +17,25 @@ const common_1 = require("@nestjs/common");
 const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
 const common_2 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt.auth-guard");
+const playerStatistics_service_1 = require("./playerStatistics.service");
 let GameController = class GameController {
-    constructor(gameLoopService, gameLobby) {
+    constructor(gameLoopService, gameLobby, playerStats) {
         this.gameLoopService = gameLoopService;
         this.gameLobby = gameLobby;
+        this.playerStats = playerStats;
     }
-    connectToLobby(clientId) {
-        this.gameLobby.addPlayerToLobby(clientId);
-        return { test: 'bidule' };
+    connectToLobby(clientId, req) {
+        if (req.user) {
+            this.gameLobby.addPlayerToLobby(clientId, req.user.id);
+        }
+        return { test: 'player connected to lobby' };
+    }
+    addGameToPlayer(req) {
+        var _a;
+        if (req.user)
+            this.playerStats.addGamePlayedToOneUser((_a = req.user) === null || _a === void 0 ? void 0 : _a.id);
+        return { msg: 'player games incremented' };
     }
     play() {
         this.gameLoopService.startGameLoop();
@@ -34,15 +45,29 @@ let GameController = class GameController {
         this.gameLoopService.stopGameLoop();
         return { msg: 'stopped' };
     }
+    playerName(req, clientId) {
+        if (req.user)
+            this.gameLobby.addPlayerNameToLobby(req.user.id, clientId);
+    }
 };
 exports.GameController = GameController;
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('lobby'),
     __param(0, (0, common_2.Query)('clientId')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "connectToLobby", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('addGameToPlayer'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "addGameToPlayer", null);
 __decorate([
     (0, common_1.Get)('play'),
     __metadata("design:type", Function),
@@ -55,8 +80,18 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "stop", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('playerName'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_2.Query)('clientId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "playerName", null);
 exports.GameController = GameController = __decorate([
     (0, common_1.Controller)('game'),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
-        gameLobby_service_1.GameLobbyService])
+        gameLobby_service_1.GameLobbyService,
+        playerStatistics_service_1.playerStatistics])
 ], GameController);

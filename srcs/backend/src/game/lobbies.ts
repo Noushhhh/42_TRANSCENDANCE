@@ -10,8 +10,9 @@ export class Lobby {
   gameState = new GameState();
   ballState = this.gameState.gameState.ballState;
 
-  constructor(player: Socket | undefined) {
+  constructor(player: Socket | undefined, playerId: number) {
     this.player1 = player;
+    this.gameState.gameState.p1Id = playerId;
   }
 
   public printPlayersPos() {
