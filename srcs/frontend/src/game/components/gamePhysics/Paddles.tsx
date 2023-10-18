@@ -14,6 +14,8 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
   const rect2Ref = useRef<Konva.Rect>(null);
   const keyState = useRef<{ [key: string]: boolean }>({});
+  const [p1Color, setP1Color] = useState<string>("#FFFFFF");
+  const [p2Color, setP2Color] = useState<string>("#FFFFFF");
 
   useEffect(() => {
     initPlayersSize();
@@ -32,6 +34,24 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
     };
   });
 
+  const p1Props = {
+    x: 10,
+    y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+    width: gameConfig.paddleWidth,
+    height: gameConfig.paddleHeight,
+    fill: p1Color,
+    draggable: false,
+  };
+
+  const p2Props  = {
+    x: 10,
+    y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
+    width: gameConfig.paddleWidth,
+    height: gameConfig.paddleHeight,
+    fill: p2Color,
+    draggable: false,
+  };
+
   const updateGameStatePaddle = (gameState: data.GameState) => {
     const normP1Pos: Vector2d = {
       x: gameState.p1pos.x * gameConfig.konvaWidth,
@@ -44,6 +64,9 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
     };
     updateP1pos(normP1Pos);
     updateP2pos(normP2Pos);
+
+    setP1Color(gameState.p1Color);
+    setP2Color(gameState.p2Color);
   };
 
   const resizeEvent = () => {
@@ -132,8 +155,8 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
 
   return (
     <>
-      <Rect ref={rect1Ref} {...data.p1Props} />
-      <Rect ref={rect2Ref} {...data.p2Props} />
+      <Rect ref={rect1Ref} {...p1Props} />
+      <Rect ref={rect2Ref} {...p2Props} />
     </>
   );
 };

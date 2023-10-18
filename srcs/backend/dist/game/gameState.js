@@ -43,8 +43,12 @@ let GameState = class GameState {
                 x: 1 - exports.paddleGap - data_1.gameConfig.paddleWidth,
                 y: (0.5) - this.playerSize.p2Size / 2,
             },
+            p1Color: "#FFFFFF",
+            p2Color: "#FFFFFF",
             p1Id: 0,
             p2Id: 0,
+            p1Name: "",
+            p2Name: "",
             ballState: {
                 ballDirection: 'right',
                 ballDX: 0,
@@ -54,12 +58,6 @@ let GameState = class GameState {
                     y: 0.5 - BALL_SIZE / 2,
                 },
                 ballSpeed: 12.5 / 1200.0,
-            },
-            spawnPowerUp: 0,
-            powerUpValueSet: false,
-            powerUp: {
-                x: -1,
-                y: -1,
             },
             isPaused: true,
             score: {

@@ -55,6 +55,7 @@ export class playerStatistics {
             throw new Error("Player not found.");
         }
 
+
         await this.prisma.user.update({
             where: { id: playerId },
             data: {
@@ -83,6 +84,6 @@ export class playerStatistics {
                     increment: 1,
                 },
             },
-        })
+        });
     }
 }

@@ -19,9 +19,8 @@ export class SocketEvents implements OnModuleInit, OnGatewayConnection, OnGatewa
 
     onModuleInit() {
         this.server.on('connection', (socket) => {
-            console.log('client connected', socket.id);
+            console.log('client connected1', socket.id);
         });
-
     }
 
     getSocketById(socketId: string) {

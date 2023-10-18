@@ -45,6 +45,10 @@ let GameController = class GameController {
         this.gameLoopService.stopGameLoop();
         return { msg: 'stopped' };
     }
+    playerName(req, clientId) {
+        if (req.user)
+            this.gameLobby.addPlayerNameToLobby(req.user.id, clientId);
+    }
 };
 exports.GameController = GameController;
 __decorate([
@@ -76,6 +80,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "stop", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('playerName'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_2.Query)('clientId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "playerName", null);
 exports.GameController = GameController = __decorate([
     (0, common_1.Controller)('game'),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,
