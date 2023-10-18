@@ -7,9 +7,11 @@ import { GatewayIn } from './gatewayIn';
 import { GatewayOut } from './gatewayOut';
 import { GameDataService } from './data.service';
 import { gameSockets } from './gameSockets';
+import { playerStatistics } from './playerStatistics.service';
+import { UsersService } from '../users/users.service';
 
 @Module({
-  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, GameDataService, gameSockets],
+  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, GameDataService, gameSockets, playerStatistics, UsersService],
   controllers: [GameController],
 })
-export class GameModule {}
+export class GameModule { }

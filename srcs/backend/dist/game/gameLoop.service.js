@@ -16,14 +16,16 @@ const gatewayOut_1 = require("./gatewayOut");
 const lobbies_1 = require("./lobbies");
 const data_1 = require("./data");
 const gameState_1 = require("./gameState");
+const playerStatistics_service_1 = require("./playerStatistics.service");
 const RAY_LENGHT = 35 / 1200;
 const BALL_SIZE = 20 / 1200.0;
 const SCORE_TO_WIN = 3;
-const moveSpeed = 6 / 800.0;
+const moveSpeed = 9 / 800.0;
 let GameLoopService = class GameLoopService {
-    constructor(gameLogicService, gatewayOut) {
+    constructor(gameLogicService, gatewayOut, playerStats) {
         this.gameLogicService = gameLogicService;
         this.gatewayOut = gatewayOut;
+        this.playerStats = playerStats;
         this.updateGameState = () => {
             this.gatewayOut.updateLobbiesGameState();
         };
@@ -31,7 +33,7 @@ let GameLoopService = class GameLoopService {
             for (const [key, lobby] of lobbies_1.lobbies) {
                 if (lobby.gameState.gameState.isPaused === true)
                     continue;
-                const ballState = this.gameLogicService.ballMove(lobby.gameState.gameState.ballState.ballDirection, lobby.gameState.gameState.ballState.ballPos, lobby.gameState.gameState.p1pos, lobby.gameState.gameState.p2pos, lobby.gameState.gameState.ballState.ballDX, lobby.gameState.gameState.ballState.ballDY, lobby.gameState.gameState.score, lobby.gameState.gameState.ballRayUp, lobby.gameState.gameState.ballState.ballSpeed, lobby.gameState.gameState.p1Size, lobby.gameState.gameState.p2Size);
+                const ballState = this.gameLogicService.ballMove(lobby.gameState.gameState.ballState.ballDirection, lobby.gameState.gameState.ballState.ballPos, lobby.gameState.gameState.p1pos, lobby.gameState.gameState.p2pos, lobby.gameState.gameState.ballState.ballDX, lobby.gameState.gameState.ballState.ballDY, lobby.gameState.gameState.score, lobby.gameState.gameState.ballState.ballSpeed, lobby.gameState.gameState.p1Size, lobby.gameState.gameState.p2Size);
                 if (ballState) {
                     lobby.gameState.gameState.ballState = ballState;
                 }
@@ -39,11 +41,8 @@ let GameLoopService = class GameLoopService {
                 if (score) {
                     lobby.gameState.gameState.score = score;
                     if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
-                        // @to-do 
-                        // Implement function to push the victory of the player
-                        // in the statistic object
-                        // Implement function that stop the game
-                        // Create a Play Again function
+                        const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
+                        this.playerStats.addWinToPlayer(winnerId);
                         console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
                         lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
                         lobby.gameState.gameState.p1pos = {
@@ -54,6 +53,7 @@ let GameLoopService = class GameLoopService {
                             x: 1 - gameState_1.paddleGap - data_1.gameConfig.paddleWidth,
                             y: (0.5) - lobby.gameState.gameState.p2Size / 2,
                         };
+                        lobby.gameState.gameState.ballState.ballDY = 0;
                         lobby.gameState.gameState.isPaused = true;
                         this.gatewayOut.emitToRoom(key, 'newGame', true);
                     }
@@ -62,7 +62,7 @@ let GameLoopService = class GameLoopService {
         };
         this.gameLoopRunning = false;
     }
-    onModuleInit() {
+    resizeEvent() {
         this.updateBall();
         this.updateGameState();
     }
@@ -132,5 +132,6 @@ exports.GameLoopService = GameLoopService;
 exports.GameLoopService = GameLoopService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [gameLogic_service_1.GameLogicService,
-        gatewayOut_1.GatewayOut])
+        gatewayOut_1.GatewayOut,
+        playerStatistics_service_1.playerStatistics])
 ], GameLoopService);
