@@ -36,6 +36,9 @@ export class AuthService {
     ) {
         this.JWT_SECRET = jwtConstants.secret;
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
+=======
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
 =======
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
@@ -585,6 +588,7 @@ export class AuthService {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     try {
       // let avatarUrl;
       // if (userInfo.image.link === null) {
@@ -619,6 +623,8 @@ export class AuthService {
 =======
 =======
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
+=======
+>>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
     async enable2FA(userId: number) {
       await this.prisma.user.update({
         where: { id: userId },
@@ -627,6 +633,9 @@ export class AuthService {
         },
       });
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
+=======
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
 =======
 >>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
