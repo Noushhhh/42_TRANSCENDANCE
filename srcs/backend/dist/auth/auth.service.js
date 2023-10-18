@@ -252,7 +252,124 @@ let AuthService = class AuthService {
             }
         });
     }
+<<<<<<< HEAD
     ;
+=======
+    sendAuthorizationCodeRequest(code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const requestBody = {
+                grant_type: 'authorization_code',
+                client_id: process.env.UID_42,
+                client_secret: process.env.SECRET_42,
+                code: code,
+                redirect_uri: 'http://localhost:4000/api/auth/callback42',
+            };
+            return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+        });
+    }
+    getUserInfo(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield this.sendUserInfoRequest(token);
+                return response.data;
+            }
+            catch (error) {
+                console.error('Error fetching user info:', error);
+                throw error;
+            }
+        });
+    }
+    sendUserInfoRequest(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return axios_1.default.get('https://api.intra.42.fr/v2/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+        });
+    }
+    createUser(userInfo, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const existingUser = yield this.prisma.user.findUnique({
+                where: {
+                    id: userInfo.id,
+                },
+            });
+            if (existingUser) {
+                console.log('User already exists:', existingUser);
+                //   return "User already exists";
+                existingUser.firstConnexion = false;
+                return existingUser;
+            }
+            try {
+                let avatarUrl;
+                if (userInfo.image.link !== null) {
+                    // use the 42 profile picture if not null
+                    avatarUrl = userInfo.image.link;
+                }
+                const user = yield this.prisma.user.create({
+                    data: {
+                        id: userInfo.id,
+                        hashPassword: this.generateRandomPassword(),
+                        username: userInfo.login,
+                        avatar: userInfo.image.link,
+                    },
+                });
+                const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+                user.twoFASecret = secret;
+                user.twoFAUrl = otpauthUrl;
+                console.log("User created", user);
+                return user;
+            }
+            catch (error) {
+                console.error('Error saving user information to database:', error);
+                throw error;
+            }
+        });
+    }
+    generateRandomPassword() {
+        const password = Math.random().toString(36).slice(2, 15) +
+            Math.random().toString(36).slice(2, 15);
+        return password;
+    }
+    generateTwoFASecret(userId) {
+        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
+        const otpauthUrl = speakeasy.otpauthURL({
+            secret: secret.base32,
+            label: `ft_transcendance:${userId}`,
+            issuer: 'ft_transcendance', // Customize the issuer as needed
+        });
+        return { secret: secret.base32, otpauthUrl };
+    }
+    verifyTwoFACode(userId, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFASecret || '',
+                encoding: 'base32',
+                token: code,
+            });
+            return verified;
+        });
+    }
+    enable2FA(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    TwoFA: true,
+                },
+            });
+        });
+    }
+>>>>>>> c82b51bc15794599261efcb8dd3e4d9311d6ddb6
 };
 exports.AuthService = AuthService;
 __decorate([
