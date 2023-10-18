@@ -43,40 +43,38 @@ let GameLobbyService = class GameLobbyService {
         });
     }
     addPlayerToLobby(playerId, playerDbId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.gatewayOut.updateLobbiesGameState();
-            const player = this.socketMap.getSocket(playerId);
-            if (this.isInLobby(player)) {
-                console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
+        this.gatewayOut.updateLobbiesGameState();
+        const player = this.socketMap.getSocket(playerId);
+        if (this.isInLobby(player)) {
+            console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
+            return;
+        }
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (!value.player1 || !value.player2) {
+                if (!value.player1) {
+                    value.player1 = player;
+                    value.gameState.gameState.p1Id = playerDbId;
+                }
+                else if (!value.player2) {
+                    value.player2 = player;
+                    value.gameState.gameState.p2Id = playerDbId;
+                }
+                player === null || player === void 0 ? void 0 : player.join(key);
+                this.gatewayOut.isInLobby(true, player);
+                if (value.player1 != null && value.player2 != null) {
+                    this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
+                    value.gameState.gameState.isLobbyFull = true;
+                    this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
+                }
                 return;
             }
-            for (const [key, value] of lobbies_1.lobbies) {
-                if (!value.player1 || !value.player2) {
-                    if (!value.player1) {
-                        value.player1 = player;
-                        value.gameState.gameState.p1Id = playerDbId;
-                    }
-                    else if (!value.player2) {
-                        value.player2 = player;
-                        value.gameState.gameState.p2Id = playerDbId;
-                    }
-                    player === null || player === void 0 ? void 0 : player.join(key);
-                    this.gatewayOut.isInLobby(true, player);
-                    if (value.player1 != null && value.player2 != null) {
-                        this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
-                        value.gameState.gameState.isLobbyFull = true;
-                        this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
-                    }
-                    return;
-                }
-            }
-            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
-            const lobby = new lobbies_1.Lobby(player, playerDbId);
-            lobbies_1.lobbies.set(lobbyName, lobby);
-            player === null || player === void 0 ? void 0 : player.join(lobbyName);
-            this.gatewayOut.isInLobby(true, player);
-            this.getAllClientsInARoom(lobbyName);
-        });
+        }
+        const lobbyName = `lobby${lobbies_1.lobbies.size}`;
+        const lobby = new lobbies_1.Lobby(player, playerDbId);
+        lobbies_1.lobbies.set(lobbyName, lobby);
+        player === null || player === void 0 ? void 0 : player.join(lobbyName);
+        this.gatewayOut.isInLobby(true, player);
+        this.getAllClientsInARoom(lobbyName);
     }
     addPlayerNameToLobby(playerId, playerSocketId) {
         var _a, _b;

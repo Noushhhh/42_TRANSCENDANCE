@@ -29,11 +29,11 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   }, []);
 
   const resizeEvent = () => {
-    GameConfigController.setKonvaWidth(window.innerWidth);
-    GameConfigController.setKonvaHeight((window.innerWidth * 6) / 12);
-    stageRef.current?.width(window.innerWidth);
-    stageRef.current?.height((window.innerWidth * 6) / 12);
-    setKonvaSize([window.innerWidth, (window.innerWidth * 6) / 12]);
+    GameConfigController.setKonvaWidth((window.innerWidth * 0.8));
+    GameConfigController.setKonvaHeight(((window.innerWidth * 0.8) * 6) / 12);
+    stageRef.current?.width((window.innerWidth * 0.8));
+    stageRef.current?.height(((window.innerWidth * 0.8) * 6) / 12);
+    setKonvaSize([(window.innerWidth * 0.8), ((window.innerWidth * 0.8) * 6) / 12]);
     socket.emit("resizeEvent");
   };
 

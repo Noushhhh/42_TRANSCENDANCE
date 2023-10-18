@@ -27,7 +27,7 @@ export class GameLobbyService {
     })
   }
 
-  async addPlayerToLobby(playerId: string, playerDbId: number) {
+  addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
