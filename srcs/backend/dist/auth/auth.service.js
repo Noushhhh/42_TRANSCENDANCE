@@ -58,7 +58,6 @@ const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 // import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
-// import { min } from 'class-validator';
 let AuthService = class AuthService {
     constructor(prisma, jwt) {
         this.prisma = prisma;

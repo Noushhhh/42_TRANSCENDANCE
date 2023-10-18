@@ -11,20 +11,22 @@ import { useUserIdContext } from '../contexts/userIdContext';
 import { useChannelIdContext, useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
+import { Socket } from 'socket.io-client';
+import { leaveChannel } from './ChannelUtils';
 
 interface ConfirmationPopup{
-    Action: (...args: any[]) => any;
+  setError: React.Dispatch<React.SetStateAction<string | null>>
 }
 
-export default function ConfirmationPopup( {Action}: ConfirmationPopup ) {
+export default function ConfirmationPopup( {setError}: ConfirmationPopup ) {
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
 
-  const userId = useUserIdContext();
-  const channelId = useChannelIdContext();
+  const userId: number = useUserIdContext();
+  const channelId: number = useChannelIdContext();
+  const socket: Socket = useSocketContext();
   const setChannelId = useSetChannelIdContext();
-  const setChannelHeader = useSetChannelHeaderContext();
-  const socket = useSocketContext();
+  const setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>> = useSetChannelHeaderContext();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -34,13 +36,12 @@ export default function ConfirmationPopup( {Action}: ConfirmationPopup ) {
     setOpen(false);
   };
 
-  const handleAgree = () => {
+  const handleAgree = async () => {
     try{
-      Action(userId, channelId, setChannelHeader, socket);
+      await leaveChannel(userId, channelId, setChannelHeader, socket);
       setChannelId(-1);
-    } catch (error){
-      console.log("Error while leaving channel");
-      // NOTIFICATIONS ERROR
+    } catch (error: any){
+      setError("Admin can't leave channel");
     }
     setOpen(false);
   };

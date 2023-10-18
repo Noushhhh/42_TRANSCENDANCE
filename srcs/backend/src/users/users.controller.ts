@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { UsersService } from './users.service';
 
 @Controller ('users')
-export class UsersController 
+export class UsersController
 {
     constructor(
         private UsersService: UsersService
@@ -15,6 +15,8 @@ export class UsersController
     @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
+        console.log("api/users/me = ");
+        console.log(req.user);
         return req.user;
     }
 

@@ -219,6 +219,12 @@ export class ChatService {
 
   async addChannelToUser(channelInfo: channelToAdd) {
 
+    const channels = await this.prisma.channel.findMany();
+    const existingChannelNames = channels.map(channel => channel.name);
+
+    if (existingChannelNames.some(channelName => channelInfo.name === channelName))
+      throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({ id: channelInfo.ownerId });
 
@@ -240,7 +246,6 @@ export class ChatService {
         },
       });
     } catch (error) {
-      console.error('addChannelToUser:', error);
       throw error;
     }
   }
@@ -300,7 +305,7 @@ export class ChatService {
 
     if (await this.isAdmin(userId, channelId) === true) {
       throw new HttpException("You can't kick a channel Admin",
-        HttpStatus.FORBIDDEN);
+        HttpStatus.NOT_ACCEPTABLE);
     }
 
     if (await this.getNumberUsersInChannel(channelId) === 2) {
@@ -344,17 +349,15 @@ export class ChatService {
     const channelId = Number(channelIdStr);
     const callerId = Number(callerIdStr);
 
-    const nbrUser: number = await this.getNumberUsersInChannel(channelId);
-
-    try {
 
       if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
         throw new Error("Invalid arguments");
       }
+      const nbrUser: number = await this.getNumberUsersInChannel(channelId);
 
       if (await this.isAdmin(userId, channelId) === true) {
         throw new HttpException("You can't ban a channel Admin",
-          HttpStatus.FORBIDDEN);
+          HttpStatus.NOT_ACCEPTABLE);
       }
 
       if (await this.getNumberUsersInChannel(channelId) <= 2) {
@@ -379,10 +382,6 @@ export class ChatService {
         }
       })
       return true;
-    } catch (error) {
-      throw new Error("Error updating database");
-    }
-
   }
 
   async leaveChannel(userIdStr: number, channelIdStr: number): Promise<boolean> {
@@ -392,6 +391,9 @@ export class ChatService {
 
     if (isNaN(userId) || isNaN(channelId))
       return false;
+
+    if (await this.isAdmin(userId, channelId))
+      throw new HttpException("Admin can't leave channel", HttpStatus.NOT_ACCEPTABLE);
 
     if (await this.getNumberUsersInChannel(channelId) === 2) {
       await this.deleteAllMessagesInChannel(channelId);
@@ -495,7 +497,7 @@ export class ChatService {
       }
 
       if (inviterId === invitedId) {
-        throw new Error("You can't kick yourself");
+        throw new HttpException("You can't kick yourself", HttpStatus.FORBIDDEN);
       }
 
       if (await this.isAdmin(inviterId, channelId) === false) {

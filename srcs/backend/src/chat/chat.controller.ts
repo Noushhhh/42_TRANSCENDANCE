@@ -146,6 +146,7 @@ export class ChatController {
         return this.chatService.isUserIsInChannel(userId, channelId);
     }
 
+    @UseGuards(AdminGuard)
     @Post('addAdminToChannel/:inviterId/:invitedId/:channelId')
     async addAdminToChannel(
         @Param('inviterId') inviterId: number,
@@ -154,6 +155,7 @@ export class ChatController {
         return this.chatService.addAdminToChannel(inviterId, invitedId, channelId);
     }
 
+    @UseGuards(AdminGuard)
     @Post('removeAdminFromChannel/:inviterId/:invitedId/:channelId')
     async removeAdminFromChannel(
         @Param('inviterId') inviterId: number,

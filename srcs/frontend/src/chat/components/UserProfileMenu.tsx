@@ -41,7 +41,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleProfilClick = () => {
-    // Ajoutez ici la logique pour "Profil"
     handleClose();
   };
 
@@ -67,7 +66,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handlePlayClick = () => {
-    // Ajoutez ici la logique pour "Jouer"
+    // For theo's function : create game between 2 ids
   };
 
   const handleBlockClick = async () => {

@@ -67,7 +67,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                     await fetchDataAdmins();
                 setSearchBarResults(true);
             }
-            if (inputValue.length > 2){
+            if (inputValue.length > 0){
                 fetchUsers();
             }
         }

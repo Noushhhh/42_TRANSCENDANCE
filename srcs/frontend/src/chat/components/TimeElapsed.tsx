@@ -15,7 +15,7 @@ const TimeElapsed: React.FC<TimeElapsedProps> = ({ date }) => {
     const secondsElapsed = Math.floor(timeDiff / 1000);
 
     if (secondsElapsed < 60) {
-      return "few seconds ago";
+      return "few seconds";
     } else if (secondsElapsed < 3600) {
       const minutesElapsed = Math.floor(secondsElapsed / 60);
       return `${minutesElapsed} minute(s)`;

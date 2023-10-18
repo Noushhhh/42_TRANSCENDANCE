@@ -34,7 +34,6 @@ let ChatController = class ChatController {
     ;
     getAllConvFromId(userIdDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("get all conv called");
             return this.chatService.getAllConvFromId(userIdDto.userId);
         });
     }
@@ -43,9 +42,9 @@ let ChatController = class ChatController {
             return this.chatService.getLastMessage(id);
         });
     }
-    getChannelHeadersFromUserId(id) {
+    getChannelHeadersFromUserId(pair) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.chatService.getChannelHeadersFromId(id);
+            return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
         });
     }
     getAllMessagesByChannelId(PairIdDto) {
@@ -59,10 +58,10 @@ let ChatController = class ChatController {
             }
         });
     }
-    addMessageToChannelId(id, message) {
+    addMessageToChannelId(message) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return this.chatService.addMessageToChannelId(id, message);
+                return this.chatService.addMessageToChannelId(message);
             }
             catch (error) {
                 throw new common_1.HttpException('Cannot find channel', common_1.HttpStatus.NOT_FOUND);
@@ -110,9 +109,9 @@ let ChatController = class ChatController {
             return this.chatService.banUserFromChannel(userId, channelId, callerId);
         });
     }
-    leaveChannel(userId, channelId) {
+    leaveChannel(pair) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.chatService.leaveChannel(userId, channelId);
+            return this.chatService.leaveChannel(pair.userId, pair.channelId);
         });
     }
     getNumberUsersInChannel(channelId) {
@@ -197,10 +196,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getLastMessage", null);
 __decorate([
-    (0, common_1.Get)('getChannelHeader/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Post)('getChannelHeader'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getChannelHeadersFromUserId", null);
 __decorate([
@@ -211,11 +210,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "getAllMessagesByChannelId", null);
 __decorate([
-    (0, common_1.Post)('addMessageToChannel/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)('addMessageToChannel'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addMessageToChannelId", null);
 __decorate([
@@ -276,11 +274,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
-    (0, common_1.Post)('leaveChannel/:userId/:channelId'),
-    __param(0, (0, common_1.Param)('userId')),
-    __param(1, (0, common_1.Param)('channelId')),
+    (0, common_1.Post)('leaveChannel'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [chat_dto_1.PairUserIdChannelId]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "leaveChannel", null);
 __decorate([
@@ -306,6 +303,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "isUserIsInChannel", null);
 __decorate([
+    (0, common_1.UseGuards)(admin_guards_1.AdminGuard),
     (0, common_1.Post)('addAdminToChannel/:inviterId/:invitedId/:channelId'),
     __param(0, (0, common_1.Param)('inviterId')),
     __param(1, (0, common_1.Param)('invitedId')),
@@ -315,6 +313,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addAdminToChannel", null);
 __decorate([
+    (0, common_1.UseGuards)(admin_guards_1.AdminGuard),
     (0, common_1.Post)('removeAdminFromChannel/:inviterId/:invitedId/:channelId'),
     __param(0, (0, common_1.Param)('inviterId')),
     __param(1, (0, common_1.Param)('invitedId')),
