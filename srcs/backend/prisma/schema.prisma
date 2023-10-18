@@ -29,7 +29,8 @@ model User {
   refreshToken        RefreshToken[]
 
   firstConnexion      Boolean       @default (true)
-  TwoFA               Boolean       @default(false)
+  loggedIn            Boolean       @default (false)
+  TwoFA               Boolean       @default (false)
 
   // Channel related
   channelsOwned       Channel[]     @relation("Owner")

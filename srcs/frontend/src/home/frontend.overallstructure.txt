@@ -1,0 +1,875 @@
+
+./tools/SkeletonLoader.tsx
+
+// Importing React and the CSS styles for the SkeletonLoader.
+import React from 'react';
+import '../styles/SkeletonLoader.css';
+
+/**
+ * SkeletonLoader Component:
+ * A visual component that provides a "skeleton" loading animation, 
+ * often used to indicate content is being loaded. 
+ * 
+ * The component displays a dummy content box (a skeleton) that mimics 
+ * the shape of the actual content, but without the real data. This provides 
+ * a smoother user experience as users can perceive something is loading.
+ */
+const SkeletonLoader: React.FC = () => {
+    return (
+        // The wrapping div for the skeleton loader.
+        <div className="skeleton-wrapper">
+            {/* Displaying a "Loading..." text with skeleton styles. 
+                 The "skeleton" and "skeleton-line.shorter" classes 
+                 provide the visual appearance and animation for the loader. */}
+            <h3 className="skeleton skeleton-line.shorter"> Loading ...</h3>
+        </div>
+    );
+}
+
+export default SkeletonLoader;
+
+
+-----------------------------------------
+
+./tools/GoBackButton.tsx
+
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import '../styles/GoBackButton.css'
+
+const GoBackButton: React.FC = () => {
+    const navigate = useNavigate();
+
+    const handleButton = () => {
+        navigate('/authchoice');
+    }
+
+    return (
+        <div style={{alignSelf: 'center'}}>
+            <button  className="buttonGoBack" onClick={handleButton}>Go Back</button>
+        </div>
+    )
+}
+
+export default GoBackButton;
+
+
+-----------------------------------------
+
+./tools/SignoutLink.tsx
+
+// SignOutLink.tsx
+import React from 'react';
+import { useSignOut } from './hooks/useSignOut';
+import '../styles/signOutLink.css';
+
+/**
+ * SignOutLink component provides an interactive link for users to sign out.
+ * 
+ * When the link is clicked, an API call is made to sign out the user.
+ * If successful, the user is redirected to the sign-in page.
+ * 
+ * This component utilizes React Router's `useNavigate` hook to programmatically
+ * redirect users upon successful sign out.
+ */
+const SignOutLink: React.FC = () => {
+
+    const handleSignOut = useSignOut();
+
+    // Rendering the "Sign Out" link. Upon being clicked, it triggers the handleSignOut function.
+    return (
+        <button onClick={handleSignOut} className='button-as-link' >Sign Out</button>
+    );
+};
+
+export default SignOutLink;
+
+-----------------------------------------
+
+./tools/hooks/useSignOut.tsx
+
+import { useNavigate } from 'react-router-dom';
+
+export const useSignOut = () => {
+
+    const navigate = useNavigate();
+
+    const handleSignOut = async () => {
+        // Using React Router's hook to get the navigate function.
+        try {
+            const response = await fetch('http://localhost:4000/api/auth/signout', {
+                method: 'GET',
+                credentials: 'include', // This ensures cookies are sent with the request, important for session-based authentication.
+            });
+
+            // If the server responds with a success status, navigate the user to the sign-in page.
+            if (response.ok) {
+                navigate('/signin');
+            } else {
+                console.error('Failed to sign out.');
+            }
+        } catch (error) {
+            // Logging any potential errors that might occur during the sign out process.
+            console.error('There was an error signing out:', error);
+        }
+    };
+    return handleSignOut;
+}
+
+-----------------------------------------
+
+./tools/hooks/useActivityLogout.tsx
+
+// Importing necessary hooks and components from "react-router-dom".
+import { useNavigate } from "react-router-dom";
+import { useSignOut } from "./useSignOut";
+
+// Hook to handle automatic logout after a period of inactivity.
+const useActivityLogout = () => {
+
+    // Utilize the `useNavigate` hook from react-router to programmatically change routes.
+    const navigate = useNavigate();
+    const handleSignOut = useSignOut();
+
+    // Variable to store the inactivity timer.
+    let inicativityTimer: any;
+
+    // Function to remove the user token and navigate to the signin page.
+    const logoutAndNavigate = () => {
+        handleSignOut();
+        navigate('signin'); // Navigate to signin page.
+    };
+
+    // Reset the inactivity timer whenever there's user activity.
+    const resetTimer = () => {
+        clearTimeout(inicativityTimer); // Clear any existing timers.
+
+        // Set a new timeout for automatic logout after 20 minutes of inactivity.
+        inicativityTimer = setTimeout(logoutAndNavigate, 120000);
+    };
+
+    // Adding event listeners for various user activities to reset the inactivity timer.
+
+    // Reset timer on page load.
+    window.addEventListener('load', resetTimer);
+
+    // Reset timer on mouse movement.
+    window.addEventListener('mousemove', resetTimer);
+
+    // Reset timer on key press.
+    window.addEventListener('keypress', resetTimer);
+
+    // Cleanup function: Remove the event listeners when the hook is no longer in use.
+    return () => {
+        window.removeEventListener('load', resetTimer);
+        window.removeEventListener('mousemove', resetTimer);
+        window.removeEventListener('keypress', resetTimer);
+    };
+};
+
+// Export the hook for use in other components.
+export default useActivityLogout;
+
+-----------------------------------------
+
+./tools/hooks/useTokenExpired.tsx
+
+import { useEffect, useState } from "react";
+
+// Constants
+const API_CHECK_TOKEN_VALIDITY = 'http://localhost:4000/api/auth/checkTokenValidity';
+const FETCH_TIMEOUT = 5000;  // Timeout for the fetch call set to 5 seconds
+
+/**
+ * Asynchronously checks whether the JWT token has expired or not.
+ *
+ * @returns Promise<boolean> - Returns a promise which resolves to a boolean.
+ *                            True if the token has expired, false otherwise.
+ *                            In case of any error, the function throws it.
+ */
+const isTokenExpired = async (): Promise<boolean> => {
+    // Setup an abort controller to cancel the fetch request in case it takes too long.
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    try {
+        const response = await fetch(API_CHECK_TOKEN_VALIDITY, {
+            method: 'GET',
+            credentials: 'include',
+            signal: controller.signal  // Signal to possibly abort the fetch
+        });
+
+        // If the response is OK, then the token is valid (not expired).
+        if (response.ok) {
+            return false;
+        } else {
+            // If not OK, then there's an issue with the token. Throw an error.
+            throw new Error(`Error status ${response.status}`);
+        }
+
+    } catch (error: any) {
+        if (error?.message) {
+            console.error("Token check error:", error.message);
+        } else {
+            console.error("Token check error:", error);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Custom React hook to determine if the JWT token has expired.
+ *
+ * @returns boolean | null - Returns:
+ *                           * true if the token has expired
+ *                           * false if the token is valid
+ *                           * null if the status hasn't been determined yet
+ */
+const useTokenExpired = () => {
+    const [tokenExpired, setTokenExpired] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const checkToken = async () => {
+            try {
+                // Check if the token has expired.
+                const expired = await isTokenExpired();
+                // Update the state with the result.
+                setTokenExpired(expired);
+            } catch (error) {
+                // If there's any error (e.g., network issues, invalid token, etc.), 
+                // we assume the token is expired for the purpose of this hook.
+                setTokenExpired(true);
+            }
+        }
+
+        // Initiate the token check.
+        checkToken();
+    }, []);
+
+    // Return the token's expired status.
+    return tokenExpired;
+}
+
+export default useTokenExpired;
+
+
+-----------------------------------------
+
+./components/Settings.tsx
+
+// Prifile.tsx
+import SignOutLink from '../tools/SignoutLink';
+import React from 'react';
+
+function Settings() {
+  return (
+    <div>
+      <SignOutLink/>
+      <p>Welcome to Settings page!</p>;
+    </div>
+  )
+}
+
+export default Settings;
+
+-----------------------------------------
+
+./components/Game.tsx
+
+// Game.tsx
+import React from 'react';
+
+function Game() {
+  return <p>Welcome to the Game page!</p>;
+}
+
+export default Game;
+
+-----------------------------------------
+
+./components/index.tsx
+
+export { default as Welcome } from './Welcome';
+export { default as SignIn } from './SignIn';
+export { default as AuthChoice } from './AuthChoice';
+export { default as HomePage } from './HomePage';
+export { default as Settings } from './Settings';
+export { default as ProtectedRoute } from './ProtectedRoute';
+export { default as Friends } from './Friends'
+export { default as Stats } from './Stats'
+export { default as Chat } from './Chat'
+export { default as useActivityLogout} from '../tools/hooks/useActivityLogout'
+export { default as SignUp} from './SignUp'
+
+
+-----------------------------------------
+
+./components/ProtectedRoute.tsx
+
+import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import useTokenExpired from "../tools/hooks/useTokenExpired";
+import SkeletonLoader from "../tools/SkeletonLoader";
+
+/**
+ * This interface defines the expected props for the ProtectedRoute component.
+ * It should receive children components that this route will render conditionally.
+ */
+interface ProtectedRouteProps {
+    children: React.ReactNode;
+}
+
+// Constant defining the minimum amount of time the loader should be visible (2 seconds).
+const MIN_LOADING_TIME = 2000;
+
+/**
+ * ProtectedRoute is a higher-order component that wraps around parts of the app
+ * requiring JWT token validation for access.
+ *
+ * If the token is not determined yet, it shows a SkeletonLoader for at least 2 seconds.
+ * If the token is invalid/expired, it redirects to the sign-in page.
+ * If the token is valid, it renders the children components.
+ *
+ * @param children React components or elements to render conditionally based on token validity.
+ * @returns A loader, a redirect to the sign-in page, or the children components based on the token's status.
+ */
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+    // Using a custom hook to check whether the token has expired or not.
+    const tokenExpired = useTokenExpired();
+    // State to manage the visibility of the skeleton loader.
+    const [showLoader, setShowLoader] = useState(true);
+
+    useEffect(() => {
+        // This effect ensures that the loader stays on the screen for a minimum time,
+        // even if the token status is determined quickly.
+        const loadingTimeout = setTimeout(() => {
+            setShowLoader(false);
+            // console.log("passing by first useEffect\n");
+        }, MIN_LOADING_TIME);
+
+        // Cleanup function: Clears the timer if the component is unmounted to prevent potential issues.
+        return () => clearTimeout(loadingTimeout);
+    }, []);
+
+    // If the loader state is active, render the SkeletonLoader.
+    if (showLoader || tokenExpired == null) {
+        return <SkeletonLoader />;
+    }
+
+    // If the token has expired, redirect the user to the sign-in page.
+    if (tokenExpired) {
+        return <Navigate to='/signin' />;
+    }
+
+    // If the token is valid, render the children components.
+    return <>{children}</>;
+}
+
+export default ProtectedRoute;
+
+-----------------------------------------
+
+./components/AuthChoice.tsx
+
+// Import necessary libraries and styles.
+import React from "react";
+import axios from 'axios';
+import { useNavigate} from "react-router-dom";
+import '../styles/generalStyles.css';
+
+
+// Create a functional component named AuthChoice.
+const AuthChoice: React.FC = () => {
+
+    // Using the useNavigate hook from react-router to programmatically change routes.
+    const navigate = useNavigate();
+
+    // Function to navigate to the SignIn route.
+    const handleSignInNav = () => {
+        navigate('/signin');
+    };
+
+    // Function to navigate to the SignUp route.
+    const handleSignUpNav = () => {
+        navigate('/signup');
+    };
+
+    let url42 = () => {
+        return axios.get('http://localhost:4000/api/auth/42Url')
+    }
+
+    const handleSignin42Nav = async () => {
+        await url42()
+        .then(response_url => {
+            window.location.href = (response_url.data);
+        })
+        .catch(error => {
+            console.log(error);
+        });
+    }
+
+    // Return the JSX for the component.
+    return (
+        <div className="container">
+            <div>
+                <header>
+                    {/* Header title for the Pong Game */}
+                    <h1 className="title" style={{fontSize: 'xxx-large'}}>Pong Game</h1>
+                </header>
+            </div>
+
+            {/* Button container with SignIn and SignUp buttons */}
+            <div style={{ display: 'flex', gap: '20px' }}>
+                <button className="button" onClick={handleSignInNav}>SignIn</button>
+                <button className="button" onClick={handleSignUpNav}>SignUp</button>
+            </div>
+
+            {/* Button for 42 student authentication */}
+            <button className="button" onClick={handleSignin42Nav}>Sign in with 42</button>
+        </div>
+    );
+}
+
+export default AuthChoice;
+
+
+-----------------------------------------
+
+./components/SignUp.tsx
+
+
+// External dependencies
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Styles and components
+import '../styles/generalStyles.css';
+import GoBackButton from "../tools/GoBackButton";
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief Reusable Input Component to render various input fields
+ * 
+ * @param type Type of the input field (e.g. email, password)
+ * @param value Current value of the input field
+ * @param onChange Event handler when the input value changes
+ * @param placeholder Placeholder text for the input field
+ * 
+ * @returns JSX.Element
+ */
+const InputField: React.FC<{ type: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+    ({ type, value, onChange, placeholder }) => (
+        <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
+    );
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief Makes an API call to sign up the user
+ * 
+ * @param email User's email
+ * @param password User's password
+ * 
+ * @returns Promise with the response JSON
+ * @throws Error if API call isn't successful
+ */
+const signUpAPI = async (email: string, password: string) => {
+    const response = await fetch('http://localhost:4000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        console.log(data);
+        throw new Error(`${data?.message} | Server responded with status: ${response.status}`);
+    }
+
+    return response.json();
+};
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief Validates the given password against certain criteria
+ * 
+ * @param password User's password
+ * 
+ * @returns null if the password is valid, error message otherwise
+ */
+const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+        return 'Password should be at least 8 characters long.';
+    }
+    if (!/[a-z]/.test(password)) {
+        return 'Password should contain at least one lowercase letter.';
+    }
+    if (!/[A-Z]/.test(password)) {
+        return 'Password should contain at least one uppercase letter.';
+    }
+    if (!/[0-9]/.test(password)) {
+        return 'Password should contain at least one digit.';
+    }
+    if (!/[@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(password)) {
+        return 'Password should contain at least one special character (e.g., @, #, $, etc.).';
+    }
+    return null;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief Sign Up functional component
+ * 
+ * @returns JSX.Element
+ */
+const SignUp: React.FC = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    /**
+     * @brief Handles the submit event when user attempts to sign up
+     * 
+     * @param event Mouse event when the button is clicked
+     */
+    const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+
+        if (password !== confirmPassword) {
+            setErrorMessage('Passwords do not match.');
+            return;
+        }
+
+        const passwordValidationError = validatePassword(password);
+        if (passwordValidationError) {
+            setErrorMessage(passwordValidationError);
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await signUpAPI(email, password);
+            navigate('/signin');
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.message.includes('403')) {
+                    setErrorMessage('Email is already registered. Please sign in.');
+                } else {
+                    setErrorMessage('An unexpected error occurred. Please try again later.');
+                }
+            } else {
+                setErrorMessage('An unexpected error occurred. Please try again later.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // JSX Render
+    return (
+        <div className="container">
+            <GoBackButton />
+            <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
+            {errorMessage && <div style={{color: 'white'}}>{errorMessage}</div>}
+            <InputField type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+            <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
+            <InputField type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
+            <button className="button" onClick={handleSubmit} disabled={isLoading || !email || !password || !confirmPassword}>
+                {isLoading ? 'Signing up...' : 'Sign Up'}
+            </button>
+        </div>
+    );
+}
+
+// Export the SignUp component for use in other parts of the application
+export default SignUp;
+
+
+
+-----------------------------------------
+
+./components/Stats.tsx
+
+// Prifile.tsx
+import React from 'react';
+
+function Stats() {
+  return <p>Welcome to Stats page!</p>;
+}
+
+export default Stats;
+
+-----------------------------------------
+
+./components/Friends.tsx
+
+// Home.tsx
+import React from 'react';
+
+function Friends() {
+  return <p>Welcome to the Friends page!</p>;
+}
+
+export default Friends;
+
+-----------------------------------------
+
+./components/Chat.tsx
+
+// Chat.tsx
+import React from 'react';
+
+function Chat() {
+  return <p>Welcome to the Chat page!</p>;
+}
+
+export default Chat;
+
+-----------------------------------------
+
+./components/Welcome.tsx
+
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import '../styles/generalStyles.css';
+
+// Inline styles to override or complement general CSS classes
+const containerStyle = {
+    height: '100vh',
+    width: '100vw',
+    justifyContent: 'center',
+    alignContent: 'center',
+}
+
+const btnElement = {
+    alignSelf: 'center',
+    justifySelf: 'center',
+    height: '8vh',
+    width: '13vw',
+    fontSize: '1.5vw'
+}
+
+/**
+ * Header Component
+ * Represents the main title of the application.
+ */
+const Header: React.FC = () => (
+    <header className="header">
+        <h1 className="title" style={{ color: 'purple', flexWrap: 'wrap', textAlign: 'center' }}>
+            Ready to Pong?
+        </h1>
+    </header>
+);
+
+// Types for the props of Features component
+interface FeaturesProps {
+    handleFunction: () => void;  // Callback to be executed on button click
+}
+
+/**
+ * Features Component
+ * Contains instructions and a start button. When clicked, it triggers the provided handleFunction.
+ */
+const Features: React.FC<FeaturesProps> = ({ handleFunction }) => (
+    <div>
+        <button style={btnElement} className="button" onClick={handleFunction}>start</button>
+    </div>
+);
+
+/**
+ * Welcome Component
+ * Represents the main welcome page. Displays the Header and Features components.
+ * Uses the useNavigate hook from 'react-router-dom' for programmatic navigation.
+ */
+const Welcome: React.FC = () => {
+    const navigate = useNavigate();
+
+    // Handler for the start button. When clicked, navigates the user to the '/AuthChoice' page.
+    const handleStart = () => {
+        navigate('/AuthChoice');
+    }
+
+    return (
+        <div className="container" style={containerStyle}>
+            <Header />
+            <h4>Press start to play</h4>
+            <Features handleFunction={handleStart} />
+        </div>
+    );
+}
+
+export default Welcome;
+
+-----------------------------------------
+
+./components/SignIn.tsx
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import '../styles/generalStyles.css'
+import GoBackButton from "../tools/GoBackButton";
+
+/*************************************************************************** */
+/**
+ * @function InputField
+ * @description A reusable input field component.
+ * @param {string} type - Type of the input field (e.g., text, email, password).
+ * @param {string} value - Current value of the input field.
+ * @param {function} onChange - Function to be called when the value changes.
+ * @param {string} placeholder - Placeholder text for the input field.
+ * @returns {JSX.Element} Rendered input field component.
+ */
+/*************************************************************************** */
+const InputField: React.FC<{ type: string, value: string, 
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+    ({ type, value, onChange, placeholder }) => (
+    <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+/*************************************************************************** */
+/**
+ * @function signInAPI
+ * @description Makes an asynchronous POST request to authenticate a user.
+ * @param {string} email - User's email address.
+ * @param {string} password - User's password.
+ * @returns {Promise<object>} Response data from the server.
+ * @throws Will throw an error if the response is not successful.
+ */
+/*************************************************************************** */
+const signInAPI = async (email: string, password: string) => {
+    const response = await fetch('http://localhost:4000/api/auth/signin', {
+        method: 'POST',
+        credentials: "include",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: email,
+            password: password,
+        })
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(`${data?.message}` || `Server responded with status: ${response.status}`);
+    }
+
+    return response.json();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/*************************************************************************** */
+/**
+ * @function SignIn
+ * @description SignIn functional component responsible for rendering and handling the sign-in process.
+ * @returns {JSX.Element} Rendered Sign-In component.
+ */
+/*************************************************************************** */
+const SignIn: React.FC = () => {
+    // States to manage email, password, error messages and loading state.
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Hook for programmatic navigation.
+    const navigate = useNavigate();
+
+    // Event handler for the Sign In button click.
+    const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();  // Prevent default behaviors like page refresh.
+        setIsLoading(true);  // Set the loading state before API call.
+
+        try {
+            await signInAPI(email, password);  // Try to authenticate the user.
+            navigate('/home');  // Navigate to home on successful authentication.
+        } catch (error) {
+            // Error handling: differentiate between different error types and set appropriate error messages.
+            if (error instanceof Error) {
+                if (error.message.includes('403')) {
+                    setErrorMessage('Wrong credentials. Please try again.');
+                } else {
+                    setErrorMessage(`${error?.message} Please try again`);
+                }
+                console.error("There was an error:", error.message);
+            } else {
+                setErrorMessage('An unexpected error occurred. Please try again later.');
+            }
+        } finally {
+            setIsLoading(false);  // Reset loading state after API call completion.
+        }
+    };
+
+    return (
+        <div className="container">
+            <GoBackButton />
+            <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
+            {errorMessage && <div style={{ color: 'white' }}>{errorMessage}</div>}
+            <InputField type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+            <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
+            <button className="button" onClick={handleSubmit} disabled={isLoading || !email || !password}>
+                {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
+        </div>
+    );
+}
+
+export default SignIn;
+
+
+-----------------------------------------
+
+./components/HomePage.tsx
+
+// Importing necessary React and react-router components.
+import React from 'react';
+import { useLocation, NavLink, Outlet } from 'react-router-dom';
+import '../styles/generalStyles.css'
+
+// Define the HomePage functional component.
+const HomePage: React.FC = () => {
+
+    // Use the useLocation hook to get the current URL location.
+    const location = useLocation();
+
+    // Function to determine the link's class based on the current URL.
+    // If the current pathname matches the provided path, it returns an "active" class, otherwise, a regular class.
+    const getLinkClassName = (path: string) => {
+        return location.pathname === path ? "active-nav-link" : "nav-link";
+    };
+
+    // Return the JSX to render for the component.
+    return (
+        <div className="container" style={{justifyContent: 'start'}}>
+            
+            <h1 className="title">Pong Game</h1>   {/* Main title of the page */}
+            
+            <header className="header">
+                {/* Navigation links with conditional class names depending on the current route */}
+                <NavLink to="chat" className={getLinkClassName("/home/chat")}>Chat</NavLink>
+                <NavLink to="friends" className={getLinkClassName("/home/friends")}>Friends</NavLink>
+                <NavLink to="stats" className={getLinkClassName("/home/stats")}>Stats</NavLink>
+                <NavLink to="settings" className={getLinkClassName("/home/settings")}>Settings</NavLink>
+                <NavLink to="Game" className={getLinkClassName("/home/game")}>Game</NavLink>
+            </header>
+
+            {/* Content container that will render the nested route's component (child route) */}
+            <div className='content'>
+                <Outlet/>
+            </div>
+        </div>
+    );
+}
+
+// Export the HomePage component for use in other parts of the application.
+export default HomePage;
+
+
+-----------------------------------------

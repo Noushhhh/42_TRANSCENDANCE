@@ -3,39 +3,49 @@ import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express'
-// import { LocalAuthGuard } from './guards/local-auth.guard';
-// import { AuthGuard } from '@nestjs/passport';
+import { ExtractJwt } from '../decorators/extract-jwt.decorator';
+import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+
+
+const browserError: string = "This browser session is already taken by someone," +
+    " please open a new browser or incognito window";
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(private authService: AuthService) {}
 
     @Public()
     @Post('signup')
-    async signup(@Body() dto: AuthDto, @Res() res: Response) {
+    async signup(@Body() dto: AuthDto, @Res() res: Response) { 
         return this.authService.signup(dto, res);
     }
 
-    // @HttpCode(HttpStatus.OK)
-    // @Public()
-    // @UseGuards(LocalAuthGuard)
     @Post('signin') // delete async, has to signin and cannot do anything else
     async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
-        console.log("Request ===", req.user);
-        return this.authService.signin(dto, res);
+        if (req.cookies.token)
+            return res.status(400).send({ valid: false, message: browserError });
+        try {
+            const result: any = this.authService.signin(dto, res);
+            return result;
+        } catch (error) {
+            res.status(500).send({ valid: false, message: error });
+        }
     }
 
     @Get('checkTokenValidity')
     async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
-        console.log("passing by checkTokenValidity");
         return this.authService.checkTokenValidity(req, res);
     }
 
     @Get('signout')
-    async signout(@Res() res: Response){
-        return this.authService.signout(res);
+    async signout(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response) {
+        if (!decodedPayload) {
+            console.error("error decoding payload with decorator\n");
+            return;
+        }
+        return this.authService.signout(decodedPayload, res);
     }
- 
+
     @Public()
     @Get('42Url')
     async get42Url() {
@@ -44,10 +54,10 @@ export class AuthController {
     }
 
     // @Public()
-    @Get('callback42') 
+    @Get('callback42')
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
         console.log("test");
-        try {   
+        try {
             // Call the authService to handle 42 authentication
             await this.authService.signToken42(req, res);
         } catch (error) {
@@ -57,9 +67,8 @@ export class AuthController {
         }
     }
 
-    @Post('enable2FA') 
-    async enable2FA () {
+    @Post('enable2FA')
+    async enable2FA() {
 
     }
-
 }

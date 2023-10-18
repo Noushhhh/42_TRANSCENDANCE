@@ -20,14 +20,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
-// import { LocalAuthGuard } from './guards/local-auth.guard';
-// import { AuthGuard } from '@nestjs/passport';
+const express_1 = require("express");
+const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
+const browserError = "This browser session is already taken by someone," +
+    " please open a new browser or incognito window";
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -37,24 +40,31 @@ let AuthController = class AuthController {
             return this.authService.signup(dto, res);
         });
     }
-    // @HttpCode(HttpStatus.OK)
-    // @Public()
-    // @UseGuards(LocalAuthGuard)
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Request ===", req.user);
-            return this.authService.signin(dto, res);
+            if (req.cookies.token)
+                return res.status(400).send({ valid: false, message: browserError });
+            try {
+                const result = this.authService.signin(dto, res);
+                return result;
+            }
+            catch (error) {
+                res.status(500).send({ valid: false, message: error });
+            }
         });
     }
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("passing by checkTokenValidity");
             return this.authService.checkTokenValidity(req, res);
         });
     }
-    signout(res) {
+    signout(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.signout(res);
+            if (!decodedPayload) {
+                console.error("error decoding payload with decorator\n");
+                return;
+            }
+            return this.authService.signout(decodedPayload, res);
         });
     }
     get42Url() {
@@ -90,7 +100,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_1.AuthDto, Object]),
+    __metadata("design:paramtypes", [dto_1.AuthDto, typeof (_a = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _a : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
@@ -100,7 +110,7 @@ __decorate([
     __param(1, (0, common_1.Res)()),
     __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_1.AuthDto, Object, Object]),
+    __metadata("design:paramtypes", [dto_1.AuthDto, typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object, typeof (_c = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _c : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signin", null);
 __decorate([
@@ -108,14 +118,15 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _d : Object, typeof (_e = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _e : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
     (0, common_1.Get)('signout'),
-    __param(0, (0, common_1.Res)()),
+    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, typeof (_f = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _f : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
 __decorate([
@@ -130,7 +141,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [typeof (_g = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _g : Object, typeof (_h = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _h : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "handle42Callback", null);
 __decorate([
