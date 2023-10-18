@@ -337,10 +337,22 @@ let AuthService = class AuthService {
             }
         });
     }
-    generateRandomPassword() {
-        const password = Math.random().toString(36).slice(2, 15) +
-            Math.random().toString(36).slice(2, 15);
-        return password;
+    enable2FA(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    TwoFA: true,
+                },
+            });
+            generateRandomPassword();
+            string;
+            {
+                const password = Math.random().toString(36).slice(2, 15) +
+                    Math.random().toString(36).slice(2, 15);
+                return password;
+            }
+        });
     }
     findUserByUsername(username) {
         return __awaiter(this, void 0, void 0, function* () {
