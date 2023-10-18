@@ -35,18 +35,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserController = void 0;
+exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt = __importStar(require("jsonwebtoken"));
+const jwt_guard_1 = require("../auth/guard/jwt.guard");
 // import { JwtStrategy } from '../strategy/jwt.strategy';
-let UserController = class UserController {
+let UsersController = class UsersController {
     constructor(config) {
         this.config = config;
     }
     ;
     // constructor (private UserService: User)
-    // @UseGuards(JwtGuard)
     getMe(req) {
         try {
             const jwtCookie = req.cookies['token'];
@@ -59,15 +59,16 @@ let UserController = class UserController {
         }
     }
 };
-exports.UserController = UserController;
+exports.UsersController = UsersController;
 __decorate([
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
     (0, common_1.Get)('me'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], UserController.prototype, "getMe", null);
-exports.UserController = UserController = __decorate([
+], UsersController.prototype, "getMe", null);
+exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [config_1.ConfigService])
-], UserController);
+], UsersController);

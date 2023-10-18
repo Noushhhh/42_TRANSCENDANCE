@@ -21,10 +21,6 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
 
   useEffect(() => {
     resizeEvent();
-    console.log(
-      GameConfigController.getKonvaHeight(),
-      GameConfigController.getKonvaWidth()
-    );
     window.addEventListener("resize", resizeEvent);
 
     return () => {
@@ -33,11 +29,12 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   }, []);
 
   const resizeEvent = () => {
-    GameConfigController.setKonvaWidth(window.innerWidth);
-    GameConfigController.setKonvaHeight((window.innerWidth * 6) / 12);
-    stageRef.current?.width(window.innerWidth);
-    stageRef.current?.height((window.innerWidth * 6) / 12);
-    setKonvaSize([window.innerWidth, (window.innerWidth * 6) / 12]);
+    GameConfigController.setKonvaWidth((window.innerWidth * 0.8));
+    GameConfigController.setKonvaHeight(((window.innerWidth * 0.8) * 6) / 12);
+    stageRef.current?.width((window.innerWidth * 0.8));
+    stageRef.current?.height(((window.innerWidth * 0.8) * 6) / 12);
+    setKonvaSize([(window.innerWidth * 0.8), ((window.innerWidth * 0.8) * 6) / 12]);
+    socket.emit("resizeEvent");
   };
 
   const ballPosRef = useRef<Vector2d>({
@@ -47,7 +44,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
 
   return (
     <Stage
-      style={{ backgroundColor: "#201F1F" }}
+      style={{ backgroundColor: "#161515" }}
       className="GamePhysics"
       ref={stageRef}
       width={gameConfig.konvaWidth}
