@@ -5,14 +5,12 @@ import ScoreBoard from "./gameNetwork/ScoreBoard";
 import { Socket } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
-import PlayPauseButton from "./gameUtils/PlayPauseButton";
 import GameMenu from "./GameMenu";
 import MiddleLine from "./gamePhysics/MiddleLine";
-import GameCustomization from "./gamePhysics/GameCustomization";
 import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
-import GameRules from "./gameUtils/GameRules";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
+import PrintWinner from "./gameUtils/PrintWinner";
 
 interface GameContainerProps {
   socket: Socket;
@@ -125,7 +123,11 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
 
   if (isInLobby === true) {
     if (isLobbyFull === false) {
-      return <WaitingForPlayer />;
+      return (
+        <>
+          <WaitingForPlayer />
+        </>
+      );
     } else {
       return (
         <div className="GameContainer">
@@ -137,6 +139,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
+          <PrintWinner socket={socket} />
           <AutoLaunch
             start={start}
             setGameLaunchedRef={setGameLaunchedRef}
