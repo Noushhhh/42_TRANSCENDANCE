@@ -60,4 +60,11 @@ export class GameController {
     this.gameLoopService.stopGameLoop();
     return { msg: 'stopped' };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('playerName')
+  playerName(@Req() req: Request, @Query('clientId') clientId: string,) {
+    if (req.user)
+      this.gameLobby.addPlayerNameToLobby(req.user.id, clientId);
+  }
 }

@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GatewayIn = void 0;
 const websockets_1 = require("@nestjs/websockets");
@@ -66,20 +65,21 @@ let GatewayIn = class GatewayIn {
     resizeEvent() {
         this.gameLoop.resizeEvent();
     }
-    addGameToPlayer() {
+    getColor(client, color) {
+        this.gameLobby.changePlayerColor(client, color);
     }
 };
 exports.GatewayIn = GatewayIn;
 __decorate([
     (0, websockets_1.WebSocketServer)(),
-    __metadata("design:type", typeof (_a = typeof socket_io_1.Server !== "undefined" && socket_io_1.Server) === "function" ? _a : Object)
+    __metadata("design:type", socket_io_1.Server)
 ], GatewayIn.prototype, "server", void 0);
 __decorate([
     (0, websockets_1.SubscribeMessage)('getPlayerPos'),
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_b = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "getPlayerPos", null);
 __decorate([
@@ -87,14 +87,14 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Boolean, typeof (_c = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [Boolean, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "setPause", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('requestLobbies'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "requestLobbie", null);
 __decorate([
@@ -102,21 +102,21 @@ __decorate([
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_e = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "setIntoLobby", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('sendPlayersPos'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _f : Object]),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "sendPlayersPos", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('requestGameState'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _g : Object]),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "requestGameState", null);
 __decorate([
@@ -124,14 +124,14 @@ __decorate([
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_h = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _h : Object, Number]),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Number]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "getPaddleSize", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('removeFromLobby'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_j = typeof socket_io_1.Socket !== "undefined" && socket_io_1.Socket) === "function" ? _j : Object]),
+    __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "removeFromLobby", null);
 __decorate([
@@ -141,11 +141,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "resizeEvent", null);
 __decorate([
-    (0, websockets_1.SubscribeMessage)('addGameToPlayersStats'),
+    (0, websockets_1.SubscribeMessage)('getColor'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [socket_io_1.Socket, String]),
     __metadata("design:returntype", void 0)
-], GatewayIn.prototype, "addGameToPlayer", null);
+], GatewayIn.prototype, "getColor", null);
 exports.GatewayIn = GatewayIn = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

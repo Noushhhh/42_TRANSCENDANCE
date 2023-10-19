@@ -24,7 +24,7 @@ interface GameData {
   paddleWidth: number;
 }
 
-const moveSpeed = 6 / 800.0;
+const moveSpeed = 9 / 800.0;
 
 @Injectable()
 export class GameLoopService {
@@ -68,33 +68,6 @@ export class GameLoopService {
     }
   }
 
-  // private updateSpawnPowerUp() {
-  //   for (const [key, lobby] of lobbies) {
-  //     const gameState = lobby.gameState.gameState;
-  //     if (lobby.gameState.gameState.isPaused === true) continue;
-  //     if (!lobby.gameState.gameState.powerUpValueSet) {
-  //       lobby.gameState.gameState.powerUpValueSet = true;
-  //       lobby.gameState.gameState.powerUp.x = this.gameLogicService.getRandomFloat(0.2, 0.8, 3);
-  //     }
-  //     lobby.gameState.gameState.spawnPowerUp += 1;
-  //     if (lobby.gameState.gameState.spawnPowerUp > 50) {
-  //       lobby.gameState.gameState.powerUp.y += 0.0025;
-  //       if (lobby.gameState.gameState.powerUp.y > 1
-  //         || this.gameLogicService.hasBallTouchedPowerUp(
-  //           gameState.ballState.ballDirection,
-  //           gameState.ballState.ballPos.x,
-  //           gameState.ballState.ballPos.y,
-  //           gameState.powerUp.x,
-  //           gameState.powerUp.y,
-  //         ) !== 0) {
-  //         lobby.gameState.gameState.powerUp.y = -1;
-  //         lobby.gameState.gameState.powerUpValueSet = false;
-  //         console.log("je suis ici meme");
-  //       }
-  //     }
-  //   }
-  // }
-
   private updateGameState = () => {
     this.gatewayOut.updateLobbiesGameState();
   };
@@ -136,21 +109,6 @@ export class GameLoopService {
     }
   }
 
-  private hasBallTouchedPowerUp = () => {
-    for (const [key, lobby] of lobbies) {
-      if (lobby.gameState.gameState.isPaused === true) continue;
-
-      if (this.gameLogicService.hasBallTouchedPowerUp(
-        lobby.gameState.gameState.ballState.ballDirection,
-        lobby.gameState.gameState.ballState.ballPos.x,
-        lobby.gameState.gameState.ballState.ballPos.y,
-        lobby.gameState.gameState.powerUp.x,
-        lobby.gameState.gameState.powerUp.y,
-      ) !== 0) {
-      }
-    }
-  }
-
   private updateBall = () => {
     for (const [key, lobby] of lobbies) {
       if (lobby.gameState.gameState.isPaused === true) continue;
@@ -173,8 +131,11 @@ export class GameLoopService {
       if (score) {
         lobby.gameState.gameState.score = score;
         if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
+          const gameState = lobby.gameState.gameState;
           const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
           this.playerStats.addWinToPlayer(winnerId);
+          this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false);
+          this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false);
           console.log(score.p1Score === SCORE_TO_WIN ? "P1WIN" : "P2WIN");
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {

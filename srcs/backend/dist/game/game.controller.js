@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GameController = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,7 +18,6 @@ const gameLoop_service_1 = require("./gameLoop.service");
 const gameLobby_service_1 = require("./gameLobby.service");
 const common_2 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/guards/jwt.auth-guard");
-const express_1 = require("express");
 const playerStatistics_service_1 = require("./playerStatistics.service");
 let GameController = class GameController {
     constructor(gameLoopService, gameLobby, playerStats) {
@@ -47,6 +45,10 @@ let GameController = class GameController {
         this.gameLoopService.stopGameLoop();
         return { msg: 'stopped' };
     }
+    playerName(req, clientId) {
+        if (req.user)
+            this.gameLobby.addPlayerNameToLobby(req.user.id, clientId);
+    }
 };
 exports.GameController = GameController;
 __decorate([
@@ -55,7 +57,7 @@ __decorate([
     __param(0, (0, common_2.Query)('clientId')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_a = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _a : Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "connectToLobby", null);
 __decorate([
@@ -63,7 +65,7 @@ __decorate([
     (0, common_1.Get)('addGameToPlayer'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "addGameToPlayer", null);
 __decorate([
@@ -78,6 +80,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GameController.prototype, "stop", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('playerName'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_2.Query)('clientId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], GameController.prototype, "playerName", null);
 exports.GameController = GameController = __decorate([
     (0, common_1.Controller)('game'),
     __metadata("design:paramtypes", [gameLoop_service_1.GameLoopService,

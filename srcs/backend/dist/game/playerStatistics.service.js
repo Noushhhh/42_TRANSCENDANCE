@@ -100,6 +100,40 @@ let playerStatistics = class playerStatistics {
             });
         });
     }
+    addGameToMatchHistory(playerId, opponentName, playerScore, opponentScore, p1Left, p2Left) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const player = yield this.prisma.user.findUnique({
+                where: { id: playerId }
+            });
+            if (!player) {
+                throw new Error("Player not found.");
+            }
+            const newMatchHistory = yield this.prisma.matchHistory.create({
+                data: {
+                    date: new Date(),
+                    playerId: playerId,
+                    opponentName: opponentName,
+                    selfScore: playerScore,
+                    opponentScore: opponentScore,
+                    playerLeft: p1Left,
+                    opponentLeft: p2Left
+                }
+            });
+            if (!newMatchHistory)
+                throw new Error("Error during match history creation");
+            // Add the new match history entry to the player's match history.
+            yield this.prisma.user.update({
+                where: { id: playerId },
+                data: {
+                    matchHistory: {
+                        connect: {
+                            id: newMatchHistory.id,
+                        },
+                    }
+                },
+            });
+        });
+    }
 };
 exports.playerStatistics = playerStatistics;
 exports.playerStatistics = playerStatistics = __decorate([
