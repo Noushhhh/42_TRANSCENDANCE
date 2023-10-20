@@ -33,6 +33,13 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
+    getToken(req) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Extract the access token from the request cookies
+            const accessToken = req.cookies['token'];
+            return { accessToken };
+        });
+    }
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.signup(dto, res);
@@ -92,6 +99,13 @@ let AuthController = class AuthController {
     }
 };
 exports.AuthController = AuthController;
+__decorate([
+    (0, common_1.Get)('token'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getToken", null);
 __decorate([
     (0, public_decorators_1.Public)(),
     (0, common_1.Post)('signup'),

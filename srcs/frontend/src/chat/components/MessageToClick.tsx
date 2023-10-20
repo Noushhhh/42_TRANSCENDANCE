@@ -7,7 +7,7 @@ import { useSetChannelIdContext } from "../contexts/channelIdContext";
 interface Channel {
     name: string,
     lastMsg : string,
-    dateLastMsg: Date,
+    dateLastMsg: Date | null,
     channelId: number;
 }
 
@@ -20,11 +20,19 @@ function MessageToClick({channel, isConnected }: MessageToClickProps) {
 
     const setChannelId = useSetChannelIdContext();
 
-    const dateObject = new Date(channel.dateLastMsg);
+    let dateObject: Date | null;
+
+    if (channel.dateLastMsg)
+        dateObject = new Date(channel.dateLastMsg);
+    else
+        dateObject = null;
 
     const handleClick = () => {
         setChannelId(channel.channelId);
     }
+
+    if (channel.channelId === -1)
+        return null;
 
     return (
         <div onClick={handleClick} className="MessageToClick">

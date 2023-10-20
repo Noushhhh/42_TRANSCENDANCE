@@ -34,6 +34,7 @@ export class AuthService {
         private usersService: UsersService,
         private prisma: PrismaService,
         private jwt: JwtService,
+        // private jwtService: JwtService,
     ) {
         this.JWT_SECRET = jwtConstants.secret;
         if (!this.JWT_SECRET) {

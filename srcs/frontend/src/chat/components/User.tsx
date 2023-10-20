@@ -19,9 +19,6 @@ interface UserProps {
 
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
 
-    const userId: number = useUserIdContext();
-    const channelId: number = useChannelIdContext();
-
     const handleDivClick = () => {
         console.log("run here ?");
     };

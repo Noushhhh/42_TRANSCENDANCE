@@ -2,14 +2,16 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import { SocketEvents } from '../socket/SocketEvents';
-import { SocketModule } from '../socket/SocketModule';
-import { SocketService } from '../socket/socket.service';
 import { ConfigService } from '@nestjs/config';
+import { ChatGateway } from './chat.gateway';
+import { listUserConnected } from './socket.service';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Module ({
-    imports: [PrismaModule, SocketModule],
+    imports: [PrismaModule, ChatModule],
     controllers: [ChatController],
-    providers: [ChatService, SocketService, SocketEvents, ConfigService],
+    providers: [ChatService, ConfigService, ChatGateway, listUserConnected, AuthService, JwtService, UsersService],
 })
 export class ChatModule {}

@@ -2,7 +2,7 @@
 interface ChannelLight{
     name: string,
     lastMsg : string,
-    dateLastMsg: Date,
+    dateLastMsg: Date | null,
     channelId: number,
   }
   

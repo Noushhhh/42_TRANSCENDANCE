@@ -4,11 +4,8 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import "../styles/ChannelInfo.css"
 import ChannelSettings from "./ChannelSettings";
 import ConfirmationPopup from "./ConfirmationPopup";
-import { leaveChannel } from "./ChannelUtils";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import { useChannelIdContext } from "../contexts/channelIdContext";
-import { useSocketContext } from "../contexts/socketContext";
-import { Socket } from "socket.io-client";
 
 interface MonComposantProps {
     isChannelInfoDisplay: boolean;
@@ -19,23 +16,26 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: MonComposantProps
 
     const [settingsChannel, setSettingsChannel] = useState<boolean>(false);
     const [displayMenu, setdisplayMenu] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     const channelId: number = useChannelIdContext();
-    const socket: Socket = useSocketContext();
 
     let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
     let isContainerDisplay: string | null = displayMenu ? 'IsDisplay' : 'IsReduce';
 
     useEffect(()=>{
+        setError(null);
         setChannelInfo(false);
     }, [channelId]);
 
     const handleSettings = () => {
+        setError(null);
         settingsChannel ? setSettingsChannel(false) : setSettingsChannel(true);
         setdisplayMenu(!displayMenu);
     }
         return channelId !== -1 ? (
             <div className={`ChannelInfo ${'ContainerChannelInfo' + widthChatView}`}>
+                {error} 
             <div className={`${'Container' + isContainerDisplay}`}>
                <HeaderChannelInfo handleClick={()=>{}} title={"Groups information"}/>
                 <div className="ChannelInfoCard ChannelName">
@@ -46,10 +46,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: MonComposantProps
                     <h4 className="clickable" onClick={handleSettings}>Parametres du groupe <ArrowForwardIosIcon className="icon" /></h4>
                 </div>
                 <div className="ChannelInfoCard SettingsButton leaveChannel">
-                    <ConfirmationPopup Action={leaveChannel}/>
+                    <ConfirmationPopup setError={setError}/>
                 </div>
             </div>
-            <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} />
+            <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} setChannelInfo={setChannelInfo}/>
         </div>
     ) 
         : null;
