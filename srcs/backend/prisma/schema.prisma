@@ -29,7 +29,8 @@ model User {
   refreshToken        RefreshToken[]
 
   firstConnexion      Boolean       @default (true)
-  TwoFA               Boolean       @default(false)
+  loggedIn            Boolean       @default (false)
+  TwoFA               Boolean       @default (false)
 
   // Channel related
   channelsOwned       Channel[]     @relation("Owner")
@@ -42,8 +43,8 @@ model User {
   mutedInChannels     Channel[]     @relation("MutedUsers")
 
   // Player statistics
-  gamesPlayed         Int           @default(0)
-  gamesWon            Int           @default(0)
+  gamesPlayed         Int             @default(0)
+  gamesWon            Int             @default(0)
   matchHistory        MatchHistory[]
 
   @@map("users")
