@@ -40,7 +40,6 @@ services:
       - app_network # Connect to the app network
     depends_on:
       - db
-      - nginx
 
   # Frontend Service
   frontend:
@@ -55,9 +54,6 @@ services:
       - 8080:3000 # Map the container port to the host port
     networks:
       - app_network # Connect to the app network
-    depends_on:
-      - db
-      - nginx
 
   # Nginx Service
   nginx:
@@ -70,6 +66,9 @@ services:
       - 8081:80 # Map the container port to the host port
     networks:
       - app_network # Connect to the app network
+    depends_on:
+      - backend
+      - frontend
     tty: true
     stdin_open: true
     restart: unless-stopped

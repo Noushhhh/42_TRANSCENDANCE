@@ -56,35 +56,18 @@ const jwt_1 = require("@nestjs/jwt");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+// import * as qrcode from 'qrcode';
 const speakeasy = __importStar(require("speakeasy"));
-const users_service_1 = require("../users/users.service");
-const constants_1 = require("../auth/constants/constants");
-/**
- * @file auth.service.ts
- * @author Your Name
- * @date 2023-10-18
- * @brief This file contains the AuthService class, which provides authentication-related services.
- */
-/**
- * @class AuthService
- * @brief This class provides authentication-related services.
- */
+// import { min } from 'class-validator';
 let AuthService = class AuthService {
-    constructor(usersService, prisma, jwt) {
-        this.usersService = usersService;
+    constructor(prisma, jwt) {
         this.prisma = prisma;
         this.jwt = jwt;
-        this.JWT_SECRET = constants_1.jwtConstants.secret;
+        this.JWT_SECRET = process.env.JWT_SECRET;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
         }
     }
-    /**
-     * @brief This function handles user signup requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signup operation.
-     */
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashPassword = yield argon.hash(dto.password);
@@ -95,6 +78,7 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
+                console.log('signup calle');
                 return this.signToken(user.id, user.username, res);
             }
             catch (error) {
@@ -108,25 +92,13 @@ let AuthService = class AuthService {
             }
         });
     }
-    /**
-     * @brief This function handles user signin requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signin operation.
-     */
     signin(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
-            const user = yield this.usersService.findUserWithUsername(dto.username);
+            const user = yield this.findUserByUsername(dto.username);
             // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
-            const userLoggedIn = yield this.checkUserLoggedIn(user.id);
-            // console.log("passing by userLoggedIn", userLoggedIn, "\n");
-            if (userLoggedIn.statusCode === 200) {
-                throw new common_1.ForbiddenException('User is already logged in');
-                console.log("user already logged in ", userLoggedIn.statusCode);
-            }
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             // if password wrong throw exception
@@ -136,26 +108,6 @@ let AuthService = class AuthService {
             return this.signToken(user.id, user.username, res);
         });
     }
-    /**
-     * @brief This function validates a user.
-     * @param dto The data transfer object containing user information.
-     * @return The user if found, otherwise throws an UnauthorizedException.
-     */
-    validateUser(dto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.usersService.findUserWithUsername(dto.username);
-            if (!user)
-                throw new common_1.UnauthorizedException();
-            return user;
-        });
-    }
-    /**
-     * @brief This function signs a token.
-     * @param userId The user's ID.
-     * @param username The user's username.
-     * @param res The response object.
-     * @return A promise that resolves to void.
-     */
     signToken(userId, username, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
@@ -168,13 +120,13 @@ let AuthService = class AuthService {
                 secret: secret,
             });
             // Generate a refresh token
-            const refreshToken = yield this.createRefreshToken(userId);
+            const refreshToken = this.createRefreshToken(userId);
             // Save refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 1000 * 60 * 60 * 24 * 30 * 30 // 30 days in milliseconds
+                maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
             });
             // Existing JWT token cookie
             res.cookie('token', token, {
@@ -183,18 +135,12 @@ let AuthService = class AuthService {
                 sameSite: 'none',
                 maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
             });
-            //set user to logging (true) in the data base
-            this.updateUserLoggedIn(userId, true);
-            //send respond confiming frontend authentication was successfull
             res.status(200).send({ message: 'Authentication successful' });
+            // return {
+            //     access_token: token
+            // }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function creates a refresh token.
-     * @param userId The user's ID.
-     * @return The refresh token.
-     */
     createRefreshToken(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const refreshToken = (0, crypto_1.randomBytes)(40).toString('hex'); // Generates a random 40-character hex string
@@ -211,66 +157,23 @@ let AuthService = class AuthService {
             return refreshToken;
         });
     }
-    /**
-     * @brief This function updates the user's logged in status.
-     * @param userId The user's ID.
-     * @param inputBoolean The new logged in status.
-     */
-    updateUserLoggedIn(userId, inputBoolean) {
+    checkOnlyTokenValidity(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            //update user login status 
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    loggedIn: inputBoolean,
-                },
-            });
-        });
-    }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function checks if the user is logged in.
-     * @param userId The user's ID.
-     * @return The user's logged in status.
-     */
-    checkUserLoggedIn(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
+            if (!token)
+                throw new common_1.ForbiddenException("Token not provided");
             try {
-                const user = yield this.usersService.findUserWithId(userId);
+                const user = jwt.verify(token, this.JWT_SECRET);
                 if (!user)
-                    throw new common_1.ForbiddenException('Username not found');
-                // console.log("Passing by checkUserLoggedIn", user.loggedIn, user);
-                if (user.loggedIn) {
-                    return ({
-                        statusCode: 200,
-                        valid: true,
-                        message: "User is logged in"
-                    });
-                }
-                else {
-                    return ({
-                        statusCode: 400,
-                        valid: true,
-                        message: "User is not logged in"
-                    });
-                }
+                    return null;
+                if (user.sub)
+                    return Number(user.sub);
             }
             catch (error) {
-                return ({
-                    statusCode: 400,
-                    valid: false,
-                    message: `Error finding userid ${userId} ` + error
-                });
+                return null;
             }
+            return null;
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function checks the validity of the token.
-     * @param req The request object.
-     * @param res The response object.
-     * @return The token's validity status.
-     */
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
@@ -285,35 +188,17 @@ let AuthService = class AuthService {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function handles user signout requests.
-     * @param decodedPayload The decoded payload.
-     * @param res The response object.
-     * @return The result of the signout operation.
-     */
-    signout(decodedPayload, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // Clear the JWT cookie or session
-            if (!decodedPayload)
-                return;
-            try {
-                res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
-                this.updateUserLoggedIn(decodedPayload.sub, false);
-                return res.status(200).send({ message: 'Signed out successfully' });
-            }
-            catch (error) {
-                console.error(error);
-                return res.status(401).send({ message: "Cookie not found" });
-            }
-        });
+    signout(res) {
+        // Clear the JWT cookie or session
+        try {
+            res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
+            return res.status(200).send({ message: 'Signed out successfully' });
+        }
+        catch (error) {
+            console.error(error);
+            return res.status(401).send({ message: "Cookie not found" });
+        }
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function signs a token for 42 authentication.
-     * @param req The request object.
-     * @param res The response object.
-     */
     signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -341,13 +226,13 @@ let AuthService = class AuthService {
                 res.cookie('token', jwtToken, {
                     httpOnly: true,
                     secure: true,
-                    sameSite: 'none',
+                    sameSite: 'strict',
                     maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
                 });
                 res.cookie('refreshToken', refreshToken, {
                     httpOnly: true,
                     secure: true,
-                    sameSite: 'none',
+                    sameSite: 'strict',
                     maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
                 });
                 // Redirect the user to the desired URL after successful authentication
@@ -360,12 +245,6 @@ let AuthService = class AuthService {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function exchanges a code for a token.
-     * @param code The code.
-     * @return The token or null if the exchange fails.
-     */
     exchangeCodeForToken(code) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -378,7 +257,6 @@ let AuthService = class AuthService {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     sendAuthorizationCodeRequest(code) {
         return __awaiter(this, void 0, void 0, function* () {
             const requestBody = {
@@ -391,17 +269,11 @@ let AuthService = class AuthService {
             return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function creates a user.
-     * @param userInfo The user info.
-     * @param res The response object.
-     * @return The user.
-     */
     getUserInfo(token) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendUserInfoRequest(token);
+                //   const this.createUser(response.data);
                 return response.data;
             }
             catch (error) {
@@ -410,7 +282,6 @@ let AuthService = class AuthService {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     sendUserInfoRequest(token) {
         return __awaiter(this, void 0, void 0, function* () {
             return axios_1.default.get('https://api.intra.42.fr/v2/me', {
@@ -420,13 +291,6 @@ let AuthService = class AuthService {
             });
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function creates a user.
-     * @param userInfo The user info.
-     * @param res The response object.
-     * @return The user.
-     */
     createUser(userInfo, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingUser = yield this.prisma.user.findUnique({
@@ -441,10 +305,17 @@ let AuthService = class AuthService {
                 return existingUser;
             }
             try {
+                // let avatarUrl;
+                // if (userInfo.image.link === null) {
+                //     // Generate a random avatar URL or use a default one
+                //     avatarUrl = 'https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg';
+                // } else {
+                //     avatarUrl = userInfo.image.link;
+                // }
                 let avatarUrl;
                 if (userInfo.image.link !== null) {
                     // use the 42 profile picture if not null
-                    avatarUrl = userInfo.image.link;
+                    avatarUrl = avatarUrl = userInfo.image.link;
                 }
                 const user = yield this.prisma.user.create({
                     data: {
@@ -466,22 +337,32 @@ let AuthService = class AuthService {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function generates a random password.
-     * @return The password.
-     */
-    generateRandomPassword() {
-        const password = Math.random().toString(36).slice(2, 15) +
-            Math.random().toString(36).slice(2, 15);
-        return password;
+    enable2FA(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    TwoFA: true,
+                },
+            });
+            generateRandomPassword();
+            string;
+            {
+                const password = Math.random().toString(36).slice(2, 15) +
+                    Math.random().toString(36).slice(2, 15);
+                return password;
+            }
+        });
     }
-    // ─────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function generates a 2FA secret.
-     * @param userId The user's ID.
-     * @return The 2FA secret and otpauth URL.
-     */
+    findUserByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.prisma.user.findUnique({
+                where: {
+                    username,
+                },
+            });
+        });
+    }
     generateTwoFASecret(userId) {
         const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
         const otpauthUrl = speakeasy.otpauthURL({
@@ -491,13 +372,6 @@ let AuthService = class AuthService {
         });
         return { secret: secret.base32, otpauthUrl };
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function verifies a 2FA code.
-     * @param userId The user's ID.
-     * @param code The 2FA code.
-     * @return Whether the 2FA code is verified.
-     */
     verifyTwoFACode(userId, code) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.prisma.user.findUnique({
@@ -516,19 +390,8 @@ let AuthService = class AuthService {
             return verified;
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function enables 2FA.
-     * @param userId The user's ID.
-     */
-    enable2FA(userId) {
+    enable2FA() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    TwoFA: true,
-                },
-            });
         });
     }
 };
@@ -541,7 +404,6 @@ __decorate([
 ], AuthService.prototype, "signToken42", null);
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [users_service_1.UsersService,
-        prisma_service_1.PrismaService,
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService])
 ], AuthService);

@@ -26,9 +26,8 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
-const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
-const browserError = "This browser session is already taken by someone," +
-    " please open a new browser or incognito window";
+// import { LocalAuthGuard } from './guards/local-auth.guard';
+// import { AuthGuard } from '@nestjs/passport';
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -45,17 +44,13 @@ let AuthController = class AuthController {
             return this.authService.signup(dto, res);
         });
     }
+    // @HttpCode(HttpStatus.OK)
+    // @Public()
+    // @UseGuards(LocalAuthGuard)
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.cookies.token)
-                return res.status(400).send({ valid: false, message: browserError });
-            try {
-                const result = this.authService.signin(dto, res);
-                return result;
-            }
-            catch (error) {
-                res.status(500).send({ valid: false, message: error });
-            }
+            console.log("Request ===", req.user);
+            return this.authService.signin(dto, res);
         });
     }
     checkTokenValidity(req, res) {
@@ -63,13 +58,9 @@ let AuthController = class AuthController {
             return this.authService.checkTokenValidity(req, res);
         });
     }
-    signout(decodedPayload, res) {
+    signout(res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!decodedPayload) {
-                console.error("error decoding payload with decorator\n");
-                return;
-            }
-            return this.authService.signout(decodedPayload, res);
+            return this.authService.signout(res);
         });
     }
     get42Url() {
@@ -135,10 +126,9 @@ __decorate([
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
     (0, common_1.Get)('signout'),
-    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_1.Res)()),
+    __param(0, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
 __decorate([
