@@ -81,11 +81,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     this.gameLobby.sendLobbyGameState(client);
   }
 
-  @SubscribeMessage('updatePaddleSize')
-  getPaddleSize(@ConnectedSocket() client: Socket, @MessageBody() num: number) {
-    console.log("je recois: ", num);
-  }
-
   @SubscribeMessage('removeFromLobby')
   removeFromLobby(@ConnectedSocket() client: Socket) {
     this.gameLobby.removePlayerFromLobby(client);
