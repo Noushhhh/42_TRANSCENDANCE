@@ -44,6 +44,7 @@ model User {
   // Player statistics
   gamesPlayed         Int           @default(0)
   gamesWon            Int           @default(0)
+  matchHistory        MatchHistory[]
 
   @@map("users")
 }

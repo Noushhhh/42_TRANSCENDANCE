@@ -7,10 +7,11 @@ import { ChatGateway } from './chat.gateway';
 import { listUserConnected } from './socket.service';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Module ({
     imports: [PrismaModule, ChatModule],
     controllers: [ChatController],
-    providers: [ChatService, ConfigService, ChatGateway, listUserConnected, AuthService, JwtService],
+    providers: [ChatService, ConfigService, ChatGateway, listUserConnected, AuthService, JwtService, UsersService],
 })
 export class ChatModule {}
