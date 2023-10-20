@@ -8,19 +8,19 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const [p1Name, setP1Name] = useState<string>("");
   const [p2Name, setP2Name] = useState<string>("");
 
-  useEffect(() => {
-    fetch(`http://localhost:4000/api/game/playerName?clientId=${socket.id}`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   // fetch(`http://localhost:4000/api/game/playerName?clientId=${socket.id}`, {
+  //   //   method: "GET",
+  //   //   credentials: "include",
+  //   // })
+  //   //   .then((response) => response.json())
+  //   //   .then((data) => {
+  //   //     console.log(data);
+  //   //   })
+  //   //   .catch((error) => {
+  //   //     console.error(error);
+  //   //   });
+  // }, []);
 
   useEffect(() => {
     socket.on("updateGameState", updateGameStateListener);
