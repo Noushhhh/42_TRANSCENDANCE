@@ -56,9 +56,6 @@ let GatewayIn = class GatewayIn {
     requestGameState(client) {
         this.gameLobby.sendLobbyGameState(client);
     }
-    getPaddleSize(client, num) {
-        console.log("je recois: ", num);
-    }
     removeFromLobby(client) {
         this.gameLobby.removePlayerFromLobby(client);
     }
@@ -119,14 +116,6 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GatewayIn.prototype, "requestGameState", null);
-__decorate([
-    (0, websockets_1.SubscribeMessage)('updatePaddleSize'),
-    __param(0, (0, websockets_1.ConnectedSocket)()),
-    __param(1, (0, websockets_1.MessageBody)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [socket_io_1.Socket, Number]),
-    __metadata("design:returntype", void 0)
-], GatewayIn.prototype, "getPaddleSize", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('removeFromLobby'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
