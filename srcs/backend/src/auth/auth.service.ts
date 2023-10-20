@@ -237,6 +237,23 @@ export class AuthService {
 
   }
 
+  async checkOnlyTokenValidity(token: string): Promise<number | null> {
+
+    if (!token)
+      throw new ForbiddenException("Token not provided");
+
+    try {
+      const user = jwt.verify(token, this.JWT_SECRET);
+      if (!user)
+        return null;
+      if (user.sub)
+        return Number(user.sub);
+    } catch (error) {
+      return null;
+    }
+    return null;
+  }
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 
