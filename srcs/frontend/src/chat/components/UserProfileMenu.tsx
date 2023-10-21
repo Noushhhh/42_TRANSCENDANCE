@@ -9,6 +9,8 @@ import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
 import { useUserIdContext } from '../contexts/userIdContext';
+import { createChannel } from './ChannelUtils';
+import { create } from '@mui/material/styles/createTransitions';
 
 interface UserProfileMenuProps {
   user: User;
@@ -43,24 +45,19 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handleProfilClick = () => {
     handleClose();
   };
-
+  
   const handlePrivateMessageClick = async () => {
+    console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
     if (response !== -1) {
       setChannelId(response);
     } else {
-      // creer channel puis fetch
-      const response = await axios.post(
-        'http://localhost:4000/api/chat/addChannelToUser',
-        {
-          name: "",
-          password: "",
-          ownerId: userId,
-          participants: [userId, user.id],
-          type: 0,
-        }
-      );
-      await fetchUser(setChannelHeader, userId, socket);
+      try {
+        // const channelName:string = 
+        await createChannel("", "", [userId, user.id], "PUBLIC", setChannelHeader, userId, socket);  
+      } catch (error){
+        console.log("error while creating channel");
+      }
     }
     handleClose();
   };

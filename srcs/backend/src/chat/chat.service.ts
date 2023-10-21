@@ -223,7 +223,10 @@ export class ChatService {
     const existingChannelNames = channels.map(channel => channel.name);
 
     if (existingChannelNames.some(channelName => channelInfo.name === channelName))
-      throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+      if (channelInfo.name){
+        console.log("channel must be unique!!");
+        throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+      }
 
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({ id: channelInfo.ownerId });

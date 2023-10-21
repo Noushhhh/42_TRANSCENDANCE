@@ -102,26 +102,24 @@ export const fetchUser = async (
 export const createChannel = async (
   channelName: string,
   password: string,
-  userListChannel: {
-    username: string;
-    id: number;
-  }[],
+  participants: number[],
   channelType: string,
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
   userId: number,
   socket: Socket,
 ) => {
   const channelToAdd = {
-    name: channelName,
+    name:  channelName,
     password,
     ownerId: userId,
-    participants: userListChannel.map((user) => user.id),
+    participants,
     type: channelType,
   };
+  
 
   try {
-    // const response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
-    // const response: Response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
+
+    console.log("add channel called with: ", channelToAdd.name)
 
     const response = await fetch(`http://localhost:4000/api/chat/addChannelToUser`, {
       method: "POST",
