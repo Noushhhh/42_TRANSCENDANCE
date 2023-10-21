@@ -90,7 +90,11 @@ export class AuthService {
         // if password wrong throw exception
         if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
         // send back the token
-        return this.signToken(user.id, user.username, res);
+      const result = await this.signToken(user.id, user.username, res);
+      // Update the user's logged in status in the database
+      if (result.valid)
+        this.updateUserLoggedIn(user.id, true);
+      return result;
     }
 
   /**
@@ -105,55 +109,73 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * @brief This function signs a token.
-   * @param userId The user's ID.
-   * @param username The user's username.
-   * @param res The response object.
-   * @return A promise that resolves to void.
-   */
-  async signToken(
-    userId: number,
-    username: string,
-    res: Response
-  ): Promise<void> {
-    const payload = {
-      sub: userId,
-      username,
-    };
-    const secret = this.JWT_SECRET;
-    const token = await this.jwt.signAsync(
-      payload,
-      {
-        expiresIn: '15m',
-        secret: secret,
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief This function signs a token.
+ * @param userId The user's ID.
+ * @param username The user's username.
+ * @param res The response object.
+ * @return A promise that resolves to void.
+ */
+async signToken(
+  userId: number,
+  username: string,
+  res: Response
+){
+  // Create the payload for the JWT token
+  const payload = {
+    sub: userId,
+    username,
+  };
+
+  // Get the JWT secret from the environment variables
+  const secret = this.JWT_SECRET;
+
+  // Sign the JWT token with the payload and secret
+  const token = await this.jwt.signAsync(payload, {
+    expiresIn: '15m',
+    secret: secret,
+  });
+
+  // Check if there is an existing refresh token for the user
+  const existingRefreshToken = await this.prisma.refreshToken.findFirst({
+    where: {
+      userId: userId,
+      expiresAt: {
+        gte: new Date(), //greater or equal to the current date
       },
-    );
+    },
+  });
 
-    // Generate a refresh token
-    const refreshToken = await this.createRefreshToken(userId);
-
-    // Save refresh token in an HttpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true, // set it to false if you're not using HTTPS
-      sameSite: 'none',
-      maxAge: 1000 * 60 * 60 * 24 * 30 * 30  // 30 days in milliseconds
-    });
-
-    // Existing JWT token cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
-    });
-
-    //set user to logging (true) in the data base
-    this.updateUserLoggedIn(userId, true);
-    //send respond confiming frontend authentication was successfull
-    res.status(200).send({ message: 'Authentication successful' });
+  // If there is an existing refresh token, use it. Otherwise, create a new one.
+  let refreshToken;
+  if (existingRefreshToken) {
+    refreshToken = existingRefreshToken.token;
+  } else {
+    refreshToken = await this.createRefreshToken(userId);
   }
+
+  // Save the refresh token in an HttpOnly cookie
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
+  });
+
+  // Save the JWT token in an HttpOnly cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
+  });
+
+  // Send a response confirming that the authentication was successful
+  return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 
