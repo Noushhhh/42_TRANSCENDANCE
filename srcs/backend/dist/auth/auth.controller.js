@@ -42,7 +42,13 @@ let AuthController = class AuthController {
     }
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.signup(dto, res);
+            try {
+                const result = yield this.authService.signup(dto, res);
+                res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+            }
+            catch (error) {
+                res.status(500).send({ valid: false, message: error });
+            }
         });
     }
     signin(dto, res, req) {
@@ -50,8 +56,8 @@ let AuthController = class AuthController {
             if (req.cookies.token)
                 return res.status(400).send({ valid: false, message: browserError });
             try {
-                const result = this.authService.signin(dto, res);
-                return result;
+                const result = yield this.authService.signin(dto, res);
+                res.status(200).send({ valid: result.valid, message: result.message });
             }
             catch (error) {
                 res.status(500).send({ valid: false, message: error });

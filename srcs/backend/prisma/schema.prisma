@@ -102,7 +102,7 @@ model RefreshToken {
       
   // This field is the relation field that lets you fetch the actual User object. 
   // The fields and references arguments define how the relationship is mapped.
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id] , onDelete: Cascade)
   
   createdAt   DateTime @default(now())
   expiresAt   DateTime 

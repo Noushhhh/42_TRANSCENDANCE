@@ -133,7 +133,11 @@ let AuthService = class AuthService {
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
             // send back the token
-            return this.signToken(user.id, user.username, res);
+            const result = yield this.signToken(user.id, user.username, res);
+            // Update the user's logged in status in the database
+            if (result.valid)
+                this.updateUserLoggedIn(user.id, true);
+            return result;
         });
     }
     /**
@@ -149,6 +153,7 @@ let AuthService = class AuthService {
             return user;
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     /**
      * @brief This function signs a token.
      * @param userId The user's ID.
@@ -158,35 +163,51 @@ let AuthService = class AuthService {
      */
     signToken(userId, username, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Create the payload for the JWT token
             const payload = {
                 sub: userId,
                 username,
             };
+            // Get the JWT secret from the environment variables
             const secret = this.JWT_SECRET;
+            // Sign the JWT token with the payload and secret
             const token = yield this.jwt.signAsync(payload, {
                 expiresIn: '15m',
                 secret: secret,
             });
-            // Generate a refresh token
-            const refreshToken = yield this.createRefreshToken(userId);
-            // Save refresh token in an HttpOnly cookie
+            // Check if there is an existing refresh token for the user
+            const existingRefreshToken = yield this.prisma.refreshToken.findFirst({
+                where: {
+                    userId: userId,
+                    expiresAt: {
+                        gte: new Date(), //greater or equal to the current date
+                    },
+                },
+            });
+            // If there is an existing refresh token, use it. Otherwise, create a new one.
+            let refreshToken;
+            if (existingRefreshToken) {
+                refreshToken = existingRefreshToken.token;
+            }
+            else {
+                refreshToken = yield this.createRefreshToken(userId);
+            }
+            // Save the refresh token in an HttpOnly cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 1000 * 60 * 60 * 24 * 30 * 30 // 30 days in milliseconds
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
             });
-            // Existing JWT token cookie
+            // Save the JWT token in an HttpOnly cookie
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
+                maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
             });
-            //set user to logging (true) in the data base
-            this.updateUserLoggedIn(userId, true);
-            //send respond confiming frontend authentication was successfull
-            res.status(200).send({ message: 'Authentication successful' });
+            // Send a response confirming that the authentication was successful
+            return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────

@@ -23,8 +23,13 @@ export class AuthController {
 
     @Public()
     @Post('signup')
-    async signup(@Body() dto: AuthDto, @Res() res: Response) { 
-        return this.authService.signup(dto, res);
+    async signup(@Body() dto: AuthDto, @Res() res: Response) {
+        try {
+            const result = await this.authService.signup(dto, res);
+            res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+        } catch (error) {
+            res.status(500).send({ valid: false, message: error });
+        }
     }
 
     @Post('signin') // delete async, has to signin and cannot do anything else
@@ -32,8 +37,8 @@ export class AuthController {
         if (req.cookies.token)
             return res.status(400).send({ valid: false, message: browserError });
         try {
-            const result: any = this.authService.signin(dto, res);
-            return result;
+            const result: any = await this.authService.signin(dto, res);
+            res.status(200).send({ valid: result.valid, message: result.message });
         } catch (error) {
             res.status(500).send({ valid: false, message: error });
         }

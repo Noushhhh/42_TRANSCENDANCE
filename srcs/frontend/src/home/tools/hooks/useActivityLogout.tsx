@@ -1,48 +1,63 @@
+/**
+ * @file useActivityLogout.tsx
+ * @author [Jairo Alexander VALENCIA CANDAMIL]
+ * @date 2023-10-21
+ * 
+ * @brief This is a custom React hook that handles user inactivity.
+ * It logs out the user after a certain period of inactivity and navigates to the sign-in page.
+ * 
+ * @note The inactivity period is currently set to 120000 milliseconds (2 minutes).
+ */
+
 // Importing necessary hooks and components from "react-router-dom".
 import { useNavigate } from "react-router-dom";
 import { useSignOut } from "./useSignOut";
+import { useEffect } from "react";
 
-// Hook to handle automatic logout after a period of inactivity.
+/**
+ * @function useActivityLogout
+ * @description This hook sets up event listeners for user activity and logs out the user after a period of inactivity.
+ * @returns {null} This hook does not return anything.
+ */
 const useActivityLogout = () => {
-
-    // Utilize the `useNavigate` hook from react-router to programmatically change routes.
     const navigate = useNavigate();
     const handleSignOut = useSignOut();
+    let inactivityTimer: any;
 
-    // Variable to store the inactivity timer.
-    let inicativityTimer: any;
-
-    // Function to remove the user token and navigate to the signin page.
+    // Function to handle user sign out and navigation to the sign-in page.
     const logoutAndNavigate = () => {
         handleSignOut();
-        navigate('signin'); // Navigate to signin page.
+        navigate('signin');
     };
 
-    // Reset the inactivity timer whenever there's user activity.
+    // Function to reset the inactivity timer.
     const resetTimer = () => {
-        clearTimeout(inicativityTimer); // Clear any existing timers.
-
-        // Set a new timeout for automatic logout after 20 minutes of inactivity.
-        inicativityTimer = setTimeout(logoutAndNavigate, 120000);
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(logoutAndNavigate, 120000);
     };
 
-    // Adding event listeners for various user activities to reset the inactivity timer.
-
-    // Reset timer on page load.
-    window.addEventListener('load', resetTimer);
-
-    // Reset timer on mouse movement.
-    window.addEventListener('mousemove', resetTimer);
-
-    // Reset timer on key press.
-    window.addEventListener('keypress', resetTimer);
-
-    // Cleanup function: Remove the event listeners when the hook is no longer in use.
-    return () => {
-        window.removeEventListener('load', resetTimer);
-        window.removeEventListener('mousemove', resetTimer);
-        window.removeEventListener('keypress', resetTimer);
+    // Function to handle window close event.
+    const handleWindowClose = () => {
+        handleSignOut();
     };
+
+    // Setting up event listeners for user activity and window close.
+    useEffect(() => {
+        window.addEventListener('load', resetTimer);
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keypress', resetTimer);
+        window.addEventListener('beforeunload', handleWindowClose);
+
+        // Cleaning up event listeners on unmount.
+        return () => {
+            window.removeEventListener('load', resetTimer);
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keypress', resetTimer);
+            window.removeEventListener('beforeunload', handleWindowClose);
+        };
+    }, []);
+
+    return null;
 };
 
 // Export the hook for use in other components.
