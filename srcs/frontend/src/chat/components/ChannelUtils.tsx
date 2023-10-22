@@ -110,7 +110,7 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   }
 }
 
-export const getChannelName = async (channelId: number): Promise <string> => {
+export const getChannelName = async (channelId: number, userId: number): Promise <string> => {
   try {
     const response: Response = await fetch("http://localhost:4000/api/chat/getChannelName", {
       method: "POST",
@@ -118,7 +118,7 @@ export const getChannelName = async (channelId: number): Promise <string> => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify( {channelId} ),
+      body: JSON.stringify( {channelId, userId} ),
     })
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération des données');
