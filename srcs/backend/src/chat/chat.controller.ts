@@ -1,7 +1,6 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto } from "./dto/chat.dto";
-import { IsArray, IsIn, IsNumber, IsString } from 'class-validator';
-import { validate, ValidationError } from 'class-validator';
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto, ChannelIdDto } from "./dto/chat.dto";
+import { IsIn, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
@@ -73,6 +72,12 @@ export class ChatController {
         return this.chatService.getLastMessage(id);
     }
 
+    @Post('getChannelName')
+    async getChannelName(
+        @Body() data: ChannelIdDto): Promise<string>{
+        return this.chatService.getChannelName(data.channelId);
+    }
+    
     @Post('getChannelHeader')
     async getChannelHeadersFromUserId(@Body()pair: PairUserIdChannelId): Promise<ChannelLight> {
         return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);

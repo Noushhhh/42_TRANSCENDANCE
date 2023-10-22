@@ -6,6 +6,7 @@ import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
 import { listUserConnected } from "./socket.service";
+import { ChannelNameDto } from "./dto/chat.dto";
 
 interface MessageToStore {
   channelId: number;
@@ -83,6 +84,31 @@ export class ChatService {
     }
 
     return lastMessage.content;
+  }
+
+  // async getChannelName(id: number): Promise<string>{
+  //   const idNumber: number = Number(id);
+  //   const channel: Channel = await this.getChannelById(idNumber);
+  //   console.log("channem name found = ", channel.name);
+  //   return channel.name;
+  // }
+
+  async getChannelName(channelId: number): Promise<string> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: {
+        participants: {}
+      }
+    });
+    if (!channel)
+      throw new Error("Channel not found");
+    console.log("channel Name ====", channel?.name);
+    const numberUsersInChannel: number = channel.participants.length;
+    if (numberUsersInChannel === 2){
+      console.log(channel.participants);
+    }
+
+    return channel.name;
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
@@ -677,7 +703,7 @@ export class ChatService {
     return user;
   }
 
-  async getChannelById(channelId: number): Promise<Channel | null> {
+  async getChannelById(channelId: number): Promise<Channel> {
     const channel: Channel | null = await this.prisma.channel.findUnique({
       where: { id: channelId }
     })
