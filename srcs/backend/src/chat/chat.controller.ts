@@ -1,17 +1,47 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto } from "./dto/chat.dto";
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto, ChannelIdDto } from "./dto/chat.dto";
+import { IsIn, IsNumber, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
 import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 
-interface channelToAdd {
-    name: string,
-    password: string,
-    ownerId: number,
-    participants: number[],
-    type: string,
+export class ChannelDTO {
+    @IsString()
+    name!: string;
+  
+    @IsString()
+    password!: string;
+  
+    @IsNumber()
+    @Type(() => Number)
+    ownerId!: number;
+  
+    @IsNumber({},{each: true})
+    participants!: number[];
+  
+    @IsString()
+    type!: string;
+}
+
+export class CreateChannelDto {
+    @IsString()
+    name!: string;
+
+    @IsString()
+    password!: string;
+
+    @IsNumber()
+    @Type(() => Number)
+    ownerId!: number;
+
+    @IsNumber({},{each: true})
+    participants!: number[];
+    
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    type!: string;
 }
 
 interface MessageToStore {
@@ -42,6 +72,12 @@ export class ChatController {
         return this.chatService.getLastMessage(id);
     }
 
+    @Post('getChannelName')
+    async getChannelName(
+        @Body() data: PairUserIdChannelId): Promise<string>{
+        return this.chatService.getChannelName(data.channelId, data.userId);
+    }
+    
     @Post('getChannelHeader')
     async getChannelHeadersFromUserId(@Body()pair: PairUserIdChannelId): Promise<ChannelLight> {
         return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
@@ -86,14 +122,13 @@ export class ChatController {
     }
 
     @Post('addChannelToUser')
-    async addChannelToUser(@Body() channelInfo: channelToAdd) {
+    async addChannelToUser(@Body() channelInfo: CreateChannelDto) {
         try {
             return this.chatService.addChannelToUser(channelInfo);
         } catch (error) {
             throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
         }
     }
-
 
     @Get('isAdmin/:userId/:channelId')
     async isAdmin(

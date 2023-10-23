@@ -99,29 +99,58 @@ export const fetchUser = async (
   }
 };
 
+export const getNumberUsersInChannel = async (channelId: number): Promise<number> => {
+  try {
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
+    const numberUsersInChannel: number = await response.json();
+    console.log("number == ", numberUsersInChannel);
+    return numberUsersInChannel;
+  } catch(error: any){
+    throw new Error("error fetching data");
+  }
+}
+
+export const getChannelName = async (channelId: number, userId: number): Promise <string> => {
+  try {
+    const response: Response = await fetch("http://localhost:4000/api/chat/getChannelName", {
+      method: "POST",
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify( {channelId, userId} ),
+    })
+    if (!response.ok) {
+      throw new Error('Erreur lors de la récupération des données');
+    }
+    const channelName = await response.text();
+    return channelName;
+  } catch (error){
+    throw new Error("Channel not found");
+  }
+}
+
 export const createChannel = async (
   channelName: string,
   password: string,
-  userListChannel: {
-    username: string;
-    id: number;
-  }[],
+  participants: number[],
   channelType: string,
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
   userId: number,
   socket: Socket,
 ) => {
   const channelToAdd = {
-    name: channelName,
+    name:  channelName,
     password,
     ownerId: userId,
-    participants: userListChannel.map((user) => user.id),
+    participants,
     type: channelType,
   };
+  
 
   try {
-    // const response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
-    // const response: Response = await axios.post('http://localhost:4000/api/chat/addChannelToUser', channelToAdd);
+
+    console.log("add channel called with: ", channelToAdd.name)
 
     const response = await fetch(`http://localhost:4000/api/chat/addChannelToUser`, {
       method: "POST",
@@ -135,7 +164,7 @@ export const createChannel = async (
 
     if (response.status === 406)
       throw new Error("Channel name already exist");
-    fetchUser(setChannelHeader, userId, socket);
+    await fetchUser(setChannelHeader, userId, socket);
   } catch (error: any) {
     throw error;
   }
@@ -159,6 +188,7 @@ function compareUsersWithNumbers(users: User[], participants: number[]): boolean
 
   return true;
 }
+
 
 // Check if a channel between several users already exists
 // if yes, return channelId
@@ -186,6 +216,7 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
       throw new Error('Erreur lors de la récupération des données');
     }
 
+    console.log(response);
     channelList = await response.json();
     for (const convId of channelList) {
       const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${convId}`);
@@ -264,7 +295,7 @@ export const kickUserFromChannel = async (
     console.log("acces refuse :", response.statusText);
   }
 
-  fetchUser(setChannelHeader, userId, socket);
+  await fetchUser(setChannelHeader, userId, socket);
   return true;
 }
 
@@ -288,7 +319,7 @@ export const leaveChannel = async (
   }
   if (!response)
     return false;
-  fetchUser(setChannelHeader, userId, socket);
+  await fetchUser(setChannelHeader, userId, socket);
  
   return true;
 }

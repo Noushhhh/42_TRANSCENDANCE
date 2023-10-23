@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsArray, IsIn, IsNumber} from 'class-validator';
 import { Type } from 'class-transformer';
 
 
@@ -64,3 +64,4 @@ export class pairUserId{
     @Type(() => Number)
     targetId!: number;
 }
+

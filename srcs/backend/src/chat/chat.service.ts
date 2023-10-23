@@ -6,6 +6,7 @@ import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
 import { listUserConnected } from "./socket.service";
+import { ChannelNameDto } from "./dto/chat.dto";
 
 interface MessageToStore {
   channelId: number;
@@ -83,6 +84,22 @@ export class ChatService {
     }
 
     return lastMessage.content;
+  }
+
+  async getChannelName(channelId: number, callerId: number): Promise<string> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: {
+        participants: {}
+      }
+    });
+    if (!channel)
+      throw new Error("Channel not found");
+    const numberUsersInChannel: number = channel.participants.length;
+    if (numberUsersInChannel === 2){
+      return (callerId === channel.participants[0].id ? channel.participants[1].username : channel.participants[0].username)
+    }
+    return channel.name;
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
@@ -223,7 +240,10 @@ export class ChatService {
     const existingChannelNames = channels.map(channel => channel.name);
 
     if (existingChannelNames.some(channelName => channelInfo.name === channelName))
-      throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+      if (channelInfo.name){
+        console.log("channel must be unique!!");
+        throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+      }
 
     const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
     participants.push({ id: channelInfo.ownerId });
@@ -674,7 +694,7 @@ export class ChatService {
     return user;
   }
 
-  async getChannelById(channelId: number): Promise<Channel | null> {
+  async getChannelById(channelId: number): Promise<Channel> {
     const channel: Channel | null = await this.prisma.channel.findUnique({
       where: { id: channelId }
     })
