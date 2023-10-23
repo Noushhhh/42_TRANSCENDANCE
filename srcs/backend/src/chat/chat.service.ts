@@ -5,7 +5,7 @@ import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
-import { listUserConnected } from "./socket.service";
+import { SocketService } from "./socket.service";
 import { ChannelNameDto } from "./dto/chat.dto";
 
 interface MessageToStore {
@@ -36,7 +36,7 @@ export class ChatService {
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
     // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
-    private readonly listUser: listUserConnected,
+    private readonly socketService: SocketService,
   ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
@@ -234,7 +234,7 @@ export class ChatService {
     return users;
   }
 
-  async addChannelToUser(channelInfo: channelToAdd) {
+  async addChannelToUser(channelInfo: channelToAdd): Promise<number> {
 
     const channels = await this.prisma.channel.findMany();
     const existingChannelNames = channels.map(channel => channel.name);
@@ -265,6 +265,9 @@ export class ChatService {
           }
         },
       });
+      if (!newChannel)
+        throw new Error("Error creating channel");
+      return newChannel.id;
     } catch (error) {
       throw error;
     }
@@ -333,7 +336,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.listUser.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
+      this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
       return true;
     }
 
@@ -385,7 +388,7 @@ export class ChatService {
         await this.prisma.channel.delete({
           where: { id: channelId },
         })
-        this.listUser.alertChannelDeleted(callerId, channelId);
+        this.socketService.alertChannelDeleted(callerId, channelId);
         return true;
       }
 
@@ -420,7 +423,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.listUser.alertChannelDeleted(userId, channelId);
+      this.socketService.alertChannelDeleted(userId, channelId);
       return true;
     }
 
@@ -608,13 +611,13 @@ export class ChatService {
     }
   }
 
-  async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<void> {
+  async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<number> {
     try {
 
       const userId: number = Number(userIdStr);
       const channelId: number = Number(channelIdStr);
 
-      const response = await this.prisma.channel.update({
+      const channel = await this.prisma.channel.update({
         where: { id: channelId },
         data: {
           participants: {
@@ -623,14 +626,16 @@ export class ChatService {
         }
       })
 
+      if (!channel)
+        throw new Error("Channel not found");
+      return channel.id;
+
     } catch (error) {
       throw new ForbiddenException('channel not found');
     }
   }
 
   async isChannelNameExist(channelName: string): Promise<isChannelExist | false> {
-    console.log("isChannelNameExist called with");
-    console.log(channelName);
     try {
       const isExist = await this.prisma.channel.findFirst({
         where: { name: channelName },

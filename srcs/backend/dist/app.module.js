@@ -38,6 +38,6 @@ exports.AppModule = AppModule = __decorate([
             game_module_1.GameModule
         ],
         controllers: [app_controller_1.AppController, chat_controller_1.ChatController],
-        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, chat_gateway_1.ChatGateway, socket_service_1.listUserConnected, auth_service_1.AuthService, jwt_1.JwtService],
+        providers: [app_service_1.AppService, chat_service_1.ChatService, prisma_service_1.PrismaService, chat_gateway_1.ChatGateway, socket_service_1.SocketService, auth_service_1.AuthService, jwt_1.JwtService],
     })
 ], AppModule);

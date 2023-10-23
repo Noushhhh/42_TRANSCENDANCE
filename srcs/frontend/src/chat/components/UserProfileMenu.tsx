@@ -53,8 +53,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       setChannelId(response);
     } else {
       try {
-        // const channelName:string = 
-        await createChannel("", "", [userId, user.id], "PUBLIC", setChannelHeader, userId, socket);  
+        const channelIdCreated: number = await createChannel("", "", [userId, user.id], "PUBLIC", setChannelHeader, userId, socket);
+        socket.emit("joinChannel", channelIdCreated);
       } catch (error){
         console.log("error while creating channel");
       }

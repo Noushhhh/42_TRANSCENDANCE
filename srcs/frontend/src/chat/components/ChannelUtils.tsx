@@ -44,11 +44,6 @@ export const fetchUser = async (
   socket: Socket) => {
   setChannelHeader([]);
 
-  console.log("user id = ");
-  console.log(userId);
-
-  console.log("fetch user called");
-
   try {
 
     const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
@@ -103,7 +98,6 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   try {
     const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
     const numberUsersInChannel: number = await response.json();
-    console.log("number == ", numberUsersInChannel);
     return numberUsersInChannel;
   } catch(error: any){
     throw new Error("error fetching data");
@@ -138,7 +132,7 @@ export const createChannel = async (
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
   userId: number,
   socket: Socket,
-) => {
+): Promise<number> => {
   const channelToAdd = {
     name:  channelName,
     password,
@@ -146,7 +140,6 @@ export const createChannel = async (
     participants,
     type: channelType,
   };
-  
 
   try {
 
@@ -161,10 +154,13 @@ export const createChannel = async (
       body: JSON.stringify( channelToAdd ), // Include the data you want to send in the request body
     });
 
-
+    if (!response.ok)
+      throw new Error("Error creating channel");
     if (response.status === 406)
       throw new Error("Channel name already exist");
     await fetchUser(setChannelHeader, userId, socket);
+    const channelId: number = await response.json();
+    return channelId;
   } catch (error: any) {
     throw error;
   }
@@ -397,7 +393,7 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
   }
 };
 
-export const kickUserList = async (userList: User[], channelId: number, callerId: number) => {
+export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
   try {
     console.log('kick user is called');
 
@@ -416,6 +412,12 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
       }
       else if (response.status === 406){
         throw new Error("You can't kick a channel Admin");
+      } else if (response.status === 201){
+        const data = {
+          channelId,
+          userId: user.id
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
       }
     }
 
@@ -509,7 +511,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
 
 }
 
-export const addUserIdToChannel = async (channelId: number, userId: number) => {
+export const addUserIdToChannel = async (channelId: number, userId: number): Promise<number> => {
   try {
     const requestOptions: RequestInit = {
       method: "POST",
@@ -518,12 +520,20 @@ export const addUserIdToChannel = async (channelId: number, userId: number) => {
       },
     };
     const response = await fetch(`http://localhost:4000/api/chat/addUserToChannel/${userId}/${channelId}`, requestOptions);
+    console.log("add to channel");
+    if (!response.ok)
+      throw new Error("Error adding user to channel");
+    if (response.status === 201){
+      console.log(`${userId} added to channelId ${channelId}`);
+    }
+    const channelIdAdded: number = await response.json();
+    return channelIdAdded;
   } catch (error) {
     throw new Error("Error adding user to channel");
   }
 }
 
-export const addUserListToChannel = async (userList: User[], channelId: number): Promise<void[] | Response[]> => {
+export const addUserListToChannel = async (userList: User[], channelId: number, socket: Socket): Promise<void[] | Response[]> => {
   try {
 
     const requestOptions: RequestInit = {
@@ -539,8 +549,20 @@ export const addUserListToChannel = async (userList: User[], channelId: number):
       responses.push(response);
     })
 
-    return Promise.all(responses).then((data) => data);
-  } catch (error) {
+    return Promise.all(responses).then((responses) => {
+      responses.forEach((response, index) => {
+        if (response.status === 201) {
+          // Appeler une fonction avec user.id correspondant
+          const userId = userList[index].id;
+          const data = {
+            userId,
+            channelId,
+          }
+          socket.emit("notifySomeoneJoinChannel", data);
+        }
+      });
+      return responses;
+    }); } catch (error) {
     throw new Error("Error posting data");
   }
 }
@@ -565,20 +587,19 @@ export const joinProtectedChannel = async (channelId: number, userId: number, pa
   }
 }
 
-export const joinChannel = async (channel: isChannelExist, userId: number): Promise<ChannelType> => {
+export const joinChannel = async (channel: isChannelExist, userId: number): Promise<{ channelType: ChannelType, channelId: number }> => {
+  let channelIdJoined: number = -1;
   switch (channel.channelType.toString()) {
     case "PUBLIC":
       console.log('is public');
-      await addUserIdToChannel(channel.id, userId); // check if we need to protect this API call
+      channelIdJoined = await addUserIdToChannel(channel.id, userId); // check if we need to protect this API call
       break;
     case "PRIVATE":
       break;
     case "PASSWORD_PROTECTED":
       break;
-    default:
-      console.log('invalid channel type: ', channel.channelType);
   }
-  return channel.channelType;
+  return { channelType: channel.channelType , channelId: channelIdJoined };
 }
 
 export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {

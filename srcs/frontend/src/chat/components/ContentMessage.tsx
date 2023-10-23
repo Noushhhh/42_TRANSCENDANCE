@@ -6,7 +6,6 @@ import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { getBlockedUsersById } from "./ChannelUtils";
 
 interface Message {
   id: number
@@ -32,14 +31,11 @@ function ContentMessage( { channelInfo, setChannelInfo } : contentMessageProps) 
     const contentMessageWidth: string = channelInfo ? 'reduce' : 'wide';
 
     const addMessage = async (newMessage: Message, messageType: string) => {
-        console.log(newMessage);
+        console.log(`new msg: ${newMessage.content}`);
         newMessage.messageType = messageType;
-        // const blockedUsers: number[] = await getBlockedUsersById(userId);
-        // if (blockedUsers.some(id => id === newMessage.senderId)){
-        //     return ;
-        // }
         setMessages([...messages, newMessage]);
     }
+
 
     return (
         <div className={`ContentMessage ${contentMessageWidth}`}>

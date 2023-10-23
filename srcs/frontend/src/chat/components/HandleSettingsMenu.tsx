@@ -85,13 +85,13 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                 await banUserList(userList, channelId, userId);
             }
             else if (action === "kick") {
-                await kickUserList(userList, channelId, userId);
+                await kickUserList(userList, channelId, userId, socket);
             }
             else if (action === "admin") {
                 await manageAdminsToChannel(listUserAdmin, channelId, userId);
             }
             else if (action === "add") {
-                await addUserListToChannel(userList, channelId);
+                await addUserListToChannel(userList, channelId, socket);
             }
             else {
                 console.log("WIP");

@@ -42,7 +42,6 @@ export default function ChannelManagerMenu( {stateMessageToClick, setStateMessag
     setStateMessageToClick(prevState => {
       const newState = [...prevState];
       newState[1] = !newState[1];
-      console.log(newState[1]); 
       if (newState[0] === true && newState[1] === true)
         newState[0] = false;
       return newState;

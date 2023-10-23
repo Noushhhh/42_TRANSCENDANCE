@@ -5,16 +5,14 @@ import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
 import "../types/channel.type";
-import {
-  useChannelHeaderContext,
-  useSetChannelHeaderContext,
-} from "../contexts/channelHeaderContext";
+import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { fetchUser, leaveChannel } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import ChannelManagerMenu from "./ChannelManagerMenu";
 import ChannelManager from "./ChannelManager";
 import HeaderChannelInfo from "./HeaderChannelInfo";
+import { Socket } from "socket.io-client";
 
 function MessageSide() {
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
@@ -26,8 +24,8 @@ function MessageSide() {
   const [headerTitle, setHeaderTitle] = useState<string>("");
 
   const fetchBoolean = useRef(false);
-  const userId = useUserIdContext();
-  const socket = useSocketContext();
+  const userId: number = useUserIdContext();
+  const socket: Socket = useSocketContext();
   const channelHeader = useChannelHeaderContext();
   const setChannelHeader = useSetChannelHeaderContext();
 
@@ -44,7 +42,6 @@ function MessageSide() {
   });
 
  const channelDeletedEvent = async (channelId: number) => {
-   console.log(`ping received client-side(MessageSide ==>) with id: ${channelId}`);
    await leaveChannel(userId, channelId, setChannelHeader, socket);
  };
 
@@ -69,7 +66,7 @@ function MessageSide() {
     };
   });
 
-  const messageEvent = (id: any, data: Message) => {
+  const messageEvent = (data: Message) => {
     if (!data) return;
     setPreviewLastMessage(data);
     const foundChannel = findChannelById(data.channelId);

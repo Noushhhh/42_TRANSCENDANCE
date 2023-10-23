@@ -122,7 +122,7 @@ export class ChatController {
     }
 
     @Post('addChannelToUser')
-    async addChannelToUser(@Body() channelInfo: CreateChannelDto) {
+    async addChannelToUser(@Body() channelInfo: CreateChannelDto): Promise<number> {
         try {
             return this.chatService.addChannelToUser(channelInfo);
         } catch (error) {
@@ -202,7 +202,7 @@ export class ChatController {
     @Post('addUserToChannel/:userId/:channelId')
     async addUserToChannel(
         @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<void> {
+        @Param('channelId') channelId: number): Promise<number> {
         return this.chatService.addUserToChannel(userId, channelId);
     }
 
