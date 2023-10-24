@@ -41,15 +41,13 @@ export class ChatService {
 
   async getAllConvFromId(id: number): Promise<number[]> {
 
-    const userId = Number(id);
-
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { id, },
       include: { conversations: true },
     });
 
     if (!user) {
-      throw new ForbiddenException(`User with ID ${userId} not found.`);
+      throw new ForbiddenException(`User with ID ${id} not found.`);
     }
 
     const conversationIds = user.conversations.map((conversation) => conversation.id);
