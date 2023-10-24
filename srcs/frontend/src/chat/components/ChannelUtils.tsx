@@ -360,7 +360,7 @@ export const getUsernamesInChannelFromSubstring = async (
   }
 }
 
-export const banUserList = async (userList: User[], channelId: number, callerId: number): Promise<void> => {
+export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
   try {
     const requestOptions: RequestInit = {
       method: "POST",
@@ -375,6 +375,14 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
     const numberUsers: number = await response.json();
     if (numberUsers === 2 && userList[0]) {
       const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${userList[0].id}/${channelId}/${callerId}`, requestOptions);
+      if (response.status === 201){
+        console.log(`userId ${userList[0].id} ban of ${channelId}`);
+        const data = {
+          channelId,
+          userId: userList[0].id,
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
+      }
     }
 
     for (const user of userList) {
@@ -384,6 +392,13 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
       }
       else if (response.status === 406){
         throw new Error("You can't ban a channel Admin");
+      } else if (response.status === 201){
+        const data = {
+          channelId,
+          userId: user.id,
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
+        console.log(`userId ${user.id} ban of ${channelId}`);
       }
     }
 
