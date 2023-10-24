@@ -16,13 +16,20 @@ import ChannelManagerMenu from "./ChannelManagerMenu";
 import ChannelManager from "./ChannelManager";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 
-function MessageSide() {
+interface MessageSideProps {
+  setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function MessageSide({ setChannelClicked }: MessageSideProps) {
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
-  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([ false, false ]); // index 0 = create, index 1 = join
+  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([
+    false,
+    false,
+  ]); // index 0 = create, index 1 = join
   const [headerTitle, setHeaderTitle] = useState<string>("");
 
   const fetchBoolean = useRef(false);
@@ -43,10 +50,12 @@ function MessageSide() {
     };
   });
 
- const channelDeletedEvent = async (channelId: number) => {
-   console.log(`ping received client-side(MessageSide ==>) with id: ${channelId}`);
-   await leaveChannel(userId, channelId, setChannelHeader, socket);
- };
+  const channelDeletedEvent = async (channelId: number) => {
+    console.log(
+      `ping received client-side(MessageSide ==>) with id: ${channelId}`
+    );
+    await leaveChannel(userId, channelId, setChannelHeader, socket);
+  };
 
   useEffect(() => {
     if (stateMessageToClick[0] === true) {
@@ -81,10 +90,10 @@ function MessageSide() {
     needReload === false ? setNeedReload(true) : setNeedReload(false);
   };
 
-  useEffect( () => {
+  useEffect(() => {
     const callFetchUser = async () => {
       await fetchUser(setChannelHeader, userId, socket);
-    }
+    };
     callFetchUser();
     return () => {
       fetchBoolean.current = true;
@@ -144,6 +153,7 @@ function MessageSide() {
                 channel={channel}
                 key={index}
                 isConnected={channel.isConnected}
+                setChannelClicked={setChannelClicked}
               />
             );
           })
