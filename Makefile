@@ -107,6 +107,12 @@ recreate_backend: del_node_pack_backend
 	$(COMPOSE) rm -f backend
 	$(COMPOSE) up -d --build backend
 
+recreate_nginx:
+	@echo "Recreating nginx service..."
+	$(COMPOSE) stop nginx 
+	$(COMPOSE) rm -f nginx 
+	$(COMPOSE) up -d --build nginx 
+
 del_node_pack_front:
 	@echo "Removing frontend node_modules and package-lock.json"
 	@rm -rf ./srcs/frontend/node_modules ./srcs/frontend/package-lock.json
