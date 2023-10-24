@@ -40,7 +40,6 @@ services:
       - app_network # Connect to the app network
     depends_on:
       - db
-      - nginx
 
   # Frontend Service
   frontend:
@@ -57,7 +56,6 @@ services:
       - app_network # Connect to the app network
     depends_on:
       - db
-      - nginx
 
   # Nginx Service
   nginx:
@@ -67,12 +65,16 @@ services:
       dockerfile: Dockerfile # Set the Dockerfile
     image: nginx_image # Set the image name
     ports:
-      - 8081:80 # Map the container port to the host port
+      - 8081:80 # Map the container port to the host port 80 https
+      - 8082:443 # Map the container port to the host port 443 https
     networks:
       - app_network # Connect to the app network
     tty: true
     stdin_open: true
     restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
     
 
 networks:

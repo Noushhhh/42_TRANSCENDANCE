@@ -1,0 +1,82 @@
+
+./Dockerfile
+
+# ./nginx/Dockerfile
+# Set base image
+FROM ubuntu:latest
+
+# Install Nginx
+RUN apt-get update && apt-get install -y nginx
+
+# Remove the default Nginx configuration file
+RUN rm /etc/nginx/sites-enabled/default
+
+# Replace with your own Nginx configuration file
+# Make sure to replace 'default.conf' with your actual configuration file
+COPY ./default.conf /etc/nginx/sites-available/
+
+# Enable your Nginx site configuration
+RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/
+
+# Copy the entry point script into the Docker container
+COPY ./entrypoint.sh /entrypoint.sh
+
+# Make the entry point script executable
+RUN chmod +x /entrypoint.sh
+
+# Expose port 80 and 443
+EXPOSE 80 443
+
+# Set the entry point of the Docker container to the entry point script
+ENTRYPOINT ["/entrypoint.sh"]
+----------------------------------------------------
+
+./default.conf
+
+# default.conf
+
+# This block defines a server listening on port 80.
+server {
+    # The listen directive specifies the port (and optionally the IP address) that the server should listen on.
+    listen 80;
+
+    # The server_name directive sets the request hostname this server block should respond to.
+    server_name localhost;
+
+    location / {
+        proxy_pass http://frontend:3000;  # The frontend container port
+    }
+
+    location /api {
+        proxy_pass http://backend:4000; # The backend container port
+    }
+}
+----------------------------------------------------
+
+./entrypoint.sh
+
+#!/bin/bash
+
+# Install OpenSSL
+echo "Installing OpenSSL"
+apt-get install -y openssl
+
+# Generate the CA Private Key and Root Certificate
+echo "Generate the CA Private Key and Root Certificate"
+openssl genrsa -des3 -out myCA.key 2048
+openssl req -x509 -new -nodes -key myCA.key -sha256 -days 1825 -out myCA.pem
+
+# Create the Server Private Key and Certificate Signing Request (CSR)
+echo "Create the Server Private Key and Certificate Signing Request (CSR)"
+openssl genrsa -out www.transcendance.fr.key 2048
+openssl req -new -key www.transcendance.fr.key -out www.transcendance.fr.csr
+
+# Generate the Server Certificate
+echo "Generate the Server Certificate"
+openssl x509 -req -in www.transcendance.fr.csr -CA myCA.pem -CAkey myCA.key -CAcreateserial -out www.transcendance.fr.crt -days 1825 -sha256
+
+# Start Nginx
+echo "Start Nginx"
+nginx -g "daemon off;"
+----------------------------------------------------
+
