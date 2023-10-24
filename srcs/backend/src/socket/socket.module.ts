@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { SocketEvents } from "./SocketEvents";
+import { ChatService } from "../chat/chat.service";
 import { SocketService } from "./socket.service";
 
 @Module({
-    providers:[SocketEvents, SocketService],
+    providers:[ChatService, SocketService],
 })
 export class SocketModule {};

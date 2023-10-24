@@ -1,17 +1,21 @@
 import React from "react";
 
 interface TimeElapsedProps {
-  date: Date;
+  date: Date | null;
 }
 
 const TimeElapsed: React.FC<TimeElapsedProps> = ({ date }) => {
+
+  if (!date)
+    return null;
+
   const getTimeElapsed = (date: Date): string => {
     const currentDate = new Date();
     const timeDiff = currentDate.getTime() - date.getTime();
     const secondsElapsed = Math.floor(timeDiff / 1000);
 
     if (secondsElapsed < 60) {
-      return "few seconds ago";
+      return "few seconds";
     } else if (secondsElapsed < 3600) {
       const minutesElapsed = Math.floor(secondsElapsed / 60);
       return `${minutesElapsed} minute(s)`;

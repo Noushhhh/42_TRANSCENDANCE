@@ -20,14 +20,14 @@ export class GameLobbyService {
   private printLobbies() {
     lobbies.forEach((value: Lobby, key: string) => {
       console.log("------------------")
-      console.log("|", value, "|  ", key, "|")
-      console.log("|", value.gameState.gameState.p1pos.x, "|")
-      console.log("|", value.gameState.gameState.p1pos.y, "|")
+      console.log("|", key, "|")
+      console.log("|", value.player1 ? '0' : 'X', "|")
+      console.log("|", value.player2 ? '0' : 'X', "|")
       console.log("------------------")
     })
   }
 
-  addPlayerToLobby(playerId: string, playerDbId: number) {
+  async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
     if (this.isInLobby(player)) {
@@ -40,9 +40,17 @@ export class GameLobbyService {
         if (!value.player1) {
           value.player1 = player;
           value.gameState.gameState.p1Id = playerDbId;
+          const playerDb = await this.userService.findUserWithId(playerDbId);
+          if (!playerDb)
+            throw new Error("player not found")
+          value.gameState.gameState.p1Name = playerDb?.username;
         } else if (!value.player2) {
           value.player2 = player;
           value.gameState.gameState.p2Id = playerDbId;
+          const playerDb = await this.userService.findUserWithId(playerDbId);
+          if (!playerDb)
+            throw new Error("player not found")
+          value.gameState.gameState.p2Name = playerDb?.username;
         }
         player?.join(key);
         this.gatewayOut.isInLobby(true, player);
@@ -51,6 +59,8 @@ export class GameLobbyService {
           value.gameState.gameState.isLobbyFull = true;
           this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
         }
+        // @to-do using a debug function here
+        this.printLobbies();
         return;
       }
     }
@@ -60,7 +70,7 @@ export class GameLobbyService {
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);
-    this.getAllClientsInARoom(lobbyName);
+    this.printLobbies();
   }
 
   async addPlayerNameToLobby(playerId: number, playerSocketId: string) {
@@ -75,6 +85,36 @@ export class GameLobbyService {
         this.gatewayOut.emitToRoom(key, 'updateGameState', lobby.gameState.gameState);
       }
     }
+  }
+
+  async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
+    const player1 = this.socketMap.getSocket(playerSocketId);
+    const player2 = this.socketMap.getSocket(friendSocketId);
+
+    if (!player1 || !player2)
+      throw new Error("Error trying to find player socket");
+
+
+    const lobbyName = `lobby${lobbies.size}`;
+    const lobby = new Lobby(player1, playerId);
+    lobby.player2 = player2;
+    lobby.gameState.gameState.p1Id = playerId;
+    lobby.gameState.gameState.p2Id = friendId;
+    const playerDb1 = await this.userService.findUserWithId(playerId);
+    const playerDb2 = await this.userService.findUserWithId(friendId);
+    if (!playerDb1 || !playerDb2)
+      throw new Error("player not found")
+    lobby.gameState.gameState.p1Name = playerDb1.username;
+    lobby.gameState.gameState.p2Name = playerDb2.username;
+
+    lobbies.set(lobbyName, lobby);
+    player1.join(lobbyName);
+    this.gatewayOut.isInLobby(true, player1);
+    player2.join(lobbyName);
+    this.gatewayOut.isInLobby(true, player2);
+
+    // @to-do using a debug function here
+    this.printLobbies();
   }
 
   addSpectatorToLobby(spectatorId: string, lobbyName: string) {
@@ -118,6 +158,8 @@ export class GameLobbyService {
         value.gameState = new GameState();
         value.gameState.gameState.p2Id = p2Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
+        // @to-do using a debug function here
+        this.printLobbies();
         return;
       }
       // If player one leave the game
@@ -144,6 +186,8 @@ export class GameLobbyService {
         value.gameState = new GameState();
         value.gameState.gameState.p1Id = p1Id
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
+        // @to-do using a debug function here
+        this.printLobbies();
         return;
       }
     }

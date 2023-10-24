@@ -4,11 +4,13 @@ import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import { useState } from 'react';
 import axios from 'axios';
-import { isChannelExist, fetchUser, blockUser, unblockUser, isUserIsBlockedBy } from './ChannelUtils';
+import { isChannelExist, fetchUser, blockUser, unblockUser, isUserIsBlockedBy, fetchConversation } from './ChannelUtils';
 import { useSetChannelIdContext } from '../contexts/channelIdContext';
 import { useSetChannelHeaderContext } from '../contexts/channelHeaderContext';
 import { useSocketContext } from '../contexts/socketContext';
 import { useUserIdContext } from '../contexts/userIdContext';
+import { createChannel } from './ChannelUtils';
+import { create } from '@mui/material/styles/createTransitions';
 
 interface UserProfileMenuProps {
   user: User;
@@ -41,38 +43,34 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleProfilClick = () => {
-    // Ajoutez ici la logique pour "Profil"
     handleClose();
   };
-
+  
   const handlePrivateMessageClick = async () => {
+    console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
     if (response !== -1) {
       setChannelId(response);
     } else {
-      // creer channel puis fetch
-      const response = await axios.post(
-        'http://localhost:4000/api/chat/addChannelToUser',
-        {
-          name: "",
-          password: "",
-          ownerId: userId,
-          participants: [userId, user.id],
-          type: 0,
-        }
-      );
-      fetchUser(setChannelHeader, userId, socket);
+      try {
+        // const channelName:string = 
+        await createChannel("", "", [userId, user.id], "PUBLIC", setChannelHeader, userId, socket);  
+      } catch (error){
+        console.log("error while creating channel");
+      }
     }
     handleClose();
   };
 
   const handlePlayClick = () => {
-    // Ajoutez ici la logique pour "Jouer"
+    // For theo's function : create game between 2 ids
   };
 
   const handleBlockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
     await blockUser(userId, user.id);
+    await fetchUser(setChannelHeader, userId, socket);
+    // await fetchConversation();
     console.log('blocked');
     handleClose();
   };
@@ -80,6 +78,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handleUnblockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
     await unblockUser(userId, user.id);
+    await fetchUser(setChannelHeader, userId, socket);
+    // await fetchUser(setChannelHeader, userId, socket);
     console.log('Unblocked');
     handleClose();
   };

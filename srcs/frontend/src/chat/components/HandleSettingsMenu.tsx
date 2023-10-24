@@ -139,7 +139,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         return (
             <div className={`${isItDisplay}`}>
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <h4>hande Settings Menu</h4>
             </div>
         )
     }
@@ -174,12 +173,11 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                     setListUsersSearched={setListUsersSearched} />}
                 <div className="userList">
                 </div>
-                <h4>hande Settings Menu</h4>
-                <ValidationButton action={callAction} size={{ height: 50, width: 50 }}
-                    position={{ top: 0, left: 0 }} />
-                {/* <div className="validationButton">
-                    <DoneIcon onClick={callAction} className="icon" />
-                </div> */}
+                <div style={{position:"absolute", top:"45%", left:"60%"}}>
+                    <ValidationButton   action={callAction} 
+                                        size={{ height: 50, width: 50 }}
+                                        position={{ top: 0, left: 0 }} />
+                </div>
             </div>
         )
     }

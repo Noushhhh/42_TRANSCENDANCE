@@ -4,20 +4,19 @@ import SendIcon from "@mui/icons-material/Send";
 import "../types/type.Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useSocketContext } from "../contexts/socketContext";
+import { useUserIdContext } from "../contexts/userIdContext";
+import { Socket } from "socket.io-client";
 
 interface ChatPromptProps {
-  simulatedUserId: number;
   addMessage: (newMessage: Message, messageType: string) => void;
 }
 
-function ChatPrompt({
-  addMessage,
-  simulatedUserId,
-}: ChatPromptProps): JSX.Element {
+function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
   const [message, setMessage] = useState("");
 
-  const channelId = useChannelIdContext();
-  const socket = useSocketContext();
+  const channelId: number = useChannelIdContext();
+  const socket: Socket = useSocketContext();
+  const userId: number = useUserIdContext();
 
   const handleMessageChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setMessage(event.target.value);
@@ -29,7 +28,7 @@ function ChatPrompt({
 
   const storeMsgToDatabase = (message: MessageToStore) => {
     const { id, ...newMessage }: Partial<Message> = message;
-    fetch(`http://localhost:4000/api/chat/addMessageToChannel/11`, {
+    fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +51,7 @@ function ChatPrompt({
       channelId,
       content: message,
       id: 0,
-      senderId: simulatedUserId,
+      senderId: userId,
       createdAt: new Date(),
       messageType: "MessageTo",
     };
@@ -69,8 +68,8 @@ function ChatPrompt({
     socket.on("message", messageEvent);
 
     return () => {
-		socket.off("message", messageEvent);
-	};
+      socket.off("message", messageEvent);
+    };
   });
 
   const messageEvent = (id: any, data: Message) => {

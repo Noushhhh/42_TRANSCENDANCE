@@ -20,6 +20,7 @@ function CreateChannelPopup()  {
     const [inputValue, setInputValue] = useState<string>("");
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const socket = useSocketContext();
     const userId = useUserIdContext();
@@ -64,13 +65,24 @@ function CreateChannelPopup()  {
     }
 
     const callCreateChannel = async () => {
-        createChannel(channelName, password, userListChannel, channelType, setChannelHeader, userId, socket);
+        try {
+            console.log("callCreateChannel");
+            if (channelName.length < 1)
+                setError("Channel name can't be empty");
+            else{
+                const participantsId: number [] = userListChannel.map(user => user.id);
+                await createChannel(channelName, password, participantsId, channelType, setChannelHeader, userId, socket);
+            }
+        } catch (error: any){
+            setError(error.message);
+        }
       };
 
     return (
         <div className={`popupChannelCreation`}>
+            <div style={{ color: "red" }}>{error}</div>
             <div className="flex">
-                <label>Type de channel:</label>
+                <label>Type:</label>
                 <select value={channelType} onChange={handleChannelTypeChange} name="" id="">
                     <option value="PUBLIC">PUBLIC</option>
                     <option value="PASSWORD_PROTECTED">PASSWORD_PROTECTED</option>

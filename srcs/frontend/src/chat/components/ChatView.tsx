@@ -3,6 +3,7 @@ import "../styles/ChatView.css";
 import MessageComponent from "./Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { fetchConversation } from "./ChannelUtils";
+import { dividerClasses } from "@mui/material";
 
 interface Message {
   id: number // id: 0
@@ -32,11 +33,21 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   }
 
   useEffect(() => {
-    setConversationFetched([]);
-    setMessages([]);
-    if (channelId !== -1)
-      fetchConversation(userId, channelId, addMsgToFetchedConversation);
+    const callFetchConversation = async () => {  
+      setConversationFetched([]);
+      setMessages([]);
+      try {
+        if (channelId !== -1)
+          await fetchConversation(userId, channelId, addMsgToFetchedConversation);
+      } catch (error) {
+        console.log('error while fetching conv');
+      }
+    }
+    callFetchConversation();
   }, ([channelId]));
+
+  if (channelId === -1)
+    return (<div className="ChatViewContainer"></div>)
 
   return (
     <div className="ChatViewContainer">
