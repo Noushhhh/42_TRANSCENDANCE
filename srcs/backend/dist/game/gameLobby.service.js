@@ -148,6 +148,7 @@ let GameLobbyService = class GameLobbyService {
         var _a, _b;
         for (const [key, value] of lobbies_1.lobbies) {
             const lobby = lobbies_1.lobbies.get(key);
+            player.leave(key);
             // If player one leave the game
             if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id) {
                 if (lobby) {
