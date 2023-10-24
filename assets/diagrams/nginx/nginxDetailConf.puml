@@ -1,0 +1,30 @@
+@startuml
+!theme toy
+title Detailed PlantUML Diagram
+
+package "Server Configuration" {
+  [Server]
+  note right: This block defines a server\nlistening on port 80 and 443.
+  [Server] --> [Listen 80]
+  [Server] --> [Listen 443 ssl]
+  [Listen 443 ssl] --> [SSL Configuration]
+  note right: SSL configuration includes\nenabling SSL, specifying the\nSSL certificate and key, and\nsetting the SSL protocols.
+  [SSL Configuration] --> [ssl on]
+  [SSL Configuration] --> [ssl_certificate /etc/nginx/ssl/myCA.crt]
+  [SSL Configuration] --> [ssl_certificate_key /etc/nginx/ssl/myCA.key]
+  [SSL Configuration] --> [ssl_protocols TLSv1.3]
+}
+
+package "Location Configuration" {
+  [Location /]
+  note right: This block defines the proxy pass\nfor the frontend container port.
+  [Location /] --> [proxy_pass http://frontend:3000]
+  [Location /] --> [proxy_pass https://frontend:3000]
+
+  [Location /api]
+  note right: This block defines the proxy pass\nfor the backend container port.
+  [Location /api] --> [proxy_pass http://backend:4000]
+  [Location /api] --> [proxy_pass https://backend:4000]
+}
+
+@enduml
