@@ -29,7 +29,7 @@ export class listUserConnected {
         const socks = await this.server.fetchSockets ();
         for (const sock of socks)
         {
-            console.log(sock.id, sock.data.userId);
+            console.log("test", sock.id, sock.data.userId);
         }
         // console.log('readmap:');
         // if (this.listUserConnected) {

@@ -36,7 +36,6 @@ const socket = io("http://localhost:4000");
 }
 
 const App: React.FC = () => {
-
   useActivityLogout();
   return (
     <Routes>
@@ -58,7 +57,7 @@ const App: React.FC = () => {
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="game" element={<GameContainer socket={socket}/>} />
+        <Route path="game" element={<GameContainer socket={socket} />} />
       </Route>
     </Routes>
   );

@@ -54,7 +54,7 @@ const ChatBoxContainer = () => {
   useEffect(() => {
     handleWindowResize();
 
-    (`(displayMessageSide || !channelClicked) && window.innerWidth < 800`)
+    ((displayMessageSide || !channelClicked) && window.innerWidth < 800)
       ? setDisplayContentMessage(false)
       : setDisplayContentMessage(true);
 
