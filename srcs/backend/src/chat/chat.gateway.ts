@@ -29,7 +29,6 @@ export class ChatGateway implements OnModuleInit {
             // return null if token is invalid
             const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
 
-            next();
             if (response){
                 socket.data.userId = response;
                 // next allow us to accept the incoming socket as the token is valid
@@ -40,15 +39,21 @@ export class ChatGateway implements OnModuleInit {
         })
         this.server.on('connection', async (socket) => {
             console.log(`userId ${socket.data.userId} is connected`);
-            this.socketService.readMap();
             this.joinRoomsForClient(socket.data.userId, socket);
+            this.readMap();
 
             socket.on('disconnect', async () => {
                 console.log(`userId: ${socket.data.userId} is disconnected`);
-                this.socketService.readMap();
-                this.leaveRoomForClient(socket.data.userId, socket);
+                this.leaveRoomsForClient(socket.data.userId, socket);
             })
         });
+    }
+
+    async readMap() {
+        const sockets = await this.server.fetchSockets();
+        for (const socket of sockets){
+            console.log(`userId:${socket.data.userId} is ${socket.id}`);
+        }
     }
 
     async joinRoomsForClient(userId: number, socket: Socket){
@@ -58,7 +63,7 @@ export class ChatGateway implements OnModuleInit {
         }
     }
 
-    async leaveRoomForClient(userId: number, socket: Socket){
+    async leaveRoomsForClient(userId: number, socket: Socket){
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
         for (const channelId of channelIds){
             console.log(`userId:${socket.data.userId} is leaving channelId:${channelId}`);
@@ -73,6 +78,13 @@ export class ChatGateway implements OnModuleInit {
                 return socket;
         }
         return null;
+    }
+
+    async showClientsOfRoom(channelId: number){
+        const clients = await this.server.in(String(channelId)).fetchSockets();
+        for (const client of clients){
+            console.log(`channelId:${channelId} contain userId:${client.data.userId}`);
+        }
     }
 
     @SubscribeMessage("joinChannel")
@@ -94,7 +106,6 @@ export class ChatGateway implements OnModuleInit {
         if (!socket)
             return
         console.log(`userId: ${userId} is leaving of ${channelId}`);
-        console.log(socket);
         socket.leave(String(channelId));
     }
 
@@ -106,7 +117,6 @@ export class ChatGateway implements OnModuleInit {
             return
         socket.join(String(channelId));
         console.log(`userId: ${userId} is joining of ${channelId}`);
-        console.log(socket);
     }
 
     @SubscribeMessage('setNewUserConnected')
@@ -126,7 +136,4 @@ export class ChatGateway implements OnModuleInit {
     handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
         client.to(String(data.channelId)).emit("message", data);
     }
-
-    
-
 }

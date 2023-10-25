@@ -1,5 +1,6 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto, ChannelIdDto } from "./dto/chat.dto";
+import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto ,
+            pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
@@ -246,5 +247,29 @@ export class ChatController {
     async getBlockedUsersById(
         @Body() userIdDto: UserIdDto): Promise<number[]>{
             return this.chatService.getBlockedUsersById(userIdDto.userId);
+    }
+
+    @Post('manageChannelPassword')
+    async manageChannelPassword(
+        @Body() data: ManagePasswordDto){
+            return this.chatService.manageChannelPassword(data.channelId, data.channelType, data.actualPassword, data.newPassword);
+    }
+
+    @Post('manageChannelType')
+    async manageChannelType(
+        @Body() data: ManageChannelTypeDto){
+            return this.chatService.manageChannelType(data.channelId, data.channelType);
+    }
+
+    @Post('getChannelType')
+    async getChannelType(
+        @Body() data: ChannelIdDto) {
+            return this.chatService.getChannelType(data.channelId);
         }
+
+    /*@Post('manageChannelType')
+    async manageChannelType(
+        @Body() userIdDto: UserIdDto){
+            return this.chatService.manageChannelType(userIdDto.userId);
+    }*/
 }

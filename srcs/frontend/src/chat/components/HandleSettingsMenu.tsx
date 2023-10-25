@@ -3,7 +3,6 @@ import HeaderChannelInfo from "./HeaderChannelInfo";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import PreviewUser from "./PreviewUser";
-import DoneIcon from '@mui/icons-material/Done';
 import "../styles/SettingsMenu.css";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -12,6 +11,7 @@ import { useSocketContext } from "../contexts/socketContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { Socket } from "socket.io-client";
 import ValidationButton from "./ValidationButton";
+import ManagePassword from "./ManagePassword";
 
 interface HandleSettingsMenuProps {
     isSettingsMenuDisplay: boolean,
@@ -93,15 +93,13 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             else if (action === "add") {
                 await addUserListToChannel(userList, channelId, socket);
             }
-            else {
-                console.log("WIP");
-            }
             setSearchBarResults(false);
             setInputValue("");
             setUserList([]);
             await fetchUser(setChannelHeader, userId, socket);
         }
         catch (error: any) {
+            console.log("in catch frontend");
             setError(error.message);
         }
     }
@@ -135,7 +133,14 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         );
     }
 
-    if (isSearchBarNeeded === false) {
+    if (action === "password")
+        return (
+            <div className={`${isItDisplay}`}>
+                <HeaderChannelInfo handleClick={backMenu} title={title} />
+                <ManagePassword />
+            </div>
+    )
+    else if (isSearchBarNeeded === false) {
         return (
             <div className={`${isItDisplay}`}>
                 <HeaderChannelInfo handleClick={backMenu} title={title} />

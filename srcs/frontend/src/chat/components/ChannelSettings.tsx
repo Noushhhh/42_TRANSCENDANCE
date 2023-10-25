@@ -71,7 +71,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
       function: goToSubmenu,
       isSearchBarNeeded: false,
       onlySearchInChannel: false,
-      action: "psswd",
+      action: "password",
     },
     {
       childTitle: "Kick someone",

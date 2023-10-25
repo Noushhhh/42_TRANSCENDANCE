@@ -43,7 +43,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   handleConnection(socket: Socket) {
     const clientId = socket.id;
     this.gameSockets.setSocket(clientId, socket);
-    socket.setMaxListeners(11);
+    socket.setMaxListeners(15);
   }
 
   handleDisconnect(client: Socket) {

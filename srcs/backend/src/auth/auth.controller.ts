@@ -18,7 +18,7 @@ export class AuthController {
     async getToken(@Req() req: Request) {
         // Extract the access token from the request cookies
         const accessToken = req.cookies['token'];
-        return { accessToken}
+        return { accessToken }
     }
 
     @Public()
