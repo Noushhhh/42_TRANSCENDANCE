@@ -9,6 +9,7 @@ import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { SocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
+import { toggleMenuMobile } from "../contexts/toggleMenuMobile";
 
 const ChatBoxContainer = () => {
   const [userId, setUserId] = useState<number>(-1);
@@ -20,6 +21,7 @@ const ChatBoxContainer = () => {
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
   const [displayContentMessage, setDisplayContentMessage] =
     useState<boolean>(false);
+  const [toggleMenu, setToggleMenu] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -54,7 +56,7 @@ const ChatBoxContainer = () => {
   useEffect(() => {
     handleWindowResize();
 
-    ((displayMessageSide || !channelClicked) && window.innerWidth < 800)
+    (displayMessageSide || !channelClicked) && window.innerWidth < 800
       ? setDisplayContentMessage(false)
       : setDisplayContentMessage(true);
 
@@ -67,6 +69,15 @@ const ChatBoxContainer = () => {
   const handleWindowResize = () => {
     if (window.innerWidth < 800) setDisplayMessageSide(false);
     if (window.innerWidth >= 800) setDisplayMessageSide(true);
+
+    if (toggleMenu === false && window.innerWidth < 800) {
+      setDisplayContentMessage(true);
+      setToggleMenu(false);
+    }
+
+    if (toggleMenu === false && channelInfo && window.innerWidth < 800) {
+      setToggleMenu(true);
+    }
   };
 
   const backToChannels = () => {
@@ -88,17 +99,23 @@ const ChatBoxContainer = () => {
                 {displayMessageSide || !channelClicked ? (
                   <MessageSide setChannelClicked={setChannelClicked} />
                 ) : null}
-                {displayContentMessage ? (
-                  <ContentMessage
-                    channelInfo={channelInfo}
+                <toggleMenuMobile.Provider
+                  value={{ toggleMenu, setToggleMenu }}
+                >
+                  {displayContentMessage &&
+                  toggleMenu === false &&
+                  (window.innerWidth > 799 || channelClicked) ? (
+                    <ContentMessage
+                      channelInfo={channelInfo}
+                      setChannelInfo={setChannelInfo}
+                      backToChannels={backToChannels}
+                    />
+                  ) : null}
+                  <ChannelInfo
+                    isChannelInfoDisplay={channelInfo}
                     setChannelInfo={setChannelInfo}
-                    backToChannels={backToChannels}
                   />
-                ) : null}
-                <ChannelInfo
-                  isChannelInfoDisplay={channelInfo}
-                  setChannelInfo={setChannelInfo}
-                />
+                </toggleMenuMobile.Provider>
               </UserIdContext.Provider>
             </ChannelHeaderContext.Provider>
           </SocketContext.Provider>

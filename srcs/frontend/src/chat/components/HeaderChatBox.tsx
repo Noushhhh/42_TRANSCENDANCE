@@ -6,6 +6,10 @@ import "../types/channel.type";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useChannelIdContext } from "../contexts/channelIdContext";
+import {
+  useToggleMenu,
+  useSetToggleMenu,
+} from "../contexts/toggleMenuMobile";
 
 interface HeaderChatBoxProps {
   channelInfo: boolean;
@@ -22,8 +26,14 @@ function HeaderChatBox({
 
   const channelId = useChannelIdContext();
 
+  const toggleMenu = useToggleMenu();
+  const setToggleMenu = useSetToggleMenu();
+
   const handleSettingsClick = () => {
     setChannelInfo(!channelInfo);
+    if (window.innerWidth < 800) {
+      setToggleMenu(!toggleMenu);
+    }
   };
 
   var i: number = 0;
