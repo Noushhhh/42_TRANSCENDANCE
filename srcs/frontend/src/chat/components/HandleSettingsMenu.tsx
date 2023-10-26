@@ -50,7 +50,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const backMenu = () => {
-        console.log("backkkk");
         setInputValue("");
         setSearchBarResults(false);
         setisSettingsMenuDisplay(false);
@@ -137,7 +136,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         return (
             <div className={`${isItDisplay}`}>
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <ManagePassword />
+                <ManagePassword isItDisplay={isItDisplay} needReload={isSettingsMenuDisplay}/>
             </div>
     )
     else if (isSearchBarNeeded === false) {

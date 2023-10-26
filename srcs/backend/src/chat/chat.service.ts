@@ -762,16 +762,13 @@ export class ChatService {
 
   async manageChannelPassword(channelId: number, channelType: string, actualPassword: string, newPassword: string){
     const channel = await this.getChannelById(channelId);
-    console.log('1');
     if (!channel.password)
       return;
-    console.log('2');
     if (channel.type === "PASSWORD_PROTECTED"){
       const passwordMatch = await argon.verify(channel.password, actualPassword);
       if (!passwordMatch)
         throw new ForbiddenException('Incorrect channel password');
     }
-    console.log('3');
     if (channelType === "PASSWORD_PROTECTED"){
       const hashPassword = await argon.hash(newPassword);
       await this.prisma.channel.update({
@@ -783,7 +780,6 @@ export class ChatService {
       })
       return ;
     }
-    console.log('4');
     await this.prisma.channel.update({
       where: { id: channelId },
       data : {
@@ -795,12 +791,21 @@ export class ChatService {
   async manageChannelType(channelId: number, channelType: string){
     if (channelType === "PASSWORD_PROTECTED")
       return ;
+
+    const channelCheck = await this.getChannelById(channelId);
+
+    if (channelCheck.type === "PASSWORD_PROTECTED")
+      throw new ForbiddenException("Forbidden access");
+    
     const channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
         type: channelType as ChannelType,
       }
     })
+
+    if (!channel)
+      throw new NotFoundException("Channel not found");
   }
 
   async getChannelType(channelId: number){

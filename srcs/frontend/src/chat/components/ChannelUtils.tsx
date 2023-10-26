@@ -29,6 +29,40 @@ interface isChannelExist {
   id: number,
 }
 
+interface ErrorMessages {
+  [key: number]: string;
+}
+
+export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorMessages) => {
+  console.log(customErrorMessages);
+  if (!response.ok) {
+    let messageError: string = "";
+    switch (response.status) {
+      case 400:
+        messageError = "Bad request";
+        break;
+      case 401:
+        messageError = "Unauthorized access";
+        break;
+      case 403:
+        messageError = "Forbidden access";
+        break;
+      case 404:
+        messageError = "Resource not found";
+        break;
+      case 406:
+        messageError = "Request not acceptable";
+        break;
+      default:{
+        messageError = "Server error";
+      }
+    }
+    if (customErrorMessages[response.status])
+      messageError += customErrorMessages[response.status];
+    throw new Error(messageError);
+  }
+}
+
 export const getMyUserId = async (): Promise<number> => {
   const response = await fetch('http://localhost:4000/api/users/me', {
     credentials: 'include',
@@ -560,10 +594,6 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
     },
   };
 
-  interface ErrorMessages {
-    [key: number]: string;
-  }
-
   const errorMessages: ErrorMessages = {
     406: "Ban users can't be added",
     404: "User not found",
@@ -759,18 +789,19 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
 
 export const manageChannelPassword = async (channelId: number, channelType: string, actualPassword: string, newPassword: string) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
+    const response: Response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
       method: 'POST',
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ channelId, channelType, actualPassword, newPassword })
     });
-    if (!response.ok){
-      throw new Error("Error changing channel password");
-    }
-    
+    const customErrorMessages: ErrorMessages = {
+      400: ": Bad input",
+      403: ": Wrong password",
+    };
+    handleHTTPErrors(response, customErrorMessages);
   } catch (error) {
     throw error;
   }
@@ -784,12 +815,14 @@ export const manageChannelType = async (channelId: number, channelType: string) 
       headers: {
         'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
       },
-      body: JSON.stringify({ channelId , channelType })
+      body: JSON.stringify({ channelId, channelType })
     });
-    if (!response.ok){
-      throw new Error("Error fetching channel type");
-    }
-  } catch (error){
+    const customErrorMessages: ErrorMessages = {
+      403: "",
+      404: ": channel",
+    };
+    handleHTTPErrors(response, customErrorMessages);
+  } catch (error) {
     throw error;
   }
 }
@@ -804,12 +837,10 @@ export const getChannelType = async (channelId: number) => {
       },
       body: JSON.stringify({ channelId })
     });
-    if (!response.ok){
-      throw new Error("Error fetching channel type");
-    }
+    handleHTTPErrors(response, {});
     const channelType: string = await response.text();
     return channelType;
-  } catch (error){
+  } catch (error) {
     throw error;
   }
 }
