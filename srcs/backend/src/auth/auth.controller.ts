@@ -40,6 +40,7 @@ export class AuthController {
             const result: any = await this.authService.signin(dto, res);
             res.status(200).send({ valid: result.valid, message: result.message });
         } catch (error) {
+            console.log(error);
             res.status(500).send({ valid: false, message: error });
         }
     }

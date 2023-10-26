@@ -69,6 +69,8 @@ export class AuthService {
         }
     }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
     /**
      * @brief This function handles user signin requests.
      * @param dto The data transfer object containing user information.
@@ -83,8 +85,8 @@ export class AuthService {
         const userLoggedIn = await this.checkUserLoggedIn(user.id);
         // console.log("passing by userLoggedIn", userLoggedIn, "\n");
         if (userLoggedIn.statusCode === 200) {
-            throw new ForbiddenException('User is already logged in');
             console.log("user already logged in " ,userLoggedIn.statusCode);
+            throw new ForbiddenException('User is already logged in');
         }
         // compare password
         const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
@@ -113,33 +115,12 @@ export class AuthService {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @brief This function signs a token.
+ * @brief This function checks if there is an existing refresh token for the user and returns it if it exists. If not, it creates a new refresh token.
  * @param userId The user's ID.
- * @param username The user's username.
- * @param res The response object.
- * @return A promise that resolves to void.
+ * @return An object containing the token and its expiration date.
  */
-async signToken(
-  userId: number,
-  username: string,
-  res: Response
-){
-  // Create the payload for the JWT token
-  const payload = {
-    sub: userId,
-    username,
-  };
-
-  // Get the JWT secret from the environment variables
-  const secret = this.JWT_SECRET;
-
-  // Sign the JWT token with the payload and secret
-  const token = await this.jwt.signAsync(payload, {
-    expiresIn: '15m',
-    secret: secret,
-  });
-
-  // Check if there is an existing refresh token for the user
+async refreshTokenIfNeeded(userId: number): Promise<{ token: string, expiresAt: Date }> {
+  // Find the first refresh token that has not expired for the given user ID
   const existingRefreshToken = await this.prisma.refreshToken.findFirst({
     where: {
       userId: userId,
@@ -149,48 +130,125 @@ async signToken(
     },
   });
 
-  // If there is an existing refresh token, use it. Otherwise, create a new one.
-  let refreshToken;
+  // If an existing refresh token is found, return it
   if (existingRefreshToken) {
-    refreshToken = existingRefreshToken.token;
+    return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
   } else {
-    refreshToken = await this.createRefreshToken(userId);
+    // If no existing refresh token is found, create a new one
+    const newRefreshToken = await this.createRefreshToken(userId);
+    return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
   }
-
-  // Save the refresh token in an HttpOnly cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
-  });
-
-  // Save the JWT token in an HttpOnly cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
-  });
-
-  // Send a response confirming that the authentication was successful
-  return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-    /**
-     * @brief This function creates a refresh token.
-     * @param userId The user's ID.
-     * @return The refresh token.
-     */
-  async createRefreshToken(userId: number): Promise<string> {
+/**
+ * @brief This function generates and sets JWT and refresh tokens for a user.
+ * @param userId The user's ID.
+ * @param email The user's email.
+ * @param res The response object.
+ * @return An object containing the JWT token and the refresh token.
+ */
+async generateAndSetTokens(userId: number, email: string, res: Response): Promise<{ token: string, refreshToken: { token: string, expiresAt: Date } }> {
+  // Define the payload for the JWT token
+  const payload = {
+    sub: userId,
+    email,
+  };
+  const secret = this.JWT_SECRET;
+
+  // Generate the JWT token
+  const token = await this.jwt.signAsync(
+    payload,
+    {
+      expiresIn: '15m', // The JWT token expires in 15 minutes
+      secret: secret,
+    },
+  );
+
+  // Get or create a refresh token for the user
+  const refreshToken = await this.refreshTokenIfNeeded(userId);
+
+  // If a refresh token is obtained, set it in a HttpOnly cookie
+  if (refreshToken) {
+    res.cookie('refreshToken', refreshToken.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: (refreshToken.expiresAt.getTime() - Date.now()) // The cookie expires when the refresh token expires
+    });
+  }
+
+  // Set the JWT token in a HttpOnly cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 1000 * 60 * 15 // The cookie expires in 15 minutes
+  });
+
+  // Return the JWT token and the refresh token
+  return { token, refreshToken };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+/**
+ * @brief This function signs a token.
+ * @param userId The user's ID.
+ * @param username The user's username.
+ * @param res The response object.
+ * @return A promise that resolves to void.
+ */
+async signToken(userId: number, email: string, res: Response): Promise<any> {
+  const { token, refreshToken } = await this.generateAndSetTokens(userId, email, res);
+
+  if (!refreshToken) {
+      return ({
+          statusCode: 409,
+          valid: false,
+          message: "Problem creating refresh token"
+      });
+  }
+
+  // Decode the token to get the expiration time
+  const decodedToken = jwt.verify(token, this.JWT_SECRET);
+
+  if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+      // Set the tokenExpires cookie with the decoded expiration time
+      res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(), {
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 15
+      });
+  } else {
+      return ({
+          statusCode: 409,
+          valid: false,
+          message: "Impossible to decode token to create expiration time"
+      });
+  }
+  return ({
+      statusCode: 200,
+      valid: true,
+      message: "Authentication successful"
+  });
+}
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * @brief This function creates a refresh token.
+   * @param userId The user's ID.
+   * @return token: string, ExpirationDate: Date 
+   */
+  async createRefreshToken(userId: number): Promise<{ token: string, ExpirationDate: Date }> {
     const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
 
     const expiration = new Date();
-
     expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
+    console.log(expiration);
 
     // Save refreshToken to database along with userId
     await this.prisma.refreshToken.create({
@@ -201,8 +259,10 @@ async signToken(
       }
     });
 
-    return refreshToken;
+    return { token: refreshToken, ExpirationDate: expiration };
   }
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function updates the user's logged in status.
@@ -259,6 +319,7 @@ async signToken(
 
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
   async checkOnlyTokenValidity(token: string): Promise<number | null> {
 
     if (!token)
@@ -351,7 +412,7 @@ async signToken(
         expiresIn: '15m',
         secret: secret,
       });
-      const refreshToken = this.createRefreshToken(user.id);
+      const refreshToken = await this.createRefreshToken(user.id);
 
       res.cookie('token', jwtToken, {
         httpOnly: true,
@@ -360,7 +421,7 @@ async signToken(
         maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
       });
 
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('refreshToken', refreshToken.token, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
