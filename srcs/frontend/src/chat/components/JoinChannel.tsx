@@ -15,6 +15,11 @@ enum ChannelType {
     PASSWORD_PROTECTED,
 }
 
+interface joinChannelInterface{
+    type: ChannelType,
+    channelId: number,
+}
+
 interface isChannelExist {
     isExist: boolean,
     channelType: ChannelType,
@@ -39,13 +44,21 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
 
     const handleClick = async () => {
         if (apiResponse) {
-            if (await isUserIsBan(apiResponse.id, userId) === true) {
+            /*if (await isUserIsBan(apiResponse.id, userId) === true) {
                 setError("You are banned from this channel");
+            }*/
+            let channelType: { channelType: ChannelType; channelId: number; } | null = null;
+            try {
+                channelType = await joinChannel(apiResponse, userId);
+            } catch (error: any){
+                setError(error.message);
             }
-            const channelType: ChannelType = await joinChannel(apiResponse, userId);
-            switch (channelType.toString()) {
+            if ( ! channelType)
+                return ;
+            switch (channelType.channelType.toString()) {
                 case "PUBLIC":
                     setStateMessageToClick([false, false]);
+                    socket.emit("joinChannel", channelType.channelId);
                     await fetchUser(setChannelHeader, userId, socket);
                     break;
                 case "PRIVATE":
@@ -54,8 +67,6 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
                 case "PASSWORD_PROTECTED":
                     setDisplayPasswordInput(true);
                     break;
-                default:
-                    console.log('invalid channel type: ', channelType);
             }
         }
         else {

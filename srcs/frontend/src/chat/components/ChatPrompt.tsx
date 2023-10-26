@@ -55,9 +55,8 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
-    if (!isWhitespace(message)) {
+    if (!isWhitespace(message))
       addMessage(msgToSend, "MessageTo");
-    }
     const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
     socket.emit("message", msgToSend);
     storeMsgToDatabase(parsedMessage);
@@ -72,9 +71,9 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
     };
   });
 
-  const messageEvent = (id: any, data: Message) => {
+  const messageEvent = (data: Message) => {
     if (!data) return;
-    if (socket.id === id || isWhitespace(data.content)) return;
+    if (isWhitespace(data.content)) return;
     addMessage(data, "MessageFrom");
     setMessage("");
   };

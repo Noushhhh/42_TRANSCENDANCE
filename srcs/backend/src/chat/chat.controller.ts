@@ -1,5 +1,8 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
-import { ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, pairUserId, UserIdDto, ChannelIdDto } from "./dto/chat.dto";
+import {
+    ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
+    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto
+} from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
@@ -7,21 +10,22 @@ import { Message, User } from "@prisma/client";
 import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
+import { OwnerGuard } from "./guards/owner.guards";
 
 export class ChannelDTO {
     @IsString()
     name!: string;
-  
+
     @IsString()
     password!: string;
-  
+
     @IsNumber()
     @Type(() => Number)
     ownerId!: number;
-  
-    @IsNumber({},{each: true})
+
+    @IsNumber({}, { each: true })
     participants!: number[];
-  
+
     @IsString()
     type!: string;
 }
@@ -37,9 +41,9 @@ export class CreateChannelDto {
     @Type(() => Number)
     ownerId!: number;
 
-    @IsNumber({},{each: true})
+    @IsNumber({}, { each: true })
     participants!: number[];
-    
+
     @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
     type!: string;
 }
@@ -63,7 +67,7 @@ export class ChatController {
 
     @Post('getAllConvFromId')
     async getAllConvFromId(
-        @Body()userIdDto: UserIdDto) {
+        @Body() userIdDto: UserIdDto) {
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
@@ -74,12 +78,12 @@ export class ChatController {
 
     @Post('getChannelName')
     async getChannelName(
-        @Body() data: PairUserIdChannelId): Promise<string>{
+        @Body() data: PairUserIdChannelId): Promise<string> {
         return this.chatService.getChannelName(data.channelId, data.userId);
     }
-    
+
     @Post('getChannelHeader')
-    async getChannelHeadersFromUserId(@Body()pair: PairUserIdChannelId): Promise<ChannelLight> {
+    async getChannelHeadersFromUserId(@Body() pair: PairUserIdChannelId): Promise<ChannelLight> {
         return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
     }
 
@@ -122,7 +126,7 @@ export class ChatController {
     }
 
     @Post('addChannelToUser')
-    async addChannelToUser(@Body() channelInfo: CreateChannelDto) {
+    async addChannelToUser(@Body() channelInfo: CreateChannelDto): Promise<number> {
         try {
             return this.chatService.addChannelToUser(channelInfo);
         } catch (error) {
@@ -202,7 +206,7 @@ export class ChatController {
     @Post('addUserToChannel/:userId/:channelId')
     async addUserToChannel(
         @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<void> {
+        @Param('channelId') channelId: number): Promise<number> {
         return this.chatService.addUserToChannel(userId, channelId);
     }
 
@@ -239,12 +243,34 @@ export class ChatController {
     @Post('isUserIsBlockedBy')
     async isUserIsBlockedBy(
         @Body() pairIdDto: pairUserId) {
-            return this.chatService.isUserIsBlockedBy(pairIdDto.callerId, pairIdDto.targetId);
-        }
+        return this.chatService.isUserIsBlockedBy(pairIdDto.callerId, pairIdDto.targetId);
+    }
 
     @Post('getBlockedUsersById')
     async getBlockedUsersById(
-        @Body() userIdDto: UserIdDto): Promise<number[]>{
-            return this.chatService.getBlockedUsersById(userIdDto.userId);
-        }
+        @Body() userIdDto: UserIdDto): Promise<number[]> {
+        return this.chatService.getBlockedUsersById(userIdDto.userId);
+    }
+
+    @UseGuards(OwnerGuard)
+    @Post('manageChannelPassword')
+    async manageChannelPassword(
+        @Body() data: ManagePasswordDto) {
+        return this.chatService.manageChannelPassword(data.channelId, data.channelType, data.actualPassword, data.newPassword);
+    }
+
+    @UseGuards(OwnerGuard)
+    @Post('manageChannelType')
+    async manageChannelType(
+        @Body() data: ManageChannelTypeDto) {
+        return this.chatService.manageChannelType(data.channelId, data.channelType);
+    }
+
+    @UseGuards(OwnerGuard)
+    @Post('getChannelType')
+    async getChannelType(
+        @Body() data: ChannelIdDto) {
+        return this.chatService.getChannelType(data.channelId);
+    }
+
 }

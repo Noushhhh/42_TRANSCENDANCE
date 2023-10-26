@@ -34,7 +34,6 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: MonComposantProps
         const fetchChannelName = async () => {
             try {
                 if (channelId !== -1){
-                    console.log("called");
                     const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
                     setnumberUsersInChannel(numberUsersInChannel);
                     const channelName: string = await getChannelName(channelId, userId);

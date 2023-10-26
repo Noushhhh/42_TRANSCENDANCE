@@ -29,6 +29,40 @@ interface isChannelExist {
   id: number,
 }
 
+interface ErrorMessages {
+  [key: number]: string;
+}
+
+export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorMessages) => {
+  console.log(customErrorMessages);
+  if (!response.ok) {
+    let messageError: string = "";
+    switch (response.status) {
+      case 400:
+        messageError = "Bad request";
+        break;
+      case 401:
+        messageError = "Unauthorized access";
+        break;
+      case 403:
+        messageError = "Forbidden access";
+        break;
+      case 404:
+        messageError = "Resource not found";
+        break;
+      case 406:
+        messageError = "Request not acceptable";
+        break;
+      default:{
+        messageError = "Server error";
+      }
+    }
+    if (customErrorMessages[response.status])
+      messageError += customErrorMessages[response.status];
+    throw new Error(messageError);
+  }
+}
+
 export const getMyUserId = async (): Promise<number> => {
   const response = await fetch('http://localhost:4000/api/users/me', {
     credentials: 'include',
@@ -43,11 +77,6 @@ export const fetchUser = async (
   userId: number,
   socket: Socket) => {
   setChannelHeader([]);
-
-  console.log("user id = ");
-  console.log(userId);
-
-  console.log("fetch user called");
 
   try {
 
@@ -103,14 +132,13 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   try {
     const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
     const numberUsersInChannel: number = await response.json();
-    console.log("number == ", numberUsersInChannel);
     return numberUsersInChannel;
-  } catch(error: any){
+  } catch (error: any) {
     throw new Error("error fetching data");
   }
 }
 
-export const getChannelName = async (channelId: number, userId: number): Promise <string> => {
+export const getChannelName = async (channelId: number, userId: number): Promise<string> => {
   try {
     const response: Response = await fetch("http://localhost:4000/api/chat/getChannelName", {
       method: "POST",
@@ -118,14 +146,14 @@ export const getChannelName = async (channelId: number, userId: number): Promise
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify( {channelId, userId} ),
+      body: JSON.stringify({ channelId, userId }),
     })
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération des données');
     }
     const channelName = await response.text();
     return channelName;
-  } catch (error){
+  } catch (error) {
     throw new Error("Channel not found");
   }
 }
@@ -138,15 +166,14 @@ export const createChannel = async (
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
   userId: number,
   socket: Socket,
-) => {
+): Promise<number> => {
   const channelToAdd = {
-    name:  channelName,
+    name: channelName,
     password,
     ownerId: userId,
     participants,
     type: channelType,
   };
-  
 
   try {
 
@@ -158,13 +185,16 @@ export const createChannel = async (
       headers: {
         "Content-Type": "application/json", // Add appropriate headers if needed
       },
-      body: JSON.stringify( channelToAdd ), // Include the data you want to send in the request body
+      body: JSON.stringify(channelToAdd), // Include the data you want to send in the request body
     });
 
-
+    if (!response.ok)
+      throw new Error("Error creating channel");
     if (response.status === 406)
       throw new Error("Channel name already exist");
     await fetchUser(setChannelHeader, userId, socket);
+    const channelId: number = await response.json();
+    return channelId;
   } catch (error: any) {
     throw error;
   }
@@ -314,13 +344,13 @@ export const leaveChannel = async (
     body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
   };
   const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
-  if (response.status === 406){
+  if (response.status === 406) {
     throw new Error("Admin can't leave channel");
   }
   if (!response)
     return false;
   await fetchUser(setChannelHeader, userId, socket);
- 
+
   return true;
 }
 
@@ -364,7 +394,7 @@ export const getUsernamesInChannelFromSubstring = async (
   }
 }
 
-export const banUserList = async (userList: User[], channelId: number, callerId: number): Promise<void> => {
+export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
   try {
     const requestOptions: RequestInit = {
       method: "POST",
@@ -379,15 +409,30 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
     const numberUsers: number = await response.json();
     if (numberUsers === 2 && userList[0]) {
       const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${userList[0].id}/${channelId}/${callerId}`, requestOptions);
+      if (response.status === 201) {
+        console.log(`userId ${userList[0].id} ban of ${channelId}`);
+        const data = {
+          channelId,
+          userId: userList[0].id,
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
+      }
     }
 
     for (const user of userList) {
       const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403){
+      if (response.status === 403) {
         throw new Error("Action disallowed (you are not admin)");
       }
-      else if (response.status === 406){
+      else if (response.status === 406) {
         throw new Error("You can't ban a channel Admin");
+      } else if (response.status === 201) {
+        const data = {
+          channelId,
+          userId: user.id,
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
+        console.log(`userId ${user.id} ban of ${channelId}`);
       }
     }
 
@@ -397,7 +442,7 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
   }
 };
 
-export const kickUserList = async (userList: User[], channelId: number, callerId: number) => {
+export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
   try {
     console.log('kick user is called');
 
@@ -411,11 +456,17 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
 
     for (const user of userList) {
       const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403){
+      if (response.status === 403) {
         throw new Error("Action disallowed (you are not admin)");
       }
-      else if (response.status === 406){
+      else if (response.status === 406) {
         throw new Error("You can't kick a channel Admin");
+      } else if (response.status === 201) {
+        const data = {
+          channelId,
+          userId: user.id
+        }
+        socket.emit("notifySomeoneLeaveChannel", data);
       }
     }
 
@@ -509,7 +560,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
 
 }
 
-export const addUserIdToChannel = async (channelId: number, userId: number) => {
+export const addUserIdToChannel = async (channelId: number, userId: number): Promise<number> => {
   try {
     const requestOptions: RequestInit = {
       method: "POST",
@@ -518,32 +569,76 @@ export const addUserIdToChannel = async (channelId: number, userId: number) => {
       },
     };
     const response = await fetch(`http://localhost:4000/api/chat/addUserToChannel/${userId}/${channelId}`, requestOptions);
+    if (!response.ok) {
+      if (response.status === 406) {
+        return Promise.reject(new Error("You are banned from this channel"));
+      }
+      if (response.status === 404) {
+        return Promise.reject(new Error("Channel not found"));
+      }
+      console.log("error adding user to channel");
+      throw new Error("Error adding user to channel");
+    }
+    const channelIdAdded: number = await response.json();
+    return channelIdAdded;
   } catch (error) {
-    throw new Error("Error adding user to channel");
+    throw error;
   }
 }
 
-export const addUserListToChannel = async (userList: User[], channelId: number): Promise<void[] | Response[]> => {
-  try {
+export const addUserListToChannel = async (userList: User[], channelId: number, socket: Socket): Promise<Response[]> => {
+  const requestOptions: RequestInit = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
 
-    const requestOptions: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
+  const errorMessages: ErrorMessages = {
+    406: "Ban users can't be added",
+    404: "User not found",
+    403: "Forbidden action",
+  };
 
-    const responses: Promise<Response>[] = [];
-    userList.map((user) => {
-      let response = fetch(`http://localhost:4000/api/chat/addUserToChannel/${user.id}/${channelId}`, requestOptions);
-      responses.push(response);
+  // Créez un tableau de promesses pour les réponses.
+  const responses: Promise<Response>[] = userList.map((user) => {
+    return fetch(`http://localhost:4000/api/chat/addUserToChannel/${user.id}/${channelId}`, requestOptions);
+  });
+
+  // Utilisez Promise.all pour attendre que toutes les promesses se terminent.
+  return Promise.all(responses)
+    .then((responses) => {
+      // Traitez les réponses ici.
+      const errors = responses.filter((response) => response.status !== 201);
+      if (errors.length > 0) {
+        // S'il y a des erreurs, gérer-les et renvoyer une erreur si nécessaire.
+        const errorMessagesList = errors.map((error) => {
+          const userId = userList[responses.indexOf(error)].id;
+          const errorMessage = errorMessages[error.status] || "Unknown error";
+          return (`${errorMessage}`);
+        });
+        if (errorMessagesList.length > 0) {
+          throw new Error(errorMessagesList[0]);
+        }
+      }
+
+      // Si tout se passe bien, émettez un événement avec socket.
+      userList.forEach((user) => {
+        const data = {
+          userId: user.id,
+          channelId,
+        };
+        socket.emit("notifySomeoneJoinChannel", data);
+      });
+
+      return responses;
     })
-
-    return Promise.all(responses).then((data) => data);
-  } catch (error) {
-    throw new Error("Error posting data");
-  }
-}
+    .catch((error) => {
+      // Gérez les erreurs globales ici.
+      console.error("Error in addUserListToChannel:", error);
+      throw error;
+    });
+};
 
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> => {
   try {
@@ -565,20 +660,23 @@ export const joinProtectedChannel = async (channelId: number, userId: number, pa
   }
 }
 
-export const joinChannel = async (channel: isChannelExist, userId: number): Promise<ChannelType> => {
-  switch (channel.channelType.toString()) {
-    case "PUBLIC":
-      console.log('is public');
-      await addUserIdToChannel(channel.id, userId); // check if we need to protect this API call
-      break;
-    case "PRIVATE":
-      break;
-    case "PASSWORD_PROTECTED":
-      break;
-    default:
-      console.log('invalid channel type: ', channel.channelType);
+export const joinChannel = async (channel: isChannelExist, userId: number): Promise<{ channelType: ChannelType, channelId: number }> => {
+  try {
+    let channelIdJoined: number = -1;
+    switch (channel.channelType.toString()) {
+      case "PUBLIC":
+        console.log('is public');
+        channelIdJoined = await addUserIdToChannel(channel.id, userId); // check if we need to protect this API call
+        break;
+      case "PRIVATE":
+        break;
+      case "PASSWORD_PROTECTED":
+        break;
+    }
+    return { channelType: channel.channelType, channelId: channelIdJoined };
+  } catch (error) {
+    throw error;
   }
-  return channel.channelType;
 }
 
 export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
@@ -662,7 +760,7 @@ export const getBlockedUsersById = async (userId: number): Promise<number[]> => 
     }
     const blockedUsers: number[] = await response.json();
     return blockedUsers;
-  } catch (error){
+  } catch (error) {
     throw error;
   }
 }
@@ -684,6 +782,64 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
       userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
       addMsgToFetchedConversation(message)
     })
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const manageChannelPassword = async (channelId: number, channelType: string, actualPassword: string, newPassword: string) => {
+  try {
+    const response: Response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ channelId, channelType, actualPassword, newPassword })
+    });
+    const customErrorMessages: ErrorMessages = {
+      400: ": Bad input",
+      403: ": Wrong password",
+    };
+    handleHTTPErrors(response, customErrorMessages);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const manageChannelType = async (channelId: number, channelType: string) => {
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/manageChannelType`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      },
+      body: JSON.stringify({ channelId, channelType })
+    });
+    const customErrorMessages: ErrorMessages = {
+      403: "",
+      404: ": channel",
+    };
+    handleHTTPErrors(response, customErrorMessages);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const getChannelType = async (channelId: number) => {
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/getChannelType`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      },
+      body: JSON.stringify({ channelId })
+    });
+    handleHTTPErrors(response, {});
+    const channelType: string = await response.text();
+    return channelType;
   } catch (error) {
     throw error;
   }

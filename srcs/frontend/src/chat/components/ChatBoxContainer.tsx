@@ -10,7 +10,6 @@ import { SocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
 
-
 const ChatBoxContainer = () => {
 
   const [userId, setUserId] = useState<number>(-1);

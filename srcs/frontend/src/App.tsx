@@ -33,7 +33,6 @@ import "./App.css";
 }
 
 const App: React.FC = () => {
-
   useActivityLogout();
   return (
     <Routes>

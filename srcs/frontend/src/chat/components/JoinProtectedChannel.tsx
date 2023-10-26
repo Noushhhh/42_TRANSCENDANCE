@@ -30,6 +30,7 @@ function JoinProtectedChannel({ setStateMessageToClick, channelId }: JoinProtect
         try {
             if (channelId) {
                 if (await joinProtectedChannel(channelId, userId, password)){
+                    socket.emit("joinChannel", channelId);
                     await fetchUser(setChannelHeader, userId, socket);
                     setStateMessageToClick([false, false]);
                 } else {
