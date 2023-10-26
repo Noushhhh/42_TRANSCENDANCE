@@ -134,6 +134,7 @@ export class GameLobbyService {
   removePlayerFromLobby(player: Socket) {
     for (const [key, value] of lobbies) {
       const lobby = lobbies.get(key);
+      player.leave(key);
       // If player one leave the game
       if (value.player1?.id === player.id) {
         if (lobby) {
