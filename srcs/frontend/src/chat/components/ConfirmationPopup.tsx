@@ -39,6 +39,7 @@ export default function ConfirmationPopup( {setError}: ConfirmationPopup ) {
   const handleAgree = async () => {
     try{
       await leaveChannel(userId, channelId, setChannelHeader, socket);
+      socket.emit("leaveChannel", channelId);
       setChannelId(-1);
     } catch (error: any){
       setError("Admin can't leave channel");

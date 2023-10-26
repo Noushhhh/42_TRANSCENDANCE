@@ -20,7 +20,7 @@ import {
 import "./App.css";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:4000");
+// const socket = io("http://localhost:4000");
 
 {
   /* <Navbar /> */
@@ -57,7 +57,7 @@ const App: React.FC = () => {
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="game" element={<GameContainer socket={socket} />} />
+        {/* <Route path="game" element={<GameContainer socket={socket} />} /> */}
       </Route>
     </Routes>
   );

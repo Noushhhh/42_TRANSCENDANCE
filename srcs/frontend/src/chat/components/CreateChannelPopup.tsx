@@ -71,7 +71,8 @@ function CreateChannelPopup()  {
                 setError("Channel name can't be empty");
             else{
                 const participantsId: number [] = userListChannel.map(user => user.id);
-                await createChannel(channelName, password, participantsId, channelType, setChannelHeader, userId, socket);
+                const channelIdCreated: number = await createChannel(channelName, password, participantsId, channelType, setChannelHeader, userId, socket);
+                socket.emit("joinChannel", channelIdCreated);
             }
         } catch (error: any){
             setError(error.message);

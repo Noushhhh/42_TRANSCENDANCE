@@ -6,7 +6,6 @@ import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { getBlockedUsersById } from "./ChannelUtils";
 
 interface Message {
   id: number;

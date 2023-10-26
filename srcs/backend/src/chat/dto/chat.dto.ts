@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsArray, IsIn, IsNumber} from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
 
@@ -65,3 +65,33 @@ export class pairUserId{
     targetId!: number;
 }
 
+export class ManagePasswordDto{
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    channelId!: number;
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    channelType!: string;
+
+    @IsString()
+    // @Min(6)
+    // @Max(22)
+    actualPassword!: string;
+
+    @IsNotEmpty()
+    @IsString()
+    // @Min(6)
+    // @Max(22)
+    newPassword!: string;
+}
+
+export class ManageChannelTypeDto{
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    channelId!: number;
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    channelType!: string;
+}

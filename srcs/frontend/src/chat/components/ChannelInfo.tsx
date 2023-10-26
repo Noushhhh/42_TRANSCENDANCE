@@ -47,7 +47,6 @@ function ChannelInfo({
     const fetchChannelName = async () => {
       try {
         if (channelId !== -1) {
-          console.log("called");
           const numberUsersInChannel: number = await getNumberUsersInChannel(
             channelId
           );
@@ -91,7 +90,11 @@ function ChannelInfo({
     }
     if (displayMenu && settingsClicked === false && window.innerWidth < 800) {
       setToggleMenu(true);
-    } else if (displayMenu && settingsClicked === true && window.innerWidth < 800) {
+    } else if (
+      displayMenu &&
+      settingsClicked === true &&
+      window.innerWidth < 800
+    ) {
       setToggleMenu(true);
       setdisplayMenu(false);
     }
@@ -139,7 +142,8 @@ function ChannelInfo({
         setSettingsChannel={setSettingsChannel}
         setdisplayMenu={setdisplayMenu}
         setChannelInfo={setChannelInfo}
-        setSettingsClicked={setSettingsClicked}      />
+        setSettingsClicked={setSettingsClicked}
+      />
     </div>
   ) : null;
 }
