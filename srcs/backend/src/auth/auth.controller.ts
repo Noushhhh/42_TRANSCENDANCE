@@ -14,6 +14,7 @@ const browserError: string = "This browser session is already taken by someone,"
 export class AuthController {
     constructor(private authService: AuthService) {}
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Get('token')
     async getToken(@Req() req: Request) {
         // Extract the access token from the request cookies
@@ -21,6 +22,7 @@ export class AuthController {
         return { accessToken}
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {
@@ -32,6 +34,7 @@ export class AuthController {
         }
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Post('signin') // delete async, has to signin and cannot do anything else
     async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
         if (req.cookies.token)
@@ -45,11 +48,13 @@ export class AuthController {
         }
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Get('checkTokenValidity')
     async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
         return this.authService.checkTokenValidity(req, res);
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Get('signout')
     async signout(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response) {
         if (!decodedPayload) {
@@ -59,6 +64,7 @@ export class AuthController {
         return this.authService.signout(decodedPayload, res);
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Public()
     @Get('42Url')
     async get42Url() {
@@ -66,6 +72,7 @@ export class AuthController {
         return (url);
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     // @Public()
     @Get('callback42')
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
@@ -80,6 +87,7 @@ export class AuthController {
         }
     }
 
+  // ─────────────────────────────────────────────────────────────────────────────
     @Post('enable2FA')
     async enable2FA() {
 

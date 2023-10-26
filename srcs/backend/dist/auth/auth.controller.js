@@ -33,6 +33,7 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     getToken(req) {
         return __awaiter(this, void 0, void 0, function* () {
             // Extract the access token from the request cookies
@@ -40,6 +41,7 @@ let AuthController = class AuthController {
             return { accessToken };
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -51,6 +53,7 @@ let AuthController = class AuthController {
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
             if (req.cookies.token)
@@ -65,11 +68,13 @@ let AuthController = class AuthController {
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.checkTokenValidity(req, res);
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     signout(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!decodedPayload) {
@@ -79,12 +84,14 @@ let AuthController = class AuthController {
             return this.authService.signout(decodedPayload, res);
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
             const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
             return (url);
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     // @Public()
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -100,6 +107,7 @@ let AuthController = class AuthController {
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     enable2FA() {
         return __awaiter(this, void 0, void 0, function* () {
         });
