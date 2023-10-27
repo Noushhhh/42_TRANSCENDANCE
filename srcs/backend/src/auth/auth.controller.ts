@@ -86,7 +86,6 @@ export class AuthController {
             res.redirect('/error2');
         }
     }
-
   // ─────────────────────────────────────────────────────────────────────────────
     @Post('enable2FA')
     async enable2FA() {
