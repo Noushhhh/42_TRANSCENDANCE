@@ -1,5 +1,5 @@
 // Constants
-const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/user/isClientRegistered";
+const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/users/isClientRegistered";
 
 /**
  * Custom React hook to determine if the user has already had a first connection.

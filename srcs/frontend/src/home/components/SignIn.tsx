@@ -46,9 +46,26 @@ const signInAPI = async (email: string, password: string) => {
     });
 
     const data = await response.json();
+    // Check if the server response was not successful (response.ok is false)
     if (!response.ok) {
-        throw new Error(`${data?.message}` || `Server responded with status: ${response.status}`);
+        // Default error message includes the status code of the response
+        let errorMessage = `Server responded with status: ${response.status}`;
+
+        // If the data object has a 'message' property and it is an object with a 'message' property,
+        // use that as the error message
+        if (typeof data?.message === 'object' && data?.message?.message) {
+            errorMessage = data.message.message;
+        }
+        // If the data object has a 'message' property and it is a string,
+        // use that as the error message
+        else if (typeof data?.message === 'string') {
+            errorMessage = data.message;
+        }
+
+        // Throw an error with the determined error message
+        throw new Error(errorMessage);
     }
+
     return data;
 };
 
@@ -74,31 +91,33 @@ const SignIn: React.FC = () => {
 
     // Event handler for the Sign In button click.
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();  // Prevent default behaviors like page refresh.
-        setIsLoading(true);  // Set the loading state before API call.
+        event.preventDefault();
+        setIsLoading(true);
 
         try {
-            await signInAPI(email, password);  // Try to authenticate the user.
-            const userNotRegistered = await checkFirstConnection(); // check if user has already registered its username
+            await signInAPI(email, password);
+            const userNotRegistered = await checkFirstConnection();
+
             if (!userNotRegistered) {
-                navigate('/userprofilesetup' , { state: { email } });  // Navigate to userProfileSetup if user doesn't have public username
+                navigate('/userprofilesetup', { state: { email } });
             } else {
-                navigate('/home');  // Navigate to home on successful authentication and if user already has public username.
+                navigate('/home');
             }
         } catch (error) {
-            // Error handling: differentiate between different error types and set appropriate error messages.
             if (error instanceof Error) {
                 if (error.message.includes('403')) {
                     setErrorMessage('Wrong credentials. Please try again.');
+                } else if (error.message.includes('500')) {
+                    setErrorMessage('An internal server error occurred. Please try again later.');
                 } else {
-                    setErrorMessage(`${error?.message} Please try again`);
+                    setErrorMessage(`${error.message}. Please try again.`);
                 }
                 console.error("There was an error:", error.message);
             } else {
                 setErrorMessage('An unexpected error occurred. Please try again later.');
             }
         } finally {
-            setIsLoading(false);  // Reset loading state after API call completion.
+            setIsLoading(false);
         }
     };
 

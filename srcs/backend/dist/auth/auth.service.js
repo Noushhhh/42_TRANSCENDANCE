@@ -396,7 +396,8 @@ let AuthService = class AuthService {
             if (!decodedPayload)
                 return;
             try {
-                res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
+                res.clearCookie('token');
+                res.clearCookie('refreshToken');
                 this.updateUserLoggedIn(decodedPayload.sub, false);
                 return res.status(200).send({ message: 'Signed out successfully' });
             }

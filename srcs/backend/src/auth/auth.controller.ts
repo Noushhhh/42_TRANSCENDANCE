@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus, UseGuards, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
@@ -26,6 +26,8 @@ export class AuthController {
     @Public()
     @Post('signup')
     async signup(@Body() dto: AuthDto, @Res() res: Response) {
+        // if (req.cookies.token)
+        //     return res.status(400).send({ valid: false, message: browserError });
         try {
             const result = await this.authService.signup(dto, res);
             res.status(result.statusCode).send({ valid: result.valid, message: result.message });
@@ -37,8 +39,6 @@ export class AuthController {
   // ─────────────────────────────────────────────────────────────────────────────
     @Post('signin') // delete async, has to signin and cannot do anything else
     async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
-        if (req.cookies.token)
-            return res.status(400).send({ valid: false, message: browserError });
         try {
             const result: any = await this.authService.signin(dto, res);
             res.status(200).send({ valid: result.valid, message: result.message });
@@ -55,7 +55,7 @@ export class AuthController {
     }
 
   // ─────────────────────────────────────────────────────────────────────────────
-    @Get('signout')
+    @Delete('signout')
     async signout(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response) {
         if (!decodedPayload) {
             console.error("error decoding payload with decorator\n");

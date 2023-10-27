@@ -33,7 +33,7 @@ const updateProfileBackend = async (profileImage: File | null, profileName: stri
   formData.append("profileImage", profileImage || new Blob());
   formData.append("profileName", profileName);
 
-  const response = await fetch("http://localhost:8081/api/user/update", {
+  const response = await fetch("http://localhost:8081/api/users/update", {
     method: "POST",
     body: formData,
     credentials: "include",

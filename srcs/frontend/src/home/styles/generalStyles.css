@@ -63,7 +63,6 @@ html {
 }
 
 .content {
-  display: flex;
   align-items: center;
   justify-content: center;
   flex: auto;
@@ -93,8 +92,9 @@ html {
 }
 
 img {
-  max-width: 100%;
+  max-width: 10%;
   height: auto;
+  /* border-radius: 50%; */
 }
 
 @media (max-width: 768px) {

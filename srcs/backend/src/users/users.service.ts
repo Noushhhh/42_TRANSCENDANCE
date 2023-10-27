@@ -42,7 +42,7 @@ export class UsersService {
                 where: { username: payload?.email },
             });
 
-            if (user?.firstConnexion) {
+            if (!user?.firstConnexion) {
                 return {
                     statusCode: 200,
                     valid: true,
@@ -130,7 +130,7 @@ export class UsersService {
                 data: {
                     publicName: profileName,
                     avatar: filePath,
-                    firstConnexion: true,
+                    firstConnexion: false,
                 },
             });
 

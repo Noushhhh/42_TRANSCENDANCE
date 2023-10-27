@@ -44,6 +44,8 @@ let AuthController = class AuthController {
     // ─────────────────────────────────────────────────────────────────────────────
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // if (req.cookies.token)
+            //     return res.status(400).send({ valid: false, message: browserError });
             try {
                 const result = yield this.authService.signup(dto, res);
                 res.status(result.statusCode).send({ valid: result.valid, message: result.message });
@@ -56,8 +58,6 @@ let AuthController = class AuthController {
     // ─────────────────────────────────────────────────────────────────────────────
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.cookies.token)
-                return res.status(400).send({ valid: false, message: browserError });
             try {
                 const result = yield this.authService.signin(dto, res);
                 res.status(200).send({ valid: result.valid, message: result.message });
@@ -149,7 +149,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
-    (0, common_1.Get)('signout'),
+    (0, common_1.Delete)('signout'),
     __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
