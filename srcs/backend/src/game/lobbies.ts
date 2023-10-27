@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { GameState } from './gameState';
 import { Socket } from "socket.io";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class Lobby {
@@ -10,9 +11,19 @@ export class Lobby {
   gameState = new GameState();
   ballState = this.gameState.gameState.ballState;
 
-  constructor(player: Socket | undefined, playerId: number) {
+  constructor(player: Socket | undefined, playerId: number, private readonly userService: UsersService) {
+    this.initializeLobby(player, playerId);
+  }
+
+  private async initializeLobby(player: Socket | undefined, playerId: number) {
+    const playerDb = await this.userService.findUserWithId(playerId);
+    if (!playerDb) {
+      throw new Error("Error trying to find player in lobby construction");
+    }
+
     this.player1 = player;
     this.gameState.gameState.p1Id = playerId;
+    this.gameState.gameState.p1Name = playerDb.username;
   }
 
   public printPlayersPos() {

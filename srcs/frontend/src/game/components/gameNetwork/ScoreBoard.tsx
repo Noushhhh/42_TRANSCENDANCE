@@ -20,6 +20,7 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
     setP2Score(gameState.score.p2Score);
     setP1Name(formatPlayerName(gameState.p1Name));
     setP2Name(formatPlayerName(gameState.p2Name));
+    console.log("p1name, p2name", gameState.p1Name, gameState.p2Name);
   };
 
   const formatPlayerName = (playerName: string): string => {

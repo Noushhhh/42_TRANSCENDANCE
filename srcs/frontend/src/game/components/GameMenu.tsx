@@ -10,6 +10,7 @@ interface GameMenuProps {
 const GameMenu: FC<GameMenuProps> = ({ socket }) => {
   // @to-do REMOVE LOCALHOST
   const lobby = () => {
+    console.log("je suis la, socket.id = ", socket.id);
     try {
       fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`, {
         method: "GET",

@@ -46,6 +46,7 @@ let GameLobbyService = class GameLobbyService {
         return __awaiter(this, void 0, void 0, function* () {
             this.gatewayOut.updateLobbiesGameState();
             const player = this.socketMap.getSocket(playerId);
+            console.log("je log les donnes: ", playerId, playerDbId);
             if (this.isInLobby(player)) {
                 console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
                 return;
@@ -53,12 +54,14 @@ let GameLobbyService = class GameLobbyService {
             for (const [key, value] of lobbies_1.lobbies) {
                 if (!value.player1 || !value.player2) {
                     if (!value.player1) {
+                        console.log("je suis bien ici car p1 est partit et il revient");
                         value.player1 = player;
                         value.gameState.gameState.p1Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb)
                             throw new Error("player not found");
                         value.gameState.gameState.p1Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        console.log("ici j'ajoue name du P1", playerDb === null || playerDb === void 0 ? void 0 : playerDb.username);
                     }
                     else if (!value.player2) {
                         value.player2 = player;
@@ -67,6 +70,7 @@ let GameLobbyService = class GameLobbyService {
                         if (!playerDb)
                             throw new Error("player not found");
                         value.gameState.gameState.p2Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        console.log("ici j'ajoue name du P2", playerDb === null || playerDb === void 0 ? void 0 : playerDb.username);
                     }
                     player === null || player === void 0 ? void 0 : player.join(key);
                     this.gatewayOut.isInLobby(true, player);
@@ -81,7 +85,7 @@ let GameLobbyService = class GameLobbyService {
                 }
             }
             const lobbyName = `lobby${lobbies_1.lobbies.size}`;
-            const lobby = new lobbies_1.Lobby(player, playerDbId);
+            const lobby = new lobbies_1.Lobby(player, playerDbId, this.userService);
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
             this.gatewayOut.isInLobby(true, player);
@@ -111,7 +115,7 @@ let GameLobbyService = class GameLobbyService {
             if (!player1 || !player2)
                 throw new Error("Error trying to find player socket");
             const lobbyName = `lobby${lobbies_1.lobbies.size}`;
-            const lobby = new lobbies_1.Lobby(player1, playerId);
+            const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
             lobby.gameState.gameState.p1Id = playerId;
             lobby.gameState.gameState.p2Id = friendId;
@@ -155,6 +159,7 @@ let GameLobbyService = class GameLobbyService {
                     lobby.player1 = null;
                 }
                 const p2Id = value.gameState.gameState.p2Id;
+                const p2Name = value.gameState.gameState.p2Name;
                 // If there is a player 2, he wins
                 // There was a game so add this
                 // game to the player's match history
@@ -168,6 +173,7 @@ let GameLobbyService = class GameLobbyService {
                 // Re init the room game state
                 value.gameState = new gameState_1.GameState();
                 value.gameState.gameState.p2Id = p2Id;
+                value.gameState.gameState.p2Name = p2Name;
                 this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 // @to-do using a debug function here
                 this.printLobbies();
@@ -179,6 +185,7 @@ let GameLobbyService = class GameLobbyService {
                     lobby.player2 = null;
                 }
                 const p1Id = value.gameState.gameState.p1Id;
+                const p1Name = value.gameState.gameState.p1Name;
                 // If there is a player 1, he wins
                 // There was a game so add this
                 // game to the player's match history
@@ -192,6 +199,7 @@ let GameLobbyService = class GameLobbyService {
                 // Re init the room game state
                 value.gameState = new gameState_1.GameState();
                 value.gameState.gameState.p1Id = p1Id;
+                value.gameState.gameState.p1Name = p1Name;
                 this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                 // @to-do using a debug function here
                 this.printLobbies();
