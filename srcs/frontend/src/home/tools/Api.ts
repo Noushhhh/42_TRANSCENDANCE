@@ -51,28 +51,32 @@ export const getUserAvatar = async (): Promise<string | null> => {
 }
 
 
-//returns response from backend to notify user if the updated was validaded or not
-// erro handling is trated using try and catch 
+// This function is responsible for updating the public name of the user.
+// It sends a PUT request to the server with the new public name as a parameter.
+// If the server responds with a valid response, the function returns the response data.
+// If the server responds with an invalid response or if an error occurs during the fetch operation,
+// the function throws an error.
 export const updatePublicName = async (publicName: string) => {
     try {
-        const response = await fetch(`http://localhost:8081/api/users/\
-updatepublicname?username=${encodeURIComponent(publicName)}`,
-            {
-                method: 'PUT',
-                credentials: "include",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-        const data = await response.json();
-        if (!data.valid)
-            throw new Error(`${data.statusCode}: ${data.message}`);
-        return data;
+      const response = await fetch(`http://localhost:8081/api/users/updatepublicname?username=${encodeURIComponent(publicName)}`, {
+        method: 'PUT',
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (!data.valid) {
+        throw new Error(data.message); // Throw the error message from the server response
+      }
+      return data;
     } catch (error) {
-        console.log('Error updating user name')
-        return false;
+      console.log('Error updating user name');
+      throw error; // Throw the error instead of just logging it
     }
-}
+  }
+  
+
 
 // returns server response to notify user if the avatar was updated or not
 // error hadling is treated using try and catch

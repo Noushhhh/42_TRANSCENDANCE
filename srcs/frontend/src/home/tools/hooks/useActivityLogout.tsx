@@ -12,7 +12,7 @@
 // Importing necessary hooks and components from "react-router-dom".
 import { useNavigate } from "react-router-dom";
 import { useSignOut } from "./useSignOut";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 /**
  * @function useActivityLogout
@@ -25,21 +25,21 @@ const useActivityLogout = () => {
     let inactivityTimer: any;
 
     // Function to handle user sign out and navigation to the sign-in page.
-    const logoutAndNavigate = () => {
+    const logoutAndNavigate = useCallback(() => {
         handleSignOut();
         navigate('signin');
-    };
+    }, [handleSignOut, navigate]);
 
     // Function to reset the inactivity timer.
-    const resetTimer = () => {
+    const resetTimer = useCallback(() => {
         clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(logoutAndNavigate, 120000);
-    };
+        inactivityTimer = setTimeout(logoutAndNavigate, 600000);
+    }, [logoutAndNavigate]);
 
     // Function to handle window close event.
-    const handleWindowClose = () => {
+    const handleWindowClose = useCallback(() => {
         handleSignOut();
-    };
+    }, [handleSignOut]);
 
     // Setting up event listeners for user activity and window close.
     useEffect(() => {
@@ -55,7 +55,7 @@ const useActivityLogout = () => {
             window.removeEventListener('keypress', resetTimer);
             window.removeEventListener('beforeunload', handleWindowClose);
         };
-    }, []);
+    }, [resetTimer, handleWindowClose]);
 
     return null;
 };
