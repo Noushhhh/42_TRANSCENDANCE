@@ -1,15 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getPublicName, getUserAvatar, updatePublicName, updateAvatar } from '../tools/Api'
 import SignOutLink from '../tools/SignoutLink'
+import { CSSTransition } from 'react-transition-group';
+import './Settings.css'; // Import the CSS file
 
 const Settings: React.FC = React.memo(() => {
-  const [username, setPublicName] = useState<string>('');
-  const [newUsername, setNewPublicName] = useState<string>('');
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [username, setPublicName] = useState<string | null>(null);
+  const [newUsername, setNewPublicName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
   const [promptError, setError] = useState<string | null>(null); // Add an error state
+  const [showLoading, setShowLoading] = useState(false);
 
   // ─────────────────────────────────────────────────────────────────────
 
@@ -79,12 +82,36 @@ const Settings: React.FC = React.memo(() => {
   }, [newAvatar]);
 
   // ─────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (username === null || avatarUrl === null) {
+      timer = setTimeout(() => {
+        setShowLoading(true);
+      }, 2000); // 2-second delay
+    } else {
+      setShowLoading(false);
+    }
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [username, avatarUrl]);
+
+  if (username === null || avatarUrl === null) {
+    return (
+      <CSSTransition in={showLoading} timeout={2000} classNames="loading" unmountOnExit>
+        <div>Loading...</div>
+      </CSSTransition>
+    )
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
   return (
     <div className='container'>
       <h3>{username}</h3>
       {isUpdatingProfileName && (
         <>
-          <input type="text" value={newUsername} onChange={e => setNewPublicName(e.target.value)} />
+          <input type="text" value={newUsername ?? ''} onChange={e => setNewPublicName(e.target.value)} />
           <button onClick={checkUsernameAndUpdate}>Confirm</button>
         </>
       )}
