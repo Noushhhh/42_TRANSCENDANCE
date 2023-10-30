@@ -13,6 +13,7 @@ import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+import { BadRequestException, Catch, ExceptionFilter, HttpException, ArgumentsHost } from '@nestjs/common';
 
 
 /**

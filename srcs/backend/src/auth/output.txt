@@ -1,212 +1,137 @@
+   
+//component in react
 
-./auth.controller.ts
-
-
-import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthDto } from './dto';
-import { Public } from '../decorators/public.decorators';
-import { Response, Request } from 'express'
-import { ExtractJwt } from '../decorators/extract-jwt.decorator';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-
-
-const browserError: string = "This browser session is already taken by someone," +
-    " please open a new browser or incognito window";
-
-@Controller('auth')
-export class AuthController {
-    constructor(private authService: AuthService) {}
-
-    @Get('token')
-    async getToken(@Req() req: Request) {
-        // Extract the access token from the request cookies
-        const accessToken = req.cookies['token'];
-        return { accessToken}
-    }
-
-    @Public()
-    @Post('signup')
-    async signup(@Body() dto: AuthDto, @Res() res: Response) {
-        try {
-            const result = await this.authService.signup(dto, res);
-            res.status(result.statusCode).send({ valid: result.valid, message: result.message });
-        } catch (error) {
-            res.status(500).send({ valid: false, message: error });
-        }
-    }
-
-    @Post('signin') // delete async, has to signin and cannot do anything else
-    async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
-        if (req.cookies.token)
-            return res.status(400).send({ valid: false, message: browserError });
-        try {
-            const result: any = await this.authService.signin(dto, res);
-            res.status(200).send({ valid: result.valid, message: result.message });
-        } catch (error) {
-            res.status(500).send({ valid: false, message: error });
-        }
-    }
-
-    @Get('checkTokenValidity')
-    async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
-        return this.authService.checkTokenValidity(req, res);
-    }
-
-    @Get('signout')
-    async signout(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response) {
-        if (!decodedPayload) {
-            console.error("error decoding payload with decorator\n");
-            return;
-        }
-        return this.authService.signout(decodedPayload, res);
-    }
-
-    @Public()
-    @Get('42Url')
-    async get42Url() {
-        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
-        return (url);
-    }
-
-    // @Public()
-    @Get('callback42')
-    async handle42Callback(@Req() req: Request, @Res() res: Response) {
-        console.log("test");
-        try {
-            // Call the authService to handle 42 authentication
-            await this.authService.signToken42(req, res);
-        } catch (error) {
-            console.error(error);
-            // Handle errors here and redirect as needed
-            res.redirect('/error2');
-        }
-    }
-
-    @Post('enable2FA')
-    async enable2FA() {
-
-    }
-}
------------------------------------------------------------
-
-./auth.service.ts
-
-
-import { ForbiddenException, Res, Req, Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
-import { AuthDto } from './dto';
-import * as argon from 'argon2';
-import { JwtService } from '@nestjs/jwt';
-import { Request, Response } from 'express';
-import { randomBytes } from 'crypto';
-import * as jwt from 'jsonwebtoken';
-import axios from 'axios';
-import * as speakeasy from 'speakeasy';
-import { UsersService } from '../users/users.service';
-import { jwtConstants } from '../auth/constants/constants';
-import { ExtractJwt } from '../decorators/extract-jwt.decorator';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-
-
-/**
- * @file auth.service.ts
- * @author Your Name
- * @date 2023-10-18
- * @brief This file contains the AuthService class, which provides authentication-related services.
- */
-
-/**
- * @class AuthService
- * @brief This class provides authentication-related services.
- */
-@Injectable()
-export class AuthService {
-    private readonly JWT_SECRET: string | any;
-
-    constructor(
-        private usersService: UsersService,
-        private prisma: PrismaService,
-        private jwt: JwtService,
-        // private jwtService: JwtService,
-    ) {
-        this.JWT_SECRET = jwtConstants.secret;
-        if (!this.JWT_SECRET) {
-            throw new Error("JWT_SECRET environment variable not set!");
-        }
-    }
-
-    /**
-     * @brief This function handles user signup requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signup operation.
-     */
-    async signup(dto: AuthDto, res: Response) {
-        const hashPassword = await argon.hash(dto.password);
-        try {
-            const user = await this.prisma.user.create({
-                data: {
-                    username: dto.username,
-                    hashPassword,
-                },
-            });
-            return this.signToken(user.id, user.username, res);
-        } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                console.log(error)
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credentials taken');
-                }
-            }
-            throw error;
-        }
-    }
-
-    /**
-     * @brief This function handles user signin requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signin operation.
-     */
-    async signin(dto: AuthDto, res: Response) {
-        // find user with username
-        const user = await this.usersService.findUserWithUsername(dto.username);
-        // if user not found throw exception
-        if (!user) throw new ForbiddenException('Username not found',);
-        const userLoggedIn = await this.checkUserLoggedIn(user.id);
-        // console.log("passing by userLoggedIn", userLoggedIn, "\n");
-        if (userLoggedIn.statusCode === 200) {
-            throw new ForbiddenException('User is already logged in');
-            console.log("user already logged in " ,userLoggedIn.statusCode);
-        }
-        // compare password
-        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-        // if password wrong throw exception
-        if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
-        // send back the token
-      const result = await this.signToken(user.id, user.username, res);
-      // Update the user's logged in status in the database
-      if (result.valid)
-        this.updateUserLoggedIn(user.id, true);
-      return result;
-    }
-
-  /**
-   * @brief This function validates a user.
-   * @param dto The data transfer object containing user information.
-   * @return The user if found, otherwise throws an UnauthorizedException.
-   */
-  async validateUser(dto: AuthDto): Promise<any> {
-    const user = await this.usersService.findUserWithUsername(dto.username);
-    if (!user)
-      throw new UnauthorizedException();
-    return user;
-  }
+// Importing necessary hooks and components from "react-router-dom".
+import { useNavigate } from "react-router-dom";
+import { useSignOut } from "./useSignOut";
+import { useEffect, useCallback } from "react";
+import Cookies from 'js-cookie';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @brief Refreshes the user's access token.
+ * @throws Error if the token refresh request fails.
+ */
+const refreshToken = async () => {
+  try {
+    const response = await fetch('http://localhost:8081/api/auth/refreshToken', {
+      method: 'POST',
+      credentials: 'include', // Send cookies with the request
+    });
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @file useActivityLogout.tsx
+ * @author [Jairo Alexander VALENCIA CANDAMIL]
+ * @date 2023-10-21
+ * 
+ * @brief This is a custom React hook that handles user inactivity.
+ * It logs out the user after a certain period of inactivity and navigates to the sign-in page.
+ * 
+ * @note The inactivity period is currently set to 120000 milliseconds (2 minutes).
+ */
+
+
+/**
+ * @function useActivityLogout
+ * @description This hook sets up event listeners for user activity and logs out the user after a period of inactivity.
+ * @returns {null} This hook does not return anything.
+ */
+const useActivityLogout = () => {
+    const navigate = useNavigate();
+    const handleSignOut = useSignOut();
+    let inactivityTimer: any;
+
+    // Function to handle user sign out and navigation to the sign-in page.
+    const logoutAndNavigate = useCallback(() => {
+        handleSignOut();
+        navigate('signin');
+    }, [handleSignOut, navigate]);
+
+    // Function to reset the inactivity timer.
+    const resetTimer = useCallback(() => {
+        clearTimeout(inactivityTimer);
+
+        //Extract token Expiration date from cookies, is the only information we only can extract for security
+        const tokenExpires = Cookies.get('tokenExpires');
+        if (!tokenExpires) {
+            console.warn('Token expiration time not found in cookie');
+            return;
+        }
+
+        // Convert expiration data to date
+        const accessTokenExpiresAt = new Date(tokenExpires);
+        const now = new Date().getTime();
+        // Calculate the expiration token time in milliseconds
+        const expiresIn: number = accessTokenExpiresAt.getTime() - now;
+
+        // If the token expires within 5 minutes, we create a new token
+        if (expiresIn <= 5 * 60 * 1000) {
+            refreshToken().catch((error) => {
+                console.error('Error refreshing token:', error);
+            });
+        }
+
+        inactivityTimer = setTimeout(logoutAndNavigate, 6000000);
+    }, [logoutAndNavigate]);
+
+    // Function to handle window close event.
+    const handleWindowClose = useCallback(() => {
+        handleSignOut();
+    }, [handleSignOut]);
+
+    // Setting up event listeners for user activity and window close.
+    useEffect(() => {
+        window.addEventListener('load', resetTimer);
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keypress', resetTimer);
+        window.addEventListener('beforeunload', handleWindowClose);
+
+        // Cleaning up event listeners on unmount.
+        return () => {
+            window.removeEventListener('load', resetTimer);
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keypress', resetTimer);
+            window.removeEventListener('beforeunload', handleWindowClose);
+        };
+    }, [resetTimer, handleWindowClose]);
+
+    return null;
+};
+
+// Export the hook for use in other components.
+export default useActivityLogout; 
+
+-- ─────────────────────────────────────────────────────────────────────────────
+
+
+    //controller to implement
+
+    @Post('refreshToken')
+    async refreshToken(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response): Promise<Response> {
+        try {
+        if (!decodedPayload) {
+          //do something, or do whatever you think is the proper thing
+        }
+          const result: any = await this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
+          return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+        } catch (error) {
+          console.error('Error in refreshToken controller:', error);
+          return res.status(500).send({ message: 'Internal server error' });
+        }
+      }
+
+
+// service used by the controller
 /**
  * @brief This function signs a token.
  * @param userId The user's ID.
@@ -214,27 +139,101 @@ export class AuthService {
  * @param res The response object.
  * @return A promise that resolves to void.
  */
-async signToken(
-  userId: number,
-  username: string,
-  res: Response
-){
-  // Create the payload for the JWT token
+async signToken(userId: number, email: string, res: Response): Promise<any> {
+  const { token, refreshToken } = await this.generateAndSetTokens(userId, email, res);
+
+  if (!refreshToken) {
+      return ({
+          statusCode: 409,
+          valid: false,
+          message: "Problem creating refresh token"
+      });
+  }
+
+  // Decode the token to get the expiration time
+  const decodedToken = jwt.verify(token, this.JWT_SECRET);
+
+  if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+      // Set the tokenExpires cookie with the decoded expiration time
+      res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(), {
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 15
+      });
+  } else {
+      return ({
+          statusCode: 409,
+          valid: false,
+          message: "Impossible to decode token to create expiration time"
+      });
+  }
+  return ({
+      statusCode: 200,
+      valid: true,
+      message: "Authentication successful"
+  });
+}
+
+// functions used by the service
+/**
+ * @brief This function generates and sets JWT and refresh tokens for a user.
+ * @param userId The user's ID.
+ * @param email The user's email.
+ * @param res The response object.
+ * @return An object containing the JWT token and the refresh token.
+ */
+async generateAndSetTokens(userId: number, email: string, res: Response): Promise<{ token: string, refreshToken: { token: string, expiresAt: Date } }> {
+  // Define the payload for the JWT token
   const payload = {
     sub: userId,
-    username,
+    email,
   };
-
-  // Get the JWT secret from the environment variables
   const secret = this.JWT_SECRET;
 
-  // Sign the JWT token with the payload and secret
-  const token = await this.jwt.signAsync(payload, {
-    expiresIn: '15m',
-    secret: secret,
+  // Generate the JWT token
+  const token = await this.jwt.signAsync(
+    payload,
+    {
+      expiresIn: '15m', // The JWT token expires in 15 minutes
+      secret: secret,
+    },
+  );
+
+  // Get or create a refresh token for the user
+  const refreshToken = await this.refreshTokenIfNeeded(userId);
+
+  // If a refresh token is obtained, set it in a HttpOnly cookie
+  if (refreshToken) {
+    res.cookie('refreshToken', refreshToken.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: (refreshToken.expiresAt.getTime() - Date.now()) // The cookie expires when the refresh token expires
+    });
+  }
+
+  // Set the JWT token in a HttpOnly cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 1000 * 60 * 15 // The cookie expires in 15 minutes
   });
 
-  // Check if there is an existing refresh token for the user
+  // Return the JWT token and the refresh token
+  return { token, refreshToken };
+}
+
+-- ─────────────────────────────────────────────────────────────────────────────
+
+
+/**
+ * @brief This function checks if there is an existing refresh token for the user and returns it if it exists. If not, it creates a new refresh token.
+ * @param userId The user's ID.
+ * @return An object containing the token and its expiration date.
+ */
+async refreshTokenIfNeeded(userId: number): Promise<{ token: string, expiresAt: Date }> {
+  // Find the first refresh token that has not expired for the given user ID
   const existingRefreshToken = await this.prisma.refreshToken.findFirst({
     where: {
       userId: userId,
@@ -244,48 +243,30 @@ async signToken(
     },
   });
 
-  // If there is an existing refresh token, use it. Otherwise, create a new one.
-  let refreshToken;
+  // If an existing refresh token is found, return it
   if (existingRefreshToken) {
-    refreshToken = existingRefreshToken.token;
+    return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
   } else {
-    refreshToken = await this.createRefreshToken(userId);
+    // If no existing refresh token is found, create a new one
+    const newRefreshToken = await this.createRefreshToken(userId);
+    return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
   }
-
-  // Save the refresh token in an HttpOnly cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
-  });
-
-  // Save the JWT token in an HttpOnly cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
-  });
-
-  // Send a response confirming that the authentication was successful
-  return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
 }
 
+-- ─────────────────────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
 
-    /**
-     * @brief This function creates a refresh token.
-     * @param userId The user's ID.
-     * @return The refresh token.
-     */
-  async createRefreshToken(userId: number): Promise<string> {
+  /**
+   * @brief This function creates a refresh token.
+   * @param userId The user's ID.
+   * @return token: string, ExpirationDate: Date 
+   */
+  async createRefreshToken(userId: number): Promise<{ token: string, ExpirationDate: Date }> {
     const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
 
     const expiration = new Date();
-
     expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
+    console.log(expiration);
 
     // Save refreshToken to database along with userId
     await this.prisma.refreshToken.create({
@@ -296,391 +277,5 @@ async signToken(
       }
     });
 
-    return refreshToken;
+    return { token: refreshToken, ExpirationDate: expiration };
   }
-
-  /**
-   * @brief This function updates the user's logged in status.
-   * @param userId The user's ID.
-   * @param inputBoolean The new logged in status.
-   */
-  async updateUserLoggedIn(userId: number, inputBoolean: boolean) {
-    //update user login status 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        loggedIn: inputBoolean,
-      },
-    });
-
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function checks if the user is logged in.
-   * @param userId The user's ID.
-   * @return The user's logged in status.
-   */
-  async checkUserLoggedIn(userId: number) {
-    try {
-      const user: any = await this.usersService.findUserWithId(userId);
-      if (!user)
-        throw new ForbiddenException('Username not found',);
-      // console.log("Passing by checkUserLoggedIn", user.loggedIn, user);
-      if (user.loggedIn) {
-        return ({
-          statusCode: 200,
-          valid: true,
-          message: "User is logged in"
-        });
-      }
-      else {
-        return ({
-          statusCode: 400,
-          valid: true,
-          message: "User is not logged in"
-        });
-      }
-
-    } catch (error) {
-      return ({
-        statusCode: 400,
-        valid: false,
-        message: `Error finding userid ${userId} ` + error
-      });
-    }
-
-
-  }
-
-  async checkOnlyTokenValidity(token: string): Promise<number | null> {
-
-    if (!token)
-      throw new ForbiddenException("Token not provided");
-
-    try {
-      const user = jwt.verify(token, this.JWT_SECRET);
-      if (!user)
-        return null;
-      if (user.sub)
-        return Number(user.sub);
-    } catch (error) {
-      return null;
-    }
-    return null;
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-  /**
-   * @brief This function checks the validity of the token.
-   * @param req The request object.
-   * @param res The response object.
-   * @return The token's validity status.
-   */
-  async checkTokenValidity(req: Request, res: Response) {
-    const token = req.cookies.token;
-
-    if (!token)
-      return res.status(401).json({ valid: false, message: "Token Missing" });
-
-    try {
-      jwt.verify(token, this.JWT_SECRET);
-      return res.status(200).json({ valid: true, message: "Token is valid" });
-    } catch (error) {
-      return res.status(401).json({ valid: false, message: "Invalid Token" });
-    }
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-  /**
-   * @brief This function handles user signout requests.
-   * @param decodedPayload The decoded payload.
-   * @param res The response object.
-   * @return The result of the signout operation.
-   */
-  async signout(decodedPayload: DecodedPayload | null, res: Response) {
-    // Clear the JWT cookie or session
-    if (!decodedPayload)
-      return;
-    try {
-      res.clearCookie('token'); // assuming the token is saved in a cookie named 'token'
-      this.updateUserLoggedIn(decodedPayload.sub, false)
-      return res.status(200).send({ message: 'Signed out successfully' });
-    } catch (error) {
-      console.error(error);
-      return res.status(401).send({ message: "Cookie not found" });
-    }
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-  /**
-   * @brief This function signs a token for 42 authentication.
-   * @param req The request object.
-   * @param res The response object.
-   */
-  async signToken42(@Req() req: any, res: Response) {
-    try {
-      const code = req.query['code'];
-      const token = await this.exchangeCodeForToken(code);
-      if (!token) {
-        console.error('Failed to fetch access token');
-        throw new Error('Failed to fetch access token');
-      }
-      const userInfo = await this.getUserInfo(token);
-      const user = await this.createUser(userInfo, res);
-
-      if (user.TwoFA == true) {
-
-      }
-
-      // Set both JWT token and refresh token as cookies
-      const payload = {
-        sub: user.id,
-        username: user.username,
-      };
-      const secret = this.JWT_SECRET;
-      const jwtToken = await this.jwt.signAsync(payload, {
-        expiresIn: '15m',
-        secret: secret,
-      });
-      const refreshToken = this.createRefreshToken(user.id);
-
-      res.cookie('token', jwtToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
-      });
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-      });
-
-      // Redirect the user to the desired URL after successful authentication
-      res.redirect('http://localhost:8081/home');
-    } catch (error) {
-      console.error('Error in signToken42:', error);
-      // Handle errors here, e.g., return an error response
-      res.status(500).send({ message: 'Internal Server Error' });
-    }
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function exchanges a code for a token.
-   * @param code The code.
-   * @return The token or null if the exchange fails.
-   */
-  async exchangeCodeForToken(code: string): Promise<string | null> {
-    try {
-      const response = await this.sendAuthorizationCodeRequest(code);
-      return response.data.access_token;
-    } catch (error) {
-      console.error('Error fetching access token:', error);
-      return null;
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  private async sendAuthorizationCodeRequest(code: string) {
-    const requestBody = {
-      grant_type: 'authorization_code',
-      client_id: process.env.UID_42,
-      client_secret: process.env.SECRET_42,
-      code: code,
-      redirect_uri: 'http://localhost:4000/api/auth/callback42',
-    };
-    return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
-  }
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-  /**
-   * @brief This function creates a user.
-   * @param userInfo The user info.
-   * @param res The response object.
-   * @return The user.
-   */
-  private async getUserInfo(token: string): Promise<any> {
-    try {
-      const response = await this.sendUserInfoRequest(token);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      throw error;
-    }
-  }
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-  private async sendUserInfoRequest(token: string) {
-    return axios.get('https://api.intra.42.fr/v2/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-  /**
-   * @brief This function creates a user.
-   * @param userInfo The user info.
-   * @param res The response object.
-   * @return The user.
-   */
-  async createUser(userInfo: any, res: Response): Promise<User> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        id: userInfo.id,
-      },
-    });
-
-    if (existingUser) {
-      console.log('User already exists:', existingUser);
-      //   return "User already exists";
-      existingUser.firstConnexion = false;
-      return existingUser;
-    }
-
-    try {
-      let avatarUrl;
-      if (userInfo.image.link !== null) {
-        // use the 42 profile picture if not null
-        avatarUrl = userInfo.image.link;
-      }
-      const user = await this.prisma.user.create({
-        data: {
-          id: userInfo.id,
-          hashPassword: this.generateRandomPassword(),
-          username: userInfo.login,
-          avatar: userInfo.image.link,
-        },
-      });
-      const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
-      user.twoFASecret = secret;
-      user.twoFAUrl = otpauthUrl;
-      console.log("User created", user);
-      return user;
-    } catch (error) {
-      console.error('Error saving user information to database:', error);
-      throw error;
-    }
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function generates a random password.
-   * @return The password.
-   */
-  generateRandomPassword(): string {
-    const password =
-      Math.random().toString(36).slice(2, 15) +
-      Math.random().toString(36).slice(2, 15);
-    return password;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function generates a 2FA secret.
-   * @param userId The user's ID.
-   * @return The 2FA secret and otpauth URL.
-   */
- 
-  generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-    const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-    const otpauthUrl = speakeasy.otpauthURL({
-      secret: secret.base32,
-      label: `ft_transcendance:${userId}`, // Customize the label as needed
-      issuer: 'ft_transcendance', // Customize the issuer as needed
-    });
-    return { secret: secret.base32, otpauthUrl };
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function verifies a 2FA code.
-   * @param userId The user's ID.
-   * @param code The 2FA code.
-   * @return Whether the 2FA code is verified.
-   */
-  async verifyTwoFACode(userId: number, code: string): Promise<boolean> {
-    const user: User | null = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const verified = speakeasy.totp.verify({
-      secret: user.twoFASecret || '',
-      encoding: 'base32',
-      token: code,
-    });
-
-    return verified;
-  }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * @brief This function enables 2FA.
-   * @param userId The user's ID.
-   */
-  async enable2FA(userId: number) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        TwoFA: true,
-      },
-    });
-
-  }
-}-----------------------------------------------------------
-
-./auth.module.ts
-
-
-import { Module, forwardRef } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { JwtStrategy } from '../strategies/jwt.strategy';
-import { UsersModule } from '../users/users.module';
-import { PassportModule } from '@nestjs/passport';
-// import { LocalStrategy } from '../strategies/local-auth.strategy';
-import { jwtConstants } from './constants/constants';
-import { ConfigService } from '@nestjs/config';
-
-@Module({
-  imports: [
-      forwardRef(() => UsersModule),
-      PassportModule,
-      JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '15m'}
-  }), 
-  ],
-  // imports: [UsersModule, PassportModule],
-  // providers: [AuthService, LocalStrategy, JwtStrategy],
-  providers: [AuthService, JwtStrategy],
-  controllers: [AuthController],
-  exports: [AuthService],
-})
-export class AuthModule {}
------------------------------------------------------------
-
