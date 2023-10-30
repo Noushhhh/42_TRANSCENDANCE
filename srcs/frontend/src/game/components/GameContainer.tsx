@@ -13,9 +13,11 @@ import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
 import { useConnectSocket } from "../../hooks/useConnectSocket";
 
-interface GameContainerProps {}
+interface GameContainerProps {
+  socket: Socket | undefined;
+}
 
-const GameContainer: FC<GameContainerProps> = () => {
+const GameContainer: FC<GameContainerProps> = ({socket}) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
@@ -23,40 +25,44 @@ const GameContainer: FC<GameContainerProps> = () => {
   const gameLaunched = useRef<boolean>(false);
   const location = useLocation();
 
-  const [socket, setSocket] = useState<Socket>();
-  const socketRef = useRef<Socket | undefined>();
-
   useEffect(() => {
-    const fetchAccessToken = async () => {
-      const response = await fetch("http://localhost:4000/api/auth/token", {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await response.json();
-      const accessToken = data.accessToken;
+    socket?.emit("requestGameState");
+  }, [])
 
-      if (!socketRef.current) {
-        const newSocket = io("http://localhost:4000", {
-          auth: {
-            token: accessToken,
-          },
-          autoConnect: false,
-        });
+  // const [socket, setSocket] = useState<Socket>();
+  // const socketRef = useRef<Socket | undefined>();
 
-        setSocket(newSocket);
-        socketRef.current = newSocket;
-        newSocket.connect();
-      }
-    };
+  // useEffect(() => {
+  //   const fetchAccessToken = async () => {
+  //     const response = await fetch("http://localhost:4000/api/auth/token", {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     const data = await response.json();
+  //     const accessToken = data.accessToken;
 
-    fetchAccessToken();
+  //     if (!socketRef.current) {
+  //       const newSocket = io("http://localhost:4000", {
+  //         auth: {
+  //           token: accessToken,
+  //         },
+  //         autoConnect: false,
+  //       });
 
-    return () => {
-      if (socket) {
-        socket.disconnect();
-      }
-    };
-  }, []);
+  //       setSocket(newSocket);
+  //       socketRef.current = newSocket;
+  //       newSocket.connect();
+  //     }
+  //   };
+
+  //   fetchAccessToken();
+
+  //   return () => {
+  //     if (socketRef.current) {
+  //       socketRef.current.disconnect();
+  //     }
+  //   };
+  // }, []);
 
   useEffect(() => {
     socket?.on("connect", connectListener);
@@ -120,7 +126,14 @@ const GameContainer: FC<GameContainerProps> = () => {
   };
 
   const updateGameStateListener = (gameState: GameState) => {
+    console.log("isLobbyFull ? ", gameState.isLobbyFull);
+    console.log("socket, is lobbyfull = ", socket, isLobbyFull);
+    console.log("isInLobby = ", isInLobby);
     setIsPaused(gameState.isPaused);
+    setIsLobbyFull(gameState.isLobbyFull);
+    if (gameState.isLobbyFull === true) {
+      setIsInLobby(true);
+    }
   };
 
   const isInLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {

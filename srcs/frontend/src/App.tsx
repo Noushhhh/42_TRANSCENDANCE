@@ -2,7 +2,7 @@ import GameContainer from "./game/components/GameContainer";
 import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 // import AuthContainer from './auth/components/AuthContainer';
-import React from "react";
+import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import {
   Welcome,
@@ -17,8 +17,10 @@ import {
   Chat,
   useActivityLogout,
 } from "./home/components/index";
+import IoConnection from "./socket/IoConnection";
 import "./App.css";
-import { io } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { useState, useRef } from "react";
 
 // const socket = io("http://localhost:4000");
 
@@ -37,6 +39,14 @@ import { io } from "socket.io-client";
 
 const App: React.FC = () => {
   useActivityLogout();
+  const [socket, setSocket] = useState<Socket>();
+  const socketRef = useRef<Socket | undefined>();
+
+  useEffect(() => {
+    console.log("socket ref from app", socketRef.current?.id);
+    console.log("socket state from app", socket?.id);
+  });
+
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
@@ -49,15 +59,19 @@ const App: React.FC = () => {
         element={
           <ProtectedRoute>
             <HomePage />
+            <IoConnection setSocket={setSocket} socketRef={socketRef} />
           </ProtectedRoute>
         }
       >
         {/* add here incremented route if user first connexion can access only user settings page */}
-        <Route path="chat" element={<ChatBoxContainer />} />
+        <Route path="chat" element={<ChatBoxContainer socket={socket} />} />
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="game" element={<GameContainer />} />
+        <Route
+          path="game"
+          element={<GameContainer socket={socketRef.current} />}
+        />
       </Route>
     </Routes>
   );

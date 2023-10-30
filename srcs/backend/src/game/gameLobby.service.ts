@@ -30,7 +30,7 @@ export class GameLobbyService {
   async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
-    console.log("je log les donnes: ", playerId, playerDbId);
+
     if (this.isInLobby(player)) {
       console.log('Already in a lobby', player?.id);
       return;
@@ -39,14 +39,12 @@ export class GameLobbyService {
     for (const [key, value] of lobbies) {
       if (!value.player1 || !value.player2) {
         if (!value.player1) {
-          console.log("je suis bien ici car p1 est partit et il revient");
           value.player1 = player;
           value.gameState.gameState.p1Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
           if (!playerDb)
             throw new Error("player not found")
           value.gameState.gameState.p1Name = playerDb?.username;
-          console.log("ici j'ajoue name du P1", playerDb?.username);
         } else if (!value.player2) {
           value.player2 = player;
           value.gameState.gameState.p2Id = playerDbId;
@@ -54,7 +52,6 @@ export class GameLobbyService {
           if (!playerDb)
             throw new Error("player not found")
           value.gameState.gameState.p2Name = playerDb?.username;
-          console.log("ici j'ajoue name du P2", playerDb?.username);
         }
         player?.join(key);
         this.gatewayOut.isInLobby(true, player);
@@ -92,12 +89,15 @@ export class GameLobbyService {
   }
 
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
+    this.socketMap.printSocketMap();
+
+    console.log("player1ID, player2ID", playerSocketId, friendSocketId);
+
     const player1 = this.socketMap.getSocket(playerSocketId);
     const player2 = this.socketMap.getSocket(friendSocketId);
 
     if (!player1 || !player2)
       throw new Error("Error trying to find player socket");
-
 
     const lobbyName = `lobby${lobbies.size}`;
     const lobby = new Lobby(player1, playerId, this.userService);
@@ -116,6 +116,7 @@ export class GameLobbyService {
     this.gatewayOut.isInLobby(true, player1);
     player2.join(lobbyName);
     this.gatewayOut.isInLobby(true, player2);
+    lobby.gameState.gameState.isLobbyFull = true;
 
     // @to-do using a debug function here
     this.printLobbies();
@@ -157,6 +158,8 @@ export class GameLobbyService {
           this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
             value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
             value.gameState.gameState.score.p1Score, false, true);
+        } else { // there is no more player in the lobby
+          lobbies.delete(key);
         }
         // Telling the client player 1 is not in a lobby anymore
         this.gatewayOut.isInLobby(false, player);
@@ -187,7 +190,10 @@ export class GameLobbyService {
           this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
             value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
             value.gameState.gameState.score.p1Score, true, false);
+        } else { // there is no more player in the lobby
+          lobbies.delete(key);
         }
+
         // Telling the client player 1 is not in a lobby anymore
         this.gatewayOut.isInLobby(false, player);
         // Re init the room game state

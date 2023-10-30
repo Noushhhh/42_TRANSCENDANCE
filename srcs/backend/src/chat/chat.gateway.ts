@@ -38,12 +38,12 @@ export class ChatGateway implements OnModuleInit {
             }
         })
         this.server.on('connection', async (socket) => {
-            console.log(`userId ${socket.data.userId} is connected`);
+            console.log(`userId ${socket.data.userId} is connected from chat gateway`);
             this.joinRoomsForClient(socket.data.userId, socket);
             this.readMap();
 
             socket.on('disconnect', async () => {
-                console.log(`userId: ${socket.data.userId} is disconnected`);
+                console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
                 this.leaveRoomsForClient(socket.data.userId, socket);
             })
         });

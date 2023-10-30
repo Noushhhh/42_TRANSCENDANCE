@@ -12,7 +12,7 @@ const browserError: string = "This browser session is already taken by someone,"
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService) { }
 
     @Get('token')
     async getToken(@Req() req: Request) {
@@ -61,18 +61,18 @@ export class AuthController {
     @Public()
     @Get('42Url')
     async get42Url() {
-        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
+        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "&response_type=code";
         return (url);
     }
 
     // @Public()
     @Get('callback42')
     async handle42Callback(@Req() req: Request, @Res() res: Response) {
-        console.log("test");
         try {
             // Call the authService to handle 42 authentication
             await this.authService.signToken42(req, res);
         } catch (error) {
+            // console.log("COUCOU");
             console.error(error);
             // Handle errors here and redirect as needed
             res.redirect('/error2');
