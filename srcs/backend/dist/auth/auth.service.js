@@ -162,68 +162,42 @@ let AuthService = class AuthService {
      */
     refreshTokenIfNeeded(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Find the first refresh token that has not expired for the given user ID
-            const existingRefreshToken = yield this.prisma.refreshToken.findFirst({
-                where: {
-                    userId: userId,
-                    expiresAt: {
-                        gte: new Date(), //greater or equal to the current date
+            try {
+                const existingRefreshToken = yield this.prisma.refreshToken.findFirst({
+                    where: {
+                        userId: userId,
+                        expiresAt: { gte: new Date(), },
                     },
-                },
-            });
-            // If an existing refresh token is found, return it
-            if (existingRefreshToken) {
-                return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
+                });
+                if (existingRefreshToken) {
+                    return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
+                }
+                else {
+                    const newRefreshToken = yield this.createRefreshToken(userId);
+                    return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
+                }
             }
-            else {
-                // If no existing refresh token is found, create a new one
-                const newRefreshToken = yield this.createRefreshToken(userId);
-                return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
+            catch (error) {
+                throw new common_1.InternalServerErrorException('Failed to find or create refresh token');
             }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function generates and sets JWT and refresh tokens for a user.
-     * @param userId The user's ID.
-     * @param email The user's email.
-     * @param res The response object.
-     * @return An object containing the JWT token and the refresh token.
-     */
-    generateAndSetTokens(userId, email, res) {
+    generateTokens(userId, email) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Define the payload for the JWT token
-            const payload = {
-                sub: userId,
-                email,
-            };
+            const payload = { sub: userId, email, };
             const secret = this.JWT_SECRET;
-            // Generate the JWT token
-            const token = yield this.jwt.signAsync(payload, {
-                expiresIn: '15m',
-                secret: secret,
-            });
-            // Get or create a refresh token for the user
+            const token = yield this.jwt.signAsync(payload, { expiresIn: '15m', secret: secret, });
             const refreshToken = yield this.refreshTokenIfNeeded(userId);
-            // If a refresh token is obtained, set it in a HttpOnly cookie
-            if (refreshToken) {
-                res.cookie('refreshToken', refreshToken.token, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'strict',
-                    maxAge: (refreshToken.expiresAt.getTime() - Date.now()) // The cookie expires when the refresh token expires
-                });
-            }
-            // Set the JWT token in a HttpOnly cookie
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 15 // The cookie expires in 15 minutes
-            });
-            // Return the JWT token and the refresh token
             return { token, refreshToken };
         });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    setTokens(tokens, res) {
+        if (tokens.refreshToken) {
+            res.cookie('refreshToken', tokens.refreshToken.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: (tokens.refreshToken.expiresAt.getTime() - Date.now()) });
+        }
+        res.cookie('token', tokens.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
     }
     // ─────────────────────────────────────────────────────────────────────────────
     /**
@@ -235,36 +209,19 @@ let AuthService = class AuthService {
      */
     signToken(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { token, refreshToken } = yield this.generateAndSetTokens(userId, email, res);
+            const { token, refreshToken } = yield this.generateTokens(userId, email);
+            this.setTokens({ token, refreshToken }, res);
             if (!refreshToken) {
-                return ({
-                    statusCode: 409,
-                    valid: false,
-                    message: "Problem creating refresh token"
-                });
+                return ({ statusCode: 409, valid: false, message: "Problem creating refresh token" });
             }
-            // Decode the token to get the expiration time
             const decodedToken = jwt.verify(token, this.JWT_SECRET);
             if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-                // Set the tokenExpires cookie with the decoded expiration time
-                res.cookie('tokenExpires', new Date(decodedToken.exp * 1000).toISOString(), {
-                    secure: true,
-                    sameSite: 'strict',
-                    maxAge: 1000 * 60 * 15
-                });
+                res.cookie('tokenExpires', new Date(decodedToken.exp * 1000).toISOString(), { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
             }
             else {
-                return ({
-                    statusCode: 409,
-                    valid: false,
-                    message: "Impossible to decode token to create expiration time"
-                });
+                return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time" });
             }
-            return ({
-                statusCode: 200,
-                valid: true,
-                message: "Authentication successful"
-            });
+            return ({ statusCode: 200, valid: true, message: "Authentication successful" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -275,19 +232,22 @@ let AuthService = class AuthService {
      */
     createRefreshToken(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const refreshToken = (0, crypto_1.randomBytes)(40).toString('hex'); // Generates a random 40-character hex string
+            const refreshToken = (0, crypto_1.randomBytes)(40).toString('hex');
             const expiration = new Date();
-            expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
-            console.log(expiration);
-            // Save refreshToken to database along with userId
-            yield this.prisma.refreshToken.create({
-                data: {
-                    token: refreshToken,
-                    userId: userId,
-                    expiresAt: expiration
-                }
-            });
-            return { token: refreshToken, ExpirationDate: expiration };
+            expiration.setDate(expiration.getDate() + 7);
+            try {
+                yield this.prisma.refreshToken.create({
+                    data: {
+                        token: refreshToken,
+                        userId: userId,
+                        expiresAt: expiration
+                    }
+                });
+                return { token: refreshToken, ExpirationDate: expiration };
+            }
+            catch (error) {
+                throw new common_1.InternalServerErrorException('Failed to create refresh token');
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────

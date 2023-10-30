@@ -1,6 +1,20 @@
 
 // api.ts
 
+/**
+ * @brief Checks if a given object has a property named 'message' and if the value of that property is a string.
+ * @param x The object to check.
+ * @return True if 'x' has a property named 'message' and its value is a string, false otherwise.
+ * @example
+ * let obj = { message: "Hello, world!" };
+ * console.log(hasMessage(obj));  // Outputs: true
+ */
+export const hasMessage = (x: unknown): x is { message: string } => {
+    return Boolean(typeof x === "object" && x && "message" in x && typeof x.message === "string");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const getPublicName = async () => {
     try {
         const response = await fetch(`http://localhost:8081/api/users/getprofilename`, {
@@ -97,3 +111,30 @@ export const updateAvatar = async (newAvatar: File | null) => {
     }
     return data;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch an image as a File object.
+ * @param imageUrl {string} The URL of the image to fetch.
+ * @param imageName {string} The name of the image file.
+ * @returns {Promise<File>} A promise that resolves to a File object.
+ */
+export const fetchImageAsFile = async (imageUrl: string, imageName: string): Promise<File> => {
+    try {
+        const response = await fetch(imageUrl);
+
+        // Check if the fetch was successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.blob();
+        return new File([data], `${imageName}.${data.type.split('/')[1]}`, { type: data.type });
+    } catch (error) {
+        if (hasMessage(error))
+            console.error(`There was an error with the fetch operation: ${error.message}`);
+        throw error; // Re-throw the error to allow higher level handling
+    }
+};
+

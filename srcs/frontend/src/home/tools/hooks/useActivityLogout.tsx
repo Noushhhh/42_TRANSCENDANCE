@@ -1,3 +1,32 @@
+
+// Importing necessary hooks and components from "react-router-dom".
+import { useNavigate } from "react-router-dom";
+import { useSignOut } from "./useSignOut";
+import { useEffect, useCallback } from "react";
+import Cookies from 'js-cookie';
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @brief Refreshes the user's access token.
+ * @throws Error if the token refresh request fails.
+ */
+const refreshToken = async () => {
+  try {
+    const response = await fetch('http://localhost:8081/api/auth/refreshToken', {
+      method: 'POST',
+      credentials: 'include', // Send cookies with the request
+    });
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @file useActivityLogout.tsx
  * @author [Jairo Alexander VALENCIA CANDAMIL]
@@ -9,10 +38,6 @@
  * @note The inactivity period is currently set to 120000 milliseconds (2 minutes).
  */
 
-// Importing necessary hooks and components from "react-router-dom".
-import { useNavigate } from "react-router-dom";
-import { useSignOut } from "./useSignOut";
-import { useEffect, useCallback } from "react";
 
 /**
  * @function useActivityLogout
@@ -33,7 +58,28 @@ const useActivityLogout = () => {
     // Function to reset the inactivity timer.
     const resetTimer = useCallback(() => {
         clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(logoutAndNavigate, 600000);
+
+        //Extract token Expiration date from cookies, is the only information we only can extract for security
+        const tokenExpires = Cookies.get('tokenExpires');
+        if (!tokenExpires) {
+            console.warn('Token expiration time not found in cookie');
+            return;
+        }
+
+        // Convert expiration data to date
+        const accessTokenExpiresAt = new Date(tokenExpires);
+        const now = new Date().getTime();
+        // Calculate the expiration token time in milliseconds
+        const expiresIn: number = accessTokenExpiresAt.getTime() - now;
+
+        // If the token expires within 5 minutes, we create a new token
+        if (expiresIn <= 5 * 60 * 1000) {
+            refreshToken().catch((error) => {
+                console.error('Error refreshing token:', error);
+            });
+        }
+
+        inactivityTimer = setTimeout(logoutAndNavigate, 6000000);
     }, [logoutAndNavigate]);
 
     // Function to handle window close event.

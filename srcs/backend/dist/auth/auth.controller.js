@@ -21,31 +21,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = void 0;
+exports.AuthController = exports.AllExceptionsFilter = void 0;
 const common_1 = require("@nestjs/common");
+const common_2 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
 const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
-const browserError = "This browser session is already taken by someone," +
-    " please open a new browser or incognito window";
+const browserError = "This browser session is already taken by someone," + " please open a new browser or incognito window";
+let AllExceptionsFilter = class AllExceptionsFilter {
+    catch(exception, host) {
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse();
+        const request = ctx.getRequest();
+        const status = exception instanceof common_1.HttpException
+            ? exception.getStatus()
+            : common_2.HttpStatus.INTERNAL_SERVER_ERROR;
+        response.status(status).json({
+            statusCode: status,
+            timestamp: new Date().toISOString(),
+            path: request.url,
+        });
+    }
+};
+exports.AllExceptionsFilter = AllExceptionsFilter;
+exports.AllExceptionsFilter = AllExceptionsFilter = __decorate([
+    (0, common_1.Catch)()
+], AllExceptionsFilter);
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     getToken(req) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Extract the access token from the request cookies
             const accessToken = req.cookies['token'];
             return { accessToken };
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // if (req.cookies.token)
-            //     return res.status(400).send({ valid: false, message: browserError });
             try {
                 const result = yield this.authService.signup(dto, res);
                 res.status(result.statusCode).send({ valid: result.valid, message: result.message });
@@ -55,7 +69,6 @@ let AuthController = class AuthController {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -68,13 +81,26 @@ let AuthController = class AuthController {
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     checkTokenValidity(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.authService.checkTokenValidity(req, res);
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
+    refreshToken(decodedPayload, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!decodedPayload) {
+                    throw new common_1.BadRequestException('Invalid token payload');
+                }
+                const result = yield this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
+                return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
+            }
+            catch (error) {
+                console.error('Error in refreshToken controller:', error);
+                throw new common_1.InternalServerErrorException('Internal server error');
+            }
+        });
+    }
     signout(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!decodedPayload) {
@@ -84,30 +110,24 @@ let AuthController = class AuthController {
             return this.authService.signout(decodedPayload, res);
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
             const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
             return (url);
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
-    // @Public()
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("test");
             try {
-                // Call the authService to handle 42 authentication
                 yield this.authService.signToken42(req, res);
             }
             catch (error) {
                 console.error(error);
-                // Handle errors here and redirect as needed
                 res.redirect('/error2');
             }
         });
     }
-    // ─────────────────────────────────────────────────────────────────────────────
     enable2FA() {
         return __awaiter(this, void 0, void 0, function* () {
         });
@@ -115,69 +135,76 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.Get)('token'),
-    __param(0, (0, common_1.Req)()),
+    (0, common_2.Get)('token'),
+    __param(0, (0, common_2.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getToken", null);
 __decorate([
     (0, public_decorators_1.Public)(),
-    (0, common_1.Post)('signup'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Res)()),
+    (0, common_2.Post)('signup'),
+    __param(0, (0, common_2.Body)()),
+    __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [dto_1.AuthDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
-    (0, common_1.Post)('signin') // delete async, has to signin and cannot do anything else
-    ,
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Res)()),
-    __param(2, (0, common_1.Req)()),
+    (0, common_2.Post)('signin'),
+    __param(0, (0, common_2.Body)()),
+    __param(1, (0, common_2.Res)()),
+    __param(2, (0, common_2.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [dto_1.AuthDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signin", null);
 __decorate([
-    (0, common_1.Get)('checkTokenValidity'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Res)()),
+    (0, common_2.Get)('checkTokenValidity'),
+    __param(0, (0, common_2.Req)()),
+    __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
-    (0, common_1.Delete)('signout'),
+    (0, common_2.Post)('refreshToken'),
     __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_1.Res)()),
+    __param(1, (0, common_2.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refreshToken", null);
+__decorate([
+    (0, common_2.Delete)('signout'),
+    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
 __decorate([
     (0, public_decorators_1.Public)(),
-    (0, common_1.Get)('42Url'),
+    (0, common_2.Get)('42Url'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "get42Url", null);
 __decorate([
-    (0, common_1.Get)('callback42'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Res)()),
+    (0, common_2.Get)('callback42'),
+    __param(0, (0, common_2.Req)()),
+    __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "handle42Callback", null);
 __decorate([
-    (0, common_1.Post)('enable2FA'),
+    (0, common_2.Post)('enable2FA'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 exports.AuthController = AuthController = __decorate([
-    (0, common_1.Controller)('auth'),
+    (0, common_2.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

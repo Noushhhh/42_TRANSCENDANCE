@@ -3,21 +3,10 @@ import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
+import { fetchImageAsFile } from "../tools/Api";
 
 // Default profile image URL
 const defaultImage = "/assets/defaultProfileImage.jpg";
-
-/**
-* ****************************************************************************
- * Fetch the default profile image as a File object.
- * @returns {Promise<File>} A promise that resolves to a File object.
-* ****************************************************************************
-*/
-const fetchDefaultImageAsFile = async () => {
-  const response = await fetch(defaultImage);
-  const data = await response.blob();
-  return new File([data], "defaultImage.jpg", { type: data.type });
-};
 
 /**
 * ****************************************************************************
@@ -91,7 +80,7 @@ const UserProfileSetup: React.FC = () => {
    * Set the default profile image.
 */
   const setDefaultImage = async () => {
-    const defaultProfileImage = await fetchDefaultImageAsFile();
+    const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
     setProfileImage(defaultProfileImage);
   };
 
@@ -101,7 +90,7 @@ const UserProfileSetup: React.FC = () => {
    */
   const handleUsernameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setProfileName(event.target.value);
-  }, []);
+  }, [profileName]);
 
   /**
    * Handle profile image input change.
@@ -140,7 +129,7 @@ const UserProfileSetup: React.FC = () => {
 
       setProfileImage(file);
     }
-  }, []);
+  }, [profileImage]);
 
   /**
    * Handle form submission.

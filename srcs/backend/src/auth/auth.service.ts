@@ -1,4 +1,4 @@
-import { ForbiddenException, Res, Req, Injectable, UnauthorizedException } from '@nestjs/common';
+import { InternalServerErrorException, ForbiddenException, Res, Req, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import { AuthDto } from './dto';
@@ -13,7 +13,6 @@ import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-import { BadRequestException, Catch, ExceptionFilter, HttpException, ArgumentsHost } from '@nestjs/common';
 
 
 /**
@@ -115,84 +114,58 @@ export class AuthService {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @brief This function checks if there is an existing refresh token for the user and returns it if it exists. If not, it creates a new refresh token.
- * @param userId The user's ID.
- * @return An object containing the token and its expiration date.
- */
-async refreshTokenIfNeeded(userId: number): Promise<{ token: string, expiresAt: Date }> {
-  // Find the first refresh token that has not expired for the given user ID
-  const existingRefreshToken = await this.prisma.refreshToken.findFirst({
-    where: {
-      userId: userId,
-      expiresAt: {
-        gte: new Date(), //greater or equal to the current date
-      },
-    },
-  });
+  /**
+   * @brief This function checks if there is an existing refresh token for the user and returns it if it exists. If not, it creates a new refresh token.
+   * @param userId The user's ID.
+   * @return An object containing the token and its expiration date.
+   */
+  async refreshTokenIfNeeded(userId: number): Promise<{ token: string, expiresAt: Date }> {
+    try {
+      const existingRefreshToken = await this.prisma.refreshToken.findFirst({
+        where: {
+          userId: userId,
+          expiresAt: { gte: new Date(), },
+        },
+      });
 
-  // If an existing refresh token is found, return it
-  if (existingRefreshToken) {
-    return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
-  } else {
-    // If no existing refresh token is found, create a new one
-    const newRefreshToken = await this.createRefreshToken(userId);
-    return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
+      if (existingRefreshToken) {
+        return { token: existingRefreshToken.token, expiresAt: existingRefreshToken.expiresAt };
+      } else {
+        const newRefreshToken = await this.createRefreshToken(userId);
+        return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
+      }
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to find or create refresh token');
+    }
   }
-}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+  async generateTokens(userId: number, email: string): Promise<{ token: string, refreshToken: { token: string, expiresAt: Date } }> {
+    const payload = { sub: userId, email, };
+    const secret = this.JWT_SECRET;
+
+    const token = await this.jwt.signAsync(
+      payload,
+      { expiresIn: '15m', secret: secret, },
+    );
+
+    const refreshToken = await this.refreshTokenIfNeeded(userId);
+
+    return { token, refreshToken };
+  }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @brief This function generates and sets JWT and refresh tokens for a user.
- * @param userId The user's ID.
- * @param email The user's email.
- * @param res The response object.
- * @return An object containing the JWT token and the refresh token.
- */
-async generateAndSetTokens(userId: number, email: string, res: Response): Promise<{ token: string, refreshToken: { token: string, expiresAt: Date } }> {
-  // Define the payload for the JWT token
-  const payload = {
-    sub: userId,
-    email,
-  };
-  const secret = this.JWT_SECRET;
-
-  // Generate the JWT token
-  const token = await this.jwt.signAsync(
-    payload,
-    {
-      expiresIn: '15m', // The JWT token expires in 15 minutes
-      secret: secret,
-    },
-  );
-
-  // Get or create a refresh token for the user
-  const refreshToken = await this.refreshTokenIfNeeded(userId);
-
-  // If a refresh token is obtained, set it in a HttpOnly cookie
-  if (refreshToken) {
-    res.cookie('refreshToken', refreshToken.token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: (refreshToken.expiresAt.getTime() - Date.now()) // The cookie expires when the refresh token expires
-    });
+  setTokens(tokens: { token: string, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
+    if (tokens.refreshToken) {
+      res.cookie('refreshToken', tokens.refreshToken.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: (tokens.refreshToken.expiresAt.getTime() - Date.now()) });
+    }
+  
+    res.cookie('token', tokens.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
   }
 
-  // Set the JWT token in a HttpOnly cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 1000 * 60 * 15 // The cookie expires in 15 minutes
-  });
-
-  // Return the JWT token and the refresh token
-  return { token, refreshToken };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
 /**
@@ -202,40 +175,24 @@ async generateAndSetTokens(userId: number, email: string, res: Response): Promis
  * @param res The response object.
  * @return A promise that resolves to void.
  */
-async signToken(userId: number, email: string, res: Response): Promise<any> {
-  const { token, refreshToken } = await this.generateAndSetTokens(userId, email, res);
+  async signToken(userId: number, email: string, res: Response): Promise<any> {
+    const { token, refreshToken } = await this.generateTokens(userId, email);
+    this.setTokens({ token, refreshToken }, res);
 
-  if (!refreshToken) {
-      return ({
-          statusCode: 409,
-          valid: false,
-          message: "Problem creating refresh token"
-      });
+    if (!refreshToken) {
+      return ({ statusCode: 409, valid: false, message: "Problem creating refresh token" });
+    }
+
+    const decodedToken = jwt.verify(token, this.JWT_SECRET);
+    if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+      res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
+        { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
+    } else {
+      return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time" });
+    }
+
+    return ({ statusCode: 200, valid: true, message: "Authentication successful" });
   }
-
-  // Decode the token to get the expiration time
-  const decodedToken = jwt.verify(token, this.JWT_SECRET);
-
-  if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-      // Set the tokenExpires cookie with the decoded expiration time
-      res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(), {
-          secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 15
-      });
-  } else {
-      return ({
-          statusCode: 409,
-          valid: false,
-          message: "Impossible to decode token to create expiration time"
-      });
-  }
-  return ({
-      statusCode: 200,
-      valid: true,
-      message: "Authentication successful"
-  });
-}
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -245,22 +202,23 @@ async signToken(userId: number, email: string, res: Response): Promise<any> {
    * @return token: string, ExpirationDate: Date 
    */
   async createRefreshToken(userId: number): Promise<{ token: string, ExpirationDate: Date }> {
-    const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
-
+    const refreshToken = randomBytes(40).toString('hex');
     const expiration = new Date();
-    expiration.setDate(expiration.getDate() + 7); // Set refreshToken expiration date within 7 days
-    console.log(expiration);
-
-    // Save refreshToken to database along with userId
-    await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: userId,
-        expiresAt: expiration
-      }
-    });
-
-    return { token: refreshToken, ExpirationDate: expiration };
+    expiration.setDate(expiration.getDate() + 7);
+  
+    try {
+      await this.prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: userId,
+          expiresAt: expiration
+        }
+      });
+  
+      return { token: refreshToken, ExpirationDate: expiration };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create refresh token');
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
