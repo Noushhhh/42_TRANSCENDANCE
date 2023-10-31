@@ -1,7 +1,7 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
-    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto
+    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, UserIdPostDto, ChannelIdPostDto, LeaveChannelDto
 } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -11,7 +11,7 @@ import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 import { OwnerGuard } from "./guards/owner.guards";
-
+import { ParseIntPipe } from "@nestjs/common";
 export class ChannelDTO {
     @IsString()
     name!: string;
@@ -113,11 +113,12 @@ export class ChatController {
         return this.chatService.getUsersFromChannelId(id);
     }
 
-    @Get('getLoginsInChannelFromSubstring/:channelId/:substring')
+    @Get('getLoginsInChannelFromSubstring/:channelId/:substring/:userId')
     async getLoginsInChannelFromSubstring(
         @Param('substring') substring: string,
-        @Param('channelId') channelId: number): Promise<User[]> {
-        return this.chatService.getLoginsInChannelFromSubstring(channelId, substring)
+        @Param('channelId') channelId: number,
+        @Param('userId') userId: number): Promise<User[]> {
+        return this.chatService.getLoginsInChannelFromSubstring(channelId, substring, userId)
     }
 
     @Get('getLoginsFromSubstring/:substring')
@@ -134,11 +135,16 @@ export class ChatController {
         }
     }
 
-    @Get('isAdmin/:userId/:channelId')
+    @Get('isAdmin')
     async isAdmin(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.isAdmin(userId, channelId);
+        @Query() dto: PairUserIdChannelId): Promise<boolean> {
+        return this.chatService.isAdmin(dto.userId, dto.channelId);
+    }
+
+    @Get('isOwner')
+    async isOwner(
+        @Query() dto: PairUserIdChannelId): Promise<boolean> {
+        return this.chatService.isAdmin(dto.userId, dto.channelId);
     }
 
     @UseGuards(AdminGuard)
@@ -162,8 +168,8 @@ export class ChatController {
 
     @Post('leaveChannel')
     async leaveChannel(
-        @Body() pair: PairUserIdChannelId): Promise<boolean> {
-        return this.chatService.leaveChannel(pair.userId, pair.channelId);
+        @Body() dto: LeaveChannelDto): Promise<boolean> {
+        return this.chatService.leaveChannel(dto.userId, dto.channelId, dto.newOwnerId);
     }
 
     @Get('getNumberUsersInChannel/:channelId')
@@ -172,10 +178,11 @@ export class ChatController {
         return this.chatService.getNumberUsersInChannel(channelId);
     }
 
-    @Get('getAdmins/:channelId')
+    @Get('getAdmins')
     async getAdmins(
-        @Param('channelId') channelId: number): Promise<User[]> {
-        return this.chatService.getAdmins(channelId);
+        @Query() dto: ChannelIdPostDto): Promise<User[]> {
+        console.log(dto);
+        return this.chatService.getAdmins(dto.channelId);
     }
 
     @Get('isUserIsInChannel/:userId/:channelId')

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Inject, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Inject, NotFoundException, BadRequestException, NotAcceptableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType } from "@prisma/client";
 import { ChatGateway } from "./chat.gateway";
@@ -7,6 +7,8 @@ import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
 import { SocketService } from "./socket.service";
 import { ChannelNameDto } from "./dto/chat.dto";
+import { ChannelIdPostDto, UserIdPostDto } from "./dto/chat.dto";
+import { UsersService } from "../users/users.service";
 
 interface MessageToStore {
   channelId: number;
@@ -37,6 +39,7 @@ export class ChatService {
     // others services (security)
     // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
     private readonly socketService: SocketService,
+    private readonly userService: UsersService,
   ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
@@ -271,16 +274,9 @@ export class ChatService {
     }
   }
 
-  async isAdmin(usrId: number, channlId: number): Promise<boolean> {
-
-    const channelId = Number(channlId);
-    const userId = Number(usrId);
-
-    if (isNaN(channelId) || isNaN(userId))
-      throw new Error("isAdmin: expected number get non numerical args");
-
+  async isAdmin(userId: number, channelId: number): Promise<boolean> {
     const channel = await this.prisma.channel.findUnique({
-      where: { id: channelId },
+      where: { id: Number(channelId) },
       include: { admins: true },
     });
 
@@ -288,7 +284,19 @@ export class ChatService {
       return false;
     }
 
-    return channel.admins.some((element) => element.id === userId);
+    return channel.admins.some((element) => element.id === Number(userId));
+  }
+
+  async isOwner(userId: number, channelId: number): Promise<boolean> {
+    const channel = await this.getChannelById(channelId);
+
+    if (!channel) {
+      return false;
+    }
+
+    if (channel.ownerId === userId)
+      return true;
+    return false;
   }
 
   async getNumberUsersInChannel(channelIdStr: number): Promise<number> {
@@ -405,13 +413,39 @@ export class ChatService {
     return true;
   }
 
-  async leaveChannel(userIdStr: number, channelIdStr: number): Promise<boolean> {
+  async leaveChannel(userIdStr: number, channelIdStr: number, newOwnerId?: number): Promise<boolean> {
 
     const userId = Number(userIdStr);
     const channelId = Number(channelIdStr);
 
     if (isNaN(userId) || isNaN(channelId))
       return false;
+
+    await this.getChannelById(channelId);
+
+    if ( ! await this.isUserIsInChannel(userId, channelId) )
+      throw new ForbiddenException("user is not in channel");
+
+    if (await this.isOwner(userId, channelId)){
+      if ( ! newOwnerId )
+        throw new ForbiddenException("If you leave as owner, provide a new owner");
+      if ( ! await this.isUserIsInChannel(newOwnerId, channelId) )
+        throw new NotFoundException("Provided owner is not channel member");
+      await this.prisma.channel.update({
+          where: { id: channelId },
+          data: {
+            participants: {
+              disconnect: { id: userId }
+            },
+            admins: {
+              connect: { id: newOwnerId },
+              disconnect: { id: userId },
+            },
+            ownerId: newOwnerId,
+          }
+        })
+        return true;
+    }
 
     if (await this.isAdmin(userId, channelId))
       throw new HttpException("Admin can't leave channel", HttpStatus.NOT_ACCEPTABLE);
@@ -473,8 +507,7 @@ export class ChatService {
       }
 
       if (await this.isAdmin(inviterId, channelId) === false) {
-        throw new HttpException("Is not admin",
-          HttpStatus.FORBIDDEN);
+        throw new ForbiddenException("Is not admin");
       }
 
       if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
@@ -522,13 +555,11 @@ export class ChatService {
     }
 
     if (await this.isAdmin(inviterId, channelId) === false) {
-      console.log("passing here");
       throw new HttpException("Only admins can remove others admins",
         HttpStatus.FORBIDDEN);
     }
 
     if (await this.isAdmin(invitedId, channelId) === false) {
-      console.log("passing here2");
       throw new HttpException(`user: ${invitedId} is not admin in this channel`,
         HttpStatus.FORBIDDEN);
     }
@@ -559,7 +590,7 @@ export class ChatService {
     return true;
   }
 
-  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string): Promise<User[]> {
+  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string, userId: number): Promise<User[]> {
 
     const channelId: number = Number(channelIdStr);
 
@@ -576,37 +607,27 @@ export class ChatService {
       throw new NotFoundException(`Channel with id ${channelId} not found`);
     }
 
+    const caller: User | undefined = await this.userService.findUserWithId(userId);
+
+    if ( ! caller )
+      throw new NotFoundException("User not found");
+
     const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
 
-    return users;
+    return users.filter(user => user.username !== caller.username);
   }
 
-  async getAdmins(channelIdStr: number): Promise<User[]> {
-
-    try {
-
-      const channelId: number = Number(channelIdStr);
-
-      if (isNaN(channelId) || channelId <= 0) {
-        throw new Error("Invalid arguments");
+  async getAdmins(channelId: number): Promise<User[]> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      include: {
+        admins: true
       }
-
-      const channel = await this.prisma.channel.findUnique({
-        where: { id: channelId },
-        include: {
-          admins: true
-        }
-      })
-
-      if (!channel) {
-        throw new Error("Error fetching data");
-      }
-
-      return channel.admins;
-
-    } catch (error) {
-      throw new Error("Error fetching data");
+    })
+    if (!channel) {
+      throw new NotFoundException("Channel not found");
     }
+    return channel.admins;
   }
 
   async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<number> {
@@ -760,43 +781,43 @@ export class ChatService {
     return users.blockedUsers.some(user => user.id === targetId);
   }
 
-  async manageChannelPassword(channelId: number, channelType: string, actualPassword: string, newPassword: string){
+  async manageChannelPassword(channelId: number, channelType: string, actualPassword: string, newPassword: string) {
     const channel = await this.getChannelById(channelId);
     if (!channel.password)
       return;
-    if (channel.type === "PASSWORD_PROTECTED"){
+    if (channel.type === "PASSWORD_PROTECTED") {
       const passwordMatch = await argon.verify(channel.password, actualPassword);
       if (!passwordMatch)
         throw new ForbiddenException('Incorrect channel password');
     }
-    if (channelType === "PASSWORD_PROTECTED"){
+    if (channelType === "PASSWORD_PROTECTED") {
       const hashPassword = await argon.hash(newPassword);
       await this.prisma.channel.update({
         where: { id: channelId },
-        data : {
+        data: {
           type: channelType as ChannelType,
           password: hashPassword,
         }
       })
-      return ;
+      return;
     }
     await this.prisma.channel.update({
       where: { id: channelId },
-      data : {
+      data: {
         type: channelType as ChannelType
       }
     })
   }
 
-  async manageChannelType(channelId: number, channelType: string){
+  async manageChannelType(channelId: number, channelType: string) {
     if (channelType === "PASSWORD_PROTECTED")
-      return ;
+      return;
 
     const channelCheck = await this.getChannelById(channelId);
 
     if (channelCheck.type === "PASSWORD_PROTECTED")
       throw new ForbiddenException("Forbidden access");
-    
+
     const channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
@@ -808,7 +829,7 @@ export class ChatService {
       throw new NotFoundException("Channel not found");
   }
 
-  async getChannelType(channelId: number){
+  async getChannelType(channelId: number) {
     const channel = await this.getChannelById(channelId);
     return channel.type;
   }

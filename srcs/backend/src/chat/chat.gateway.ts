@@ -66,7 +66,7 @@ export class ChatGateway implements OnModuleInit {
     async leaveRoomsForClient(userId: number, socket: Socket){
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
         for (const channelId of channelIds){
-            console.log(`userId:${socket.data.userId} is leaving channelId:${channelId}`);
+            // console.log(`userId:${socket.data.userId} is leaving channelId:${channelId}`);
             socket.leave(String(channelId));
         }
     }

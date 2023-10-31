@@ -4,11 +4,10 @@ import { manageChannelPassword, manageChannelType, getChannelType } from "./Chan
 import ValidationButton from "./ValidationButton";
 
 interface ManagePasswordProps {
-    isItDisplay: string,
     needReload: boolean,
 }
 
-function ManagePassword({ isItDisplay, needReload }: ManagePasswordProps) {
+function ManagePassword({ needReload }: ManagePasswordProps) {
 
     const [actualPassword, setActualPassword] = useState<string>("");
     const [newPassword, setNewPassword] = useState<string>("");
@@ -16,7 +15,7 @@ function ManagePassword({ isItDisplay, needReload }: ManagePasswordProps) {
     const [actualChannelType, setActualChannelType] = useState<string | null>(null);
     const [newChannelType, setNewChannelType] = useState<string>("PUBLIC");
     const [error, setError] = useState<string | null>(null);
-    const [success, setSucccess] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const channelId: number = useChannelIdContext();
 
@@ -31,7 +30,14 @@ function ManagePassword({ isItDisplay, needReload }: ManagePasswordProps) {
     }
 
     useEffect(() => {
-        fetchChannelType();
+
+        if (needReload === true)
+            fetchChannelType();
+        setActualPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+        setError(null);
+        setSuccess(null);
     }, [needReload]);
 
     const handleChannelTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -51,7 +57,7 @@ function ManagePassword({ isItDisplay, needReload }: ManagePasswordProps) {
     }
 
     const callManageChannelPassword = async () => {
-        setSucccess(null);
+        setSuccess(null);
         setError(null);
         if ((newChannelType === "PASSWORD_PROTECTED") && (newPassword.length < 6)){
             setError("Password length is 6 characters minimum")
@@ -62,14 +68,15 @@ function ManagePassword({ isItDisplay, needReload }: ManagePasswordProps) {
             return;
         }
         try {
-            if (newChannelType === "PASSWORD_PROTECTED") {
+            if (actualChannelType === "PASSWORD_PROTECTED" || newChannelType === "PASSWORD_PROTECTED") {
                 console.log("manage channel password")
                 await manageChannelPassword(channelId, newChannelType, actualPassword, newPassword);
             }
-            else if (newChannelType === "PUBLIC" || newChannelType === "PRIVATE")
+            else if (newChannelType === "PUBLIC" || newChannelType === "PRIVATE"){
                 await manageChannelType(channelId, newChannelType);
-            fetchChannelType();
-            setSucccess("credentials changed");
+            }
+            await fetchChannelType();
+            setSuccess("credentials changed");
             setActualPassword("");
             setNewPassword("");
             setConfirmNewPassword("");

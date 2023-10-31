@@ -45,7 +45,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                         setSearchBarResults(true);
                     }
                     else{
-                        users = await getUsernamesInChannelFromSubstring(channelId, inputValue);
+                        users = await getUsernamesInChannelFromSubstring(channelId, inputValue, userId);
                     }
                 }
                 else{
@@ -60,7 +60,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 setError("error fetching data");
             }
         }
-        const test = async () => {
+        const fetch = async () => {
 
             if (action === "admin" && setSearchBarResults){
                 if (fetchDataAdmins)
@@ -71,7 +71,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 fetchUsers();
             }
         }
-        test();
+        fetch();
     }, ([inputValue, displayResults, action, channelId]))
 
     return (

@@ -10,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // check if whitelist needed or only restrain fields to login and password
+    transform: true,
+    transformOptions: {
+    enableImplicitConversion: true,
+  }
   }));
 
   const corsOptions: CorsOptions = {

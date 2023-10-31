@@ -9,6 +9,7 @@ import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { SocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
+import { useRef } from "react";
 
 const ChatBoxContainer = () => {
 
@@ -17,6 +18,8 @@ const ChatBoxContainer = () => {
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [channelInfo, setChannelInfo] = useState<boolean>(false);
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
+
+  const socketRef = useRef<Socket | null>(null); // Utilisez une ref pour stocker la connexion socket
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -27,17 +30,27 @@ const ChatBoxContainer = () => {
       const data = await response.json();
       const accessToken = data.accessToken;
 
-      const socket: Socket = io('http://localhost:4000', {
-        auth: {
-          token: accessToken,
-        },
-      });
-      setSocket(socket);
-
-      // Your socket event handling logic here
+      if (!socketRef.current) {
+        console.log("calling useEffect");
+        const newSocket = io('http://localhost:4000', {
+          auth: {
+            token: accessToken,
+          },
+          autoConnect: false
+        });
+        setSocket(newSocket);
+        socketRef.current = newSocket;
+        newSocket.connect();
+      }
     };
 
     fetchAccessToken();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, []);
 
   useEffect(() => {
