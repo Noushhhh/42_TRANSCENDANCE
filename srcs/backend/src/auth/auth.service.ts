@@ -50,6 +50,7 @@ export class AuthService {
    */
   async signup(dto: AuthDto, res: Response) {
     const hashPassword = await argon.hash(dto.password);
+    console.log(`passing by signup service username: ${dto.username} password ${dto.password}`);
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -57,7 +58,8 @@ export class AuthService {
           hashPassword,
         },
       });
-      return this.signToken(user.id, user.username, res);
+      console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
+      // return this.signToken(user.id, user.username, res);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -66,6 +68,7 @@ export class AuthService {
       }
       throw error;
     }
+    return res.status(200).json({ valid: true, message: "user was create successfully" });
   }
     
 

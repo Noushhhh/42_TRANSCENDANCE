@@ -88,6 +88,7 @@ let AuthService = class AuthService {
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashPassword = yield argon.hash(dto.password);
+            console.log(`passing by signup service username: ${dto.username} password ${dto.password}`);
             try {
                 const user = yield this.prisma.user.create({
                     data: {
@@ -95,7 +96,8 @@ let AuthService = class AuthService {
                         hashPassword,
                     },
                 });
-                return this.signToken(user.id, user.username, res);
+                console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
+                // return this.signToken(user.id, user.username, res);
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
@@ -105,6 +107,7 @@ let AuthService = class AuthService {
                 }
                 throw error;
             }
+            return res.status(200).json({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
