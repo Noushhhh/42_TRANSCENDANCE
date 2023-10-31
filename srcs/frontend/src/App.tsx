@@ -21,6 +21,7 @@ import IoConnection from "./socket/IoConnection";
 import "./App.css";
 import { Socket } from "socket.io-client";
 import { useState, useRef } from "react";
+import GameInvitation from "./game/components/gameNetwork/GameInvitation";
 
 // const socket = io("http://localhost:4000");
 
@@ -60,6 +61,7 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <HomePage />
             <IoConnection setSocket={setSocket} socketRef={socketRef} />
+            <GameInvitation socket={socket} />
           </ProtectedRoute>
         }
       >

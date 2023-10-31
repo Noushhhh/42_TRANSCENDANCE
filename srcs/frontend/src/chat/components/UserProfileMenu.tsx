@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
@@ -18,6 +18,7 @@ import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import { createChannel } from "./ChannelUtils";
 import { create } from "@mui/material/styles/createTransitions";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfileMenuProps {
   user: User;
@@ -33,6 +34,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const socket = useSocketContext();
   const userId = useUserIdContext();
 
+  const navigate = useNavigate();
+
   const open = Boolean(anchorEl);
   const menu: string[] = ["Profile", "Private message", "Play", "Block"];
   const menuIfBlock: string[] = [
@@ -41,6 +44,22 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     "Play",
     "Unblock",
   ];
+
+  useEffect(() => {
+    socket.on("isInviteAccepted", handleInvitation);
+
+    return () => {
+      socket.off("isInviteAccepted", handleInvitation);
+    }
+  })
+
+  const handleInvitation = (accepted: boolean) => {
+    console.log("response = ", accepted);
+    if (accepted === true) {
+      socket.emit("launchGameWithFriend", { user1: userId, user2: user.id });
+      navigate("/home/game");
+    }
+  }
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -83,7 +102,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handlePlayClick = () => {
     // For theo's function : create game between 2 ids
     console.log("client id, friend id =", userId, user.id);
-    socket.emit("inviteGame", { user1: userId, user2: user.id });
+    socket.emit("invitation", { user1: userId, user2: user.id });
+    // navigate("/home/game");
   };
 
   const handleBlockClick = async () => {

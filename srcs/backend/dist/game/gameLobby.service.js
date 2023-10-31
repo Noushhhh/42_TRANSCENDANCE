@@ -246,15 +246,11 @@ let GameLobbyService = class GameLobbyService {
     sendLobbies(player) {
         if (player) {
             const lobbiesArray = Array.from(lobbies_1.lobbies.entries());
-            const serializedLobbies = lobbiesArray.map(([key, lobby]) => {
-                var _a, _b;
-                return ({
-                    key,
-                    player1: (_a = lobby === null || lobby === void 0 ? void 0 : lobby.player1) === null || _a === void 0 ? void 0 : _a.id,
-                    player2: (_b = lobby === null || lobby === void 0 ? void 0 : lobby.player2) === null || _b === void 0 ? void 0 : _b.id,
-                });
-            });
-            console.log("Lobbies here", serializedLobbies);
+            const serializedLobbies = lobbiesArray.map(([key, lobby]) => ({
+                key,
+                player1: lobby === null || lobby === void 0 ? void 0 : lobby.gameState.gameState.p1Name,
+                player2: lobby === null || lobby === void 0 ? void 0 : lobby.gameState.gameState.p2Name,
+            }));
             this.gatewayOut.emitToUser(player.id, "getAllLobbies", { lobbies: serializedLobbies });
         }
     }

@@ -14,6 +14,8 @@ import { gameSockets } from './gameSockets';
 import { OnModuleInit } from '@nestjs/common';
 import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
+import { GatewayOut } from './gatewayOut';
+import { UsersService } from '../users/users.service';
 
 type GameDataArray = [
   konvaHeight: number,
@@ -25,6 +27,11 @@ type GameDataArray = [
 interface PlayersId {
   user1: number;
   user2: number;
+}
+
+interface InvitationData {
+  res: boolean;
+  id: string;
 }
 
 @WebSocketGateway({
@@ -42,6 +49,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     private readonly gameSockets: gameSockets,
     private readonly playerStats: playerStatistics,
     private readonly authService: AuthService,
+    private readonly gatewayOut: GatewayOut,
+    private readonly userService: UsersService,
   ) { }
 
   onModuleInit() {
@@ -121,8 +130,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     this.gameLobby.changePlayerColor(client, color);
   }
 
-  @SubscribeMessage("inviteGame")
-  inviteGame(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId) {
+  @SubscribeMessage("launchGameWithFriend")
+  launchGameWithFriend(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId) {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
@@ -139,4 +148,36 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     }
     this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
   }
+
+  @SubscribeMessage("invitation")
+  async invitation(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId) {
+    const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
+    let p1SocketId: string | null = null;
+    let p2SocketId: string | null = null;
+
+    const p1 = await this.userService.findUserWithId(playersId.user1);
+    if (!p1) {
+      throw new Error("Error trying to find player")
+    }
+
+    const p1Name = p1.username;
+
+    for (const socket of sockets) {
+      if (socket[1].data.userId === playersId.user1 || socket[1].data.userId === playersId.user2) {
+        socket[1].data.userId === playersId.user1 ? p1SocketId = socket[0] : p2SocketId = socket[0];
+      }
+    }
+    if (p1SocketId === null || p2SocketId === null) {
+      //@to-do bien gerer erreur
+      throw new Error("Error trying to invite friend to game")
+    }
+    this.gatewayOut.emitToUser(p2SocketId, "invitation", { playerName: p1Name, playerSocketId: client.id });
+  }
+
+  @SubscribeMessage('resToInvitation')
+  resToInvitation(@ConnectedSocket() client: Socket, @MessageBody() res: InvitationData) {
+    console.log("invite recue = ", res.res, res.id)
+    this.gatewayOut.emitToUser(res.id, "isInviteAccepted", res.res);
+  }
+
 }

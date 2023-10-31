@@ -247,10 +247,9 @@ export class GameLobbyService {
       const lobbiesArray = Array.from(lobbies.entries());
       const serializedLobbies = lobbiesArray.map(([key, lobby]) => ({
         key,
-        player1: lobby?.player1?.id,
-        player2: lobby?.player2?.id,
+        player1: lobby?.gameState.gameState.p1Name,
+        player2: lobby?.gameState.gameState.p2Name,
       }));
-      console.log("Lobbies here", serializedLobbies);
       this.gatewayOut.emitToUser(player.id, "getAllLobbies", { lobbies: serializedLobbies });
     }
   }
