@@ -43,11 +43,6 @@ const App: React.FC = () => {
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
 
-  useEffect(() => {
-    console.log("socket ref from app", socketRef.current?.id);
-    console.log("socket state from app", socket?.id);
-  });
-
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />

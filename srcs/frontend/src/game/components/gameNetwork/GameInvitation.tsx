@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { blockUser } from "../../../chat/components/ChannelUtils";
 
 interface GameInvitationProps {
   socket: Socket | undefined;
@@ -27,10 +28,8 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
   });
 
   const handleInvitation = (data: InvitationData) => {
-    console.log("invitation recue par = ", data.playerName);
-    console.log("inviation socket id = ", data.playerSocketId);
     setInvitation(true);
-    setInvitedBy(invitedBy);
+    setInvitedBy(data.playerName);
     invitedBySocketId.current = data.playerSocketId;
   };
 
@@ -52,6 +51,10 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     });
   };
 
+  const blockUser = () => {
+
+  }
+
   if (invitation === true) {
     return (
       <div style={{ position: "absolute" }}>
@@ -59,6 +62,7 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
         <div>
           <button onClick={acceptInvitation}>Accept</button>
           <button onClick={refuseInvitation}>Refuse</button>
+          <button onClick={refuseInvitation}>Block</button>
         </div>
       </div>
     );

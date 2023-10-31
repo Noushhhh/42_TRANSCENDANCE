@@ -35,10 +35,13 @@ let GameLobbyService = class GameLobbyService {
     }
     printLobbies() {
         lobbies_1.lobbies.forEach((value, key) => {
+            var _a, _b;
             console.log("------------------");
             console.log("|", key, "|");
             console.log("|", value.player1 ? '0' : 'X', "|");
             console.log("|", value.player2 ? '0' : 'X', "|");
+            console.log("|", (_a = value.player1) === null || _a === void 0 ? void 0 : _a.id, "|");
+            console.log("|", (_b = value.player2) === null || _b === void 0 ? void 0 : _b.id, "|");
             console.log("------------------");
         });
     }
@@ -107,11 +110,12 @@ let GameLobbyService = class GameLobbyService {
     launchGameWithFriend(playerId, playerSocketId, friendId, friendSocketId) {
         return __awaiter(this, void 0, void 0, function* () {
             this.socketMap.printSocketMap();
-            console.log("player1ID, player2ID", playerSocketId, friendSocketId);
             const player1 = this.socketMap.getSocket(playerSocketId);
             const player2 = this.socketMap.getSocket(friendSocketId);
             if (!player1 || !player2)
                 throw new Error("Error trying to find player socket");
+            this.removePlayerFromLobby(player1);
+            this.removePlayerFromLobby(player2);
             const lobbyName = `lobby${lobbies_1.lobbies.size}`;
             const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
@@ -192,11 +196,14 @@ let GameLobbyService = class GameLobbyService {
                 // There was a game so add this
                 // game to the player's match history
                 if (p1Id) {
+                    console.log("Before adding win in p2");
                     this.playerStats.addWinToPlayer(p1Id);
+                    console.log("After adding win in p2");
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id, value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score, value.gameState.gameState.score.p2Score, false, true);
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id, value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score, value.gameState.gameState.score.p1Score, true, false);
                 }
                 else { // there is no more player in the lobby
+                    console.log("Lobby erased in p2");
                     lobbies_1.lobbies.delete(key);
                 }
                 // Telling the client player 1 is not in a lobby anymore

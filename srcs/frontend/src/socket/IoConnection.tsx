@@ -11,7 +11,6 @@ const IoConnection: FC<IoConnectionProps> = ({
   socketRef,
 }) => {
   useEffect(() => {
-    console.log("RENDER");
     const fetchAccessToken = async () => {
       const response = await fetch("http://localhost:4000/api/auth/token", {
         method: "GET",

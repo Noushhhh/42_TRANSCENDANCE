@@ -90,6 +90,7 @@ export class playerStatistics {
   async addGameToMatchHistory(
     playerId: number, opponentName: string, playerScore: number,
     opponentScore: number, p1Left: boolean, p2Left: boolean) {
+    console.log("addMatchHistory data = ", playerId, opponentName, playerScore, opponentScore, p1Left, p2Left);
     const player = await this.prisma.user.findUnique({
       where: { id: playerId }
     })

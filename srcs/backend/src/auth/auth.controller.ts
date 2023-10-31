@@ -72,7 +72,6 @@ export class AuthController {
             // Call the authService to handle 42 authentication
             await this.authService.signToken42(req, res);
         } catch (error) {
-            // console.log("COUCOU");
             console.error(error);
             // Handle errors here and redirect as needed
             res.redirect('/error2');

@@ -23,6 +23,8 @@ export class GameLobbyService {
       console.log("|", key, "|")
       console.log("|", value.player1 ? '0' : 'X', "|")
       console.log("|", value.player2 ? '0' : 'X', "|")
+      console.log("|", value.player1?.id, "|")
+      console.log("|", value.player2?.id, "|")
       console.log("------------------")
     })
   }
@@ -91,13 +93,15 @@ export class GameLobbyService {
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
     this.socketMap.printSocketMap();
 
-    console.log("player1ID, player2ID", playerSocketId, friendSocketId);
 
     const player1 = this.socketMap.getSocket(playerSocketId);
     const player2 = this.socketMap.getSocket(friendSocketId);
 
     if (!player1 || !player2)
       throw new Error("Error trying to find player socket");
+
+    this.removePlayerFromLobby(player1);
+    this.removePlayerFromLobby(player2);
 
     const lobbyName = `lobby${lobbies.size}`;
     const lobby = new Lobby(player1, playerId, this.userService);
@@ -183,7 +187,9 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p1Id) {
+          console.log("Before adding win in p2")
           this.playerStats.addWinToPlayer(p1Id);
+          console.log("After adding win in p2")
           this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
             value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
             value.gameState.gameState.score.p2Score, false, true);
@@ -191,6 +197,7 @@ export class GameLobbyService {
             value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
             value.gameState.gameState.score.p1Score, true, false);
         } else { // there is no more player in the lobby
+          console.log("Lobby erased in p2");
           lobbies.delete(key);
         }
 

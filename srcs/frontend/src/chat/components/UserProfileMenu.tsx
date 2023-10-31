@@ -53,28 +53,21 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     }
   })
 
-  const handleInvitation = (accepted: boolean) => {
-    console.log("response = ", accepted);
-    if (accepted === true) {
-      socket.emit("launchGameWithFriend", { user1: userId, user2: user.id });
-      navigate("/home/game");
-    }
-  }
-
+  
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
     setIsBlocked(isBlocked);
   };
-
+  
   const handleClose = () => {
     setAnchorEl(null);
   };
-
+  
   const handleProfilClick = () => {
     handleClose();
   };
-
+  
   const handlePrivateMessageClick = async () => {
     console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
@@ -90,21 +83,25 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           setChannelHeader,
           userId,
           socket
-        );
-        socket.emit("joinChannel", channelIdCreated);
-      } catch (error) {
-        console.log("error while creating channel");
+          );
+          socket.emit("joinChannel", channelIdCreated);
+        } catch (error) {
+          console.log("error while creating channel");
+        }
       }
-    }
-    handleClose();
-  };
-
-  const handlePlayClick = () => {
-    // For theo's function : create game between 2 ids
-    console.log("client id, friend id =", userId, user.id);
+      handleClose();
+    };
+    
+    const handlePlayClick = () => {
     socket.emit("invitation", { user1: userId, user2: user.id });
-    // navigate("/home/game");
   };
+  
+  const handleInvitation = (accepted: boolean) => {
+    if (accepted === true) {
+      socket.emit("launchGameWithFriend", { user1: userId, user2: user.id });
+      navigate("/home/game");
+    }
+  }
 
   const handleBlockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
