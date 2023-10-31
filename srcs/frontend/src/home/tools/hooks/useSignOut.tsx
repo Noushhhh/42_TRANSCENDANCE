@@ -1,27 +1,26 @@
 import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
 
 export const useSignOut = () => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const handleSignOut = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/signout', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        localStorage.setItem('logout', 'true'); // Broadcast logout event
+        navigate('/signin');
+      } else {
+        console.error('Failed to sign out.');
+        throw new Error('Failed to sign out');
+      }
+    } catch (error) {
+      console.error('There was an error signing out:', error);
+    }
+  }, [navigate]);
 
-    const handleSignOut = async () => {
-        // Using React Router's hook to get the navigate function.
-        try {
-            const response = await fetch('http://localhost:4000/api/auth/signout', {
-                method: 'DELETE',
-                credentials: 'include', // This ensures cookies are sent with the request, important for session-based authentication.
-            });
-
-            // If the server responds with a success status, navigate the user to the sign-in page.
-            if (response.ok) {
-                navigate('/signin');
-            } else {
-                console.error('Failed to sign out.');
-            }
-        } catch (error) {
-            // Logging any potential errors that might occur during the sign out process.
-            console.error('There was an error signing out:', error);
-        }
-    };
-    return handleSignOut;
+  return handleSignOut;
 }

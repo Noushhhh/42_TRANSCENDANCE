@@ -1,0 +1,23 @@
+.loading-enter,
+.fade-enter,
+.fade-appear {
+  opacity: 0;
+}
+
+.loading-enter-active,
+.fade-enter-active,
+.fade-appear-active,
+.fade-exit {
+  opacity: 1;
+  transition: opacity var(--transition-duration); /* Use a CSS variable for transition duration */
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity var(--transition-duration); /* Use a CSS variable for transition duration */
+}
+
+/* New CSS variable for transition duration */
+:root {
+  --transition-duration: 500ms;
+}
