@@ -155,7 +155,7 @@ const SignUp: React.FC = () => {
             <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
             <InputField type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
             <button className="button" onClick={handleSubmit} disabled={isLoading || !email || !password || !confirmPassword}>
-            {isLoading && <div>Loading...</div>}
+                {isLoading ? (<div>SingUp</div> && <div>Loading...</div>) : (<div>SignUp</div>)}
             </button>
         </div>
     );
