@@ -28,75 +28,75 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
  */
 @Injectable()
 export class AuthService {
-    private readonly JWT_SECRET: string | any;
+  private readonly JWT_SECRET: string | any;
 
-    constructor(
-        private usersService: UsersService,
-        private prisma: PrismaService,
-        private jwt: JwtService,
-        // private jwtService: JwtService,
-    ) {
-        this.JWT_SECRET = jwtConstants.secret;
-        if (!this.JWT_SECRET) {
-            throw new Error("JWT_SECRET environment variable not set!");
-        }
+  constructor(
+    private usersService: UsersService,
+    private prisma: PrismaService,
+    private jwt: JwtService,
+    // private jwtService: JwtService,
+  ) {
+    this.JWT_SECRET = jwtConstants.secret;
+    if (!this.JWT_SECRET) {
+      throw new Error("JWT_SECRET environment variable not set!");
     }
+  }
 
-    /**
-     * @brief This function handles user signup requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signup operation.
-     */
-    async signup(dto: AuthDto, res: Response) {
-        const hashPassword = await argon.hash(dto.password);
-        try {
-            const user = await this.prisma.user.create({
-                data: {
-                    username: dto.username,
-                    hashPassword,
-                },
-            });
-            return this.signToken(user.id, user.username, res);
-        } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                console.log(error)
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credentials taken');
-                }
-            }
-            throw error;
+  /**
+   * @brief This function handles user signup requests.
+   * @param dto The data transfer object containing user information.
+   * @param res The response object.
+   * @return The result of the signup operation.
+   */
+  async signup(dto: AuthDto, res: Response) {
+    const hashPassword = await argon.hash(dto.password);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          username: dto.username,
+          hashPassword,
+        },
+      });
+      return this.signToken(user.id, user.username, res);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        console.log(error)
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Credentials taken');
         }
+      }
+      throw error;
     }
+  }
 
-    /**
-     * @brief This function handles user signin requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signin operation.
-     */
-    async signin(dto: AuthDto, res: Response) {
-        // find user with username
-        const user = await this.usersService.findUserWithUsername(dto.username);
-        // if user not found throw exception
-        if (!user) throw new ForbiddenException('Username not found',);
-        const userLoggedIn = await this.checkUserLoggedIn(user.id);
-        // console.log("passing by userLoggedIn", userLoggedIn, "\n");
-        if (userLoggedIn.statusCode === 200) {
-            throw new ForbiddenException('User is already logged in');
-            console.log("user already logged in " ,userLoggedIn.statusCode);
-        }
-        // compare password
-        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-        // if password wrong throw exception
-        if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
-        // send back the token
-      const result = await this.signToken(user.id, user.username, res);
-      // Update the user's logged in status in the database
-      if (result.valid)
-        this.updateUserLoggedIn(user.id, true);
-      return result;
+  /**
+   * @brief This function handles user signin requests.
+   * @param dto The data transfer object containing user information.
+   * @param res The response object.
+   * @return The result of the signin operation.
+   */
+  async signin(dto: AuthDto, res: Response) {
+    // find user with username
+    const user = await this.usersService.findUserWithUsername(dto.username);
+    // if user not found throw exception
+    if (!user) throw new ForbiddenException('Username not found',);
+    const userLoggedIn = await this.checkUserLoggedIn(user.id);
+    // console.log("passing by userLoggedIn", userLoggedIn, "\n");
+    if (userLoggedIn.statusCode === 200) {
+      throw new ForbiddenException('User is already logged in');
+      console.log("user already logged in ", userLoggedIn.statusCode);
     }
+    // compare password
+    const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+    // if password wrong throw exception
+    if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
+    // send back the token
+    const result = await this.signToken(user.id, user.username, res);
+    // Update the user's logged in status in the database
+    if (result.valid)
+      this.updateUserLoggedIn(user.id, true);
+    return result;
+  }
 
   /**
    * @brief This function validates a user.
@@ -110,81 +110,81 @@ export class AuthService {
     return user;
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @brief This function signs a token.
- * @param userId The user's ID.
- * @param username The user's username.
- * @param res The response object.
- * @return A promise that resolves to void.
- */
-async signToken(
-  userId: number,
-  username: string,
-  res: Response
-){
-  // Create the payload for the JWT token
-  const payload = {
-    sub: userId,
-    username,
-  };
+  /**
+   * @brief This function signs a token.
+   * @param userId The user's ID.
+   * @param username The user's username.
+   * @param res The response object.
+   * @return A promise that resolves to void.
+   */
+  async signToken(
+    userId: number,
+    username: string,
+    res: Response
+  ) {
+    // Create the payload for the JWT token
+    const payload = {
+      sub: userId,
+      username,
+    };
 
-  // Get the JWT secret from the environment variables
-  const secret = this.JWT_SECRET;
+    // Get the JWT secret from the environment variables
+    const secret = this.JWT_SECRET;
 
-  // Sign the JWT token with the payload and secret
-  const token = await this.jwt.signAsync(payload, {
-    expiresIn: '15m',
-    secret: secret,
-  });
+    // Sign the JWT token with the payload and secret
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: '15m',
+      secret: secret,
+    });
 
-  // Check if there is an existing refresh token for the user
-  const existingRefreshToken = await this.prisma.refreshToken.findFirst({
-    where: {
-      userId: userId,
-      expiresAt: {
-        gte: new Date(), //greater or equal to the current date
+    // Check if there is an existing refresh token for the user
+    const existingRefreshToken = await this.prisma.refreshToken.findFirst({
+      where: {
+        userId: userId,
+        expiresAt: {
+          gte: new Date(), //greater or equal to the current date
+        },
       },
-    },
-  });
+    });
 
-  // If there is an existing refresh token, use it. Otherwise, create a new one.
-  let refreshToken;
-  if (existingRefreshToken) {
-    refreshToken = existingRefreshToken.token;
-  } else {
-    refreshToken = await this.createRefreshToken(userId);
+    // If there is an existing refresh token, use it. Otherwise, create a new one.
+    let refreshToken;
+    if (existingRefreshToken) {
+      refreshToken = existingRefreshToken.token;
+    } else {
+      refreshToken = await this.createRefreshToken(userId);
+    }
+
+    // Save the refresh token in an HttpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
+    });
+
+    // Save the JWT token in an HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
+    });
+
+    // Send a response confirming that the authentication was successful
+    return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
   }
 
-  // Save the refresh token in an HttpOnly cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
-  });
 
-  // Save the JWT token in an HttpOnly cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 15, // 15 minutes in milliseconds
-  });
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  // Send a response confirming that the authentication was successful
-  return ({ statusCode: 200, valid: true, message: 'Authentication successful' });
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * @brief This function creates a refresh token.
-     * @param userId The user's ID.
-     * @return The refresh token.
-     */
+  /**
+   * @brief This function creates a refresh token.
+   * @param userId The user's ID.
+   * @return The refresh token.
+   */
   async createRefreshToken(userId: number): Promise<string> {
     const refreshToken = randomBytes(40).toString('hex'); // Generates a random 40-character hex string
 
@@ -220,7 +220,7 @@ async signToken(
 
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function checks if the user is logged in.
@@ -276,7 +276,7 @@ async signToken(
     return null;
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -299,7 +299,7 @@ async signToken(
     }
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
   /**
    * @brief This function handles user signout requests.
    * @param decodedPayload The decoded payload.
@@ -320,7 +320,7 @@ async signToken(
     }
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
   /**
    * @brief This function signs a token for 42 authentication.
    * @param req The request object.
@@ -376,7 +376,7 @@ async signToken(
     }
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function exchanges a code for a token.
@@ -404,7 +404,7 @@ async signToken(
     };
     return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
   }
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -422,7 +422,7 @@ async signToken(
       throw error;
     }
   }
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
   private async sendUserInfoRequest(token: string) {
@@ -433,7 +433,7 @@ async signToken(
     });
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -481,7 +481,7 @@ async signToken(
     }
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function generates a random password.
@@ -501,7 +501,7 @@ async signToken(
    * @param userId The user's ID.
    * @return The 2FA secret and otpauth URL.
    */
- 
+
   generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
     const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
     const otpauthUrl = speakeasy.otpauthURL({
@@ -512,7 +512,7 @@ async signToken(
     return { secret: secret.base32, otpauthUrl };
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function verifies a 2FA code.
@@ -540,7 +540,7 @@ async signToken(
     return verified;
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function enables 2FA.

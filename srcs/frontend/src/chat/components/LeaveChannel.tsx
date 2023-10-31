@@ -14,14 +14,14 @@ import { useSocketContext } from '../contexts/socketContext';
 import { Socket } from 'socket.io-client';
 import { leaveChannel } from './ChannelUtils';
 
-interface ConfirmationPopup{
+interface LeaveChannelProps{
   setParentError: React.Dispatch<React.SetStateAction<string | null>>;
   isOwner: boolean | undefined;
   setDisplayNewOwner: React.Dispatch<React.SetStateAction<boolean>>;
   setDisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu }: ConfirmationPopup ) {
+export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu }: LeaveChannelProps ) {
 
   const [open, setOpen] = useState<boolean>(false);
 

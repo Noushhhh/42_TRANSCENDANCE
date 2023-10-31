@@ -9,9 +9,11 @@ import { GameDataService } from './data.service';
 import { gameSockets } from './gameSockets';
 import { playerStatistics } from './playerStatistics.service';
 import { UsersService } from '../users/users.service';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
-  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, GameDataService, gameSockets, playerStatistics, UsersService],
+  providers: [GameLogicService, GameLoopService, GameLobbyService, GatewayIn, GatewayOut, GameDataService, gameSockets, playerStatistics, UsersService, AuthService, JwtService],
   controllers: [GameController],
 })
 export class GameModule { }

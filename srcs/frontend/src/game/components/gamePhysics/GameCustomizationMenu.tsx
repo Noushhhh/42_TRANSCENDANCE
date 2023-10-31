@@ -1,6 +1,5 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useState } from "react";
 import { Socket } from "socket.io-client";
-import { GameConfig, gameConfig } from "../../assets/gameConfig";
 import { ChangeEvent } from "react";
 
 interface GameCustomizationMenuProps {

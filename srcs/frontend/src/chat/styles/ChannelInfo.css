@@ -1,24 +1,23 @@
-
-.ChannelInfo{
+.ChannelInfo {
     background-color: #302E2C;
     color: #2F4F4F;
     position: relative;
 }
 
-.ContainerChannelInfoisDisplay{
+.ContainerChannelInfoisDisplay {
     width: 30%;
     height: 100%;
     display: block;
     opacity: 1;
 }
 
-.ContainerChannelInfoisReduce{
+.ContainerChannelInfoisReduce {
     width: 0%;
     opacity: 0;
     display: none;
 }
 
-.HeaderChannelInfo{
+.HeaderChannelInfo {
     background-color: #3E3B38;
     height: 60px;
     color: white;
@@ -27,7 +26,7 @@
     align-items: center;
 }
 
-.ChannelInfoCard{
+.ChannelInfoCard {
     background-color: white;
     padding: 10px;
     margin: 20px 0px;
@@ -41,39 +40,45 @@
     margin: 0px;
 }
 
-.ChannelInfoCard > * {
+.ChannelInfoCard>* {
     margin: 6px;
     padding: 0;
 }
 
-.ChannelName{
+.ChannelName {
     flex-direction: column;
 }
 
-.SettingsButton h4{
+.SettingsButton h4 {
     display: flex;
     align-items: center;
 }
 
-.ChannelInfoCard .icon{
+.ChannelInfoCard .icon {
     font-size: 22px;
     color: #C7C7C7;
     margin: 0px 8px;
 }
 
-.clickable{
+.clickable {
     cursor: pointer
 }
 
-.ContainerIsDisplay{
+.ContainerIsDisplay {
     display: block;
 }
 
-.ContainerIsReduce{
+.ContainerIsReduce {
     display: none;
 }
 
-.leaveChannel{
+.leaveChannel {
     color: red;
-    fill:red;
+    fill: red;
+}
+
+@media (max-width: 800px) {
+    .ContainerChannelInfoisDisplay {
+        width: 100%;
+    }
 }

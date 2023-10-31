@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import GameMenu from "./GameMenu";
@@ -11,12 +11,13 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
+import { useConnectSocket } from "../../hooks/useConnectSocket";
 
 interface GameContainerProps {
-  socket: Socket;
+  socket: Socket | undefined;
 }
 
-const GameContainer: FC<GameContainerProps> = ({ socket }) => {
+const GameContainer: FC<GameContainerProps> = ({socket}) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
@@ -25,27 +26,66 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const location = useLocation();
 
   useEffect(() => {
-    socket.on("connect", connectListener);
-    socket.on("updateGameState", updateGameStateListener);
-    socket.on("isOnLobby", isInLobbyListener);
-    socket.on("isLobbyFull", isLobbyFullListener);
-    socket.on("gameEnd", handleGameEnd);
-    socket.on("newGame", handleNewGame);
+    socket?.emit("requestGameState");
+  }, [])
+
+  // const [socket, setSocket] = useState<Socket>();
+  // const socketRef = useRef<Socket | undefined>();
+
+  // useEffect(() => {
+  //   const fetchAccessToken = async () => {
+  //     const response = await fetch("http://localhost:4000/api/auth/token", {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     const data = await response.json();
+  //     const accessToken = data.accessToken;
+
+  //     if (!socketRef.current) {
+  //       const newSocket = io("http://localhost:4000", {
+  //         auth: {
+  //           token: accessToken,
+  //         },
+  //         autoConnect: false,
+  //       });
+
+  //       setSocket(newSocket);
+  //       socketRef.current = newSocket;
+  //       newSocket.connect();
+  //     }
+  //   };
+
+  //   fetchAccessToken();
+
+  //   return () => {
+  //     if (socketRef.current) {
+  //       socketRef.current.disconnect();
+  //     }
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    socket?.on("connect", connectListener);
+    socket?.on("updateGameState", updateGameStateListener);
+    socket?.on("isOnLobby", isInLobbyListener);
+    socket?.on("isLobbyFull", isLobbyFullListener);
+    socket?.on("gameEnd", handleGameEnd);
+    socket?.on("newGame", handleNewGame);
 
     return () => {
-      socket.off("connect", connectListener);
-      socket.off("updateGameState", updateGameStateListener);
-      socket.off("isOnLobby", isInLobbyListener);
-      socket.off("isLobbyFull", isLobbyFullListener);
-      socket.off("gameEnd", handleGameEnd);
-      socket.off("newGame", handleNewGame);
+      socket?.off("connect", connectListener);
+      socket?.off("updateGameState", updateGameStateListener);
+      socket?.off("isOnLobby", isInLobbyListener);
+      socket?.off("isLobbyFull", isLobbyFullListener);
+      socket?.off("gameEnd", handleGameEnd);
+      socket?.off("newGame", handleNewGame);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     return () => {
       if (isInLobby) {
-        socket.emit("removeFromLobby");
+        socket?.emit("removeFromLobby");
       }
     };
   }, [location.pathname, isInLobby]);
@@ -82,15 +122,22 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const connectListener = () => {
-    clientId.current = socket.id;
+    if (socket?.id) clientId.current = socket.id;
   };
 
   const updateGameStateListener = (gameState: GameState) => {
+    console.log("isLobbyFull ? ", gameState.isLobbyFull);
+    console.log("socket, is lobbyfull = ", socket, isLobbyFull);
+    console.log("isInLobby = ", isInLobby);
     setIsPaused(gameState.isPaused);
+    setIsLobbyFull(gameState.isLobbyFull);
+    if (gameState.isLobbyFull === true) {
+      setIsInLobby(true);
+    }
   };
 
   const isInLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
-    if (clientIdRes === socket.id) {
+    if (clientIdRes === socket?.id) {
       setIsInLobby(isOnLobby);
     }
   };
@@ -100,7 +147,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const handlePlayPause = () => {
-    socket.emit("getIsPaused", !isPaused);
+    socket?.emit("getIsPaused", !isPaused);
     setIsPaused(!isPaused);
     if (isPaused === true) start();
     // else stop();
@@ -128,7 +175,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           <WaitingForPlayer />
         </>
       );
-    } else {
+    } else if (isLobbyFull === true && socket) {
       return (
         <div className="GameContainer">
           <GameButtonsBar
@@ -148,8 +195,9 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
         </div>
       );
     }
+  } else if (isInLobby === false && socket) {
+    return <GameMenu socket={socket} />;
   }
-  return <GameMenu socket={socket} />;
 };
 
 export default GameContainer;
