@@ -17,4 +17,10 @@ export class gameSockets {
   removeSocket(clientId: string) {
     this.socketMap.delete(clientId);
   }
+
+  printSocketMap() {
+    for (const socket of this.socketMap) {
+      console.log("socket map i = ", socket[0]);
+    }
+  }
 }
