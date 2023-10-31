@@ -34,7 +34,6 @@ interface ErrorMessages {
 }
 
 export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorMessages) => {
-  console.log(customErrorMessages);
   if (!response.ok) {
     let messageError: string = "";
     switch (response.status) {
@@ -53,7 +52,7 @@ export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorM
       case 406:
         messageError = "Request not acceptable";
         break;
-      default:{
+      default: {
         messageError = "Server error";
       }
     }
@@ -134,7 +133,7 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
     const numberUsersInChannel: number = await response.json();
     return numberUsersInChannel;
   } catch (error: any) {
-    throw new Error("error fetching data");
+    throw error;
   }
 }
 
@@ -333,25 +332,27 @@ export const leaveChannel = async (
   userId: number,
   channelId: number,
   setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
-  socket: Socket): Promise<boolean> => {
+  socket: Socket,
+  newOwnerId?: number): Promise<boolean> => {
 
-  const requestOptions: RequestInit = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json", // Add appropriate headers if needed
-    },
-    credentials: 'include',
-    body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
+  try {
+    const requestOptions: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: 'include',
+    body: JSON.stringify({ userId, channelId, newOwnerId }),
   };
   const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
-  if (response.status === 406) {
-    throw new Error("Admin can't leave channel");
-  }
+  handleHTTPErrors(response, {});
   if (!response)
     return false;
-  await fetchUser(setChannelHeader, userId, socket);
-
+  await fetchUser(setChannelHeader, userId, socket); 
   return true;
+} catch (errors){
+  throw errors;
+}
 }
 
 export const getUsernamesBySubstring = async (userIdCaller: number, substring: string): Promise<User[]> => {
@@ -374,6 +375,7 @@ export const getUsernamesBySubstring = async (userIdCaller: number, substring: s
 export const getUsernamesInChannelFromSubstring = async (
   channelId: number,
   substringLogin: string,
+  userId: number
 ): Promise<User[] | null> => {
 
   if (isNaN(channelId) || channelId <= 0) {
@@ -383,7 +385,7 @@ export const getUsernamesInChannelFromSubstring = async (
   const cleanSubstring: string = encodeURIComponent(substringLogin);
 
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getLoginsInChannelFromSubstring/${channelId}/${cleanSubstring}`);
+    const response = await fetch(`http://localhost:4000/api/chat/getLoginsInChannelFromSubstring/${channelId}/${cleanSubstring}/${userId}`);
     if (!response.ok) {
       throw new Error("Failed to fetch data");
     }
@@ -498,7 +500,7 @@ export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => 
 
   try {
 
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getAdmins/${channelId}`);
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getAdmins?channelId=${channelId}`);
     if (!response.ok) {
       throw new Error("Error fetching data");
     }
@@ -509,7 +511,6 @@ export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => 
   } catch (error) {
     throw new Error("Error fetching data");
   }
-
 }
 
 export const fetchUserAdminTable = async (channelId: number): Promise<{ user: User, isAdmin: boolean }[]> => {
@@ -576,7 +577,6 @@ export const addUserIdToChannel = async (channelId: number, userId: number): Pro
       if (response.status === 404) {
         return Promise.reject(new Error("Channel not found"));
       }
-      console.log("error adding user to channel");
       throw new Error("Error adding user to channel");
     }
     const channelIdAdded: number = await response.json();
@@ -789,6 +789,7 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
 
 export const manageChannelPassword = async (channelId: number, channelType: string, actualPassword: string, newPassword: string) => {
   try {
+    console.log("manage password called client");
     const response: Response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
       method: 'POST',
       credentials: 'include',
@@ -840,6 +841,30 @@ export const getChannelType = async (channelId: number) => {
     handleHTTPErrors(response, {});
     const channelType: string = await response.text();
     return channelType;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/*export const isAdmin = async (channelId: number, userId: number) => {
+  try {
+    const response: Response = await fetch(`http://localhost:4000/api/chat/isAdmin?channelId=${channelId}&userId=${userId}`);
+    handleHTTPErrors(response, {});
+    const isAdmin = await response.json();
+    console.log(isAdmin);
+  } catch (error) {
+    throw error;
+  }
+}*/
+
+export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
+  try {
+    console.log("is owner called");
+    const response: Response = await fetch(`http://localhost:4000/api/chat/isOwner?channelId=${channelId}&userId=${userId}`);
+    handleHTTPErrors(response, {});
+    const isOwner = await response.json();
+    console.log(isOwner);
+    return isOwner;
   } catch (error) {
     throw error;
   }

@@ -42,14 +42,18 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
 
   useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
-
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
     };
   });
 
  const channelDeletedEvent = async (channelId: number) => {
-   await leaveChannel(userId, channelId, setChannelHeader, socket);
+  // check if need to uncomment this part, I think no
+  /*try {
+    await leaveChannel(userId, channelId, setChannelHeader, socket);
+  } catch (errors) {
+
+  }*/
  };
 
   useEffect(() => {

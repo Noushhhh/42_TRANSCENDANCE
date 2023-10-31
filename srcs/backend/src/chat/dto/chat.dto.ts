@@ -1,4 +1,5 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
 
@@ -23,11 +24,30 @@ class CommonUserIdDto {
     userId!: number;
 }
 
+class CommonChannelIdPostDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+}
+
+class CommonUserIdPostDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}
+
+
 export class ChannelNameDto extends CommonChannelNameDto {}
 
 export class ChannelIdDto extends CommonChannelIdDto {}
 
 export class UserIdDto extends CommonUserIdDto {}
+
+export class UserIdPostDto extends CommonUserIdPostDto {}
+
+export class ChannelIdPostDto extends CommonChannelIdPostDto {}
 
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()
@@ -42,14 +62,14 @@ export class SignUpChannelDto extends CommonChannelIdDto {
 }
 
 export class PairUserIdChannelId {
+    @Type(() => Number)
     @IsInt()
     @Min(0)
-    @Type(() => Number)
     channelId!: number;
 
+    @Type(() => Number)
     @IsInt()
     @Min(0)
-    @Type(() => Number)
     userId!: number;
 }
 
@@ -79,7 +99,6 @@ export class ManagePasswordDto{
     // @Max(22)
     actualPassword!: string;
 
-    @IsNotEmpty()
     @IsString()
     // @Min(6)
     // @Max(22)
@@ -95,3 +114,22 @@ export class ManageChannelTypeDto{
     @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
     channelType!: string;
 }
+
+export class LeaveChannelDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    newOwnerId!: number;
+}
+  

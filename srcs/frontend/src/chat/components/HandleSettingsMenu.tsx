@@ -80,7 +80,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             if (action === "ban") {
                 // lorsque le channel fait 2 users et qu'on ban l'un des 2
                 // le client essaie de ban les 2 users mais le channel a deja
-                // ete detruit car il comportait plus que 1 user a la fin du 1er ban
+                // ete detruit car il ne comportait plus que 1 user a la fin du 1er ban
                 await banUserList(userList, channelId, userId, socket);
             }
             else if (action === "kick") {
@@ -136,7 +136,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         return (
             <div className={`${isItDisplay}`}>
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <ManagePassword isItDisplay={isItDisplay} needReload={isSettingsMenuDisplay}/>
+                <ManagePassword needReload={isSettingsMenuDisplay}/>
             </div>
     )
     else if (isSearchBarNeeded === false) {
