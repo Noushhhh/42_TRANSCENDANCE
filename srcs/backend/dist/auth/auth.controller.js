@@ -60,13 +60,7 @@ let AuthController = class AuthController {
     }
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield this.authService.signup(dto, res);
-                res.status(result.statusCode).send({ valid: result.valid, message: result.message });
-            }
-            catch (error) {
-                res.status(500).send({ valid: false, message: error });
-            }
+            return yield this.authService.signup(dto, res);
         });
     }
     signin(dto, res, req) {

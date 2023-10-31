@@ -42,12 +42,7 @@ export class AuthController {
   @Public()
   @Post('signup')
   async signup(@Body() dto: AuthDto, @Res() res: Response) {
-    try {
-      const result = await this.authService.signup(dto, res);
-      res.status(result.statusCode).send({ valid: result.valid, message: result.message });
-    } catch (error) {
-      res.status(500).send({ valid: false, message: error });
-    }
+      return await this.authService.signup(dto, res);
   }
 
   @Post('signin')

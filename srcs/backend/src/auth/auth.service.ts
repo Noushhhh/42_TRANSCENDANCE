@@ -42,32 +42,32 @@ export class AuthService {
         }
     }
 
-    /**
-     * @brief This function handles user signup requests.
-     * @param dto The data transfer object containing user information.
-     * @param res The response object.
-     * @return The result of the signup operation.
-     */
-    async signup(dto: AuthDto, res: Response) {
-        const hashPassword = await argon.hash(dto.password);
-        try {
-            const user = await this.prisma.user.create({
-                data: {
-                    username: dto.username,
-                    hashPassword,
-                },
-            });
-            return this.signToken(user.id, user.username, res);
-        } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                console.log(error)
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credentials taken');
-                }
-            }
-            throw error;
+  /**
+   * @brief This function handles user signup requests.
+   * @param dto The data transfer object containing user information.
+   * @param res The response object.
+   * @return The result of the signup operation.
+   */
+  async signup(dto: AuthDto, res: Response) {
+    const hashPassword = await argon.hash(dto.password);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          username: dto.username,
+          hashPassword,
+        },
+      });
+      return this.signToken(user.id, user.username, res);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('This username is already taken. Please choose another one.');
         }
+      }
+      throw error;
     }
+  }
+    
 
 // ─────────────────────────────────────────────────────────────────────────────
 

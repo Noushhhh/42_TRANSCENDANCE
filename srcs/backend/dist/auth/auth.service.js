@@ -99,9 +99,8 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
-                    console.log(error);
                     if (error.code === 'P2002') {
-                        throw new common_1.ForbiddenException('Credentials taken');
+                        throw new common_1.ForbiddenException('This username is already taken. Please choose another one.');
                     }
                 }
                 throw error;
