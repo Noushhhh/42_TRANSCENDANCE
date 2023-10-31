@@ -5,6 +5,14 @@ import { CSSTransition } from 'react-transition-group';
 import '../styles/settings/Settings.css';
 import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
 
+/*
+
+                                        |
+,---.,---.,-.-.,---.,---.,---.,---.,---.|---
+|    |   || | ||   ||   ||   ||---'|   ||
+`---'`---'` ' '|---'`---'`   '`---'`   '`---'
+               |
+*/
 const Settings: React.FC = React.memo(() => {
   const [username, setPublicName] = useState<string | null>(null);
   const [newUsername, setNewPublicName] = useState<string | null>(null);
@@ -14,6 +22,8 @@ const Settings: React.FC = React.memo(() => {
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
   const [promptError, setError] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(true);
+
+  
 
   async function fetchPublicName(): Promise<void> {
     const userNameResultFromBack = await getPublicName();
@@ -33,6 +43,14 @@ const Settings: React.FC = React.memo(() => {
     }
   }
 
+/*
+
+             |                  |                       |    |        |              |                  |
+        . . .|---.,---.,---.    |--- ,---.    ,---.,---.|    |        |---.,---.,---.|__/ ,---.,---.,---|
+        | | ||   ||---'|   |    |    |   |    |    ,---||    |        |   |,---||    |  \ |---'|   ||   |
+        `-'-'`   '`---'`   '    `---'`---'    `---'`---^`---'`---'    `---'`---^`---'`   ``---'`   '`---'
+
+*/
   useEffect(() => {
     setShowLoading(true); // Set showLoading to true before fetching the data
 
@@ -81,6 +99,14 @@ const Settings: React.FC = React.memo(() => {
     }
   }, [newAvatar]);
 
+/*
+
+                  o          o              |              o
+        ,---.,---..,---.,---..,---.,---.    |    ,---.,---..,---.
+        `---.|   |||   ||   |||   ||   |    |    |   ||   |||
+        `---'|---'``   '`   '``   '`---|    `---'`---'`---|``---'
+             |                     `---'              `---'
+*/
   useEffect(() => {
     let timer: NodeJS.Timeout;
     timer = setTimeout(() => {
@@ -100,7 +126,14 @@ const Settings: React.FC = React.memo(() => {
       </div>
     );
   }
+/*
 
+    o
+    .,---..  ,
+    |`---. ><
+    |`---''  `
+`---'
+*/
   return (
     <div className='container'>
       <CSSTransition in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
