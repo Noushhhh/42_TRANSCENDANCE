@@ -159,7 +159,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
       <div className={`ChannelInfo ${'ContainerChannelInfo' + widthChatView}`}>
         {displayNewOwner ?
           <div>
-            <p>Please provide a new owner/admin</p>
+            <p>Please provide a new owner/admin.</p>
             <div style={{ color: "red" }}>{error}</div>
             <SearchBar setDisplayResults={setdisplayOwnerResults} inputValue={newOwnerInput} setInputValue={setnewOwnerInput} />
             {newOwner ? <PreviewUser user={newOwner} removeUserFromList={removeUserFromList} /> : null}
