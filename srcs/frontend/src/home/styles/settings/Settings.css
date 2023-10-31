@@ -2,6 +2,7 @@
 .fade-enter,
 .fade-appear {
   opacity: 0;
+  transform: translateX(-100%);
 }
 
 .loading-enter-active,
@@ -10,6 +11,8 @@
 .fade-exit {
   opacity: 1;
   transition: opacity var(--transition-duration); /* Use a CSS variable for transition duration */
+  transform: translateX(0);
+  transition: transform var(--transition-duration);
 }
 
 .fade-exit-active {
