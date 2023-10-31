@@ -51,9 +51,7 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     });
   };
 
-  const blockUser = () => {
-
-  }
+  const blockUser = () => {};
 
   if (invitation === true) {
     return (

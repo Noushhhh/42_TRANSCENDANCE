@@ -289,6 +289,19 @@ export class GameLobbyService {
     }
   }
 
+  sendLobbyState(player: Socket | undefined) {
+    console.log("ET LA  ???");
+    if (!player) return;
+    for (const [key, value] of lobbies) {
+      console.log("nom du lobby = ", key);
+      if (value.player1?.id === player.id || value.player2?.id === player?.id) {
+        console.log("je passe ici ou pas ???");
+        this.gatewayOut.emitToRoom(key, 'lobbyState', value.gameState.gameState);
+        return;
+      }
+    }
+  }
+
   changePlayerColor(player: Socket, color: string) {
     if (!player) return;
     for (const [key, value] of lobbies) {

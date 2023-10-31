@@ -144,7 +144,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     if (p1SocketId === null || p2SocketId === null) {
       //@to-do bien gerer erreur
       console.log(p1SocketId, p2SocketId);
-      throw new Error("Error trying to invite friend to game")
+      throw new Error("Error trying to invite friend to game (creation)")
     }
     this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
   }
@@ -169,7 +169,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     }
     if (p1SocketId === null || p2SocketId === null) {
       //@to-do bien gerer erreur
-      throw new Error("Error trying to invite friend to game")
+      throw new Error("Error trying to invite friend to game (invitation)")
     }
     this.gatewayOut.emitToUser(p2SocketId, "invitation", { playerName: p1Name, playerSocketId: client.id });
   }
@@ -180,4 +180,10 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     this.gatewayOut.emitToUser(res.id, "isInviteAccepted", res.res);
   }
 
+
+  @SubscribeMessage('requestLobbyState')
+  requestLobbyState(@ConnectedSocket() client: Socket) {
+    console.log("je recois bien ici");
+    this.gameLobby.sendLobbyState(client);
+  }
 }

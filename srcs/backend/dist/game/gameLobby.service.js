@@ -290,6 +290,20 @@ let GameLobbyService = class GameLobbyService {
             }
         }
     }
+    sendLobbyState(player) {
+        var _a, _b;
+        console.log("ET LA  ???");
+        if (!player)
+            return;
+        for (const [key, value] of lobbies_1.lobbies) {
+            console.log("nom du lobby = ", key);
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
+                console.log("je passe ici ou pas ???");
+                this.gatewayOut.emitToRoom(key, 'lobbyState', value.gameState.gameState);
+                return;
+            }
+        }
+    }
     changePlayerColor(player, color) {
         var _a, _b, _c;
         if (!player)
