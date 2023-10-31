@@ -89,7 +89,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
       if (!newOwner)
         setError("Provide a new owner");
       if (newOwner) {
-        const isUserLeaved = await leaveChannel(userId, channelId, setChannelHeader, socket, newOwner.id );
+        const isUserLeaved = await leaveChannel(userId, channelId, setChannelHeader, socket, newOwner.id);
         if (isUserLeaved)
           setChannelId(-1);
         setNewOwner(undefined);
