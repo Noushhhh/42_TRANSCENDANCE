@@ -3,42 +3,11 @@ import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
-import { fetchImageAsFile } from "../tools/Api";
+import { fetchImageAsFile, updateProfileBackend} from "../tools/Api";
 
 // Default profile image URL
 const defaultImage = "/assets/defaultProfileImage.jpg";
 
-/**
-* ****************************************************************************
- * Update profile on the backend.
- * @param {File | null} profileImage - The profile image file.
- * @param {string} profileName - The profile name.
- * @returns {Promise<boolean>} A promise that resolves to a boolean indicating the success of the update.
- * @throws {Error} If the update fails.
-* ****************************************************************************
-*/
-const updateProfileBackend = async (profileImage: File | null, profileName: string) => {
-  const formData = new FormData();
-  formData.append("profileImage", profileImage || new Blob());
-  formData.append("profileName", profileName);
-
-  const response = await fetch("http://localhost:8081/api/users/update", {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-
-  const data = await response.json();
-
-  if (data.valid) {
-    return true;
-  } else {
-    throw new Error(
-      ` ${data?.statusCode}: ${data?.message}` ||
-        "An error occurred when reaching the server to update your profile, please contact the website administrator"
-    );
-  }
-};
 
 /**
 * ****************************************************************************

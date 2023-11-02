@@ -1,3 +1,5 @@
+@import './variables.css';
+
 /* Setting base font-size for the document to use REM units effectively */
 html {
   font-size: 16px;
@@ -9,18 +11,6 @@ html {
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
-
-:root {
-  --main-font: 'PressStart2P', cursive;
-  --green-color: #48BC3E;
-  --purple-color: #cc4cd7;
-  --white-color: #FFFFFF;
-  --red-color: #d74c65;
-  --blue-color: #2cbdbd;
-  --background-color: #201F1F;
-  --transition-duration: 0.3s;
-  /* For dynamic transitions */
 }
 
 .container {
