@@ -33,3 +33,4 @@ export class Lobby {
 }
 
 export let lobbies: Map<string, Lobby> = new Map();
+export let lobbiesMap: Map<string, string> = new Map();

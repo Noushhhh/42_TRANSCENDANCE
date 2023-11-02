@@ -112,12 +112,10 @@ let GameLobbyService = class GameLobbyService {
             this.socketMap.printSocketMap();
             const player1 = this.socketMap.getSocket(playerSocketId);
             const player2 = this.socketMap.getSocket(friendSocketId);
-            console.log("JE PASSE LA 1?");
             if (!player1 || !player2)
                 throw new Error("Error trying to find player socket");
             // this.removePlayerFromLobby(player1);
             // this.removePlayerFromLobby(player2);
-            console.log("JE PASSE LA 2?");
             const lobbyName = `lobby${lobbies_1.lobbies.size}`;
             const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
@@ -127,22 +125,18 @@ let GameLobbyService = class GameLobbyService {
             const playerDb2 = yield this.userService.findUserWithId(friendId);
             if (!playerDb1 || !playerDb2)
                 throw new Error("player not found");
-            console.log("JE PASSE LA 3?");
             lobby.gameState.gameState.p1Name = playerDb1.username;
             lobby.gameState.gameState.p2Name = playerDb2.username;
             lobbies_1.lobbies.set(lobbyName, lobby);
-            console.log("JE PASSE LA 4?");
             player1.join(lobbyName);
             this.gatewayOut.isInLobby(true, player1);
             player2.join(lobbyName);
             this.gatewayOut.isInLobby(true, player2);
             lobby.gameState.gameState.isLobbyFull = true;
-            console.log("JE PASSE LA 5?");
+            this.playerStats.addGamePlayedToUsers(playerDb1.id, playerDb2.id);
             this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
-            console.log("JE PASSE LA 6?");
             // @to-do using a debug function here
             this.printLobbies();
-            console.log("JE PASSE LA 7?");
         });
     }
     addSpectatorToLobby(spectatorId, lobbyName) {

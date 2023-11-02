@@ -6,6 +6,7 @@ import { GameState } from './gameState';
 import { gameSockets } from './gameSockets';
 import { playerStatistics } from './playerStatistics.service';
 import { UsersService } from '../users/users.service';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class GameLobbyService {
@@ -95,14 +96,12 @@ export class GameLobbyService {
 
     const player1 = this.socketMap.getSocket(playerSocketId);
     const player2 = this.socketMap.getSocket(friendSocketId);
-    console.log("JE PASSE LA 1?")
 
     if (!player1 || !player2)
       throw new Error("Error trying to find player socket");
 
     // this.removePlayerFromLobby(player1);
     // this.removePlayerFromLobby(player2);
-    console.log("JE PASSE LA 2?")
 
     const lobbyName = `lobby${lobbies.size}`;
     const lobby = new Lobby(player1, playerId, this.userService);
@@ -116,27 +115,21 @@ export class GameLobbyService {
     if (!playerDb1 || !playerDb2)
       throw new Error("player not found")
 
-    console.log("JE PASSE LA 3?")
-
     lobby.gameState.gameState.p1Name = playerDb1.username;
     lobby.gameState.gameState.p2Name = playerDb2.username;
 
     lobbies.set(lobbyName, lobby);
-    console.log("JE PASSE LA 4?")
     player1.join(lobbyName);
     this.gatewayOut.isInLobby(true, player1);
     player2.join(lobbyName);
     this.gatewayOut.isInLobby(true, player2);
     lobby.gameState.gameState.isLobbyFull = true;
-    console.log("JE PASSE LA 5?")
 
-
+    this.playerStats.addGamePlayedToUsers(playerDb1.id, playerDb2.id);
     this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
 
-    console.log("JE PASSE LA 6?")
     // @to-do using a debug function here
     this.printLobbies();
-    console.log("JE PASSE LA 7?")
   }
 
   addSpectatorToLobby(spectatorId: string, lobbyName: string) {
