@@ -5,6 +5,8 @@ import { CSSTransition } from 'react-transition-group';
 import '../styles/settings/Settings.css';
 import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
 
+
+
 /*
 
                                         |
@@ -22,6 +24,11 @@ const Settings: React.FC = React.memo(() => {
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
   const [promptError, setError] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(true);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const usernameRef = React.useRef(null);
+  const avatarRef = React.useRef(null);
 
   
 
@@ -136,8 +143,8 @@ const Settings: React.FC = React.memo(() => {
 */
   return (
     <div className='container'>
-      <CSSTransition in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
-        <h3 className=''>{username}</h3>
+      <CSSTransition nodeRef={usernameRef} in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
+        <h3 ref={usernameRef} className=''>{username}</h3>
       </CSSTransition>
 
       {isUpdatingProfileName && (
@@ -151,9 +158,10 @@ const Settings: React.FC = React.memo(() => {
 
       <button onClick={() => setIsUpdatingProfileName(!isUpdatingProfileName)}> Update Public Name </button>
 
-      <CSSTransition in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
-        <img className='img' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
+      <CSSTransition nodeRef={avatarRef} in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
+        <img ref={avatarRef} className='img' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
       </CSSTransition>
+
 
       {isUpdatingAvatar && (
         <CSSTransition in={isUpdatingAvatar} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingAvatar(false)}>
