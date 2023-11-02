@@ -112,10 +112,12 @@ let GameLobbyService = class GameLobbyService {
             this.socketMap.printSocketMap();
             const player1 = this.socketMap.getSocket(playerSocketId);
             const player2 = this.socketMap.getSocket(friendSocketId);
+            console.log("JE PASSE LA 1?");
             if (!player1 || !player2)
                 throw new Error("Error trying to find player socket");
-            this.removePlayerFromLobby(player1);
-            this.removePlayerFromLobby(player2);
+            // this.removePlayerFromLobby(player1);
+            // this.removePlayerFromLobby(player2);
+            console.log("JE PASSE LA 2?");
             const lobbyName = `lobby${lobbies_1.lobbies.size}`;
             const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
@@ -125,16 +127,22 @@ let GameLobbyService = class GameLobbyService {
             const playerDb2 = yield this.userService.findUserWithId(friendId);
             if (!playerDb1 || !playerDb2)
                 throw new Error("player not found");
+            console.log("JE PASSE LA 3?");
             lobby.gameState.gameState.p1Name = playerDb1.username;
             lobby.gameState.gameState.p2Name = playerDb2.username;
             lobbies_1.lobbies.set(lobbyName, lobby);
+            console.log("JE PASSE LA 4?");
             player1.join(lobbyName);
             this.gatewayOut.isInLobby(true, player1);
             player2.join(lobbyName);
             this.gatewayOut.isInLobby(true, player2);
             lobby.gameState.gameState.isLobbyFull = true;
+            console.log("JE PASSE LA 5?");
+            this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
+            console.log("JE PASSE LA 6?");
             // @to-do using a debug function here
             this.printLobbies();
+            console.log("JE PASSE LA 7?");
         });
     }
     addSpectatorToLobby(spectatorId, lobbyName) {
@@ -196,9 +204,7 @@ let GameLobbyService = class GameLobbyService {
                 // There was a game so add this
                 // game to the player's match history
                 if (p1Id) {
-                    console.log("Before adding win in p2");
                     this.playerStats.addWinToPlayer(p1Id);
-                    console.log("After adding win in p2");
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id, value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score, value.gameState.gameState.score.p2Score, false, true);
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id, value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score, value.gameState.gameState.score.p1Score, true, false);
                 }
@@ -292,13 +298,10 @@ let GameLobbyService = class GameLobbyService {
     }
     sendLobbyState(player) {
         var _a, _b;
-        console.log("ET LA  ???");
         if (!player)
             return;
         for (const [key, value] of lobbies_1.lobbies) {
-            console.log("nom du lobby = ", key);
             if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
-                console.log("je passe ici ou pas ???");
                 this.gatewayOut.emitToRoom(key, 'lobbyState', value.gameState.gameState);
                 return;
             }

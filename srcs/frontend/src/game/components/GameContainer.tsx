@@ -136,7 +136,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
   
   const handleLobbyState = (gameState: GameState) => {
-    alert("je suis bien passé la");
     console.log("isLobbyFull ? ", gameState.isLobbyFull);
     console.log("lobbyfull = ", isLobbyFull);
     console.log("isInLobby = ", isInLobby);

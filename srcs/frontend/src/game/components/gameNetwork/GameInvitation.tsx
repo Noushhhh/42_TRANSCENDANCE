@@ -21,9 +21,11 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
 
   useEffect(() => {
     socket?.on("invitation", handleInvitation);
+    socket?.on("lobbyIsCreated", handleLobbyCreation);
 
     return () => {
       socket?.off("invitation", handleInvitation);
+      socket?.off("lobbyIsCreated", handleLobbyCreation);
     };
   });
 
@@ -31,6 +33,10 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     setInvitation(true);
     setInvitedBy(data.playerName);
     invitedBySocketId.current = data.playerSocketId;
+  };
+
+  const handleLobbyCreation = () => {
+    navigate("/home/game");
   };
 
   const acceptInvitation = () => {
@@ -41,7 +47,7 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     setInvitation(false);
     setInvitedBy("");
     invitedBySocketId.current = "";
-    navigate("/home/game");
+    // navigate("/home/game");
   };
 
   const refuseInvitation = () => {
@@ -49,6 +55,9 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
       res: false,
       id: invitedBySocketId.current,
     });
+    setInvitation(false);
+    setInvitedBy("");
+    invitedBySocketId.current = "";
   };
 
   const blockUser = () => {};

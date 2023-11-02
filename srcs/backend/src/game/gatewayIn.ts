@@ -16,6 +16,7 @@ import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
 import { GatewayOut } from './gatewayOut';
 import { UsersService } from '../users/users.service';
+import { lobbies } from './lobbies';
 
 type GameDataArray = [
   konvaHeight: number,
@@ -132,6 +133,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
 
   @SubscribeMessage("launchGameWithFriend")
   launchGameWithFriend(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId) {
+    console.log("L'invitation a été acceptée, je vais lancer la fonction lauchWithFriend")
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
@@ -144,8 +146,10 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     if (p1SocketId === null || p2SocketId === null) {
       //@to-do bien gerer erreur
       console.log(p1SocketId, p2SocketId);
+      console.log("J'AI CRASH ICI");
       throw new Error("Error trying to invite friend to game (creation)")
     }
+    console.log("Jai recup la data juste avant le fonction: ", p1SocketId, p2SocketId, playersId.user1, playersId.user2);
     this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
   }
 
@@ -167,23 +171,40 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
         socket[1].data.userId === playersId.user1 ? p1SocketId = socket[0] : p2SocketId = socket[0];
       }
     }
+
+    if (!p2SocketId || !p1SocketId) throw new Error("Error finding player socket");
+
+    const playerToInvite = this.gameSockets.getSocket(p2SocketId);
+
+    if (!playerToInvite) throw new Error("Error finding player socket");
+
+    if (this.gameLobby.isInLobby(playerToInvite) === true) {
+      this.gatewayOut.emitToUser(client.id, "invitationStatus", "player is already in a lobby");
+      return;
+    }
+
     if (p1SocketId === null || p2SocketId === null) {
       //@to-do bien gerer erreur
       throw new Error("Error trying to invite friend to game (invitation)")
     }
+    console.log("1: le joueur a été invité, je lui envoie l'invitation")
     this.gatewayOut.emitToUser(p2SocketId, "invitation", { playerName: p1Name, playerSocketId: client.id });
   }
 
   @SubscribeMessage('resToInvitation')
   resToInvitation(@ConnectedSocket() client: Socket, @MessageBody() res: InvitationData) {
-    console.log("invite recue = ", res.res, res.id)
+    const playerToInvite = this.gameSockets.getSocket(res.id);
+    if (!playerToInvite) throw new Error("Error finding player socket");
+
+    console.log("Le joueur viens de répondre a l'invitation par = %s maintenant je renvoie la réponse au player qui invite", res.res);
     this.gatewayOut.emitToUser(res.id, "isInviteAccepted", res.res);
   }
 
 
   @SubscribeMessage('requestLobbyState')
   requestLobbyState(@ConnectedSocket() client: Socket) {
-    console.log("je recois bien ici");
+    console.log("Maintenant je request lobby state");
+    this.gameLobby.printLobbies();
     this.gameLobby.sendLobbyState(client);
   }
 }
