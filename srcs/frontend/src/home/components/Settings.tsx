@@ -27,6 +27,10 @@ const Settings: React.FC = React.memo(() => {
 
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // We're creating a "ref" for our username and avatar elements.
+  // Think of a "ref" like a name tag that we're putting on these elements so we can find them easily later.
+  // Why is this important? Well, imagine if you're a magician and you have to perform a magic trick on someone in a crowd, but you don't know who that person is. It would be pretty hard, right?
+  // That's why we use "ref". It makes sure our magic trick (the transition) works on the right person (the element)!
   const usernameRef = React.useRef(null);
   const avatarRef = React.useRef(null);
 
@@ -141,8 +145,15 @@ const Settings: React.FC = React.memo(() => {
     |`---''  `
 `---'
 */
+
+  // Now we're using our "CSSTransition" component. This is like a magic trick that makes our elements appear and disappear smoothly!
+  // But for the magic trick to work, it needs to know exactly which element it's working with.
+  // That's where our "ref" comes in. We give it to the "CSSTransition" component using the "nodeRef" prop.
+  // We also give it to our element using the "ref" prop. This way, the "CSSTransition" component can find our element easily, just like how we can find someone easily if they're wearing a name tag!
+
   return (
     <div className='container'>
+      {/* nodeRef for username */}
       <CSSTransition nodeRef={usernameRef} in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
         <h3 ref={usernameRef} className=''>{username}</h3>
       </CSSTransition>
@@ -158,6 +169,7 @@ const Settings: React.FC = React.memo(() => {
 
       <button onClick={() => setIsUpdatingProfileName(!isUpdatingProfileName)}> Update Public Name </button>
 
+      {/* nodeRef for avatar */}
       <CSSTransition nodeRef={avatarRef} in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
         <img ref={avatarRef} className='img' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
       </CSSTransition>
