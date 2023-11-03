@@ -5,6 +5,7 @@ import { Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { Request } from 'express';
 import { playerStatistics } from './playerStatistics.service';
+import { ConnectToLobbyDto, PlayerNameDto } from './game.dto';
 
 interface User {
   id: number;
@@ -34,37 +35,47 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('lobby')
-  connectToLobby(@Query('clientId') clientId: string, @Req() req: Request) {
+  connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
     if (req.user) {
-      this.gameLobby.addPlayerToLobby(clientId, req.user.id);
+      this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
+      return { status: 'player connected to lobby' };
     }
-    return { test: 'player connected to lobby' };
+    return { status: 'player not connected to lobby' };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('addGameToPlayer')
   addGameToPlayer(@Req() req: Request) {
-    if (req.user)
-      this.playerStats.addGamePlayedToOneUser(req.user?.id)
-    return { msg: 'player games incremented' };
+    if (req.user) {
+      try {
+        this.playerStats.addGamePlayedToOneUser(req.user?.id)
+        return { msg: 'player games incremented' };
+      } catch (error) {
+        console.log(error);
+        return { msg: 'error trying to increment game played' };
+      }
+    }
+    return { msg: 'error trying to increment game played' };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('play')
   play() {
     this.gameLoopService.startGameLoop();
     return { msg: 'started' };
   }
 
-  @Get('stop')
-  stop() {
-    this.gameLoopService.stopGameLoop();
-    return { msg: 'stopped' };
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('stop')
+  // stop() {
+  //   this.gameLoopService.stopGameLoop();
+  //   return { msg: 'stopped' };
+  // }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('playerName')
-  playerName(@Req() req: Request, @Query('clientId') clientId: string,) {
-    if (req.user)
-      this.gameLobby.addPlayerNameToLobby(req.user.id, clientId);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('playerName')
+  // playerName(@Req() req: Request, @Query() dto: PlayerNameDto) {
+  //   if (req.user)
+  //     this.gameLobby.addPlayerNameToLobby(req.user.id, dto.clientId);
+  // }
 }

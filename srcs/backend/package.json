@@ -53,6 +53,7 @@
     "@types/passport-local": "^1.0.37",
     "@types/qrcode": "^1.5.4",
     "@types/speakeasy": "^2.0.9",
+    "@types/uuid": "^9.0.6",
     "nodemon": "^3.0.1",
     "prisma": "^5.4.2",
     "ts-node": "^10.9.1"

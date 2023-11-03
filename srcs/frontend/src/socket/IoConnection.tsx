@@ -6,10 +6,7 @@ interface IoConnectionProps {
   socketRef: React.MutableRefObject<Socket | undefined>;
 }
 
-const IoConnection: FC<IoConnectionProps> = ({
-  setSocket,
-  socketRef,
-}) => {
+const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
   useEffect(() => {
     const fetchAccessToken = async () => {
       const response = await fetch("http://localhost:4000/api/auth/token", {

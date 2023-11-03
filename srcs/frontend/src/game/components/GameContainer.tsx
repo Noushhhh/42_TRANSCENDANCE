@@ -17,7 +17,7 @@ interface GameContainerProps {
   socket: Socket | undefined;
 }
 
-const GameContainer: FC<GameContainerProps> = ({socket}) => {
+const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
@@ -26,43 +26,8 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
   const location = useLocation();
 
   useEffect(() => {
-    socket?.emit("requestGameState");
-  }, [])
-
-  // const [socket, setSocket] = useState<Socket>();
-  // const socketRef = useRef<Socket | undefined>();
-
-  // useEffect(() => {
-  //   const fetchAccessToken = async () => {
-  //     const response = await fetch("http://localhost:4000/api/auth/token", {
-  //       method: "GET",
-  //       credentials: "include",
-  //     });
-  //     const data = await response.json();
-  //     const accessToken = data.accessToken;
-
-  //     if (!socketRef.current) {
-  //       const newSocket = io("http://localhost:4000", {
-  //         auth: {
-  //           token: accessToken,
-  //         },
-  //         autoConnect: false,
-  //       });
-
-  //       setSocket(newSocket);
-  //       socketRef.current = newSocket;
-  //       newSocket.connect();
-  //     }
-  //   };
-
-  //   fetchAccessToken();
-
-  //   return () => {
-  //     if (socketRef.current) {
-  //       socketRef.current.disconnect();
-  //     }
-  //   };
-  // }, []);
+    socket?.emit("requestLobbyState");
+  }, []);
 
   useEffect(() => {
     socket?.on("connect", connectListener);
@@ -71,6 +36,7 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
     socket?.on("isLobbyFull", isLobbyFullListener);
     socket?.on("gameEnd", handleGameEnd);
     socket?.on("newGame", handleNewGame);
+    socket?.on("lobbyState", handleLobbyState);
 
     return () => {
       socket?.off("connect", connectListener);
@@ -79,6 +45,7 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
       socket?.off("isLobbyFull", isLobbyFullListener);
       socket?.off("gameEnd", handleGameEnd);
       socket?.off("newGame", handleNewGame);
+      socket?.off("lobbyState", handleLobbyState);
     };
   }, [socket]);
 
@@ -126,10 +93,10 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
   };
 
   const updateGameStateListener = (gameState: GameState) => {
-    console.log("isLobbyFull ? ", gameState.isLobbyFull);
-    console.log("socket, is lobbyfull = ", socket, isLobbyFull);
-    console.log("isInLobby = ", isInLobby);
     setIsPaused(gameState.isPaused);
+  };
+
+  const handleLobbyState = (gameState: GameState) => {
     setIsLobbyFull(gameState.isLobbyFull);
     if (gameState.isLobbyFull === true) {
       setIsInLobby(true);
@@ -143,6 +110,7 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
   };
 
   const isLobbyFullListener = (isLobbyFull: boolean) => {
+    console.log("je passe par la et set isLobbyFull", isLobbyFull);
     setIsLobbyFull(isLobbyFull);
   };
 
@@ -158,7 +126,10 @@ const GameContainer: FC<GameContainerProps> = ({socket}) => {
   };
 
   const start = () => {
-    fetch("http://localhost:4000/api/game/play")
+    fetch("http://localhost:4000/api/game/play", {
+      method: "GET",
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);

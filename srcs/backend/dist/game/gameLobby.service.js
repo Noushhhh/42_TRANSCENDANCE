@@ -26,6 +26,7 @@ const gameState_1 = require("./gameState");
 const gameSockets_1 = require("./gameSockets");
 const playerStatistics_service_1 = require("./playerStatistics.service");
 const users_service_1 = require("../users/users.service");
+const uuid_1 = require("uuid");
 let GameLobbyService = class GameLobbyService {
     constructor(gatewayOut, socketMap, playerStats, userService) {
         this.gatewayOut = gatewayOut;
@@ -34,6 +35,7 @@ let GameLobbyService = class GameLobbyService {
         this.userService = userService;
     }
     printLobbies() {
+        console.log("lobbies size", lobbies_1.lobbies.size);
         lobbies_1.lobbies.forEach((value, key) => {
             var _a, _b;
             console.log("------------------");
@@ -60,7 +62,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p1Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb)
-                            throw new Error("player not found");
+                            throw new common_1.NotFoundException("player not found");
                         value.gameState.gameState.p1Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
                     }
                     else if (!value.player2) {
@@ -68,7 +70,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb)
-                            throw new Error("player not found");
+                            throw new common_1.NotFoundException("player not found");
                         value.gameState.gameState.p2Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
                     }
                     player === null || player === void 0 ? void 0 : player.join(key);
@@ -83,11 +85,18 @@ let GameLobbyService = class GameLobbyService {
                     return;
                 }
             }
-            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
-            const lobby = new lobbies_1.Lobby(player, playerDbId, this.userService);
-            lobbies_1.lobbies.set(lobbyName, lobby);
-            player === null || player === void 0 ? void 0 : player.join(lobbyName);
-            this.gatewayOut.isInLobby(true, player);
+            const lobbyName = (0, uuid_1.v4)();
+            try {
+                // var: playerDbId
+                const lobby = new lobbies_1.Lobby(player, 124153, this.userService);
+                console.log("je vais la ????");
+                lobbies_1.lobbies.set(lobbyName, lobby);
+                player === null || player === void 0 ? void 0 : player.join(lobbyName);
+                this.gatewayOut.isInLobby(true, player);
+            }
+            catch (error) {
+                console.log("erreur ici = ", error);
+            }
             this.printLobbies();
         });
     }
@@ -114,9 +123,9 @@ let GameLobbyService = class GameLobbyService {
             const player2 = this.socketMap.getSocket(friendSocketId);
             if (!player1 || !player2)
                 throw new Error("Error trying to find player socket");
-            this.removePlayerFromLobby(player1);
-            this.removePlayerFromLobby(player2);
-            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
+            // this.removePlayerFromLobby(player1);
+            // this.removePlayerFromLobby(player2);
+            const lobbyName = (0, uuid_1.v4)();
             const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
             lobby.gameState.gameState.p1Id = playerId;
@@ -133,6 +142,8 @@ let GameLobbyService = class GameLobbyService {
             player2.join(lobbyName);
             this.gatewayOut.isInLobby(true, player2);
             lobby.gameState.gameState.isLobbyFull = true;
+            this.playerStats.addGamePlayedToUsers(playerDb1.id, playerDb2.id);
+            this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
             // @to-do using a debug function here
             this.printLobbies();
         });
@@ -196,9 +207,7 @@ let GameLobbyService = class GameLobbyService {
                 // There was a game so add this
                 // game to the player's match history
                 if (p1Id) {
-                    console.log("Before adding win in p2");
                     this.playerStats.addWinToPlayer(p1Id);
-                    console.log("After adding win in p2");
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id, value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score, value.gameState.gameState.score.p2Score, false, true);
                     this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id, value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score, value.gameState.gameState.score.p1Score, true, false);
                 }
@@ -286,6 +295,17 @@ let GameLobbyService = class GameLobbyService {
         for (const [key, value] of lobbies_1.lobbies) {
             if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
                 this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
+                return;
+            }
+        }
+    }
+    sendLobbyState(player) {
+        var _a, _b;
+        if (!player)
+            return;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === (player === null || player === void 0 ? void 0 : player.id)) {
+                this.gatewayOut.emitToRoom(key, 'lobbyState', value.gameState.gameState);
                 return;
             }
         }
