@@ -19,6 +19,7 @@ export class GameLobbyService {
   ) { }
 
   printLobbies() {
+    console.log("lobbies size", lobbies.size);
     lobbies.forEach((value: Lobby, key: string) => {
       console.log("------------------")
       console.log("|", key, "|")
@@ -69,7 +70,7 @@ export class GameLobbyService {
       }
     }
 
-    const lobbyName = `lobby${lobbies.size}`;
+    const lobbyName = uuid();
     const lobby = new Lobby(player, playerDbId, this.userService);
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
@@ -103,7 +104,7 @@ export class GameLobbyService {
     // this.removePlayerFromLobby(player1);
     // this.removePlayerFromLobby(player2);
 
-    const lobbyName = `lobby${lobbies.size}`;
+    const lobbyName = uuid();
     const lobby = new Lobby(player1, playerId, this.userService);
     lobby.player2 = player2;
     lobby.gameState.gameState.p1Id = playerId;

@@ -25,6 +25,11 @@ interface UserProfileMenuProps {
   user: User;
 }
 
+interface InvitationRes {
+  success: boolean;
+  message: string;
+}
+
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
@@ -59,8 +64,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     };
   });
 
-  const handleLobbyCreation = (res: boolean) => {
-    console.log("Le lobby a ete créeeeee");
+  const handleLobbyCreation = () => {
     navigate("/home/game");
   };
 
@@ -71,7 +75,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleInvitationStatus = (status: string) => {
-    console.log("invitation status = ", status);
     setInvitationStatus(status);
     setTimeout(() => {
       setInvitationStatus("");
@@ -110,8 +113,15 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     handleClose();
   };
 
-  const handlePlayClick = () => {
-    socket.emit("invitation", { user1: userId, user2: user.id });
+  const handlePlayClick = async () => {
+    if ((await isUserIsBlockedBy(user.id, userId)) === true) return;
+
+    socket.emit("invitation", { user1: userId, user2: user.id }, (res: InvitationRes) => {
+      console.log(res);
+      if (res.success === false) {
+        handleInvitationStatus(res.message);
+      }
+    });
   };
 
   const handleInvitation = (accepted: boolean) => {

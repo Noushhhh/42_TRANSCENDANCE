@@ -26,6 +26,7 @@ const gameState_1 = require("./gameState");
 const gameSockets_1 = require("./gameSockets");
 const playerStatistics_service_1 = require("./playerStatistics.service");
 const users_service_1 = require("../users/users.service");
+const uuid_1 = require("uuid");
 let GameLobbyService = class GameLobbyService {
     constructor(gatewayOut, socketMap, playerStats, userService) {
         this.gatewayOut = gatewayOut;
@@ -34,6 +35,7 @@ let GameLobbyService = class GameLobbyService {
         this.userService = userService;
     }
     printLobbies() {
+        console.log("lobbies size", lobbies_1.lobbies.size);
         lobbies_1.lobbies.forEach((value, key) => {
             var _a, _b;
             console.log("------------------");
@@ -83,7 +85,7 @@ let GameLobbyService = class GameLobbyService {
                     return;
                 }
             }
-            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
+            const lobbyName = (0, uuid_1.v4)();
             const lobby = new lobbies_1.Lobby(player, playerDbId, this.userService);
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
@@ -116,7 +118,7 @@ let GameLobbyService = class GameLobbyService {
                 throw new Error("Error trying to find player socket");
             // this.removePlayerFromLobby(player1);
             // this.removePlayerFromLobby(player2);
-            const lobbyName = `lobby${lobbies_1.lobbies.size}`;
+            const lobbyName = (0, uuid_1.v4)();
             const lobby = new lobbies_1.Lobby(player1, playerId, this.userService);
             lobby.player2 = player2;
             lobby.gameState.gameState.p1Id = playerId;

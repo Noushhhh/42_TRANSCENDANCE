@@ -16,8 +16,6 @@ import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
 import { GatewayOut } from './gatewayOut';
 import { UsersService } from '../users/users.service';
-import { lobbies } from './lobbies';
-
 
 interface WebSocketResponse {
   success: boolean;
@@ -89,7 +87,11 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   handleDisconnect(client: Socket) {
     console.log("client " + client.id + " is disconnected from game gateway")
     this.gameLobby.removePlayerFromLobby(client);
+    console.log("socket map before = ");
+    this.gameSockets.printSocketMap();
     this.gameSockets.removeSocket(client.id);
+    console.log("socket map after = ");
+    this.gameSockets.printSocketMap();
   }
 
   @SubscribeMessage('getPlayerPos')

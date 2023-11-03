@@ -64,6 +64,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   useEffect(() => {
     const getUser = async () => {
       const userIdFetched: number = await getMyUserId();
+      console.log("COMPOSANT CHAT USERIDFETCHED = ", userIdFetched);
       setUserId(userIdFetched);
     };
     getUser();

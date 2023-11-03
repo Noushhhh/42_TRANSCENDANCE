@@ -6,10 +6,11 @@ interface IoConnectionProps {
   socketRef: React.MutableRefObject<Socket | undefined>;
 }
 
-const IoConnection: FC<IoConnectionProps> = ({
-  setSocket,
-  socketRef,
-}) => {
+const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
+  useEffect(() => {
+    console.log("RENDER");
+  }, []);
+
   useEffect(() => {
     const fetchAccessToken = async () => {
       const response = await fetch("http://localhost:4000/api/auth/token", {
@@ -29,6 +30,8 @@ const IoConnection: FC<IoConnectionProps> = ({
         setSocket(newSocket);
         socketRef.current = newSocket;
         newSocket.connect();
+
+        console.log("SOCKET ID = ", newSocket.id);
       }
     };
 
@@ -37,7 +40,10 @@ const IoConnection: FC<IoConnectionProps> = ({
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = undefined;
+        setSocket(undefined);
       }
+      console.log("RETURN");
     };
   }, []);
 

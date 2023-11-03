@@ -869,3 +869,4 @@ export const isOwner = async (channelId: number, userId: number): Promise<boolea
     throw error;
   }
 }
+

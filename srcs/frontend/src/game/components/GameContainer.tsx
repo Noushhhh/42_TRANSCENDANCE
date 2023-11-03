@@ -26,6 +26,18 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log(
+      "RENDER GAME CONTAINER [isInLobby, isLobbyFull] = ",
+      isInLobby,
+      isLobbyFull
+    );
+
+    return () => {
+      console.log("RETURN GAME CONTAINER");
+    };
+  }, []);
+
+  useEffect(() => {
     socket?.emit("requestLobbyState");
   }, []);
 
@@ -134,7 +146,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const updateGameStateListener = (gameState: GameState) => {
     setIsPaused(gameState.isPaused);
   };
-  
+
   const handleLobbyState = (gameState: GameState) => {
     console.log("isLobbyFull ? ", gameState.isLobbyFull);
     console.log("lobbyfull = ", isLobbyFull);
@@ -168,7 +180,10 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const start = () => {
-    fetch("http://localhost:4000/api/game/play")
+    fetch("http://localhost:4000/api/game/play", {
+      method: "GET",
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
