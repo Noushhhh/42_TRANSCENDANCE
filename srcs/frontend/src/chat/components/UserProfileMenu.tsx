@@ -19,14 +19,21 @@ import { useUserIdContext } from "../contexts/userIdContext";
 import { createChannel } from "./ChannelUtils";
 import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
+import InvitationStatus from "./InvitationStatus";
 
 interface UserProfileMenuProps {
   user: User;
 }
 
+interface InvitationRes {
+  success: boolean;
+  message: string;
+}
+
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [invitationStatus, setInvitationStatus] = useState<string>("");
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -47,27 +54,41 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
+    socket.on("lobbyIsCreated", handleLobbyCreation);
+    socket.on("invitationStatus", handleInvitationStatus);
 
     return () => {
       socket.off("isInviteAccepted", handleInvitation);
-    }
-  })
+      socket.off("lobbyIsCreated", handleLobbyCreation);
+      socket.off("invitationStatus", handleInvitationStatus);
+    };
+  });
 
-  
+  const handleLobbyCreation = () => {
+    navigate("/home/game");
+  };
+
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
     setIsBlocked(isBlocked);
   };
-  
+
+  const handleInvitationStatus = (status: string) => {
+    setInvitationStatus(status);
+    setTimeout(() => {
+      setInvitationStatus("");
+    }, 1500);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleProfilClick = () => {
     handleClose();
   };
-  
+
   const handlePrivateMessageClick = async () => {
     console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
@@ -83,25 +104,35 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           setChannelHeader,
           userId,
           socket
-          );
-          socket.emit("joinChannel", channelIdCreated);
-        } catch (error) {
-          console.log("error while creating channel");
-        }
+        );
+        socket.emit("joinChannel", channelIdCreated);
+      } catch (error) {
+        console.log("error while creating channel");
       }
-      handleClose();
-    };
-    
-    const handlePlayClick = () => {
-    socket.emit("invitation", { user1: userId, user2: user.id });
+    }
+    handleClose();
   };
-  
+
+  const handlePlayClick = async () => {
+    if ((await isUserIsBlockedBy(user.id, userId)) === true) return;
+
+    socket.emit("invitation", { user1: userId, user2: user.id }, (res: InvitationRes) => {
+      
+      if (res.success === false) {
+        handleInvitationStatus(res.message);
+      }
+    });
+  };
+
   const handleInvitation = (accepted: boolean) => {
     if (accepted === true) {
       socket.emit("launchGameWithFriend", { user1: userId, user2: user.id });
-      navigate("/home/game");
+      // navigate("/home/game");
     }
-  }
+    if (accepted === false) {
+      handleInvitationStatus("Invitation refused");
+    }
+  };
 
   const handleBlockClick = async () => {
     // Ajoutez ici la logique pour "Bloquer"
@@ -137,6 +168,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   return (
     <div>
+      <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
         {user.username}
       </p>

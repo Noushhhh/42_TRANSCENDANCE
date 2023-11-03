@@ -15,7 +15,7 @@ export class UsersService {
         return user;
       }
 
-    async findUserWithId(userId: number): Promise<User | undefined> {
+    async findUserWithId(userId: number): Promise<User> {
         try {
             const user = await this.prisma.user.findUnique({
                 where: {

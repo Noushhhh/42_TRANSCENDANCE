@@ -69,7 +69,7 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
     return () => {
       socket.off("message", messageEvent);
     };
-  });
+  }, []);
 
   const messageEvent = (data: Message) => {
     if (!data) return;

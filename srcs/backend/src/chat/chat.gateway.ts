@@ -1,7 +1,7 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody, OnGatewayDisconnect, OnGatewayConnection, WsException } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
-import { Injectable,  OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { SocketService } from './socket.service';
 import { ChatService } from './chat.service';
@@ -18,22 +18,22 @@ export class ChatGateway implements OnModuleInit {
     server!: Server;
 
     constructor(private socketService: SocketService,
-                private authService: AuthService,
-                private chatService: ChatService) {};
+        private authService: AuthService,
+        private chatService: ChatService) { };
 
     onModuleInit() {
         // middleware to check if client-socket can connect to our gateway
-        this.server.use( async (socket, next) => {
+        this.server.use(async (socket, next) => {
 
             // check token validity return the userId if correspond to associated token
             // return null if token is invalid
             const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
 
-            if (response){
+            if (response) {
                 socket.data.userId = response;
                 // next allow us to accept the incoming socket as the token is valid
                 next();
-            } else{
+            } else {
                 next(new WsException('invalid token'));
             }
         })
@@ -51,56 +51,56 @@ export class ChatGateway implements OnModuleInit {
 
     async readMap() {
         const sockets = await this.server.fetchSockets();
-        for (const socket of sockets){
+        for (const socket of sockets) {
             console.log(`userId:${socket.data.userId} is ${socket.id}`);
         }
     }
 
-    async joinRoomsForClient(userId: number, socket: Socket){
+    async joinRoomsForClient(userId: number, socket: Socket) {
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
-        for (const channelId of channelIds){
+        for (const channelId of channelIds) {
             socket.join(String(channelId));
         }
     }
 
-    async leaveRoomsForClient(userId: number, socket: Socket){
+    async leaveRoomsForClient(userId: number, socket: Socket) {
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
-        for (const channelId of channelIds){
+        for (const channelId of channelIds) {
             // console.log(`userId:${socket.data.userId} is leaving channelId:${channelId}`);
             socket.leave(String(channelId));
         }
     }
 
-    async getSocketByUserId(userId: number){
+    async getSocketByUserId(userId: number) {
         const sockets = await this.server.fetchSockets();
-        for (const socket of sockets){
+        for (const socket of sockets) {
             if (socket.data.userId === userId)
                 return socket;
         }
         return null;
     }
 
-    async showClientsOfRoom(channelId: number){
+    async showClientsOfRoom(channelId: number) {
         const clients = await this.server.in(String(channelId)).fetchSockets();
-        for (const client of clients){
+        for (const client of clients) {
             console.log(`channelId:${channelId} contain userId:${client.data.userId}`);
         }
     }
 
     @SubscribeMessage("joinChannel")
-    handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket){
+    handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is joining channelId: ${channelId}`);
         client.join(String(channelId));
     }
 
     @SubscribeMessage("leaveChannel")
-    handleLeaveChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket){
+    handleLeaveChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is leaving channelId: ${channelId}`);
         client.leave(String(channelId));
     }
 
     @SubscribeMessage("notifySomeoneLeaveChannel")
-    async handlenotifySomeoneLeaveChannel(@MessageBody() data :{channelId: number, userId: number}){
+    async handlenotifySomeoneLeaveChannel(@MessageBody() data: { channelId: number, userId: number }) {
         const { channelId, userId } = data;
         const socket = await this.getSocketByUserId(userId);
         if (!socket)
@@ -110,7 +110,7 @@ export class ChatGateway implements OnModuleInit {
     }
 
     @SubscribeMessage("notifySomeoneJoinChannel")
-    async handlenotifySomeoneJoinChannel(@MessageBody() data :{channelId: number, userId: number}){
+    async handlenotifySomeoneJoinChannel(@MessageBody() data: { channelId: number, userId: number }) {
         const { channelId, userId } = data;
         const socket = await this.getSocketByUserId(userId);
         if (!socket)
@@ -125,7 +125,7 @@ export class ChatGateway implements OnModuleInit {
     }
 
     @SubscribeMessage('isUserConnected')
-    async handleIsUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket): Promise <boolean> {
+    async handleIsUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket): Promise<boolean> {
         const socket = await this.getSocketByUserId(userId);
         if (socket)
             return true;
