@@ -46,9 +46,16 @@ export class GameController {
   @UseGuards(JwtAuthGuard)
   @Get('addGameToPlayer')
   addGameToPlayer(@Req() req: Request) {
-    if (req.user)
-      this.playerStats.addGamePlayedToOneUser(req.user?.id)
-    return { msg: 'player games incremented' };
+    if (req.user) {
+      try {
+        this.playerStats.addGamePlayedToOneUser(req.user?.id)
+        return { msg: 'player games incremented' };
+      } catch (error) {
+        console.log(error);
+        return { msg: 'error trying to increment game played' };
+      }
+    }
+    return { msg: 'error trying to increment game played' };
   }
 
   @UseGuards(JwtAuthGuard)

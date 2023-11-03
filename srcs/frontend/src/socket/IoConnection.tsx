@@ -8,10 +8,6 @@ interface IoConnectionProps {
 
 const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
   useEffect(() => {
-    console.log("RENDER");
-  }, []);
-
-  useEffect(() => {
     const fetchAccessToken = async () => {
       const response = await fetch("http://localhost:4000/api/auth/token", {
         method: "GET",
@@ -30,8 +26,6 @@ const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
         setSocket(newSocket);
         socketRef.current = newSocket;
         newSocket.connect();
-
-        console.log("SOCKET ID = ", newSocket.id);
       }
     };
 
@@ -43,7 +37,6 @@ const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
         socketRef.current = undefined;
         setSocket(undefined);
       }
-      console.log("RETURN");
     };
   }, []);
 

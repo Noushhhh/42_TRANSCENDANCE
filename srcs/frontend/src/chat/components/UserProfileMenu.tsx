@@ -117,7 +117,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     if ((await isUserIsBlockedBy(user.id, userId)) === true) return;
 
     socket.emit("invitation", { user1: userId, user2: user.id }, (res: InvitationRes) => {
-      console.log(res);
+      
       if (res.success === false) {
         handleInvitationStatus(res.message);
       }

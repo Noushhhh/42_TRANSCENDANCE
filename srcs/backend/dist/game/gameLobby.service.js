@@ -62,7 +62,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p1Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb)
-                            throw new Error("player not found");
+                            throw new common_1.NotFoundException("player not found");
                         value.gameState.gameState.p1Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
                     }
                     else if (!value.player2) {
@@ -70,7 +70,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb)
-                            throw new Error("player not found");
+                            throw new common_1.NotFoundException("player not found");
                         value.gameState.gameState.p2Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
                     }
                     player === null || player === void 0 ? void 0 : player.join(key);
@@ -86,10 +86,17 @@ let GameLobbyService = class GameLobbyService {
                 }
             }
             const lobbyName = (0, uuid_1.v4)();
-            const lobby = new lobbies_1.Lobby(player, playerDbId, this.userService);
-            lobbies_1.lobbies.set(lobbyName, lobby);
-            player === null || player === void 0 ? void 0 : player.join(lobbyName);
-            this.gatewayOut.isInLobby(true, player);
+            try {
+                // var: playerDbId
+                const lobby = new lobbies_1.Lobby(player, 124153, this.userService);
+                console.log("je vais la ????");
+                lobbies_1.lobbies.set(lobbyName, lobby);
+                player === null || player === void 0 ? void 0 : player.join(lobbyName);
+                this.gatewayOut.isInLobby(true, player);
+            }
+            catch (error) {
+                console.log("erreur ici = ", error);
+            }
             this.printLobbies();
         });
     }

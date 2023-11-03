@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { GatewayOut } from './gatewayOut';
 import { Lobby, lobbies } from './lobbies';
 import { Socket } from 'socket.io';
@@ -47,14 +47,14 @@ export class GameLobbyService {
           value.gameState.gameState.p1Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
           if (!playerDb)
-            throw new Error("player not found")
+            throw new NotFoundException("player not found")
           value.gameState.gameState.p1Name = playerDb?.username;
         } else if (!value.player2) {
           value.player2 = player;
           value.gameState.gameState.p2Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
           if (!playerDb)
-            throw new Error("player not found")
+            throw new NotFoundException("player not found")
           value.gameState.gameState.p2Name = playerDb?.username;
         }
         player?.join(key);
@@ -71,10 +71,17 @@ export class GameLobbyService {
     }
 
     const lobbyName = uuid();
-    const lobby = new Lobby(player, playerDbId, this.userService);
-    lobbies.set(lobbyName, lobby);
-    player?.join(lobbyName);
-    this.gatewayOut.isInLobby(true, player);
+    try {
+      // var: playerDbId
+      const lobby = new Lobby(player, 124153, this.userService);
+
+      console.log("je vais la ????");
+      lobbies.set(lobbyName, lobby);
+      player?.join(lobbyName);
+      this.gatewayOut.isInLobby(true, player);
+    } catch (error) {
+      console.log("erreur ici = ", error);
+    }
     this.printLobbies();
   }
 

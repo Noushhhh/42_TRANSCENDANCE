@@ -26,59 +26,8 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log(
-      "RENDER GAME CONTAINER [isInLobby, isLobbyFull] = ",
-      isInLobby,
-      isLobbyFull
-    );
-
-    return () => {
-      console.log("RETURN GAME CONTAINER");
-    };
-  }, []);
-
-  useEffect(() => {
     socket?.emit("requestLobbyState");
   }, []);
-
-  useEffect(() => {
-    console.log("re render test isLobbyFull = ", isLobbyFull);
-  }, [isLobbyFull]);
-
-  // const [socket, setSocket] = useState<Socket>();
-  // const socketRef = useRef<Socket | undefined>();
-
-  // useEffect(() => {
-  //   const fetchAccessToken = async () => {
-  //     const response = await fetch("http://localhost:4000/api/auth/token", {
-  //       method: "GET",
-  //       credentials: "include",
-  //     });
-  //     const data = await response.json();
-  //     const accessToken = data.accessToken;
-
-  //     if (!socketRef.current) {
-  //       const newSocket = io("http://localhost:4000", {
-  //         auth: {
-  //           token: accessToken,
-  //         },
-  //         autoConnect: false,
-  //       });
-
-  //       setSocket(newSocket);
-  //       socketRef.current = newSocket;
-  //       newSocket.connect();
-  //     }
-  //   };
-
-  //   fetchAccessToken();
-
-  //   return () => {
-  //     if (socketRef.current) {
-  //       socketRef.current.disconnect();
-  //     }
-  //   };
-  // }, []);
 
   useEffect(() => {
     socket?.on("connect", connectListener);
@@ -148,9 +97,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const handleLobbyState = (gameState: GameState) => {
-    console.log("isLobbyFull ? ", gameState.isLobbyFull);
-    console.log("lobbyfull = ", isLobbyFull);
-    console.log("isInLobby = ", isInLobby);
     setIsLobbyFull(gameState.isLobbyFull);
     if (gameState.isLobbyFull === true) {
       setIsInLobby(true);

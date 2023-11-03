@@ -17,10 +17,10 @@ export class SocketEvents {
 
     constructor(private readonly socketService: SocketService) { }
 
-    @SubscribeMessage('message')
-    handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
-        this.server.emit('message', client.id, data);
-    }
+    // @SubscribeMessage('message')
+    // handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
+    //     this.server.emit('message', client.id, data);
+    // }
 
 
 }

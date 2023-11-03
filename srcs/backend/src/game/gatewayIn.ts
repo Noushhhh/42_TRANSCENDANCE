@@ -87,11 +87,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   handleDisconnect(client: Socket) {
     console.log("client " + client.id + " is disconnected from game gateway")
     this.gameLobby.removePlayerFromLobby(client);
-    console.log("socket map before = ");
-    this.gameSockets.printSocketMap();
     this.gameSockets.removeSocket(client.id);
-    console.log("socket map after = ");
-    this.gameSockets.printSocketMap();
   }
 
   @SubscribeMessage('getPlayerPos')
