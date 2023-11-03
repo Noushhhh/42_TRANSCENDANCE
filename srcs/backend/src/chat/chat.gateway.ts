@@ -133,7 +133,15 @@ export class ChatGateway implements OnModuleInit {
     }
 
     @SubscribeMessage('message')
-    handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
+    async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
+        let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
+        isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
+        if (isSenderMuted.isMuted === true)
+        return true ;
+        // emit with client instead of server doesnt trigger "message" events to initial client-sender
+        console.log("passing by emit message with");
+        console.log(data);
         client.to(String(data.channelId)).emit("message", data);
+        return false ;
     }
 }

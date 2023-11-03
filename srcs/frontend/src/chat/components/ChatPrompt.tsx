@@ -37,11 +37,9 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
     })
       .then((response) => response.json())
       .then((createdMessage) => {
-        // Traitez la réponse de la requête ici
         console.log(createdMessage);
       })
       .catch((error) => {
-        // Gérez les erreurs
         console.error(error);
       });
   };
@@ -55,10 +53,21 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
-    if (!isWhitespace(message))
+    let isUserIsMuted: boolean = false;
+    if (isWhitespace(message)){
+      setMessage("");
+      return
+    }
+    msgToSend.content += "alors petit con ??";
+    socket.emit("message", msgToSend, (response: boolean) => {
+      console.log("IS ACTUALLY EMITTING...");
+      isUserIsMuted = response;
+      if (isUserIsMuted === true){
+        msgToSend.content = "You are actually blocked from this channel. Others users won't see your message";
+      }
       addMessage(msgToSend, "MessageTo");
+    });
     const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
-    socket.emit("message", msgToSend);
     storeMsgToDatabase(parsedMessage);
     setMessage("");
   };
@@ -72,6 +81,7 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
   }, []);
 
   const messageEvent = (data: Message) => {
+    console.log("do i trigger my own event ?");
     if (!data) return;
     if (isWhitespace(data.content)) return;
     addMessage(data, "MessageFrom");

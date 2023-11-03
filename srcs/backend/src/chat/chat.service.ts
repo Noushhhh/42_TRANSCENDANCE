@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus, Injectable, Inject, NotFoundException, BadRequestException, NotAcceptableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Channel, Message, User, ChannelType } from "@prisma/client";
+import { Channel, Message, User, ChannelType, MutedUser } from "@prisma/client";
 import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
 import { SocketService } from "./socket.service";
-import { ChannelNameDto } from "./dto/chat.dto";
-import { ChannelIdPostDto, UserIdPostDto } from "./dto/chat.dto";
+import { ChannelNameDto, PairUserIdChannelId, muteDto } from "./dto/chat.dto";
+import { ChannelIdPostDto, UserIdPostDto, MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
 
 interface MessageToStore {
@@ -181,17 +181,31 @@ export class ChatService {
 
     const blockedUsersId: number[] = await this.getBlockedUsersById(userId);
 
-    const filteredMessages: Message[] = channel.messages.filter((message) => {
+    const messagesWithoutBlockedSender: Message[] = channel.messages.filter((message) => {
       return !blockedUsersId.includes(message.senderId);
     });
 
-    return filteredMessages;
+    // const messagesWithoutMutedSenders: Message[] = await this.removeMutedFromMessageList(channelId, messagesWithoutBlockedSender);
+
+    return messagesWithoutBlockedSender;
   }
 
-  async addMessageToChannelId(message: MessageToStore) {
+  async addMessageToChannelId(message: MessageToStoreDto) {
+
+    await this.getChannelById(message.channelId);
+
+    let isUserMuted: { isMuted: boolean, isSet: boolean, rowId: number };
+    isUserMuted = await this.isMute({userId: message.senderId, channelId: message.channelId});
+
+    if (isUserMuted.isMuted === true)
+      return;
 
     await this.prisma.message.create({
-      data: message,
+      data: {
+        content: message.content,
+        senderId: message.senderId,
+        channelId: message.channelId,
+      }
     })
   }
 
@@ -231,7 +245,6 @@ export class ChatService {
     if (!users) {
       throw new ForbiddenException("No user found");
     }
-    // const logins = users.map(user => user.username);
     return users;
   }
 
@@ -423,28 +436,28 @@ export class ChatService {
 
     await this.getChannelById(channelId);
 
-    if ( ! await this.isUserIsInChannel(userId, channelId) )
+    if (! await this.isUserIsInChannel(userId, channelId))
       throw new ForbiddenException("user is not in channel");
 
-    if (await this.isOwner(userId, channelId)){
-      if ( ! newOwnerId )
+    if (await this.isOwner(userId, channelId)) {
+      if (!newOwnerId)
         throw new ForbiddenException("If you leave as owner, provide a new owner");
-      if ( ! await this.isUserIsInChannel(newOwnerId, channelId) )
+      if (! await this.isUserIsInChannel(newOwnerId, channelId))
         throw new NotFoundException("Provided owner is not channel member");
       await this.prisma.channel.update({
-          where: { id: channelId },
-          data: {
-            participants: {
-              disconnect: { id: userId }
-            },
-            admins: {
-              connect: { id: newOwnerId },
-              disconnect: { id: userId },
-            },
-            ownerId: newOwnerId,
-          }
-        })
-        return true;
+        where: { id: channelId },
+        data: {
+          participants: {
+            disconnect: { id: userId }
+          },
+          admins: {
+            connect: { id: newOwnerId },
+            disconnect: { id: userId },
+          },
+          ownerId: newOwnerId,
+        }
+      })
+      return true;
     }
 
     if (await this.isAdmin(userId, channelId))
@@ -609,7 +622,7 @@ export class ChatService {
 
     const caller: User | undefined = await this.userService.findUserWithId(userId);
 
-    if ( ! caller )
+    if (!caller)
       throw new NotFoundException("User not found");
 
     const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
@@ -832,6 +845,90 @@ export class ChatService {
   async getChannelType(channelId: number) {
     const channel = await this.getChannelById(channelId);
     return channel.type;
+  }
+
+  async getMutedIds(channelId: number): Promise<number[]> {
+    await this.getChannelById(channelId);
+
+    const mutedUsers: MutedUser[] = await this.prisma.mutedUser.findMany({
+      where: { channelId, },
+    })
+
+    if (!mutedUsers)
+      throw new NotFoundException("Error fetching muted users");
+
+    const now: Date = new Date();
+
+    // as we fetched "mutedUsers", we know need to check if their
+    // "mutedUntil" Date is before or after "now" Date.
+    const actuallyMutedIds = mutedUsers
+      .filter(user => user.mutedUntil !== null && user.mutedUntil > now)
+      .map(user => user.id);
+
+    return actuallyMutedIds;
+  }
+
+  async removeMutedFromMessageList(channelId: number, messages: Message[]): Promise<Message[]> {
+
+    const mutedUserIds: number[] = await this.getMutedIds(channelId);
+
+    const messagesWithoutMutedUsers: Message[] = messages.filter(message => {
+      return !mutedUserIds.includes(message.senderId);
+    })
+
+    return messagesWithoutMutedUsers;
+  }
+
+  async isMute(dto: PairUserIdChannelId): Promise<{ isMuted: boolean, isSet: boolean, rowId: number }> {
+
+    await this.getChannelById(dto.channelId);
+
+    const mutedUsersFromChannel = await this.prisma.mutedUser.findMany({
+      where: { channelId: dto.channelId }
+    })
+
+    if (!mutedUsersFromChannel)
+      throw new NotFoundException("Muted users not found");
+
+    const mutedUser: MutedUser | undefined = mutedUsersFromChannel.find(mutedUser => mutedUser.userId === dto.userId);
+
+    const now: Date = new Date();
+
+    if (mutedUser) {
+      let isMuted: boolean;
+      if (!mutedUser.mutedUntil)
+        return { isMuted: false, isSet: true, rowId: mutedUser.id };
+      mutedUser.mutedUntil > now ? isMuted = true : isMuted = false;
+      return { isMuted, isSet: true, rowId: mutedUser.id };
+    }
+    return { isMuted: false, isSet: false, rowId: -1 };
+  }
+
+  async mute(dto: muteDto) {
+
+    await this.getChannelById(dto.channelId);
+
+    if (await this.isAdmin(dto.callerUserId, dto.channelId) === false)
+      throw new ForbiddenException("Only admin can mute users");
+
+    if (await this.isOwner(dto.mutedUserId, dto.channelId) === true)
+      throw new ForbiddenException("Can't mute channel owner");
+
+    const response: { isMuted: boolean, isSet: boolean, rowId: number } = await this.isMute({ channelId: dto.channelId, userId: dto.mutedUserId });
+    if (response.isSet === true) {
+      await this.prisma.mutedUser.delete({
+        where: { id: response.rowId }
+      })
+    }
+
+    await this.prisma.mutedUser.create({
+      data: {
+        userId: dto.mutedUserId,
+        channelId: dto.channelId,
+        mutedUntil: dto.mutedUntil,
+      },
+    })
+
   }
 
 }

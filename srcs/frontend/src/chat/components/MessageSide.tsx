@@ -40,12 +40,12 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     setStateMessageToClick([false, false]);
   };
 
-  useEffect(() => {
+/*  useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
     };
-  });
+  });*/
 
  const channelDeletedEvent = async (channelId: number) => {
   // check if need to uncomment this part, I think no
@@ -89,9 +89,15 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     needReload === false ? setNeedReload(true) : setNeedReload(false);
   };
 
-  useEffect(() => {
+  useEffect( () => {
     const callFetchUser = async () => {
-      await fetchUser(setChannelHeader, userId, socket);
+      try {
+        console.log("begining fetching users");
+        await fetchUser(setChannelHeader, userId, socket);
+        console.log("end fetching users");
+      } catch (error) {
+        console.log("error fetching users");
+      }
     };
     callFetchUser();
     return () => {

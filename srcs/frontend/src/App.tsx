@@ -61,7 +61,7 @@ const App: React.FC = () => {
         }
       >
         {/* add here incremented route if user first connexion can access only user settings page */}
-        <Route path="chat" element={<ChatBoxContainer socket={socket} />} />
+        <Route path="chat" element={<ChatBoxContainer socket={socketRef.current} />} />
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
