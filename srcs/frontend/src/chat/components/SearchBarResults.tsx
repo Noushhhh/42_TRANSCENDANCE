@@ -21,6 +21,7 @@ interface SearchBarResultsProps {
     fetchDataAdmins?: () => Promise<void>;
     listUsersSearched?: User[] | null;
     setListUsersSearched?: React.Dispatch<React.SetStateAction<User[] | null>>;
+    mutedUser?: User;
 }
 
 function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList, onlySearchInChannel, listUserAdmin, action, updateUserAdminList, setSearchBarResults, fetchDataAdmins, listUsersSearched, setListUsersSearched }: SearchBarResultsProps) {

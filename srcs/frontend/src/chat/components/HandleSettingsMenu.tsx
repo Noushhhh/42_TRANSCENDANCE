@@ -6,7 +6,7 @@ import PreviewUser from "./PreviewUser";
 import "../styles/SettingsMenu.css";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { banUserList, fetchUser, kickUserList, fetchUserAdminTable, manageAdminsToChannel, addUserListToChannel } from "./ChannelUtils";
+import { banUserList, fetchUser, kickUserList, fetchUserAdminTable, manageAdminsToChannel, addUserListToChannel, mute } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { Socket } from "socket.io-client";
@@ -29,8 +29,10 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const [userList, setUserList] = useState<User[]>([]);
     const [inputValue, setInputValue] = useState<string>("");
     const [listUserAdmin, setListUserAdmin] = useState<{ user: User, isAdmin: boolean }[]>([]);
+    const [mutedUser, setMutedUser] = useState<User>();
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
+    const [mutedUntil, setMutedUntil] = useState<string>("");
 
     const channelId: number = useChannelIdContext();
     const userId: number = useUserIdContext();
@@ -69,8 +71,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             }
         };
     }
-    // Utilisez useEffect avec un tableau vide en tant que deuxième argument
-    // pour appeler fetchDataAdmins une seule fois au rendu initial du composant.
+
     useEffect(() => {
         fetchDataAdmins();
     }, []);
@@ -82,15 +83,19 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                 // le client essaie de ban les 2 users mais le channel a deja
                 // ete detruit car il ne comportait plus que 1 user a la fin du 1er ban
                 await banUserList(userList, channelId, userId, socket);
-            }
-            else if (action === "kick") {
+            } else if (action === "kick") {
                 await kickUserList(userList, channelId, userId, socket);
-            }
-            else if (action === "admin") {
+            } else if (action === "admin") {
                 await manageAdminsToChannel(listUserAdmin, channelId, userId);
-            }
-            else if (action === "add") {
+            } else if (action === "add") {
                 await addUserListToChannel(userList, channelId, socket);
+            } else if (action === "mute") {
+                if (mutedUntil === ""){
+                    setError("Invalid date/time");
+                    return ;
+                }
+                if (userList[0])
+                    await mute(userList[0].id, userId, mutedUntil, channelId);
             }
             setSearchBarResults(false);
             setInputValue("");
@@ -113,6 +118,11 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     }
 
     const addUserToList = (user: User) => {
+        if (action === "mute") {
+            console.log("set muted user called");
+            setUserList([user]);
+            return;
+        }
         if (action === "admin")
             return;
         if (checkIfAlreadyInList(user.username)) {
@@ -136,9 +146,9 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
         return (
             <div className={`${isItDisplay}`}>
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <ManagePassword needReload={isSettingsMenuDisplay}/>
+                <ManagePassword needReload={isSettingsMenuDisplay} />
             </div>
-    )
+        )
     else if (isSearchBarNeeded === false) {
         return (
             <div className={`${isItDisplay}`}>
@@ -153,14 +163,26 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
                 <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} action={action} />
                 <div className="ContainerPreviewUser">
-                    {action === "admin" ?
-                        listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => {
-                            return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user.user} />
-                        })
-                        :
-                        (userList.map((user, index) => {
-                            return <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
-                        }))}
+                    {action === "admin" ? (
+                        listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => (
+                            <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user.user} />
+                        ))
+                    ) : action === "ban" || action === "kick" || action === "add" ?(
+                        userList.map((user, index) => (
+                            <PreviewUser key={index} removeUserFromList={removeUserFromList} user={user} />
+                        ))
+                    ) : action === "mute" ? (
+                        userList.map((user, index) => (
+                            <PreviewUser
+                                key={index}
+                                removeUserFromList={removeUserFromList}
+                                user={user}
+                                mutedMode={true}
+                                mutedUntil={mutedUntil}
+                                setMutedUntil={setMutedUntil}
+                            />
+                        ))
+                    ) : null}
                 </div>
                 {<SearchBarResults
                     inputValue={inputValue}
@@ -174,13 +196,14 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                     updateUserAdminList={updateUserAdminList}
                     fetchDataAdmins={fetchDataAdmins}
                     listUsersSearched={listUsersSearched}
-                    setListUsersSearched={setListUsersSearched} />}
+                    setListUsersSearched={setListUsersSearched}
+                    mutedUser={mutedUser} />}
                 <div className="userList">
                 </div>
-                <div style={{position:"absolute", top:"45%", left:"60%"}}>
-                    <ValidationButton   action={callAction} 
-                                        size={{ height: 50, width: 50 }}
-                                        position={{ top: 0, left: 0 }} />
+                <div style={{ position: "absolute", top: "45%", left: "60%" }}>
+                    <ValidationButton action={callAction}
+                        size={{ height: 50, width: 50 }}
+                        position={{ top: 0, left: 0 }} />
                 </div>
             </div>
         )

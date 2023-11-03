@@ -30,18 +30,19 @@ function ContentMessage({
   // useState that represent all the messages inside the socket:
   const [messages, setMessages] = useState<Message[]>([]);
 
+  // console.log(messages);
+
   const userId: number = useUserIdContext();
 
   const contentMessageWidth: string = channelInfo ? "reduce" : "wide";
 
   const addMessage = async (newMessage: Message, messageType: string) => {
-    console.log(newMessage);
     newMessage.messageType = messageType;
-    // const blockedUsers: number[] = await getBlockedUsersById(userId);
-    // if (blockedUsers.some(id => id === newMessage.senderId)){
-    //     return ;
-    // }
+    console.log(newMessage);
     setMessages([...messages, newMessage]);
+    setTimeout(()=>{
+      console.log(messages);
+    }, 500);
   };
 
   return (

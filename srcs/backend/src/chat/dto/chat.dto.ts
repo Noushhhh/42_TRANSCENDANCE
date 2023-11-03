@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
@@ -132,4 +132,39 @@ export class LeaveChannelDto {
     @Min(0)
     newOwnerId!: number;
 }
-  
+
+export class muteDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    mutedUserId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    callerUserId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @Type(() => Date)
+    @IsDate()
+    mutedUntil!: Date;
+}
+
+export class MessageToStoreDto {
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @IsNotEmpty()
+    @MaxLength(2000)
+    content!: string;
+
+    @IsInt()
+    @Min(0)
+    senderId!: number;
+
+}

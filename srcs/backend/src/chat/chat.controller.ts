@@ -1,9 +1,9 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
-    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, UserIdPostDto, ChannelIdPostDto, LeaveChannelDto
+    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto
 } from "./dto/chat.dto";
-import { IsIn, IsNumber, IsString } from 'class-validator';
+import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
@@ -12,6 +12,7 @@ import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 import { OwnerGuard } from "./guards/owner.guards";
 import { ParseIntPipe } from "@nestjs/common";
+
 export class ChannelDTO {
     @IsString()
     name!: string;
@@ -100,7 +101,7 @@ export class ChatController {
 
     @Post('addMessageToChannel')
     async addMessageToChannelId(
-        @Body() message: MessageToStore) {
+        @Body() message: MessageToStoreDto) {
         try {
             return this.chatService.addMessageToChannelId(message);
         } catch (error) {
@@ -278,6 +279,18 @@ export class ChatController {
     async getChannelType(
         @Body() data: ChannelIdDto) {
         return this.chatService.getChannelType(data.channelId);
+    }
+
+    @Post('isMute')
+    async isMute(
+        @Body() dto: PairUserIdChannelId): Promise<{isMuted: boolean, rowId: number}>{
+        return this.chatService.isMute(dto);
+    }
+
+    @Post('mute')
+    async mute(
+        @Body() dto: muteDto) {
+        return this.chatService.mute(dto);
     }
 
 }

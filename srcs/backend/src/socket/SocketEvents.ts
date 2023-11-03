@@ -19,7 +19,7 @@ export class SocketEvents {
 
     @SubscribeMessage('message')
     handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
-        this.server.emit('message', client.id, data);
+        // this.server.emit('message', client.id, data);
     }
 
 

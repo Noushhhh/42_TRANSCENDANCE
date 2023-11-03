@@ -37,6 +37,8 @@ const IoConnection: FC<IoConnectionProps> = ({
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = undefined;
+        setSocket(undefined);
       }
     };
   }, []);

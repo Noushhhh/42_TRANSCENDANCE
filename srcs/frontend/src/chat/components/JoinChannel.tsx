@@ -44,9 +44,9 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
 
     const handleClick = async () => {
         if (apiResponse) {
-            /*if (await isUserIsBan(apiResponse.id, userId) === true) {
+            if (await isUserIsBan(apiResponse.id, userId) === true) {
                 setError("You are banned from this channel");
-            }*/
+            }
             let channelType: { channelType: ChannelType; channelId: number; } | null = null;
             try {
                 channelType = await joinChannel(apiResponse, userId);
