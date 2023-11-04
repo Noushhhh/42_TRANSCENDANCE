@@ -4,7 +4,7 @@ import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
 import { fetchImageAsFile, updateAvatar, updateProfileBackend, updatePublicName } from "../tools/Api";
 
-const defaultImage = "/assets/defaultProfileImage.jpg";
+const defaultImage ='defaultProfileImage.jpg';
 
 const UserProfileSetup: React.FC = React.memo(() => {
   const location = useLocation();
