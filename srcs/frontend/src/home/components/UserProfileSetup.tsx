@@ -1,43 +1,31 @@
-// Import necessary modules and dependencies
 import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
-import { fetchImageAsFile, updateProfileBackend} from "../tools/Api";
+import { fetchImageAsFile, updateAvatar, updateProfileBackend, updatePublicName } from "../tools/Api";
 
-// Default profile image URL
 const defaultImage = "/assets/defaultProfileImage.jpg";
 
-
-/**
-* ****************************************************************************
- * UserProfileSetup component.
- * @component
-* ****************************************************************************
-*/
-const UserProfileSetup: React.FC = () => {
+const UserProfileSetup: React.FC = React.memo(() => {
   const location = useLocation();
   const email = location.state.email;
-
-  // Declare state variables for profile name and profile image
-  const [profileName, setProfileName] = useState("");
+  const [profileName, setProfileName] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Initialize useNavigate and useSignOut hooks
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
 
-  // Create a ref for the file input element
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const profileNameRef = React.useRef<HTMLInputElement>(null);
 
-  // Set the default profile image on component mount
   useEffect(() => {
     setDefaultImage();
   }, []);
 
-  // Revoke the object URL for the profile image on component unmount
+
   useEffect(() => {
+    setErrorMessage(null);
     return () => {
       if (profileImage) {
         URL.revokeObjectURL(URL.createObjectURL(profileImage));
@@ -45,104 +33,97 @@ const UserProfileSetup: React.FC = () => {
     };
   }, [profileImage]);
 
-/**
-   * Set the default profile image.
-*/
   const setDefaultImage = async () => {
     const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
     setProfileImage(defaultProfileImage);
   };
 
-  /**
-   * Handle profile name input change.
-   * @param {ChangeEvent<HTMLInputElement>} event - The change event.
-   */
-  const handleUsernameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setProfileName(event.target.value);
-  }, [profileName]);
-
-  /**
-   * Handle profile image input change.
-   * @param {ChangeEvent<HTMLInputElement>} event - The change event.
-   */
   const handleImageChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files && event.target.files[0];
-
+    const file = event.target.files && event.target.files;
     if (file) {
-      // Define an array of allowed MIME types for image files
       const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
-
-      // Check if the uploaded file's MIME type is included in the allowedMimeTypes array
-      if (!allowedMimeTypes.includes(file.type)) {
-        // If the file's MIME type is not allowed, show an alert to the user
+      if (!allowedMimeTypes.includes(file[0].type)) {
         setErrorMessage("Please upload a valid image file.");
-
-        // Clear the file input value if the fileInputRef.current exists
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-
-        // Stop the function execution
         return;
       }
-
-      if (file.size > 15 * 1024 * 1024) {
+      if (file[0].size > 15 * 1024 * 1024) {
         setErrorMessage("Please upload an image smaller than 15MB.");
-
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-
         return;
       }
-
-      setProfileImage(file);
+      setProfileImage(file[0]);
     }
   }, [profileImage]);
 
-  /**
-   * Handle form submission.
-   */
-  const handleSubmit = async () => {
-    if (profileName.trim() === "") {
+  const handleSubmit = useCallback(() => {
+    const profileNameValue: string | undefined = profileNameRef.current?.value;
+    if (!profileNameValue) {
       setErrorMessage("Please enter a valid user name");
       return;
     }
+    if (profileNameValue.length < 2 || profileNameValue.length > 50) {
+      setErrorMessage("Please enter a user name between 2 and 50 characters");
+      return;
+    }
+    if (!/^[a-zA-Z0-9-_]+$/.test(profileNameValue)) {
+      setErrorMessage("User name can only contain alphanumeric characters, hyphens, and underscores");
+      return;
+    }
+    setProfileName(profileNameValue);
+  }, [profileImage, profileName]);
 
-    try {
-      await updateProfileBackend(profileImage, profileName);
-      navigate("/home");
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("409")) {
-          setErrorMessage("Username already exists");
-        } else if (error.message.includes("401")) {
-          setErrorMessage("Your credentials have expired, please log in");
-          setTimeout(() => {
-            handleSignOut();
-            navigate("/signin");
-          }, 1000 * 10);
-        } else if (error.message.includes("400")) {
-          setErrorMessage(error.message);
-        } else {
-          setErrorMessage("An unsuspected error occurred. Please try again later");
+  useEffect(() => {
+    if (profileName === null) return;
+
+    const updateProfile = async () => {
+      try {
+        await updatePublicName(profileName);
+        await updateAvatar(profileImage);
+        setErrorMessage(null);
+        navigate("/home");
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(error.message);
+          if (error.message.includes("403")) {
+            setErrorMessage("Username already exists");
+          } else if (error.message.includes("413")) {
+            setErrorMessage("The uploaded image is too large. Please upload an image smaller than 15MB.");
+          } else if (error.message.includes("401")) {
+            setErrorMessage("Your credentials have expired, please log in");
+            setTimeout(() => {
+              handleSignOut();
+              navigate("/signin");
+            }, 1000 * 10);
+          } else if (error.message.includes("400")) {
+            setErrorMessage(error.message);
+          } else {
+            setErrorMessage("An unsuspected error occurred. Please try again later");
+          }
         }
       }
-    }
-  };
+    };
 
-  // Render the UserProfileSetup component
+    updateProfile();
+  }, [profileName]);
+
+
+
   return (
     <div className="container">
       <h1>Pong game</h1>
       <h2>Welcome {email}</h2>
       {errorMessage && <div style={{ color: 'white' }}>{errorMessage}</div>}
-      <input type="text" placeholder="Choose a username" value={profileName} onChange={handleUsernameChange} />
+      <input type="text" placeholder="Choose a username" ref={profileNameRef} onChange={() => setErrorMessage(null)} />
       <input ref={fileInputRef} type="file" onChange={handleImageChange} />
       <img className="img" src={profileImage ? URL.createObjectURL(profileImage) : defaultImage} alt="Profile preview" />
       <button onClick={handleSubmit}>Continue</button>
     </div>
   );
-};
+});
 
 export default UserProfileSetup;

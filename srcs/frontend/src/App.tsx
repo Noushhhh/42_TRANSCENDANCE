@@ -17,7 +17,7 @@ const MockComponent: React.FC = () => {
 
 const App: React.FC = () => {
     // Hooks: Use the `useActivityLogout` hook to check for user inactivity and perform a logout if needed.
-    useActivityLogout(60000);
+    useActivityLogout(600000);
     return (
         <Routes>
             <Route path="/" element={<Welcome />} />

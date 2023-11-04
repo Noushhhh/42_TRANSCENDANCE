@@ -220,7 +220,10 @@ export class UsersService {
         try {
             await this.prisma.user.update({
                 where: { id: userId },
-                data: { publicName: publicName },
+                data: {
+                    publicName: publicName,
+                    firstConnexion: false
+                },
             });
             return ({
                 statusCode: 200,

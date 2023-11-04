@@ -18,7 +18,7 @@ const refreshToken = async () => {
   }
 };
 
-const useActivityLogout = (timeToLogout: number = 6000) => {
+const useActivityLogout = (timeToLogout: number = 600000) => {
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
   let inactivityTimer: NodeJS.Timeout;
