@@ -36,16 +36,20 @@ const Settings: React.FC = React.memo(() => {
 
   
 
-  async function fetchPublicName(): Promise<void> {
-    const userNameResultFromBack = await getPublicName();
-    if (userNameResultFromBack) {
+  const fetchPublicName = async (): Promise<void> => {
+    try {
+      const userNameResultFromBack = await getPublicName();
       setPublicName(userNameResultFromBack);
-    } else {
-      setError('There was an error fetching the public name, please contact the system administrator');
+
+    } catch (error) {
+      if (hasMessage(error))
+        setError(error.message);
+      else
+        setError('Error getting publicName');
     }
   }
 
-  async function fetchUserAvatar(): Promise<void> {
+  const fetchUserAvatar = async (): Promise<void> => {
     const userAvatarResultFromBack = await getUserAvatar();
     if (userAvatarResultFromBack) {
       setAvatarUrl(userAvatarResultFromBack);
@@ -79,12 +83,10 @@ const Settings: React.FC = React.memo(() => {
     }
 
     try {
-      const response = await updatePublicName(newUsername);
-      if (response.valid) {
-        setPublicName(newUsername);
-        alert('Username updated successfully!');
-        setIsUpdatingProfileName(false);
-      }
+      await updatePublicName(newUsername);
+      setPublicName(newUsername);
+      alert('Username updated successfully!');
+      setIsUpdatingProfileName(false);
     } catch (error) {
       if (hasMessage(error)) {
         setError(error.message);

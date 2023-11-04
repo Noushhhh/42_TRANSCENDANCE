@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Request, UnauthorizedException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, Request, UnauthorizedException } from "@nestjs/common";
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { extname } from 'path';
@@ -210,13 +210,8 @@ export class UsersService {
             },
         });
 
-        if (user && user?.id !== userId) {
-            return ({
-                statusCode: 403,
-                valid: false,
-                message: "Username alredy taken, please choose another one"
-            });
-        }
+        if (user && user?.id !== userId)
+            throw new ForbiddenException("User already taken, take another one");
         try {
             await this.prisma.user.update({
                 where: { id: userId },
@@ -224,6 +219,7 @@ export class UsersService {
                     publicName: publicName,
                     firstConnexion: false
                 },
+                
             });
             return ({
                 statusCode: 200,
@@ -231,7 +227,7 @@ export class UsersService {
                 message: "User name was updated successfully",
             });
         } catch (error) {
-            throw new NotFoundException(error);
+            throw new NotFoundException("There was an error updating public name");
         }
     }
 

@@ -154,15 +154,17 @@ export class UsersController {
       module getProfileName controller" );
         if (!isPayloadDecoded)
             return;
-        const user: UserProfileData | null = await this.UsersService.getUserData(decodedPayload.sub);
-        console.log(user);
-        if (!user) {
-            return (res.status(404).send({ statusCode: 404, valid: false, message: "User doesn't exist\n" }));
+        try {
+            const user = await this.FindWithId(decodedPayload.sub);
+            return res.status(200).send({
+                valid: true, message: "profileName found",
+                profileName: user?.publicName
+            }
+            );
+
+        } catch (error) {
+            throw error;
         }
-        return res.status(200).send({
-            statusCode: 200, valid: true, message: "profileName found",
-            data: { profileName: user.publicName }
-        });
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -177,8 +179,7 @@ export class UsersController {
             const result = await this.UsersService.updatePublicName(decodedPayload.sub, publicName);
             res.status(result?.statusCode || 500).send({ valid: result?.valid || false, message: result?.message })
         } catch (error) {
-            console.error(error);
-            res.status(500).send({ statusCode: 500, valid: false, message: error });
+            throw error;
         }
     }
 

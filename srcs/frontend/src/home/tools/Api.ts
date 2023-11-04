@@ -16,22 +16,19 @@ export const hasMessage = (x: unknown): x is { message: string } => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getPublicName = async () => {
-    try {
-        const response = await fetch(`http://localhost:8081/api/users/getprofilename`, {
-            method: 'GET',
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        if (!result.valid)
-            throw new Error(`${result.data.statusCode} ${result.data.message}`)
-        return result.data.profileName;
-    } catch (error) {
-        console.error('Error fetching user info:', error);
-        return null;
+  try {
+    const response = await fetch(`http://localhost:8081/api/users/getprofilename`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`${data.statusCode} ${data.message}`);
     }
+    return data.profileName;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -71,24 +68,24 @@ export const getUserAvatar = async (): Promise<string | null> => {
 // If the server responds with an invalid response or if an error occurs during the fetch operation,
 // the function throws an error.
 export const updatePublicName = async (publicName: string) => {
-    try {
-      const response = await fetch(`http://localhost:8081/api/users/updatepublicname?username=${encodeURIComponent(publicName)}`, {
-        method: 'PUT',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-      if (!data.valid) {
-        throw new Error(data.message); // Throw the error message from the server response
-      }
-      return data;
-    } catch (error) {
-      console.log('Error updating user name');
-      throw error; // Throw the error instead of just logging it
+  try {
+    const response = await fetch(`http://localhost:8081/api/users/updatepublicname?username=${encodeURIComponent(publicName)}`, {
+      method: 'PUT',
+      credentials: "include",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+    if (!response.ok) {
+      throw new Error(`${data.statusCode} ${data.message}`)
     }
+  } catch (error) {
+    console.log('Error updating user name');
+    throw error; // Throw the error instead of just logging it
   }
+}
   
 
 
