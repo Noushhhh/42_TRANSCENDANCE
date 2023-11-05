@@ -33,11 +33,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Get('token')
-  async getToken(@Req() req: Request) {
-    const accessToken = req.cookies['token'];
-    return { accessToken };
-  }
+    @Get('token')
+    async getToken(@Req() req: Request) {
+        // Extract the access token from the request cookies
+        const accessToken = req.cookies['token'];
+        return { accessToken}
+    }
 
   @Public()
   @Post('signup')
@@ -84,23 +85,25 @@ export class AuthController {
     return this.authService.signout(decodedPayload, res);
   }
 
-  @Public()
-  @Get('42Url')
-  async get42Url() {
-    const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
-    return (url);
-  }
-
-  @Get('callback42')
-  async handle42Callback(@Req() req: Request, @Res() res: Response) {
-    console.log("test");
-    try {
-      await this.authService.signToken42(req, res);
-    } catch (error) {
-      console.error(error);
-      res.redirect('/error2');
+    @Public()
+    @Get('42Url')
+    async get42Url() {
+        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "&response_type=code";
+        return (url);
     }
-  }
+
+    // @Public()
+    @Get('callback42')
+    async handle42Callback(@Req() req: Request, @Res() res: Response) {
+        try {
+            // Call the authService to handle 42 authentication
+            await this.authService.signToken42(req, res);
+        } catch (error) {
+            console.error(error);
+            // Handle errors here and redirect as needed
+            res.redirect('/error2');
+        }
+    }
 
   @Post('enable2FA')
   async enable2FA() {

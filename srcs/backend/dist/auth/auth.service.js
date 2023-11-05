@@ -138,6 +138,18 @@ let AuthService = class AuthService {
             // send back the token
             const result = yield this.signToken(user.id, user.username, res);
             // Update the user's logged in status in the database
+            if (result.valid) {
+                this.updateUserLoggedIn(user.id, true);
+                return result;
+            }
+            // compare password
+            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
+            // if password wrong throw exception
+            if (!passwordMatch)
+                throw new common_1.ForbiddenException('Incorrect password');
+            // send back the token
+            const result = yield this.signToken(user.id, user.username, res);
+            // Update the user's logged in status in the database
             if (result.valid)
                 this.updateUserLoggedIn(user.id, true);
             return result;

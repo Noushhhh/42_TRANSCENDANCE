@@ -43,7 +43,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
     draggable: false,
   };
 
-  const p2Props  = {
+  const p2Props = {
     x: 10,
     y: gameConfig.konvaHeight / 2 - gameConfig.paddleHeight / 2,
     width: gameConfig.paddleWidth,

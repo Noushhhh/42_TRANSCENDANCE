@@ -14,9 +14,10 @@ interface Channel {
 interface MessageToClickProps{
     channel: Channel;
     isConnected: boolean;
+    setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function MessageToClick({channel, isConnected }: MessageToClickProps) {
+function MessageToClick({channel, isConnected, setChannelClicked }: MessageToClickProps) {
 
     const setChannelId = useSetChannelIdContext();
 
@@ -29,6 +30,7 @@ function MessageToClick({channel, isConnected }: MessageToClickProps) {
 
     const handleClick = () => {
         setChannelId(channel.channelId);
+        setChannelClicked(true);
     }
 
     if (channel.channelId === -1)

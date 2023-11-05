@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
@@ -9,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // check if whitelist needed or only restrain fields to login and password
+    transform: true,
+    transformOptions: {
+    enableImplicitConversion: true,
+  }
   }));
 
   const corsOptions: CorsOptions = {
@@ -21,6 +26,7 @@ async function bootstrap() {
   };
   // Activez CORS pour toutes les routes de l'application
   app.enableCors(corsOptions);
+  app.use(express.json());
   app.use(cookieParser());
   app.setGlobalPrefix('api'); // set global route prefix
   // Start the application and listen on port 4000

@@ -15,10 +15,13 @@ import { Socket } from 'socket.io-client';
 import { leaveChannel } from './ChannelUtils';
 
 interface ConfirmationPopup{
-  setError: React.Dispatch<React.SetStateAction<string | null>>
+  setParentError: React.Dispatch<React.SetStateAction<string | null>>;
+  isOwner: boolean | undefined;
+  setDisplayNewOwner: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ConfirmationPopup( {setError}: ConfirmationPopup ) {
+export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu }: ConfirmationPopup ) {
 
   const [open, setOpen] = useState<boolean>(false);
 
@@ -38,10 +41,19 @@ export default function ConfirmationPopup( {setError}: ConfirmationPopup ) {
 
   const handleAgree = async () => {
     try{
+      if (isOwner === true){
+        console.log("need to display new owner");
+        setDisplayNewOwner(true)
+        setOpen(false);
+        setDisplayMenu(false);
+        return ;
+      }
       await leaveChannel(userId, channelId, setChannelHeader, socket);
+      socket.emit("leaveChannel", channelId);
       setChannelId(-1);
     } catch (error: any){
-      setError("Admin can't leave channel");
+      console.log(error.message);
+      setParentError(error.message);
     }
     setOpen(false);
   };

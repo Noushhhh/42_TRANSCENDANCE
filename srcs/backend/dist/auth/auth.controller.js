@@ -54,6 +54,7 @@ let AuthController = class AuthController {
     }
     getToken(req) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Extract the access token from the request cookies
             const accessToken = req.cookies['token'];
             return { accessToken };
         });
@@ -106,18 +107,20 @@ let AuthController = class AuthController {
     }
     get42Url() {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "response_type=code";
+            const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "&response_type=code";
             return (url);
         });
     }
+    // @Public()
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("test");
             try {
+                // Call the authService to handle 42 authentication
                 yield this.authService.signToken42(req, res);
             }
             catch (error) {
                 console.error(error);
+                // Handle errors here and redirect as needed
                 res.redirect('/error2');
             }
         });

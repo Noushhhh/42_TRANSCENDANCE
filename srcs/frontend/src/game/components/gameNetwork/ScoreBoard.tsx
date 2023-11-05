@@ -8,20 +8,6 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const [p1Name, setP1Name] = useState<string>("");
   const [p2Name, setP2Name] = useState<string>("");
 
-  // useEffect(() => {
-  //   // fetch(`http://localhost:4000/api/game/playerName?clientId=${socket.id}`, {
-  //   //   method: "GET",
-  //   //   credentials: "include",
-  //   // })
-  //   //   .then((response) => response.json())
-  //   //   .then((data) => {
-  //   //     console.log(data);
-  //   //   })
-  //   //   .catch((error) => {
-  //   //     console.error(error);
-  //   //   });
-  // }, []);
-
   useEffect(() => {
     socket.on("updateGameState", updateGameStateListener);
     return () => {
@@ -32,8 +18,14 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const updateGameStateListener = (gameState: GameState) => {
     setP1Score(gameState.score.p1Score);
     setP2Score(gameState.score.p2Score);
-    setP1Name(gameState.p1Name);
-    setP2Name(gameState.p2Name);
+    setP1Name(formatPlayerName(gameState.p1Name));
+    setP2Name(formatPlayerName(gameState.p2Name));
+    console.log("p1name, p2name", gameState.p1Name, gameState.p2Name);
+  };
+
+  const formatPlayerName = (playerName: string): string => {
+    if (playerName.length > 8) return playerName.substring(0, 8) + "...";
+    return playerName;
   };
 
   return (

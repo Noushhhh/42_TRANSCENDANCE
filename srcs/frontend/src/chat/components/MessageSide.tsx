@@ -5,29 +5,34 @@ import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
 import "../types/channel.type";
-import {
-  useChannelHeaderContext,
-  useSetChannelHeaderContext,
-} from "../contexts/channelHeaderContext";
+import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { fetchUser, leaveChannel } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import ChannelManagerMenu from "./ChannelManagerMenu";
 import ChannelManager from "./ChannelManager";
 import HeaderChannelInfo from "./HeaderChannelInfo";
+import { Socket } from "socket.io-client";
 
-function MessageSide() {
+interface MessageSideProps {
+  setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function MessageSide({ setChannelClicked }: MessageSideProps) {
   const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
-  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([ false, false ]); // index 0 = create, index 1 = join
+  const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([
+    false,
+    false,
+  ]); // index 0 = create, index 1 = join
   const [headerTitle, setHeaderTitle] = useState<string>("");
 
   const fetchBoolean = useRef(false);
-  const userId = useUserIdContext();
-  const socket = useSocketContext();
+  const userId: number = useUserIdContext();
+  const socket: Socket = useSocketContext();
   const channelHeader = useChannelHeaderContext();
   const setChannelHeader = useSetChannelHeaderContext();
 
@@ -35,17 +40,20 @@ function MessageSide() {
     setStateMessageToClick([false, false]);
   };
 
-  useEffect(() => {
+/*  useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
-
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
     };
-  });
+  });*/
 
  const channelDeletedEvent = async (channelId: number) => {
-   console.log(`ping received client-side(MessageSide ==>) with id: ${channelId}`);
-   await leaveChannel(userId, channelId, setChannelHeader, socket);
+  // check if need to uncomment this part, I think no
+  /*try {
+    await leaveChannel(userId, channelId, setChannelHeader, socket);
+  } catch (errors) {
+
+  }*/
  };
 
   useEffect(() => {
@@ -69,7 +77,7 @@ function MessageSide() {
     };
   });
 
-  const messageEvent = (id: any, data: Message) => {
+  const messageEvent = (data: Message) => {
     if (!data) return;
     setPreviewLastMessage(data);
     const foundChannel = findChannelById(data.channelId);
@@ -83,8 +91,14 @@ function MessageSide() {
 
   useEffect( () => {
     const callFetchUser = async () => {
-      await fetchUser(setChannelHeader, userId, socket);
-    }
+      try {
+        console.log("begining fetching users");
+        await fetchUser(setChannelHeader, userId, socket);
+        console.log("end fetching users");
+      } catch (error) {
+        console.log("error fetching users");
+      }
+    };
     callFetchUser();
     return () => {
       fetchBoolean.current = true;
@@ -144,6 +158,7 @@ function MessageSide() {
                 channel={channel}
                 key={index}
                 isConnected={channel.isConnected}
+                setChannelClicked={setChannelClicked}
               />
             );
           })

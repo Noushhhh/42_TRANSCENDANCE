@@ -17,72 +17,80 @@ datasource db {
 
 model User {
   // add unique constraint to id ? 
-  id                  Int           @id @default(autoincrement()) 
-  username            String        @unique
-  avatar              String?       @default("https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg")
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  avatar   String? @default("https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg")
 
   hashPassword        String
   publicName        String?        @unique
 
-  twoFASecret         String?
-  twoFAUrl            String?
+  twoFASecret String?
+  twoFAUrl    String?
 
-  refreshToken        RefreshToken[]
+  refreshToken RefreshToken[]
 
-  firstConnexion      Boolean       @default (true)
-  loggedIn            Boolean       @default (false)
-  TwoFA               Boolean       @default (false)
+  firstConnexion Boolean @default(true)
+  loggedIn       Boolean @default(false)
+  TwoFA          Boolean @default(false)
 
   // Channel related
-  channelsOwned       Channel[]     @relation("Owner")
-  blockedUsers        User[]        @relation("BlockedUsers")
-  blockedBy           User[]        @relation("BlockedUsers")
-  conversations       Channel[]     @relation("Participant")
-  adminOfChannels     Channel[]     @relation("Admins")
-  bannedFromChannel   Channel[]     @relation("BannedUsers")
-  sentMessages        Message[]     @relation("MessagesSent")
-  mutedInChannels     Channel[]     @relation("MutedUsers")
-
+  channelsOwned     Channel[]      @relation("Owner")
+  blockedUsers      User[]         @relation("BlockedUsers")
+  blockedBy         User[]         @relation("BlockedUsers")
+  conversations     Channel[]      @relation("Participant")
+  adminOfChannels   Channel[]      @relation("Admins")
+  bannedFromChannel Channel[]      @relation("BannedUsers")
+  sentMessages      Message[]      @relation("MessagesSent")
+  mutedInChannels   MutedUser[]    @relation("MutedInChannel")
   // Player statistics
-  gamesPlayed         Int             @default(0)
-  gamesWon            Int             @default(0)
-  matchHistory        MatchHistory[]
+  gamesPlayed       Int            @default(0)
+  gamesWon          Int            @default(0)
+  matchHistory      MatchHistory[]
 
   @@map("users")
 }
 
 model Channel {
-  id               Int             @id @default(autoincrement())
+  id Int                   @id @default(autoincrement())
 
-  name             String
-  type             ChannelType     @default(PUBLIC)
-  password         String?         @default("")
+  name     String
+  type     ChannelType     @default(PUBLIC)
+  password String?         @default("")
 
-  owner            User            @relation("Owner", fields: [ownerId], references: [id])
-  ownerId          Int
-  admins           User[]          @relation("Admins")
+  owner   User             @relation("Owner", fields: [ownerId], references: [id])
+  ownerId Int
+  admins  User[]           @relation("Admins")
 
-  participants     User[]          @relation("Participant")
-  messages         Message[]       @relation("Channel")
-  bannedUsers      User[]          @relation("BannedUsers")
-  mutedUsers       User[]          @relation("MutedUsers")
+  participants User[]      @relation("Participant")
+  messages     Message[]   @relation("Channel")
+  bannedUsers  User[]      @relation("BannedUsers")
+  mutedUsers   MutedUser[] @relation("MutedUser")
+}
+
+model MutedUser {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation("MutedInChannel", fields: [userId], references: [id])
+  userId          Int
+  channel         Channel  @relation("MutedUser", fields: [channelId], references: [id])
+  channelId       Int
+  mutedUntil      DateTime?
 }
 
 model Message {
-  id               Int             @id @default(autoincrement())
-  sender           User            @relation("MessagesSent", fields: [senderId], references: [id])
-  senderId         Int
-  channel          Channel         @relation("Channel", fields: [channelId], references: [id])
-  channelId        Int
-  content          String
-  createdAt        DateTime        @default(now())
+  id        Int      @id @default(autoincrement())
+  sender    User     @relation("MessagesSent", fields: [senderId], references: [id])
+  senderId  Int
+  channel   Channel  @relation("Channel", fields: [channelId], references: [id])
+  channelId Int
+  content   String
+  createdAt DateTime @default(now())
 }
 
 model Bookmark {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   title       String
   description String?
   link        String
@@ -95,18 +103,18 @@ enum ChannelType {
 }
 
 model RefreshToken {
-  id          Int      @id @default(autoincrement())
-  token       String   @unique
-  
+  id    Int    @id @default(autoincrement())
+  token String @unique
+
   // This field is the scalar that will store the foreign key
-  userId      Int
-      
+  userId Int
+
   // This field is the relation field that lets you fetch the actual User object. 
   // The fields and references arguments define how the relationship is mapped.
-  user        User     @relation(fields: [userId], references: [id] , onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  expiresAt   DateTime 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
 
 model MatchHistory {
@@ -117,6 +125,6 @@ model MatchHistory {
   opponentName  String
   selfScore     Int
   opponentScore Int
-  playerLeft    Boolean @default(false)
-  opponentLeft  Boolean @default(false)
+  playerLeft    Boolean  @default(false)
+  opponentLeft  Boolean  @default(false)
 }

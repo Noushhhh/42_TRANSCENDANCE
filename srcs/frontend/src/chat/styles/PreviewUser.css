@@ -1,6 +1,5 @@
 .PreviewUser{
     display: flex;
-    height: 25px;
     width: fit-content;
     margin: 0px 3px;
     font-size: 15px;
@@ -9,6 +8,8 @@
     font-weight: 400;
     color: grey;
     transition: 0.5s ease;
+    display: flex;
+    align-items: center;
 }
 
 .PreviewUser .icon{
@@ -20,7 +21,6 @@
 .previewUserAvatar{
     border-radius: 14px;
     margin-right: 6px;
-    top: -2px;
     position: relative;
 }
 
@@ -28,6 +28,19 @@
     background-color: #E9EDEF;
     display: flex;
     border-radius: 13px;
+}
+
+.MutedMode{
+  flex-direction: column;
+  padding-bottom: 10px!important;
+  padding-top: 10px!important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.SpanMutedMode{
+  width: fit-content;
 }
 
 .fadeIn {

@@ -75,7 +75,6 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
           )
         })}
       </div>
-      {/* <ChannelInfo isChannelInfoDisplay={isChannelInfoDisplay} /> */}
     </div>
   );
 } export default ChatView;

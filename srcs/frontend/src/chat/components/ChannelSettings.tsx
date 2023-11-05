@@ -12,6 +12,7 @@ interface ChannelSettingsProps {
   setSettingsChannel: React.Dispatch<React.SetStateAction<boolean>>;
   setdisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
   setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
+  setSettingsClicked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface MenuItem {
@@ -24,7 +25,7 @@ interface MenuItem {
   action: string;
 }
 
-function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, setChannelInfo }: ChannelSettingsProps): JSX.Element {
+function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, setChannelInfo, setSettingsClicked }: ChannelSettingsProps): JSX.Element {
   
   const [isSettingsMenuDisplay, setisSettingsMenuDisplay] = useState<boolean>(false);
   const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
@@ -71,7 +72,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
       function: goToSubmenu,
       isSearchBarNeeded: false,
       onlySearchInChannel: false,
-      action: "psswd",
+      action: "password",
     },
     {
       childTitle: "Kick someone",
@@ -81,6 +82,15 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
       isSearchBarNeeded: true,
       onlySearchInChannel: true,
       action: "kick",
+    },
+    {
+      childTitle: "Mute someone",
+      title: "Mute someone",
+      icon: "BlockIcon",
+      function: goToSubmenu,
+      isSearchBarNeeded: true,
+      onlySearchInChannel: true,
+      action: "mute",
     },
     {
       childTitle: "Ban someone",
@@ -105,6 +115,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
   const backInfoMenu = () => {
     if (settingsChannel === true) setSettingsChannel(false);
     setdisplayMenu(true);
+    setSettingsClicked(false);
   };
 
 

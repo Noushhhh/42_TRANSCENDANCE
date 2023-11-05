@@ -21,6 +21,7 @@ interface SearchBarResultsProps {
     fetchDataAdmins?: () => Promise<void>;
     listUsersSearched?: User[] | null;
     setListUsersSearched?: React.Dispatch<React.SetStateAction<User[] | null>>;
+    mutedUser?: User;
 }
 
 function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToList, onlySearchInChannel, listUserAdmin, action, updateUserAdminList, setSearchBarResults, fetchDataAdmins, listUsersSearched, setListUsersSearched }: SearchBarResultsProps) {
@@ -45,7 +46,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                         setSearchBarResults(true);
                     }
                     else{
-                        users = await getUsernamesInChannelFromSubstring(channelId, inputValue);
+                        users = await getUsernamesInChannelFromSubstring(channelId, inputValue, userId);
                     }
                 }
                 else{
@@ -60,7 +61,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 setError("error fetching data");
             }
         }
-        const test = async () => {
+        const fetch = async () => {
 
             if (action === "admin" && setSearchBarResults){
                 if (fetchDataAdmins)
@@ -71,7 +72,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 fetchUsers();
             }
         }
-        test();
+        fetch();
     }, ([inputValue, displayResults, action, channelId]))
 
     return (

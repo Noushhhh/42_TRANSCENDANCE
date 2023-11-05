@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import GameMenu from "./GameMenu";
@@ -11,9 +11,10 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
+import { useConnectSocket } from "../../hooks/useConnectSocket";
 
 interface GameContainerProps {
-  socket: Socket;
+  socket: Socket | undefined;
 }
 
 const GameContainer: FC<GameContainerProps> = ({ socket }) => {
@@ -25,27 +26,33 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   const location = useLocation();
 
   useEffect(() => {
-    socket.on("connect", connectListener);
-    socket.on("updateGameState", updateGameStateListener);
-    socket.on("isOnLobby", isInLobbyListener);
-    socket.on("isLobbyFull", isLobbyFullListener);
-    socket.on("gameEnd", handleGameEnd);
-    socket.on("newGame", handleNewGame);
+    socket?.emit("requestLobbyState");
+  }, []);
+
+  useEffect(() => {
+    socket?.on("connect", connectListener);
+    socket?.on("updateGameState", updateGameStateListener);
+    socket?.on("isOnLobby", isInLobbyListener);
+    socket?.on("isLobbyFull", isLobbyFullListener);
+    socket?.on("gameEnd", handleGameEnd);
+    socket?.on("newGame", handleNewGame);
+    socket?.on("lobbyState", handleLobbyState);
 
     return () => {
-      socket.off("connect", connectListener);
-      socket.off("updateGameState", updateGameStateListener);
-      socket.off("isOnLobby", isInLobbyListener);
-      socket.off("isLobbyFull", isLobbyFullListener);
-      socket.off("gameEnd", handleGameEnd);
-      socket.off("newGame", handleNewGame);
+      socket?.off("connect", connectListener);
+      socket?.off("updateGameState", updateGameStateListener);
+      socket?.off("isOnLobby", isInLobbyListener);
+      socket?.off("isLobbyFull", isLobbyFullListener);
+      socket?.off("gameEnd", handleGameEnd);
+      socket?.off("newGame", handleNewGame);
+      socket?.off("lobbyState", handleLobbyState);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     return () => {
       if (isInLobby) {
-        socket.emit("removeFromLobby");
+        socket?.emit("removeFromLobby");
       }
     };
   }, [location.pathname, isInLobby]);
@@ -82,25 +89,33 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const connectListener = () => {
-    clientId.current = socket.id;
+    if (socket?.id) clientId.current = socket.id;
   };
 
   const updateGameStateListener = (gameState: GameState) => {
     setIsPaused(gameState.isPaused);
   };
 
+  const handleLobbyState = (gameState: GameState) => {
+    setIsLobbyFull(gameState.isLobbyFull);
+    if (gameState.isLobbyFull === true) {
+      setIsInLobby(true);
+    }
+  };
+
   const isInLobbyListener = (isOnLobby: boolean, clientIdRes: string) => {
-    if (clientIdRes === socket.id) {
+    if (clientIdRes === socket?.id) {
       setIsInLobby(isOnLobby);
     }
   };
 
   const isLobbyFullListener = (isLobbyFull: boolean) => {
+    console.log("je passe par la et set isLobbyFull", isLobbyFull);
     setIsLobbyFull(isLobbyFull);
   };
 
   const handlePlayPause = () => {
-    socket.emit("getIsPaused", !isPaused);
+    socket?.emit("getIsPaused", !isPaused);
     setIsPaused(!isPaused);
     if (isPaused === true) start();
     // else stop();
@@ -111,7 +126,10 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const start = () => {
-    fetch("http://localhost:4000/api/game/play")
+    fetch("http://localhost:4000/api/game/play", {
+      method: "GET",
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
@@ -128,7 +146,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           <WaitingForPlayer />
         </>
       );
-    } else {
+    } else if (isLobbyFull === true && socket) {
       return (
         <div className="GameContainer">
           <GameButtonsBar
@@ -148,8 +166,9 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
         </div>
       );
     }
+  } else if (isInLobby === false && socket) {
+    return <GameMenu socket={socket} />;
   }
-  return <GameMenu socket={socket} />;
 };
 
 export default GameContainer;

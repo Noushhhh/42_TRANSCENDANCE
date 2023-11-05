@@ -1,4 +1,5 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsArray, IsIn, IsNumber} from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
 
@@ -23,11 +24,30 @@ class CommonUserIdDto {
     userId!: number;
 }
 
+class CommonChannelIdPostDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+}
+
+class CommonUserIdPostDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}
+
+
 export class ChannelNameDto extends CommonChannelNameDto {}
 
 export class ChannelIdDto extends CommonChannelIdDto {}
 
 export class UserIdDto extends CommonUserIdDto {}
+
+export class UserIdPostDto extends CommonUserIdPostDto {}
+
+export class ChannelIdPostDto extends CommonChannelIdPostDto {}
 
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()
@@ -42,14 +62,14 @@ export class SignUpChannelDto extends CommonChannelIdDto {
 }
 
 export class PairUserIdChannelId {
+    @Type(() => Number)
     @IsInt()
     @Min(0)
-    @Type(() => Number)
     channelId!: number;
 
+    @Type(() => Number)
     @IsInt()
     @Min(0)
-    @Type(() => Number)
     userId!: number;
 }
 
@@ -65,3 +85,86 @@ export class pairUserId{
     targetId!: number;
 }
 
+export class ManagePasswordDto{
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    channelId!: number;
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    channelType!: string;
+
+    @IsString()
+    // @Min(6)
+    // @Max(22)
+    actualPassword!: string;
+
+    @IsString()
+    // @Min(6)
+    // @Max(22)
+    newPassword!: string;
+}
+
+export class ManageChannelTypeDto{
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    channelId!: number;
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    channelType!: string;
+}
+
+export class LeaveChannelDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    newOwnerId!: number;
+}
+
+export class muteDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    mutedUserId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    callerUserId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @Type(() => Date)
+    @IsDate()
+    mutedUntil!: Date;
+}
+
+export class MessageToStoreDto {
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @IsNotEmpty()
+    @MaxLength(2000)
+    content!: string;
+
+    @IsInt()
+    @Min(0)
+    senderId!: number;
+
+}
