@@ -92,9 +92,7 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   useEffect( () => {
     const callFetchUser = async () => {
       try {
-        console.log("begining fetching users");
         await fetchUser(setChannelHeader, userId, socket);
-        console.log("end fetching users");
       } catch (error) {
         console.log("error fetching users");
       }

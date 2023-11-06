@@ -53,40 +53,42 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
+    setMessage("");
     let isUserIsMuted: boolean = false;
-    if (isWhitespace(message)){
-      setMessage("");
-      return
-    }
-    msgToSend.content += "alors petit con ??";
+    console.log('will emit');
     socket.emit("message", msgToSend, (response: boolean) => {
+
       console.log("IS ACTUALLY EMITTING...");
       isUserIsMuted = response;
-      if (isUserIsMuted === true){
+      if (isUserIsMuted === true)
         msgToSend.content = "You are actually blocked from this channel. Others users won't see your message";
-      }
       addMessage(msgToSend, "MessageTo");
+      if (isUserIsMuted === true)
+        return ;
+      const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+      storeMsgToDatabase(parsedMessage);
     });
-    const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
-    storeMsgToDatabase(parsedMessage);
+  };
+
+  
+  const messageEvent = (data: Message) => {
+    console.log("RECEIVING");
+    console.log(data);
+    // console.log("do i trigger my own event ?");
+    if (!data) return;
+    if (isWhitespace(data.content)) return;
+    console.log('call add message recreive side');
+    addMessage(data, "MessageFrom");
     setMessage("");
   };
 
   useEffect(() => {
-    socket.on("message", messageEvent);
+    socket.on("messageBack", messageEvent);
 
     return () => {
-      socket.off("message", messageEvent);
+      socket.off("messageBack", messageEvent);
     };
   }, []);
-
-  const messageEvent = (data: Message) => {
-    console.log("do i trigger my own event ?");
-    if (!data) return;
-    if (isWhitespace(data.content)) return;
-    addMessage(data, "MessageFrom");
-    setMessage("");
-  };
 
   if (channelId === -1) {
     return <div></div>;

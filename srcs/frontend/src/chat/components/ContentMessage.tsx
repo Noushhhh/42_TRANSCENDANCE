@@ -22,27 +22,17 @@ interface contentMessageProps {
   backToChannels: () => void;
 }
 
-function ContentMessage({
-  channelInfo,
-  setChannelInfo,
-  backToChannels,
-}: contentMessageProps) {
+function ContentMessage({ channelInfo, setChannelInfo, backToChannels }: contentMessageProps) {
   // useState that represent all the messages inside the socket:
   const [messages, setMessages] = useState<Message[]>([]);
-
-  // console.log(messages);
 
   const userId: number = useUserIdContext();
 
   const contentMessageWidth: string = channelInfo ? "reduce" : "wide";
 
-  const addMessage = async (newMessage: Message, messageType: string) => {
+  const addMessage = (newMessage: Message, messageType: string) => {
     newMessage.messageType = messageType;
-    console.log(newMessage);
-    setMessages([...messages, newMessage]);
-    setTimeout(()=>{
-      console.log(messages);
-    }, 500);
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
   return (
