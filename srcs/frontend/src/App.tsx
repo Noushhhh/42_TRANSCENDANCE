@@ -65,10 +65,7 @@ const App: React.FC = () => {
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
-        <Route
-          path="game"
-          element={<GameContainer socket={socketRef.current} />}
-        />
+      
       </Route>
     </Routes>
   );

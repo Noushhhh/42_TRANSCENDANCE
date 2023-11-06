@@ -72,10 +72,10 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
   };
 
   useEffect(() => {
-    socket.on("message", messageEvent);
+    socket.on("messageBack", messageEvent);
 
     return () => {
-      socket.off("message", messageEvent);
+      socket.off("messageBack", messageEvent);
     };
   }, []);
 

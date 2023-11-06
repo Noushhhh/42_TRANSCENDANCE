@@ -39,7 +39,7 @@ export class ChatGateway implements OnModuleInit {
             if (response) {
                 socket.data.userId = response;
                 // next allow us to accept the incoming socket as the token is valid
-                // next();
+                next();
             } else {
                 next(new WsException('invalid token'));
             }
@@ -147,9 +147,10 @@ export class ChatGateway implements OnModuleInit {
             return true ;
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
+        data.content += " passing server side ";
         console.log("passing by emit message with");
         console.log(data);
-        client.to(String(data.channelId)).emit("message", data);
+        client.to(String(data.channelId)).emit("messageBack", data);
         return false ;
     }
 }
