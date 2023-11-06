@@ -27,17 +27,11 @@ export class ChatGateway implements OnModuleInit {
 
             // check token validity return the userId if correspond to associated token
             // return null if token is invalid
-            console.log("will connect to chat gateway");
             const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
-            console.log("will connect to chat gateway");
-            console.log("will connect to chat gateway");
-            console.log("will connect to chat gateway");
-            console.log("will connect to chat gateway");
-            console.log("will connect to chat gateway");
-            console.log("will connect to chat gateway");
 
             if (response) {
                 socket.data.userId = response;
+                console.log(`${socket.data.userId} is connecting...`);
                 // next allow us to accept the incoming socket as the token is valid
                 next();
             } else {
