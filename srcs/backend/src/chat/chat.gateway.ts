@@ -28,6 +28,7 @@ export class ChatGateway implements OnModuleInit {
             // check token validity return the userId if correspond to associated token
             // return null if token is invalid
             const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
+
             if (response) {
                 socket.data.userId = response;
                 // next allow us to accept the incoming socket as the token is valid
@@ -136,13 +137,11 @@ export class ChatGateway implements OnModuleInit {
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
         isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
         if (isSenderMuted.isMuted === true)
-            return true ;
+        return true ;
+        // emit with client instead of server doesnt trigger "message" events to initial client-sender
         console.log("passing by emit message with");
         console.log(data);
-        data.content += " passed server side! ";
-        await this.readMap();
-        // emit with client instead of server doesnt trigger "message" events to initial client-sender
-        client.to(String(data.channelId)).emit("messageBack", data);
+        client.to(String(data.channelId)).emit("message", data);
         return false ;
     }
 }

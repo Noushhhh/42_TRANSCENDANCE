@@ -63,18 +63,12 @@ export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorM
 }
 
 export const getMyUserId = async (): Promise<number> => {
-  try {
-
-    const response = await fetch('http://localhost:4000/api/users/me', {
-      credentials: 'include',
-      method: 'GET',
-    })
-    const user = await response.json();
-    return user.id;
-  } catch (errors){
-    console.log(errors);
-    throw errors;
-  }
+  const response = await fetch('http://localhost:4000/api/users/me', {
+    credentials: 'include',
+    method: 'GET',
+  })
+  const user = await response.json();
+  return user.id;
 }
 
 export const fetchUser = async (
@@ -94,6 +88,7 @@ export const fetchUser = async (
       body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
     if (response.status === 400){
+      console.log("0 fetchUser");
       return;
     }
 
@@ -110,6 +105,7 @@ export const fetchUser = async (
         body: JSON.stringify({ channelId, userId }), // Include the data you want to send in the request body
       }
       );
+      console.log("1 fetchUser");
       const header: Channel = await response.json();
 
       let channelInfo: isChannelNameConnected | null = {
@@ -124,9 +120,12 @@ export const fetchUser = async (
         header.name = channelInfo.name;
       }
       header.isConnected = channelInfo.isConnected;
+      console.log("5 fetchUser");
       return header;
     });
+    console.log("6 fetchUser");
     const channelHeaders = await Promise.all(fetchChannelHeaders);
+    console.log("7 fetchUser");
     setChannelHeader(channelHeaders);
     } catch (error) {
     console.log("error in fetchUser");
@@ -898,7 +897,7 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
       const errorMessage = errorResponse.message; // Assurez-vous que la propriété "message" existe dans la réponse
       console.error(`Erreur de l'API : ${errorMessage}`);
     }
-    handleHTTPErrors(response, {});
+    // handleHTTPErrors(response, {});
     console.log("mute called");
   } catch (errors) {
     throw errors;

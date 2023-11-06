@@ -22,28 +22,17 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   const [channelInfo, setChannelInfo] = useState<boolean>(false);
   const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true);
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
-  const [displayContentMessage, setDisplayContentMessage] = useState<boolean>(false);
+  const [displayContentMessage, setDisplayContentMessage] =
+    useState<boolean>(false);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
 
   useEffect(() => {
     const getUser = async () => {
-      try {
-        const userIdFetched: number = await getMyUserId();
-        setUserId(userIdFetched);
-      } catch (errors) {
-        console.log(errors);
-      }
+      const userIdFetched: number = await getMyUserId();
+      setUserId(userIdFetched);
     };
     getUser();
   }, []);
-
-  useEffect(() => {
-    console.log('rendering...');
-    
-    return () => {
-      console.log("unrendering...");
-    }
-  }, [])
 
   useEffect(() => {
     handleWindowResize();
