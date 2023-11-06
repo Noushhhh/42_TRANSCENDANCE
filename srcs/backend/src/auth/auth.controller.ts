@@ -1,5 +1,8 @@
-import { BadRequestException, Catch, ExceptionFilter, HttpException, ArgumentsHost, InternalServerErrorException } from '@nestjs/common';
-import { Controller, Post, Body, Res, Get, Req, HttpCode, HttpStatus, UseGuards, Delete } from '@nestjs/common';
+import { AllExceptionsFilter } from './exception/all-exception.filter';
+import {
+  InternalServerErrorException, BadRequestException, Controller, Post,
+  Body, Res, Get, Req, Delete, UseFilters
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
@@ -9,26 +12,8 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
-@Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    });
-  }
-}
-
+@UseFilters(new AllExceptionsFilter())
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

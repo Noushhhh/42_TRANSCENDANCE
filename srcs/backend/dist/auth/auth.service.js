@@ -138,18 +138,6 @@ let AuthService = class AuthService {
             // send back the token
             const result = yield this.signToken(user.id, user.username, res);
             // Update the user's logged in status in the database
-            if (result.valid) {
-                this.updateUserLoggedIn(user.id, true);
-                return result;
-            }
-            // compare password
-            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
-            // if password wrong throw exception
-            if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
-            // send back the token
-            const result = yield this.signToken(user.id, user.username, res);
-            // Update the user's logged in status in the database
             if (result.valid)
                 this.updateUserLoggedIn(user.id, true);
             return result;
@@ -192,7 +180,7 @@ let AuthService = class AuthService {
                 }
             }
             catch (error) {
-                throw new common_1.InternalServerErrorException('Failed to find or create refresh token');
+                throw new common_1.InternalServerErrorException('Failed to find or create refresh token for user');
             }
         });
     }
@@ -226,14 +214,14 @@ let AuthService = class AuthService {
             const { token, refreshToken } = yield this.generateTokens(userId, email);
             this.setTokens({ token, refreshToken }, res);
             if (!refreshToken) {
-                return ({ statusCode: 409, valid: false, message: "Problem creating refresh token" });
+                return ({ statusCode: 409, valid: false, message: "Problem creating refresh token for user" });
             }
             const decodedToken = jwt.verify(token, this.JWT_SECRET);
             if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
                 res.cookie('tokenExpires', new Date(decodedToken.exp * 1000).toISOString(), { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
             }
             else {
-                return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time" });
+                return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
             }
             return ({ statusCode: 200, valid: true, message: "Authentication successful" });
         });
@@ -347,7 +335,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
             if (!token)
-                return res.status(401).json({ valid: false, message: "Token Missing" });
+                throw new common_1.UnauthorizedException('Token Missing');
             try {
                 jwt.verify(token, this.JWT_SECRET);
                 return res.status(200).json({ valid: true, message: "Token is valid" });
@@ -429,7 +417,7 @@ let AuthService = class AuthService {
             catch (error) {
                 console.error('Error in signToken42:', error);
                 // Handle errors here, e.g., return an error response
-                res.status(500).send({ message: 'Internal Server Error' });
+                throw new common_1.InternalServerErrorException('Internal server error');
             }
         });
     }

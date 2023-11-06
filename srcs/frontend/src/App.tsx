@@ -36,7 +36,6 @@ const App: React.FC = () => {
 
   useActivityLogout(600000);
   const [socket, setSocket] = useState<Socket>();
-  const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
 
   return (

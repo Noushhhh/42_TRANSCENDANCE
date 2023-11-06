@@ -1,8 +1,9 @@
+import { AllExceptionsFilter } from '../auth/exception/all-exception.filter';
 import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Body, Query,
+    Response as NestResponse, Query, UseFilters
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -15,6 +16,8 @@ import * as fs from 'fs';
 import { UserProfileData } from '../interfaces/user.interface';
 import { PassportSerializer } from '@nestjs/passport';
 
+
+@UseFilters(new AllExceptionsFilter())
 @Controller('users')
 export class UsersController {
     constructor(

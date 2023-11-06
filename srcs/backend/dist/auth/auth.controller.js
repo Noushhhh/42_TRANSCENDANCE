@@ -21,33 +21,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = exports.AllExceptionsFilter = void 0;
+exports.AuthController = void 0;
+const all_exception_filter_1 = require("./exception/all-exception.filter");
 const common_1 = require("@nestjs/common");
-const common_2 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
 const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
 const browserError = "This browser session is already taken by someone," + " please open a new browser or incognito window";
-let AllExceptionsFilter = class AllExceptionsFilter {
-    catch(exception, host) {
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse();
-        const request = ctx.getRequest();
-        const status = exception instanceof common_1.HttpException
-            ? exception.getStatus()
-            : common_2.HttpStatus.INTERNAL_SERVER_ERROR;
-        response.status(status).json({
-            statusCode: status,
-            timestamp: new Date().toISOString(),
-            path: request.url,
-        });
-    }
-};
-exports.AllExceptionsFilter = AllExceptionsFilter;
-exports.AllExceptionsFilter = AllExceptionsFilter = __decorate([
-    (0, common_1.Catch)()
-], AllExceptionsFilter);
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -132,76 +113,77 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_2.Get)('token'),
-    __param(0, (0, common_2.Req)()),
+    (0, common_1.Get)('token'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getToken", null);
 __decorate([
     (0, public_decorators_1.Public)(),
-    (0, common_2.Post)('signup'),
-    __param(0, (0, common_2.Body)()),
-    __param(1, (0, common_2.Res)()),
+    (0, common_1.Post)('signup'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [dto_1.AuthDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
-    (0, common_2.Post)('signin'),
-    __param(0, (0, common_2.Body)()),
-    __param(1, (0, common_2.Res)()),
-    __param(2, (0, common_2.Req)()),
+    (0, common_1.Post)('signin'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [dto_1.AuthDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signin", null);
 __decorate([
-    (0, common_2.Get)('checkTokenValidity'),
-    __param(0, (0, common_2.Req)()),
-    __param(1, (0, common_2.Res)()),
+    (0, common_1.Get)('checkTokenValidity'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
-    (0, common_2.Post)('refreshToken'),
+    (0, common_1.Post)('refreshToken'),
     __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_2.Res)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refreshToken", null);
 __decorate([
-    (0, common_2.Delete)('signout'),
+    (0, common_1.Delete)('signout'),
     __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_2.Res)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signout", null);
 __decorate([
     (0, public_decorators_1.Public)(),
-    (0, common_2.Get)('42Url'),
+    (0, common_1.Get)('42Url'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "get42Url", null);
 __decorate([
-    (0, common_2.Get)('callback42'),
-    __param(0, (0, common_2.Req)()),
-    __param(1, (0, common_2.Res)()),
+    (0, common_1.Get)('callback42'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "handle42Callback", null);
 __decorate([
-    (0, common_2.Post)('enable2FA'),
+    (0, common_1.Post)('enable2FA'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 exports.AuthController = AuthController = __decorate([
-    (0, common_2.Controller)('auth'),
+    (0, common_1.UseFilters)(new all_exception_filter_1.AllExceptionsFilter()),
+    (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

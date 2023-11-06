@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException, Request, UnauthorizedException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UseFilters } from "@nestjs/common";
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { extname } from 'path';
@@ -290,7 +290,8 @@ export class UsersService {
                 throw new NotFoundException(`User not found with id ${userId}`);
             }
             return user;
-        } catch (error) {
+        } 
+        catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
             throw error;
         }

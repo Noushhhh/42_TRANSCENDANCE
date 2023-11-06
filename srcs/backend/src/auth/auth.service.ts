@@ -28,19 +28,19 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
  */
 @Injectable()
 export class AuthService {
-  private readonly JWT_SECRET: string | any;
+    private readonly JWT_SECRET: string | any;
 
-  constructor(
-    private usersService: UsersService,
-    private prisma: PrismaService,
-    private jwt: JwtService,
-    // private jwtService: JwtService,
-  ) {
-    this.JWT_SECRET = jwtConstants.secret;
-    if (!this.JWT_SECRET) {
-      throw new Error("JWT_SECRET environment variable not set!");
+    constructor(
+        private usersService: UsersService,
+        private prisma: PrismaService,
+        private jwt: JwtService,
+        // private jwtService: JwtService,
+    ) {
+        this.JWT_SECRET = jwtConstants.secret;
+        if (!this.JWT_SECRET) {
+            throw new Error("JWT_SECRET environment variable not set!");
+        }
     }
-  }
 
   /**
    * @brief This function handles user signup requests.
@@ -80,39 +80,28 @@ export class AuthService {
      * @param res The response object.
      * @return The result of the signin operation.
      */
-  async signin(dto: AuthDto, res: Response) {
-    // find user with username
-    const user = await this.usersService.findUserWithUsername(dto.username);
-    // if user not found throw exception
-    if (!user) throw new ForbiddenException('Username not found',);
-    const userLoggedIn = await this.checkUserLoggedIn(user.id);
-    // console.log("passing by userLoggedIn", userLoggedIn, "\n");
-    if (userLoggedIn.statusCode === 200) {
-      console.log("user already logged in ", userLoggedIn.statusCode);
-      throw new ForbiddenException('User is already logged in');
-    }
-    // compare password
-    const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-    // if password wrong throw exception
-    if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
-    // send back the token
-    const result = await this.signToken(user.id, user.username, res);
-    // Update the user's logged in status in the database
-    if (result.valid) {
-      this.updateUserLoggedIn(user.id, true);
+    async signin(dto: AuthDto, res: Response) {
+        // find user with username
+        const user = await this.usersService.findUserWithUsername(dto.username);
+        // if user not found throw exception
+        if (!user) throw new ForbiddenException('Username not found',);
+        const userLoggedIn = await this.checkUserLoggedIn(user.id);
+        // console.log("passing by userLoggedIn", userLoggedIn, "\n");
+        if (userLoggedIn.statusCode === 200) {
+            console.log("user already logged in " ,userLoggedIn.statusCode);
+            throw new ForbiddenException('User is already logged in');
+        }
+        // compare password
+        const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
+        // if password wrong throw exception
+        if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
+        // send back the token
+      const result = await this.signToken(user.id, user.username, res);
+      // Update the user's logged in status in the database
+      if (result.valid)
+        this.updateUserLoggedIn(user.id, true);
       return result;
     }
-    // compare password
-    const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
-    // if password wrong throw exception
-    if (!passwordMatch) throw new ForbiddenException('Incorrect password',);
-    // send back the token
-    const result = await this.signToken(user.id, user.username, res);
-    // Update the user's logged in status in the database
-    if (result.valid)
-      this.updateUserLoggedIn(user.id, true);
-    return result;
-  }
 
   /**
    * @brief This function validates a user.
@@ -126,7 +115,7 @@ export class AuthService {
     return user;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function checks if there is an existing refresh token for the user and returns it if it exists. If not, it creates a new refresh token.
@@ -149,7 +138,7 @@ export class AuthService {
         return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
       }
     } catch (error) {
-      throw new InternalServerErrorException('Failed to find or create refresh token');
+      throw new InternalServerErrorException('Failed to find or create refresh token for user');
     }
   }
 
@@ -194,7 +183,7 @@ export class AuthService {
     this.setTokens({ token, refreshToken }, res);
 
     if (!refreshToken) {
-      return ({ statusCode: 409, valid: false, message: "Problem creating refresh token" });
+      return ({ statusCode: 409, valid: false, message: "Problem creating refresh token for user" });
     }
 
     const decodedToken = jwt.verify(token, this.JWT_SECRET);
@@ -202,7 +191,7 @@ export class AuthService {
       res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
         { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
     } else {
-      return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time" });
+      return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
     }
 
     return ({ statusCode: 200, valid: true, message: "Authentication successful" });
@@ -253,7 +242,7 @@ export class AuthService {
 
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function checks if the user is logged in.
@@ -310,7 +299,7 @@ export class AuthService {
     return null;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -323,7 +312,7 @@ export class AuthService {
     const token = req.cookies.token;
 
     if (!token)
-      return res.status(401).json({ valid: false, message: "Token Missing" });
+      throw new UnauthorizedException('Token Missing');
 
     try {
       jwt.verify(token, this.JWT_SECRET);
@@ -333,7 +322,7 @@ export class AuthService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
   /**
    * @brief This function handles user signout requests.
    * @param decodedPayload The decoded payload.
@@ -355,7 +344,7 @@ export class AuthService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
   /**
    * @brief This function signs a token for 42 authentication.
    * @param req The request object.
@@ -407,11 +396,11 @@ export class AuthService {
     } catch (error) {
       console.error('Error in signToken42:', error);
       // Handle errors here, e.g., return an error response
-      res.status(500).send({ message: 'Internal Server Error' });
+      throw new InternalServerErrorException('Internal server error');
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function exchanges a code for a token.
@@ -439,7 +428,7 @@ export class AuthService {
     };
     return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
   }
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -457,7 +446,7 @@ export class AuthService {
       throw error;
     }
   }
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 
   private async sendUserInfoRequest(token: string) {
@@ -468,7 +457,7 @@ export class AuthService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 
   /**
@@ -516,7 +505,7 @@ export class AuthService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function generates a random password.
@@ -536,7 +525,7 @@ export class AuthService {
    * @param userId The user's ID.
    * @return The 2FA secret and otpauth URL.
    */
-
+ 
   generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
     const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
     const otpauthUrl = speakeasy.otpauthURL({
@@ -547,7 +536,7 @@ export class AuthService {
     return { secret: secret.base32, otpauthUrl };
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function verifies a 2FA code.
@@ -575,7 +564,7 @@ export class AuthService {
     return verified;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function enables 2FA.
