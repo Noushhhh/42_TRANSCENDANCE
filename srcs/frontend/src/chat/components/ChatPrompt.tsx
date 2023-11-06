@@ -58,7 +58,6 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
       setMessage("");
       return
     }
-    msgToSend.content += "alors petit con ??";
     socket.emit("message", msgToSend, (response: boolean) => {
       console.log("IS ACTUALLY EMITTING...");
       isUserIsMuted = response;
