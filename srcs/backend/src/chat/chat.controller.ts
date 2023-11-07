@@ -72,11 +72,6 @@ export class ChatController {
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
-    @Get('getLastMsg/:id')
-    async getLastMessage(@Param('id') id: number) {
-        return this.chatService.getLastMessage(id);
-    }
-
     @Post('getChannelName')
     async getChannelName(
         @Body() data: PairUserIdChannelId): Promise<string> {

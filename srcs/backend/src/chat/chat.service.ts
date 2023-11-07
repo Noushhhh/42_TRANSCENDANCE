@@ -57,36 +57,6 @@ export class ChatService {
     return conversationIds;
   }
 
-  async getLastMessage(id: number): Promise<string | null> {
-
-    const channelId = Number(id);
-
-    const channel: Channel | null = await this.prisma.channel.findUnique({
-      where: {
-        id: channelId,
-      },
-    });
-
-    if (!channel) {
-      throw new ForbiddenException("Channel not found");
-    }
-
-    const lastMessage: Message | null = await this.prisma.message.findFirst({
-      where: {
-        channelId: channel.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    if (!lastMessage) {
-      return null;
-    }
-
-    return lastMessage.content;
-  }
-
   async getChannelName(channelId: number, callerId: number): Promise<string> {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
