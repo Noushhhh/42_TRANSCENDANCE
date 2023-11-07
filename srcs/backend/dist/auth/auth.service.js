@@ -119,8 +119,6 @@ let AuthService = class AuthService {
      */
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.cookies.token)
-                throw new common_1.ForbiddenException("someone is already logged in in this sessionn");
             // find user with username
             const user = yield this.usersService.findUserWithUsername(dto.username);
             // if user not found throw exception
@@ -131,6 +129,12 @@ let AuthService = class AuthService {
             if (userLoggedIn.statusCode === 200) {
                 console.log("user already logged in ", userLoggedIn.statusCode);
                 throw new common_1.ForbiddenException('User is already logged in');
+            }
+            if (req.cookies.token && userLoggedIn.statusCode == 200)
+                throw new common_1.ForbiddenException("someone is already logged in in this sessionn");
+            else {
+                res.clearCookie('token');
+                res.clearCookie('refreshToken');
             }
             // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);

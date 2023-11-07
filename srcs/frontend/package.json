@@ -6,7 +6,7 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.16",
-    "@mui/material": "^5.14.16",
+    "@mui/material": "^5.14.17",
     "@nestjs/platform-express": "^10.2.8",
     "@nestjs/platform-socket.io": "^10.2.8",
     "@prisma/client": "^5.5.2",
@@ -55,7 +55,7 @@
     ]
   },
   "devDependencies": {
-    "@types/js-cookie": "^3.0.5",
+    "@types/js-cookie": "^3.0.6",
     "backend": "file:../../backend",
     "prisma": "^5.5.2"
   }
