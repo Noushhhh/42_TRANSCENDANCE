@@ -47,14 +47,7 @@ let AuthController = class AuthController {
     }
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield this.authService.signin(dto, res);
-                res.status(200).send({ valid: result.valid, message: result.message });
-            }
-            catch (error) {
-                console.log(error);
-                res.status(500).send({ valid: false, message: error });
-            }
+            return yield this.authService.signin(dto, res, req);
         });
     }
     checkTokenValidity(req, res) {
@@ -183,7 +176,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 exports.AuthController = AuthController = __decorate([
-    (0, common_1.UseFilters)(new all_exception_filter_1.AllExceptionsFilter()),
+    (0, common_1.UseFilters)(all_exception_filter_1.AllExceptionsFilter),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

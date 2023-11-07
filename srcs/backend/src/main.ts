@@ -49,7 +49,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Use the AllExceptionsFilter to handle exceptions globally
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(app.get(AllExceptionsFilter));
 
   // Start the application and listen on port 4000
   await app.listen(4000);

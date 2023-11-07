@@ -1,7 +1,7 @@
 import { AllExceptionsFilter } from './exception/all-exception.filter';
 import {
   InternalServerErrorException, BadRequestException, Controller, Post,
-  Body, Res, Get, Req, Delete, UseFilters
+  Body, Res, Get, Req, Delete, UseFilters, ForbiddenException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
@@ -13,7 +13,7 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
 
-@UseFilters(new AllExceptionsFilter())
+@UseFilters(AllExceptionsFilter)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -33,13 +33,8 @@ export class AuthController {
 
   @Post('signin')
   async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
-    try {
-      const result: any = await this.authService.signin(dto, res);
-      res.status(200).send({ valid: result.valid, message: result.message });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({ valid: false, message: error });
-    }
+
+    return await this.authService.signin(dto, res, req);
   }
 
   @Get('checkTokenValidity')

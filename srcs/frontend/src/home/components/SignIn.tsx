@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
+import { hasMessage } from "../tools/Api";
 
 /*************************************************************************** */
 /**
@@ -35,39 +36,28 @@ const InputField: React.FC<{
  */
 /*************************************************************************** */
 const signInAPI = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:8081/api/auth/signin', {
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/signin', {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            username: email,
-            password: password,
+          username: email,
+          password: password,
         })
-    });
-
-    const data = await response.json();
-    // Check if the server response was not successful (response.ok is false)
-    if (!response.ok) {
-        // Default error message includes the status code of the response
-        let errorMessage = `Server responded with status: ${response.status}`;
-
-        // If the data object has a 'message' property and it is an object with a 'message' property,
-        // use that as the error message
-        if (typeof data?.message === 'object' && data?.message?.message) {
-            errorMessage = data.message.message;
+      });
+  
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(`${data.statusCode} ${data.message}`);
         }
-        // If the data object has a 'message' property and it is a string,
-        // use that as the error message
-        else if (typeof data?.message === 'string') {
-            errorMessage = data.message;
-        }
-
-        // Throw an error with the determined error message
-        throw new Error(errorMessage);
+    } catch (error) {
+        if (hasMessage(error))
+            console.error("Error during signInAPI:", error.message);
+      throw error;
     }
-
-    return data;
-};
+  };
+  
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -104,15 +94,8 @@ const SignIn: React.FC = () => {
                 navigate('/home');
             }
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.message.includes('403')) {
-                    setErrorMessage('Wrong credentials. Please try again.');
-                } else if (error.message.includes('500')) {
-                    setErrorMessage('An internal server error occurred. Please try again later.');
-                } else {
-                    setErrorMessage(`${error.message}. Please try again.`);
-                }
-                console.error("There was an error:", error.message);
+            if (hasMessage(error) && error.message.includes('4')) {
+                setErrorMessage(`${error.message}`);
             } else {
                 setErrorMessage('An unexpected error occurred. Please try again later.');
             }

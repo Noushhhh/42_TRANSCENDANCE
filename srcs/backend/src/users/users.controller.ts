@@ -17,12 +17,12 @@ import { UserProfileData } from '../interfaces/user.interface';
 import { PassportSerializer } from '@nestjs/passport';
 
 
-@UseFilters(new AllExceptionsFilter())
-@Controller('users')
-export class UsersController {
+@UseFilters(AllExceptionsFilter)
+@Controller('users'  ) 
+export class   UsersController {
     constructor(
-        private UsersService: UsersService
-    ) { };
+        private   UsersService:UsersService 
+    ) {  };
 
     // ─────────────────────────────────────────────────────────────────────────────
 

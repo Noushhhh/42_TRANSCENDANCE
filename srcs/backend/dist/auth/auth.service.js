@@ -117,8 +117,10 @@ let AuthService = class AuthService {
      * @param res The response object.
      * @return The result of the signin operation.
      */
-    signin(dto, res) {
+    signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (req.cookies.token)
+                throw new common_1.ForbiddenException("someone is already logged in in this sessionn");
             // find user with username
             const user = yield this.usersService.findUserWithUsername(dto.username);
             // if user not found throw exception
@@ -138,9 +140,10 @@ let AuthService = class AuthService {
             // send back the token
             const result = yield this.signToken(user.id, user.username, res);
             // Update the user's logged in status in the database
-            if (result.valid)
+            if (result.valid) {
                 this.updateUserLoggedIn(user.id, true);
-            return result;
+                res.status(200).send({ valid: result.valid, message: result.message });
+            }
         });
     }
     /**
