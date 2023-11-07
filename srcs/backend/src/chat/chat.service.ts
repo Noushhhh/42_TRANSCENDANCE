@@ -5,7 +5,7 @@ import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
-import { SocketService } from "./socket.service";
+// import { SocketService } from "./socket.service";
 import { ChannelNameDto, PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { ChannelIdPostDto, UserIdPostDto, MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
@@ -38,7 +38,7 @@ export class ChatService {
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
     // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
-    private readonly socketService: SocketService,
+    // private readonly socketService: SocketService,
     private readonly userService: UsersService,
   ) { }
 
@@ -355,7 +355,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
+      // this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
       return true;
     }
 
@@ -407,7 +407,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(callerId, channelId);
+      // this.socketService.alertChannelDeleted(callerId, channelId);
       return true;
     }
 
@@ -468,7 +468,7 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(userId, channelId);
+      // this.socketService.alertChannelDeleted(userId, channelId);
       return true;
     }
 

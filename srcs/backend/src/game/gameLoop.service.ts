@@ -38,8 +38,8 @@ export class GameLoopService {
     this.gameLoopRunning = false;
   }
 
-  resizeEvent() {
-    this.updateBall();
+  async resizeEvent() {
+    await this.updateBall();
     this.updateGameState();
   }
 
@@ -57,8 +57,8 @@ export class GameLoopService {
     return;
   }
 
-  private gameLoop() {
-    this.updateBall();
+  private async gameLoop() {
+    await this.updateBall();
     this.updateGameState();
 
     if (this.gameLoopRunning) {
@@ -109,7 +109,7 @@ export class GameLoopService {
     }
   }
 
-  private updateBall = () => {
+  private updateBall = async () => {
     for (const [key, lobby] of lobbies) {
       if (lobby.gameState.gameState.isPaused === true) continue;
       const ballState = this.gameLogicService.ballMove(
@@ -133,9 +133,9 @@ export class GameLoopService {
         if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
           const gameState = lobby.gameState.gameState;
           const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
-          this.playerStats.addWinToPlayer(winnerId);
-          this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false);
-          this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false);
+          await this.playerStats.addWinToPlayer(winnerId);
+          await this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false);
+          await this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false);
           this.gatewayOut.emitToRoom(key, "printWinner", score.p1Score === SCORE_TO_WIN ? `${lobby.gameState.gameState.p1Name} WON!` : `${lobby.gameState.gameState.p2Name} WON!`)
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {

@@ -35,9 +35,9 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('lobby')
-  connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
+  async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
     if (req.user) {
-      this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
+      await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
       return { status: 'player connected to lobby' };
     }
     return { status: 'player not connected to lobby' };
@@ -45,15 +45,10 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('addGameToPlayer')
-  addGameToPlayer(@Req() req: Request) {
+  async addGameToPlayer(@Req() req: Request) {
     if (req.user) {
-      try {
-        this.playerStats.addGamePlayedToOneUser(req.user?.id)
-        return { msg: 'player games incremented' };
-      } catch (error) {
-        console.log(error);
-        return { msg: 'error trying to increment game played' };
-      }
+      await this.playerStats.addGamePlayedToOneUser(req.user?.id);
+      return { msg: 'player games incremented' };
     }
     return { msg: 'error trying to increment game played' };
   }
@@ -64,18 +59,4 @@ export class GameController {
     this.gameLoopService.startGameLoop();
     return { msg: 'started' };
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('stop')
-  // stop() {
-  //   this.gameLoopService.stopGameLoop();
-  //   return { msg: 'stopped' };
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('playerName')
-  // playerName(@Req() req: Request, @Query() dto: PlayerNameDto) {
-  //   if (req.user)
-  //     this.gameLobby.addPlayerNameToLobby(req.user.id, dto.clientId);
-  // }
 }

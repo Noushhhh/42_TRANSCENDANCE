@@ -56,12 +56,15 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <HomePage />
             <IoConnection setSocket={setSocket} socketRef={socketRef} />
-            <GameInvitation socket={socket} />
+            <GameInvitation socket={socketRef.current} />
           </ProtectedRoute>
         }
       >
         {/* add here incremented route if user first connexion can access only user settings page */}
-        <Route path="chat" element={<ChatBoxContainer socket={socketRef.current} />} />
+        <Route
+          path="chat"
+          element={<ChatBoxContainer socket={socketRef.current} />}
+        />
         <Route path="friends" element={<Friends />} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />

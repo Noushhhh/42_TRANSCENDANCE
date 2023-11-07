@@ -1,11 +1,14 @@
 import {
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameState } from './types';
 import { lobbies } from './lobbies';
 import { gameSockets } from './gameSockets';
+import { OnModuleInit } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 
 interface Vector2d {
   x: number;
@@ -17,11 +20,27 @@ interface Vector2d {
     origin: '*',
   },
 })
-export class GatewayOut {
+export class GatewayOut implements OnModuleInit {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly socketMap: gameSockets) { }
+  constructor(private readonly socketMap: gameSockets, private readonly authService: AuthService) { }
+
+  onModuleInit() {
+    this.server.use(async (socket, next) => {
+
+      // check token validity return the userId if correspond to associated token
+      // return null if token is invalid
+      const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
+
+      if (response) {
+        // next allow us to accept the incoming socket as the token is valid
+        next();
+      } else {
+        next(new WsException('invalid token'));
+      }
+    })
+  }
 
   updateGameState(gameState: GameState) {
     this.server.emit('updateGameState', gameState);
