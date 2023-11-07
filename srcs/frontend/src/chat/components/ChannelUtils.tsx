@@ -903,3 +903,16 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
     throw errors;
   }
 }
+
+export const getUsername = async (userId: number): Promise<string> => {
+  try {
+    const response: Response = await fetch(`http://localhost:4000/api/users/getUsernameWithId?userId=${userId}`);
+    handleHTTPErrors(response, {});
+    console.log('before await response');
+    const username: string = await response.text();
+    console.log('after await response');
+    return username;
+  } catch (errors){
+    throw errors;
+  }
+}

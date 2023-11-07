@@ -31,7 +31,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
             if (response) {
                 socket.data.userId = response;
-                console.log("ICI DANS LE CHAT GATEWAY");
+                console.log(`${socket.data.userId} is connecting...`);
                 // next allow us to accept the incoming socket as the token is valid
                 next();
             } else {
@@ -148,13 +148,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     @SubscribeMessage('message')
     async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
-        isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
-        if (isSenderMuted.isMuted === true)
-            return true;
+        isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
+        if (isSenderMuted.isMuted === true){
+            return true ;
+        }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
+        data.content += " passing server side ";
         console.log("passing by emit message with");
         console.log(data);
-        client.to(String(data.channelId)).emit("message", data);
-        return false;
+        client.to(String(data.channelId)).emit("messageBack", data);
+        return false ;
     }
 }

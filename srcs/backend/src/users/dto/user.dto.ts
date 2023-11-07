@@ -2,7 +2,10 @@
 import {    IsNotEmpty, 
             IsString, 
             IsUrl,
+            IsInt, Min
         } from "class-validator";
+
+import { Type } from "class-transformer";
 
 // The DTO (Data Transfer Object) for authentication operations
 
@@ -13,4 +16,9 @@ export class CreateUserDto {
         avatar!: string;
 }
 
-
+export class UserIdDto {
+        @IsInt()
+        @Min(0)
+        @Type(() => Number)
+        userId!: number;
+}

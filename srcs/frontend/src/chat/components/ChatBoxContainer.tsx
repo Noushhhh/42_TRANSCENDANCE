@@ -22,8 +22,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   const [channelInfo, setChannelInfo] = useState<boolean>(false);
   const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true);
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
-  const [displayContentMessage, setDisplayContentMessage] =
-    useState<boolean>(false);
+  const [displayContentMessage, setDisplayContentMessage] = useState<boolean>(false);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
 
   useEffect(() => {

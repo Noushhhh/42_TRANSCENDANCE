@@ -68,11 +68,11 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   }
 
   useEffect(() => {
-    socket.on("message", messageEvent);
+    socket.on("messageBack", messageEvent);
 
     socket.on("changeConnexionState", changeConnexionStateEvent);
     return () => {
-      socket.off("message", messageEvent);
+      socket.off("messageBack", messageEvent);
       socket.off("changeConnexionState", changeConnexionStateEvent);
     };
   });
