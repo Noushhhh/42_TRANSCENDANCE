@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
+import { hasMessage } from "../tools/Api";
 
 /*************************************************************************** */
 /**
@@ -14,11 +16,13 @@ import GoBackButton from "../tools/GoBackButton";
  * @returns {JSX.Element} Rendered input field component.
  */
 /*************************************************************************** */
-const InputField: React.FC<{ type: string, value: string, 
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+const InputField: React.FC<{
+    type: string, value: string,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string
+}> =
     ({ type, value, onChange, placeholder }) => (
-    <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
-);
+        <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
+    );
 
 // ─────────────────────────────────────────────────────────────────────────────
 /*************************************************************************** */
@@ -32,24 +36,28 @@ const InputField: React.FC<{ type: string, value: string,
  */
 /*************************************************************************** */
 const signInAPI = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:4000/api/auth/signin', {
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/signin', {
         method: 'POST',
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            username: email,
-            password: password,
+          username: email,
+          password: password,
         })
-    });
-
-    if (!response.ok) {
-        const data = await response.json();
-        console.log("server response = ", response.status);
-        throw new Error(`${data?.message.message}` || `Server responded with status: ${response.status}`);
+      });
+  
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(`${data.statusCode} ${data.message}`);
+        }
+    } catch (error) {
+        if (hasMessage(error))
+            console.error("Error during signInAPI:", error.message);
+      throw error;
     }
-
-    return response.json();
-};
+  };
+  
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -69,29 +77,30 @@ const SignIn: React.FC = () => {
 
     // Hook for programmatic navigation.
     const navigate = useNavigate();
+    const checkFirstConnection = useCheckFirstConnection();
 
     // Event handler for the Sign In button click.
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();  // Prevent default behaviors like page refresh.
-        setIsLoading(true);  // Set the loading state before API call.
+        event.preventDefault();
+        setIsLoading(true);
 
         try {
-            await signInAPI(email, password);  // Try to authenticate the user.
-            navigate('/home');  // Navigate to home on successful authentication.
+            await signInAPI(email, password);
+            const userNotRegistered = await checkFirstConnection();
+
+            if (!userNotRegistered) {
+                navigate('/userprofilesetup', { state: { email } });
+            } else {
+                navigate('/home');
+            }
         } catch (error) {
-            // Error handling: differentiate between different error types and set appropriate error messages.
-            if (error instanceof Error) {
-                if (error.message.includes('403')) {
-                    setErrorMessage('Wrong credentials. Please try again.');
-                } else {
-                    setErrorMessage(`${error?.message} Please try again`);
-                }
-                console.error("There was an error:", error.message);
+            if (hasMessage(error) && error.message.includes('4')) {
+                setErrorMessage(`${error.message}`);
             } else {
                 setErrorMessage('An unexpected error occurred. Please try again later.');
             }
         } finally {
-            setIsLoading(false);  // Reset loading state after API call completion.
+            setIsLoading(false);
         }
     };
 
