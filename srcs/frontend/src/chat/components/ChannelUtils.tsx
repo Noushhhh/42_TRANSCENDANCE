@@ -751,14 +751,8 @@ export const getBlockedUsersById = async (userId: number): Promise<number[]> => 
 
 export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
-      },
-      body: JSON.stringify({ userId, channelId })
-    });
+    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId?channelId=${channelId}&userId=${userId}`);
+    handleHTTPErrors(response, {});
     const messageList = await response.json();
     if (!messageList)
       return;

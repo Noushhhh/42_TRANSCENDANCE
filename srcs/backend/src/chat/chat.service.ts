@@ -134,7 +134,7 @@ export class ChatService {
     return user.blockedUsers.map(user => user.id);
   }
 
-  async getAllMessagesByChannelId(userId: number, channelId: number): Promise<Message[]> {
+  async getAllMessagesByChannelId( channelId: number, userId: number): Promise<Message[]> {
 
     const channel = await this.prisma.channel.findUnique({
       where: {

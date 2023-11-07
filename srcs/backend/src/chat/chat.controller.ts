@@ -84,15 +84,10 @@ export class ChatController {
         return this.chatService.getChannelHeadersFromId(dto.channelId, dto.userId);
     }
 
-    @Post('getAllMessagesByChannelId')
+    @Get('getAllMessagesByChannelId')
     async getAllMessagesByChannelId(
-        @Body() PairIdDto: PairUserIdChannelId): Promise<Message[]> {
-        try {
-            const messages = this.chatService.getAllMessagesByChannelId(PairIdDto.userId, PairIdDto.channelId);
-            return messages;
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
+        @Query() dto: PairUserIdChannelId): Promise<Message[]> {
+        return this.chatService.getAllMessagesByChannelId(dto.channelId, dto.userId);
     }
 
     @Post('addMessageToChannel')
