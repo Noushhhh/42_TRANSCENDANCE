@@ -18,7 +18,7 @@ import { PassportSerializer } from '@nestjs/passport';
 
 
 @UseFilters(AllExceptionsFilter)
-@Controller('users'  ) 
+@Controller('users') 
 export class   UsersController {
     constructor(
         private   UsersService:UsersService 
