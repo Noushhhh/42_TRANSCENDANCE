@@ -78,9 +78,10 @@ export class ChatController {
         return this.chatService.getChannelName(dto.channelId, dto.userId);
     }
 
-    @Post('getChannelHeader')
-    async getChannelHeadersFromUserId(@Body() pair: PairUserIdChannelId): Promise<ChannelLight> {
-        return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
+    @Get('getChannelHeader')
+    async getChannelHeadersFromUserId(
+        @Query() dto: PairUserIdChannelId): Promise<ChannelLight> {
+        return this.chatService.getChannelHeadersFromId(dto.channelId, dto.userId);
     }
 
     @Post('getAllMessagesByChannelId')

@@ -88,7 +88,6 @@ export const fetchUser = async (
       body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
     if (response.status === 400){
-      console.log("0 fetchUser");
       return;
     }
 
@@ -96,16 +95,8 @@ export const fetchUser = async (
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
       const channelId = Number(id);
-      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader`, {
-        method: "POST",
-        credentials: 'include',
-        headers: {
-          "Content-Type": "application/json", // Add appropriate headers if needed
-        },
-        body: JSON.stringify({ channelId, userId }), // Include the data you want to send in the request body
-      }
-      );
-      console.log("1 fetchUser");
+      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader?channelId=${channelId}&userId=${userId}`);
+      handleHTTPErrors(response, {});
       const header: Channel = await response.json();
 
       let channelInfo: isChannelNameConnected | null = {
@@ -120,15 +111,12 @@ export const fetchUser = async (
         header.name = channelInfo.name;
       }
       header.isConnected = channelInfo.isConnected;
-      console.log("5 fetchUser");
       return header;
     });
-    console.log("6 fetchUser");
     const channelHeaders = await Promise.all(fetchChannelHeaders);
-    console.log("7 fetchUser");
     setChannelHeader(channelHeaders);
     } catch (error) {
-    console.log("error in fetchUser");
+      throw error;
   }
 };
 
@@ -877,18 +865,7 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
       credentials: 'include',
       body: JSON.stringify({ mutedUserId, callerUserId, channelId, mutedUntil })
     });
-    if (response.ok) {
-      
-      // Le statut de la réponse est OK (200)
-      // Traitez la réponse normalement
-    } else {
-      // La réponse indique une erreur
-      // Extrait le message d'erreur de la réponse
-      const errorResponse = await response.json();
-      const errorMessage = errorResponse.message; // Assurez-vous que la propriété "message" existe dans la réponse
-      console.error(`Erreur de l'API : ${errorMessage}`);
-    }
-    // handleHTTPErrors(response, {});
+    handleHTTPErrors(response, {});
     console.log("mute called");
   } catch (errors) {
     throw errors;
