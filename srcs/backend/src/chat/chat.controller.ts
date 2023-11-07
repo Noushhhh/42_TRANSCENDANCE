@@ -93,16 +93,13 @@ export class ChatController {
     @Post('addMessageToChannel')
     async addMessageToChannelId(
         @Body() message: MessageToStoreDto) {
-        try {
             return this.chatService.addMessageToChannelId(message);
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
     }
 
-    @Get('getUsersFromChannelId/:id')
-    async getUsersFromChannelId(@Param('id') id: number): Promise<User[]> {
-        return this.chatService.getUsersFromChannelId(id);
+    @Get('getUsersFromChannelId')
+    async getUsersFromChannelId(
+        @Query() dto: ChannelIdDto): Promise<User[]> {
+        return this.chatService.getUsersFromChannelId(dto.channelId);
     }
 
     @Get('getLoginsInChannelFromSubstring/:channelId/:substring/:userId')

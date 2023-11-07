@@ -229,10 +229,10 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
       throw new Error('Erreur lors de la récupération des données');
     }
 
-    console.log(response);
     channelList = await response.json();
     for (const convId of channelList) {
-      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${convId}`);
+      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${convId}`);
+      handleHTTPErrors(response, {});
       const userList = await response.json();
       if (compareUsersWithNumbers(userList, participants) === true) {
         return convId;
@@ -258,29 +258,33 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     name: '',
     isConnected: false,
   };
-
-  const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
-  const users: User[] = await response.json();
-  if (!users)
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
+    const users: User[] = await response.json();
+    if (!users)
     throw new Error("Error fetching database");
-  if (users.length < 2) {
-    return channelInfo;
-  }
-  var userIndex: number = -1;
-
-  userId === users[0].id ? userIndex = 1 : userIndex = 0;
-
-  await isUserConnected(users[userIndex].id, socket)
+    if (users.length < 2) {
+      return channelInfo;
+    }
+    var userIndex: number = -1;
+    
+    userId === users[0].id ? userIndex = 1 : userIndex = 0;
+    
+    await isUserConnected(users[userIndex].id, socket)
     .then((response: boolean) => {
-      channelInfo.isConnected = response;
-    })
-    .catch((error) => {
-      // Gérer les erreurs, si nécessaire
-    });
-  channelInfo.name = users[userIndex].username;
-  return channelInfo;
+        channelInfo.isConnected = response;
+      })
+      .catch((error) => {
+      throw error;
+      });
+      channelInfo.name = users[userIndex].username;
+      return channelInfo;
+  } catch (errors){
+    throw errors;
+  }
 }
-
+  
 export const kickUserFromChannel = async (
   userId: number,
   channelId: number,
@@ -464,19 +468,13 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
 export const fetchChannelUsers = async (channelId: number): Promise<User[]> => {
 
   try {
-
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
-    if (!response.ok) {
-      throw new Error("Error fetching data");
-    }
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
     const users: User[] = await response.json();
-
     return users;
-
-  } catch (error) {
-    throw new Error("Error fetching data");
+  } catch (errors) {
+    throw errors;
   }
-
 }
 
 
@@ -870,9 +868,7 @@ export const getUsername = async (userId: number): Promise<string> => {
   try {
     const response: Response = await fetch(`http://localhost:4000/api/users/getUsernameWithId?userId=${userId}`);
     handleHTTPErrors(response, {});
-    console.log('before await response');
     const username: string = await response.text();
-    console.log('after await response');
     return username;
   } catch (errors){
     throw errors;
