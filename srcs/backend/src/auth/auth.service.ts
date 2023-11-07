@@ -55,7 +55,7 @@ export class AuthService {
       const user = await this.prisma.user.create({
         data: {
           username: dto.username,
-          hashPassword,
+          hashPassword, 
         },
       });
       console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
@@ -81,8 +81,6 @@ export class AuthService {
    * @return The result of the signin operation.
    */
   async signin(dto: AuthDto, res: Response, req: Request) {
-    if (req.cookies.token)
-      throw new ForbiddenException("someone is already logged in in this sessionn");
     // find user with username
     const user = await this.usersService.findUserWithUsername(dto.username);
     // if user not found throw exception
@@ -93,6 +91,13 @@ export class AuthService {
       console.log("user already logged in ", userLoggedIn.statusCode);
       throw new ForbiddenException('User is already logged in');
     }
+    if (req.cookies.token && userLoggedIn.statusCode == 200)
+      throw new ForbiddenException("someone is already logged in in this sessionn");
+    else {
+      res.clearCookie('token');
+      res.clearCookie('refreshToken');
+    }
+ 
     // compare password
     const passwordMatch = await argon.verify(user.hashPassword, dto.password,);
     // if password wrong throw exception
