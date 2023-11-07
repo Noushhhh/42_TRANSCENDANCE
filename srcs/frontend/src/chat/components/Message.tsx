@@ -36,7 +36,7 @@ function MessageComponent(props: MessageComponentProps) {
     return (
         <div className={`Message Date ${updatedClassNameContainer}`}>
             <p className={`MessageComposant DateComposant ${updatedClassName} ${messageWidth}`}>
-                <span className="username usernameSentMessage">{senderUsername ? senderUsername : null}</span>
+                <span className="usernameSentMessage">{senderUsername ? senderUsername : null}</span>
                 {props.contentMessage}
             </p>
         </div>
