@@ -31,7 +31,7 @@ const HomePage: React.FC = () => {
             </header>
 
             {/* Content container that will render the nested route's component (child route) */}
-            <div className='content'>
+            <div >
                 <Outlet/>
             </div>
         </div>

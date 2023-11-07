@@ -36,7 +36,7 @@ const InputField: React.FC<{ type: string, value: string, onChange: (e: React.Ch
  * @throws Error if API call isn't successful
  */
 const signUpAPI = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:4000/api/auth/signup', {
+    const response = await fetch('http://localhost:8081/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),
@@ -45,9 +45,8 @@ const signUpAPI = async (email: string, password: string) => {
     if (!response.ok) {
         const data = await response.json();
         console.log(data);
-        throw new Error(`${data?.message} | Server responded with status: ${response.status}`);
+        throw new Error(`Status Code: ${data?.statusCode} Message: ${data?.message}`);
     }
-
     return response.json();
 };
 
@@ -80,6 +79,14 @@ const validatePassword = (password: string): string | null => {
     return null;
 };
 
+const validateEmail = (email: string): string | null => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return 'Please enter a valid email address.';
+    }
+    return null;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -102,27 +109,32 @@ const SignUp: React.FC = () => {
      */
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-
         if (password !== confirmPassword) {
             setErrorMessage('Passwords do not match.');
             return;
         }
-
         const passwordValidationError = validatePassword(password);
         if (passwordValidationError) {
             setErrorMessage(passwordValidationError);
             return;
         }
 
+        const emailValidationError = validateEmail(email);
+        if (emailValidationError) {
+            setErrorMessage(emailValidationError);
+            return;
+        }
+
         setIsLoading(true);
         try {
             await signUpAPI(email, password);
-            navigate('/signin');
+            navigate('/signin', { state: { message: 'Your account has been created successfully. Please sign in.' } });
         } catch (error) {
             if (error instanceof Error) {
-                if (error.message.includes('403')) {
+                if (error.message.includes('403')) { // Check the status code of the error
                     setErrorMessage('Email is already registered. Please sign in.');
                 } else {
+                    console.log(error.message);
                     setErrorMessage('An unexpected error occurred. Please try again later.');
                 }
             } else {
@@ -143,7 +155,7 @@ const SignUp: React.FC = () => {
             <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
             <InputField type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
             <button className="button" onClick={handleSubmit} disabled={isLoading || !email || !password || !confirmPassword}>
-                {isLoading ? 'Signing up...' : 'Sign Up'}
+                {isLoading ? (<div>SingUp</div> && <div>Loading...</div>) : (<div>SignUp</div>)}
             </button>
         </div>
     );
