@@ -123,7 +123,8 @@ export const fetchUser = async (
 
 export const getNumberUsersInChannel = async (channelId: number): Promise<number> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
     const numberUsersInChannel: number = await response.json();
     return numberUsersInChannel;
   } catch (error: any) {
@@ -346,19 +347,21 @@ export const getUsernamesInChannelFromSubstring = async (
 
 export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
   try {
-    const requestOptions: RequestInit = {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
-
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
     const numberUsers: number = await response.json();
+  
     if (numberUsers === 2 && userList[0]) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${userList[0].id}/${channelId}/${callerId}`, requestOptions);
+      const userId: number = userList[0].id;
+      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, channelId, callerId })
+      });
+      handleHTTPErrors(response, {});
       if (response.status === 201) {
         console.log(`userId ${userList[0].id} ban of ${channelId}`);
         const data = {
@@ -370,24 +373,29 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
     }
 
     for (const user of userList) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403) {
-        throw new Error("Action disallowed (you are not admin)");
-      }
-      else if (response.status === 406) {
-        throw new Error("You can't ban a channel Admin");
-      } else if (response.status === 201) {
+      const userId: number = user.id;
+      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, channelId, callerId })
+      });
+      const customErrorMessages: ErrorMessages = {
+        403: ": You are not admin",
+        406: ": You can't ban a channel Admin"
+      };
+      handleHTTPErrors(response, customErrorMessages);
+      if (response.status === 201) {
         const data = {
           channelId,
           userId: user.id,
         }
         socket.emit("notifySomeoneLeaveChannel", data);
-        console.log(`userId ${user.id} ban of ${channelId}`);
       }
     }
-
-  } catch (error: any) {
-    console.log("ban user list called error");
+  } catch (error) {
     throw error;
   }
 };
@@ -411,7 +419,11 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
         }
         socket.emit("notifySomeoneLeaveChannel", data);
       }
-      handleHTTPErrors(response, {});
+      const customErrorMessages: ErrorMessages = {
+        403: ": You are not admin",
+        406: ": You can't kick a channel Admin"
+      };
+      handleHTTPErrors(response, customErrorMessages);
     }
   } catch (errors) {
     throw errors;
@@ -468,30 +480,34 @@ export const fetchUserAdminTable = async (channelId: number): Promise<{ user: Us
 }
 
 export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boolean }[], channelId: number, inviterId: number): Promise<void> => {
-
   try {
-
-    const requestOptions: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    };
-
     for (const user of userList) {
+      const invitedId: number = user.user.id;
       const response: Response = new Response();
       if (user.isAdmin === true) {
-        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+          body: JSON.stringify( { inviterId, invitedId, channelId } )
+        });
+        handleHTTPErrors(response, {});
       } else {
-        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+          body: JSON.stringify( { inviterId, invitedId, channelId } )
+        });
+        handleHTTPErrors(response, {});
       }
     }
-
   } catch (error: any) {
-    if (error.status === 403)
-      throw new Error("Action disallowed (you are not admin)");
-    throw new Error("Error updating administrators");
+    throw error;
   }
 
 }

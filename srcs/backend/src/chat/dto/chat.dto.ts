@@ -193,7 +193,7 @@ export class getUsernamesDto {
     substring!: string;
 }
 
-export class KickChannelDto {
+export class KickOrBanChannelDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
@@ -209,4 +209,21 @@ export class KickChannelDto {
     @IsInt()
     @Min(0)
     callerId!: number;
+}
+
+export class ManageAdminDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    inviterId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    invitedId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
 }

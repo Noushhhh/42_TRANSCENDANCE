@@ -2,7 +2,7 @@ import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuard
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
     pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
-    getUsernamesDto, KickChannelDto
+    getUsernamesDto, KickOrBanChannelDto, ManageAdminDto
 } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -126,21 +126,18 @@ export class ChatController {
         return this.chatService.isOwner(dto.userId, dto.channelId);
     }
 
-    // adapter le guard pour prendre en compte Body et non Params
-    // @UseGuards(AdminGuard)
+    @UseGuards(AdminGuard)
     @Post('kickUserFromChannel')
     async kickUserFromChannel(
-        @Body() dto: KickChannelDto): Promise<boolean> {
+        @Body() dto: KickOrBanChannelDto): Promise<boolean> {
         return this.chatService.kickUserFromChannel(dto.userId, dto.channelId, dto.callerId);
     }
 
     @UseGuards(AdminGuard)
-    @Post('banUserFromChannel/:userId/:channelId/:callerId')
+    @Post('banUserFromChannel')
     async banUserFromChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number,
-        @Param('callerId') callerId: number): Promise<boolean> {
-        return this.chatService.banUserFromChannel(userId, channelId, callerId);
+        @Body() dto: KickOrBanChannelDto): Promise<boolean> {
+        return this.chatService.banUserFromChannel(dto.userId, dto.channelId, dto.callerId);
     }
 
     @Post('leaveChannel')
@@ -149,10 +146,10 @@ export class ChatController {
         return this.chatService.leaveChannel(dto.userId, dto.channelId, dto.newOwnerId);
     }
 
-    @Get('getNumberUsersInChannel/:channelId')
+    @Get('getNumberUsersInChannel')
     async getNumberUsersInChannel(
-        @Param('channelId') channelId: number): Promise<number> {
-        return this.chatService.getNumberUsersInChannel(channelId);
+        @Query() dto: ChannelIdDto): Promise<number> {
+        return this.chatService.getNumberUsersInChannel(dto.channelId);
     }
 
     @Get('getAdmins')
@@ -162,29 +159,18 @@ export class ChatController {
         return this.chatService.getAdmins(dto.channelId);
     }
 
-    @Get('isUserIsInChannel/:userId/:channelId')
-    async isUserIsInChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.isUserIsInChannel(userId, channelId);
-    }
-
     @UseGuards(AdminGuard)
-    @Post('addAdminToChannel/:inviterId/:invitedId/:channelId')
+    @Post('addAdminToChannel')
     async addAdminToChannel(
-        @Param('inviterId') inviterId: number,
-        @Param('invitedId') invitedId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.addAdminToChannel(inviterId, invitedId, channelId);
+        @Body() dto: ManageAdminDto): Promise<boolean> {
+        return this.chatService.addAdminToChannel(dto.inviterId, dto.invitedId, dto.channelId);
     }
 
     @UseGuards(AdminGuard)
-    @Post('removeAdminFromChannel/:inviterId/:invitedId/:channelId')
+    @Post('removeAdminFromChannel')
     async removeAdminFromChannel(
-        @Param('inviterId') inviterId: number,
-        @Param('invitedId') invitedId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.removeAdminFromChannel(inviterId, invitedId, channelId);
+        @Body() dto: ManageAdminDto): Promise<boolean> {
+        return this.chatService.removeAdminFromChannel(dto.inviterId, dto.invitedId, dto.channelId);
     }
 
     @Post('addUserToChannel/:userId/:channelId')

@@ -340,21 +340,12 @@ export class ChatService {
     });
   }
 
-  async banUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean> {
+  async banUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
-    const userId = Number(userIdStr);
-    const channelId = Number(channelIdStr);
-    const callerId = Number(callerIdStr);
-
-
-    if (isNaN(userId) || userId <= 0 || isNaN(channelId) || channelId <= 0 || isNaN(callerId) || callerId <= 0) {
-      throw new Error("Invalid arguments");
-    }
     const nbrUser: number = await this.getNumberUsersInChannel(channelId);
 
     if (await this.isAdmin(userId, channelId) === true) {
-      throw new HttpException("You can't ban a channel Admin",
-        HttpStatus.NOT_ACCEPTABLE);
+      throw new NotAcceptableException("You can't ban a channel Admin");
     }
 
     if (await this.getNumberUsersInChannel(channelId) <= 2) {
