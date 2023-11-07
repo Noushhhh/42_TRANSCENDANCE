@@ -11,7 +11,7 @@ interface ChatPromptProps {
   addMessage: (newMessage: Message, messageType: string) => void;
 }
 
-function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
+function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
   const [message, setMessage] = useState("");
 
   const channelId: number = useChannelIdContext();
@@ -54,16 +54,17 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
       messageType: "MessageTo",
     };
     let isUserIsMuted: boolean = false;
-    if (isWhitespace(message)){
+    if (isWhitespace(message)) {
       setMessage("");
-      return
+      return;
     }
-    msgToSend.content += "alors petit con ??";
+    console.log("MESSAGE TO SEND = ", msgToSend);
     socket.emit("message", msgToSend, (response: boolean) => {
       console.log("IS ACTUALLY EMITTING...");
       isUserIsMuted = response;
-      if (isUserIsMuted === true){
-        msgToSend.content = "You are actually blocked from this channel. Others users won't see your message";
+      if (isUserIsMuted === true) {
+        msgToSend.content =
+          "You are actually blocked from this channel. Others users won't see your message";
       }
       addMessage(msgToSend, "MessageTo");
     });

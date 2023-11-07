@@ -12,23 +12,36 @@ export class Lobby {
   gameState = new GameState();
   ballState = this.gameState.gameState.ballState;
 
-  constructor(player: Socket | undefined, playerId: number, private readonly userService: UsersService) {
-    try {
-      this.initializeLobby(player, playerId);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // private constructor(player: Socket | undefined, playerId: number, private readonly userService: UsersService) {
+  //   this.initializeLobby(player, playerId);
+  // }
+  private constructor() { }
 
-  private async initializeLobby(player: Socket | undefined, playerId: number) {
+  // private async initializeLobby(player: Socket | undefined, playerId: number) {
+  //   try {
+  //     const playerDb = await this.userService.findUserWithId(playerId);
+  //     this.player1 = player;
+  //     this.gameState.gameState.p1Id = playerId;
+  //     this.gameState.gameState.p1Name = playerDb.username;
+  //   } catch (error) {
+  //     console.log("ici j'ai l'erreur: ");
+  //     throw error;
+  //   }
+  // }
+
+  public static async create(player: Socket | undefined, playerId: number, userService: UsersService): Promise<Lobby> {
+    const lobby = new Lobby();
+
     try {
-      const playerDb = await this.userService.findUserWithId(playerId);
-      this.player1 = player;
-      this.gameState.gameState.p1Id = playerId;
-      this.gameState.gameState.p1Name = playerDb.username;
+      const playerDb = await userService.findUserWithId(playerId);
+      lobby.player1 = player;
+      lobby.gameState.gameState.p1Id = playerId;
+      lobby.gameState.gameState.p1Name = playerDb.username;
+
+      return lobby;
     } catch (error) {
-      console.log("ici j'ai l'erreur: ");
-      throw error;
+      console.log("An error occurred during lobby initialization:", error);
+      throw error; // You can re-throw the error or handle it here
     }
   }
 

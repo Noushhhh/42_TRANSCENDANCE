@@ -30,6 +30,14 @@ function ContentMessage({
   // useState that represent all the messages inside the socket:
   const [messages, setMessages] = useState<Message[]>([]);
 
+  useEffect(() => {
+    console.log("RENDER CONTENT MESSAGE, messages = ", messages);
+
+    return () => {
+      console.log("RETURN CONTENT MESSAGE, messages = ", messages);
+    };
+  });
+
   // console.log(messages);
 
   const userId: number = useUserIdContext();
@@ -38,11 +46,8 @@ function ContentMessage({
 
   const addMessage = async (newMessage: Message, messageType: string) => {
     newMessage.messageType = messageType;
-    console.log(newMessage);
-    setMessages([...messages, newMessage]);
-    setTimeout(()=>{
-      console.log(messages);
-    }, 500);
+    console.log("nouveau message ici = ", newMessage);
+    setMessages((prevMessage) => [...prevMessage, newMessage]);
   };
 
   return (

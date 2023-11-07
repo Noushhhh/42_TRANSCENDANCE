@@ -70,49 +70,30 @@ export class GameLobbyService {
       }
     }
 
+
     const lobbyName = uuid();
-    try {
-      // var: playerDbId
-      const lobby = new Lobby(player, 124153, this.userService);
-
-      console.log("je vais la ????");
-      lobbies.set(lobbyName, lobby);
-      player?.join(lobbyName);
-      this.gatewayOut.isInLobby(true, player);
-    } catch (error) {
-      console.log("erreur ici = ", error);
-    }
+    // var: playerDbId
+    const lobby = await Lobby.create(player, playerDbId, this.userService);
+    lobbies.set(lobbyName, lobby);
+    player?.join(lobbyName);
+    this.gatewayOut.isInLobby(true, player);
     this.printLobbies();
-  }
-
-  async addPlayerNameToLobby(playerId: number, playerSocketId: string) {
-    for (const [key, lobby] of lobbies) {
-      const gameState = lobby.gameState.gameState;
-      if (lobby.player1?.id === playerSocketId || lobby.player2?.id === playerSocketId) {
-        const user = await this.userService.findUserWithId(playerId);
-        if (user)
-          gameState.p1Id === playerId ? gameState.p1Name = user?.username : gameState.p2Name = user?.username;
-        else
-          throw new Error("Player not found.");
-        this.gatewayOut.emitToRoom(key, 'updateGameState', lobby.gameState.gameState);
-      }
-    }
   }
 
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
     this.socketMap.printSocketMap();
 
+
+
+    const lobbyName = uuid();
+
     const player1 = this.socketMap.getSocket(playerSocketId);
     const player2 = this.socketMap.getSocket(friendSocketId);
 
     if (!player1 || !player2)
-      throw new Error("Error trying to find player socket");
+      throw new NotFoundException("Error trying to find player socket");
 
-    // this.removePlayerFromLobby(player1);
-    // this.removePlayerFromLobby(player2);
-
-    const lobbyName = uuid();
-    const lobby = new Lobby(player1, playerId, this.userService);
+    const lobby = await Lobby.create(player1, playerId, this.userService);
     lobby.player2 = player2;
     lobby.gameState.gameState.p1Id = playerId;
     lobby.gameState.gameState.p2Id = friendId;
@@ -121,7 +102,7 @@ export class GameLobbyService {
 
 
     if (!playerDb1 || !playerDb2)
-      throw new Error("player not found")
+      throw new NotFoundException("player not found")
 
     lobby.gameState.gameState.p1Name = playerDb1.username;
     lobby.gameState.gameState.p2Name = playerDb2.username;
@@ -154,7 +135,7 @@ export class GameLobbyService {
     }
   }
 
-  removePlayerFromLobby(player: Socket) {
+  async removePlayerFromLobby(player: Socket) {
     for (const [key, value] of lobbies) {
       const lobby = lobbies.get(key);
       player.leave(key);
@@ -169,11 +150,11 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p2Id) {
-          this.playerStats.addWinToPlayer(p2Id);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+          await this.playerStats.addWinToPlayer(p2Id);
+          await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
             value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
             value.gameState.gameState.score.p2Score, true, false);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+          await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
             value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
             value.gameState.gameState.score.p1Score, false, true);
         } else { // there is no more player in the lobby
@@ -201,15 +182,14 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p1Id) {
-          this.playerStats.addWinToPlayer(p1Id);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+          await this.playerStats.addWinToPlayer(p1Id);
+          await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
             value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
             value.gameState.gameState.score.p2Score, false, true);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+          await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
             value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
             value.gameState.gameState.score.p1Score, true, false);
         } else { // there is no more player in the lobby
-          console.log("Lobby erased in p2");
           lobbies.delete(key);
         }
 

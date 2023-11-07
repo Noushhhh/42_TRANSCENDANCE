@@ -11,8 +11,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ChatModule } from './chat/chat.module';
 import { GameModule } from './game/game.module';
-import { ChatGateway } from './chat/chat.gateway';
-import { SocketService } from './chat/socket.service';
+// import { ChatGateway } from './chat/chat.gateway';
+// import { SocketService } from './chat/socket.service';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -26,6 +26,6 @@ import { JwtService } from '@nestjs/jwt';
     GameModule
   ],
   controllers: [AppController, ChatController],
-  providers: [AppService, ChatService, PrismaService, ChatGateway, SocketService, AuthService, JwtService],
+  providers: [AppService, ChatService, PrismaService, AuthService, JwtService],
 })
 export class AppModule {}

@@ -11,7 +11,6 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
-import { useConnectSocket } from "../../hooks/useConnectSocket";
 
 interface GameContainerProps {
   socket: Socket | undefined;
@@ -62,25 +61,22 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       start();
       setGameLaunchedRef();
       handlePlayPause();
-      try {
-        fetch("http://localhost:4000/api/game/addGameToPlayer", {
-          method: "GET",
-          credentials: "include",
+
+      fetch("http://localhost:4000/api/game/addGameToPlayer", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok)
+            throw new Error("HTTP error, status: " + response.status);
+          return response.json();
         })
-          .then((response) => {
-            if (!response.ok)
-              throw new Error("HTTP error, status: " + response.status);
-            return response.json();
-          })
-          .then((data) => {
-            console.log(data);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      } catch (error) {
-        console.log("player not found error: ", error);
-      }
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((error) => {
+          console.log("j'ai bien reçu l'erreur = ", error);
+        });
     }, 1500);
   };
 
@@ -110,7 +106,6 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
   };
 
   const isLobbyFullListener = (isLobbyFull: boolean) => {
-    console.log("je passe par la et set isLobbyFull", isLobbyFull);
     setIsLobbyFull(isLobbyFull);
   };
 
