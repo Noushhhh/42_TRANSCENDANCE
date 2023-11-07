@@ -32,6 +32,24 @@ export class UsersService {
         }
     }
     
+    async getUsernameWithId(userId: number): Promise<string> {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new NotFoundException(`User not found with id ${userId}`);
+            }
+            return user.username;
+        } catch (error) {
+            console.error(`Error fetching user with id ${userId}`, error);
+            throw error;
+        }
+    }
+    
+
     async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
         console.log("username INPUT ====", usernameinput);
         try {

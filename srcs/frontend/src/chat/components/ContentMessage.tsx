@@ -39,7 +39,7 @@ function ContentMessage({
   const addMessage = async (newMessage: Message, messageType: string) => {
     newMessage.messageType = messageType;
     console.log(newMessage);
-    setMessages([...messages, newMessage]);
+    setMessages((prevMessage) => [...prevMessage, newMessage]);
     setTimeout(()=>{
       console.log(messages);
     }, 500);

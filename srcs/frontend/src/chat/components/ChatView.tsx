@@ -59,6 +59,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
               contentMessage={message.content}
               messageType={message.messageType}
               channelId={channelId}
+              senderId={message.senderId}
               isChannelInfo={isChannelInfoDisplay}
             />
           );
@@ -70,6 +71,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
               contentMessage={message.content}
               messageType={message.messageType}
               channelId={channelId}
+              senderId={message.senderId}
               isChannelInfo={isChannelInfoDisplay}
             />
           )
