@@ -28,7 +28,7 @@ export class SocketService {
         const socks = await this.server.fetchSockets();
         for (const sock of socks)
         {
-            console.log(`${sock.id}, userId: ${sock.data.userId}`);
+            // console.log(`${sock.id}, userId: ${sock.data.userId}`);
         }
     }
 
