@@ -9,6 +9,7 @@ import { SocketService } from "./socket.service";
 import { ChannelNameDto, PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { ChannelIdPostDto, UserIdPostDto, MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
+import { Not } from "typeorm";
 
 interface MessageToStore {
   channelId: number;
@@ -257,7 +258,7 @@ export class ChatService {
     });
 
     if (!channel) {
-      return false;
+      throw new NotFoundException("Channel not found");
     }
 
     return channel.admins.some((element) => element.id === Number(userId));
@@ -275,13 +276,7 @@ export class ChatService {
     return false;
   }
 
-  async getNumberUsersInChannel(channelIdStr: number): Promise<number> {
-
-    const channelId: number = Number(channelIdStr);
-
-    if (isNaN(channelId)) {
-      throw new Error(`Invalid args`);
-    }
+  async getNumberUsersInChannel(channelId: number): Promise<number> {
 
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
@@ -292,26 +287,21 @@ export class ChatService {
     );
 
     if (!channel) {
-      throw new Error(`getNumberUsersInChannel didnt found channel with id: ${channelId}`);
+      throw new NotFoundException(`Channel not found with id: ${channelId}`);
     }
 
     return (channel.participants.length);
   }
 
-  async kickUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean> {
+  async kickUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
-    const userId = Number(userIdStr);
-    const channelId = Number(channelIdStr);
-    const callerId = Number(callerIdStr);
+    console.log('0');
 
-    if (isNaN(userId) || isNaN(channelId) || isNaN(callerId) || userId <= 0 || channelId <= 0 || callerId <= 0) {
-      throw new Error("Invalid arguments");
-    }
 
-    if (await this.isAdmin(userId, channelId) === true) {
-      throw new HttpException("You can't kick a channel Admin",
-        HttpStatus.NOT_ACCEPTABLE);
-    }
+    if (await this.isAdmin(userId, channelId) === true)
+      throw new NotAcceptableException("You can't kick a channel Admin");
+
+    console.log('1');
 
     if (await this.getNumberUsersInChannel(channelId) === 2) {
       await this.deleteAllMessagesInChannel(channelId);
@@ -322,30 +312,32 @@ export class ChatService {
       return true;
     }
 
+    console.log('2');
+
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
         participants: {
           disconnect: { id: userId }
-        }
-      }
+        },
+      },
     })
+
+    console.log('3');
 
     if (!response)
       return false;
+
+    console.log('4');
 
     return true;
   }
 
   async deleteAllMessagesInChannel(channelId: number): Promise<void> {
-
-    try {
-      await this.prisma.message.deleteMany({
-        where: { channelId, }
-      });
-    } catch (error) {
-      throw new Error("Error updating message table");
-    }
+    await this.getChannelById(channelId);
+    await this.prisma.message.deleteMany({
+      where: { channelId, }
+    });
   }
 
   async banUserFromChannel(userIdStr: number, channelIdStr: number, callerIdStr: number): Promise<boolean> {

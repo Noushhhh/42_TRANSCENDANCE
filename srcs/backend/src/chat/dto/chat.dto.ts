@@ -192,3 +192,21 @@ export class getUsernamesDto {
     @MaxLength(150)
     substring!: string;
 }
+
+export class KickChannelDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    callerId!: number;
+}

@@ -285,37 +285,6 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     throw errors;
   }
 }
-  
-export const kickUserFromChannel = async (
-  userId: number,
-  channelId: number,
-  setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
-  socket: Socket,
-  callerId: number): Promise<boolean> => {
-
-  if (isNaN(channelId) || channelId <= 0 || isNaN(userId) || userId <= 0 || isNaN(callerId) || callerId <= 0) {
-    throw new Error("Invalid parameters");
-  }
-
-  const requestOptions: RequestInit = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json", // Add appropriate headers if needed
-    },
-    body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
-  };
-
-  const response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${userId}/${channelId}/${callerId}`, requestOptions);
-  if (!response)
-    return false;
-
-  if (response.status === 403) {
-    console.log("acces refuse :", response.statusText);
-  }
-
-  await fetchUser(setChannelHeader, userId, socket);
-  return true;
-}
 
 export const leaveChannel = async (
   userId: number,
@@ -331,7 +300,7 @@ export const leaveChannel = async (
         "Content-Type": "application/json",
       },
       credentials: 'include',
-    body: JSON.stringify({ userId, channelId, newOwnerId }),
+      body: JSON.stringify({ userId, channelId, newOwnerId }),
   };
   const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
   handleHTTPErrors(response, {});
@@ -425,34 +394,27 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
 
 export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
   try {
-    console.log('kick user is called');
-
-    const requestOptions: RequestInit = {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     for (const user of userList) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403) {
-        throw new Error("Action disallowed (you are not admin)");
-      }
-      else if (response.status === 406) {
-        throw new Error("You can't kick a channel Admin");
-      } else if (response.status === 201) {
+      const userId: number = user.id;
+      const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, channelId, callerId })
+      });
+      if (response.status === 201) {
         const data = {
           channelId,
           userId: user.id
         }
         socket.emit("notifySomeoneLeaveChannel", data);
       }
+      handleHTTPErrors(response, {});
     }
-
-  } catch (error: any) {
-    throw error;
+  } catch (errors) {
+    throw errors;
   }
 };
 
@@ -812,17 +774,6 @@ export const getChannelType = async (channelId: number) => {
     throw error;
   }
 }
-
-/*export const isAdmin = async (channelId: number, userId: number) => {
-  try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/isAdmin?channelId=${channelId}&userId=${userId}`);
-    handleHTTPErrors(response, {});
-    const isAdmin = await response.json();
-    console.log(isAdmin);
-  } catch (error) {
-    throw error;
-  }
-}*/
 
 export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
   try {

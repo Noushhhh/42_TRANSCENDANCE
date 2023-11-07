@@ -2,7 +2,7 @@ import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuard
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
     pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
-    getUsernamesDto
+    getUsernamesDto, KickChannelDto
 } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -120,26 +120,18 @@ export class ChatController {
         return this.chatService.addChannelToUser(channelInfo);
     }
 
-    @Get('isAdmin')
-    async isAdmin(
-        @Query() dto: PairUserIdChannelId): Promise<boolean> {
-        return this.chatService.isAdmin(dto.userId, dto.channelId);
-    }
-
     @Get('isOwner')
     async isOwner(
         @Query() dto: PairUserIdChannelId): Promise<boolean> {
-        return this.chatService.isAdmin(dto.userId, dto.channelId);
+        return this.chatService.isOwner(dto.userId, dto.channelId);
     }
 
-    @UseGuards(AdminGuard)
-    @Post('kickUserFromChannel/:userId/:channelId/:callerId')
+    // adapter le guard pour prendre en compte Body et non Params
+    // @UseGuards(AdminGuard)
+    @Post('kickUserFromChannel')
     async kickUserFromChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number,
-        @Param('callerId') callerId: number): Promise<boolean> {
-        console.log("kick user called");
-        return this.chatService.kickUserFromChannel(userId, channelId, callerId);
+        @Body() dto: KickChannelDto): Promise<boolean> {
+        return this.chatService.kickUserFromChannel(dto.userId, dto.channelId, dto.callerId);
     }
 
     @UseGuards(AdminGuard)
