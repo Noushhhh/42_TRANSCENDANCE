@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Socket } from 'socket.io-client';
 import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
+import { ErrorSharp } from '@mui/icons-material';
 
 interface Message {
   id: number // id: 0
@@ -344,19 +345,15 @@ export const leaveChannel = async (
 }
 
 export const getUsernamesBySubstring = async (userIdCaller: number, substring: string): Promise<User[]> => {
-
-  if (isNaN(userIdCaller) || userIdCaller <= 0)
-    throw new Error("userId is NaN");
-
-  const cleanSubstring: string = encodeURIComponent(substring);
-
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getLoginsFromSubstring/${cleanSubstring}`);
+    const cleanSubstring: string = encodeURIComponent(substring);
+    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesFromSubstring?substring=${cleanSubstring}`);
+    handleHTTPErrors(response, {});
     const listUsers: User[] = await response.json();
     const filteredListUsers = listUsers.filter((user: User) => user.id !== userIdCaller);
     return filteredListUsers;
-  } catch (error) {
-    throw new Error("Error fetching data");
+  } catch (errors) {
+    throw errors;
   }
 }
 
@@ -366,21 +363,15 @@ export const getUsernamesInChannelFromSubstring = async (
   userId: number
 ): Promise<User[] | null> => {
 
-  if (isNaN(channelId) || channelId <= 0) {
-    throw new Error("Invalid channelId");
-  }
-
   const cleanSubstring: string = encodeURIComponent(substringLogin);
 
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getLoginsInChannelFromSubstring/${channelId}/${cleanSubstring}/${userId}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
-    }
+    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`);
+    handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     return users;
-  } catch (error) {
-    throw new Error("Failed to fetch data");
+  } catch (errors) {
+    throw errors;
   }
 }
 

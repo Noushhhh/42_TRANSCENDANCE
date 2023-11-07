@@ -166,5 +166,29 @@ export class MessageToStoreDto {
     @IsInt()
     @Min(0)
     senderId!: number;
+}
 
+export class getChannelUsernamesDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    substring!: string;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}
+
+export class getUsernamesDto {
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    substring!: string;
 }

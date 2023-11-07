@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Inject, NotFoundException, BadRequestException, NotAcceptableException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Inject, NotFoundException, BadRequestException, NotAcceptableException, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType, MutedUser } from "@prisma/client";
 import { ChatGateway } from "./chat.gateway";
@@ -179,30 +179,23 @@ export class ChatService {
     })
   }
 
-  async getUsersFromChannelId(id: number): Promise<User[]> {
-
-    const channelId = Number(id);
-
-    if (isNaN(channelId) || channelId <= 0) {
-      throw new Error("Invalid channelId");
-    }
-
+  async getUsersFromChannelId(channelId: number): Promise<User[]> {
     try {
       const users = await this.prisma.channel.findUnique({
         where: { id: channelId },
       }).participants();
 
       if (!users)
-        return [];
+        throw new NotFoundException("Users not found");
 
       return users;
 
     } catch (error) {
-      throw new Error(`getUsersFromChannelId: Failed to get users from channel with ID ${id}`);
+      throw new Error(`Failed to get users from channel with id: ${channelId}`);
     }
   }
 
-  async getLoginsFromSubstring(substring: string): Promise<User[]> {
+  async getUsernamesFromSubstring(substring: string): Promise<User[]> {
 
     const users: User[] = await this.prisma.user.findMany({
       where: {
@@ -219,20 +212,20 @@ export class ChatService {
   }
 
   async addChannelToUser(channelInfo: channelToAdd): Promise<number> {
+    try {
+      const channels = await this.prisma.channel.findMany();
+      if (!channels)
+        throw new NotFoundException("Error getting channels");
+      const existingChannelNames = channels.map(channel => channel.name);
 
-    const channels = await this.prisma.channel.findMany();
-    const existingChannelNames = channels.map(channel => channel.name);
-
-    if (existingChannelNames.some(channelName => channelInfo.name === channelName))
-      if (channelInfo.name) {
-        console.log("channel must be unique!!");
-        throw new HttpException("ChannelName must be unique", HttpStatus.NOT_ACCEPTABLE);
+      if (existingChannelNames.some(channelName => channelInfo.name === channelName)){
+        if (channelInfo.name)
+          throw new NotAcceptableException("ChannelName must be unique");
       }
 
-    const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
-    participants.push({ id: channelInfo.ownerId });
+      const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
+      participants.push({ id: channelInfo.ownerId });
 
-    try {
       const hashPassword = await argon.hash(channelInfo.password);
       const newChannel: Channel = await this.prisma.channel.create({
         data: {
@@ -242,7 +235,7 @@ export class ChatService {
           // admins: channelInfo.ownerId,
           type: ChannelType[channelInfo.type as keyof typeof ChannelType],
           participants: {
-            connect: participants,
+              connect: participants,
           },
           admins: {
             connect: [{ id: channelInfo.ownerId }]
@@ -250,10 +243,10 @@ export class ChatService {
         },
       });
       if (!newChannel)
-        throw new Error("Error creating channel");
+        throw new ServiceUnavailableException("Error creating channel");
       return newChannel.id;
-    } catch (error) {
-      throw error;
+    } catch (errors) {
+      throw errors;
     }
   }
 
@@ -573,13 +566,7 @@ export class ChatService {
     return true;
   }
 
-  async getLoginsInChannelFromSubstring(channelIdStr: number, substring: string, userId: number): Promise<User[]> {
-
-    const channelId: number = Number(channelIdStr);
-
-    if (isNaN(channelId)) {
-      throw new Error("Invalid arguments: ChannelId is NaN");
-    }
+  async getUsernamesInChannelFromSubstring(channelId: number, substring: string, userId: number): Promise<User[]> {
 
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
@@ -591,9 +578,6 @@ export class ChatService {
     }
 
     const caller: User | undefined = await this.userService.findUserWithId(userId);
-
-    if (!caller)
-      throw new NotFoundException("User not found");
 
     const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
 

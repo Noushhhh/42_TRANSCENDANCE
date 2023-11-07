@@ -1,7 +1,8 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
-    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto
+    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
+    getUsernamesDto
 } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -102,26 +103,21 @@ export class ChatController {
         return this.chatService.getUsersFromChannelId(dto.channelId);
     }
 
-    @Get('getLoginsInChannelFromSubstring/:channelId/:substring/:userId')
-    async getLoginsInChannelFromSubstring(
-        @Param('substring') substring: string,
-        @Param('channelId') channelId: number,
-        @Param('userId') userId: number): Promise<User[]> {
-        return this.chatService.getLoginsInChannelFromSubstring(channelId, substring, userId)
+    @Get('getUsernamesInChannelFromSubstring')
+    async getUsernamesInChannelFromSubstring(
+        @Query() dto: getChannelUsernamesDto): Promise<User[]> {
+        return this.chatService.getUsernamesInChannelFromSubstring(dto.channelId, dto.substring, dto.userId)
     }
 
-    @Get('getLoginsFromSubstring/:substring')
-    async getLoginsFromSubstring(@Param('substring') substring: string): Promise<User[]> {
-        return this.chatService.getLoginsFromSubstring(substring)
+    @Get('getUsernamesFromSubstring')
+    async getUsernamesFromSubstring(
+        @Query() dto: getUsernamesDto): Promise<User[]> {
+        return this.chatService.getUsernamesFromSubstring(dto.substring)
     }
 
     @Post('addChannelToUser')
     async addChannelToUser(@Body() channelInfo: CreateChannelDto): Promise<number> {
-        try {
-            return this.chatService.addChannelToUser(channelInfo);
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
+        return this.chatService.addChannelToUser(channelInfo);
     }
 
     @Get('isAdmin')
