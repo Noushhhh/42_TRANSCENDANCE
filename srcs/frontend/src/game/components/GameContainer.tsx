@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket, io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import GameMenu from "./GameMenu";
@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
+import SocketError from "./gameNetwork/SocketError";
 
 interface GameContainerProps {
   socket: Socket | undefined;

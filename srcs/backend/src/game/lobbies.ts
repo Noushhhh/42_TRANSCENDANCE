@@ -29,7 +29,7 @@ export class Lobby {
   //   }
   // }
 
-  public static async create(player: Socket | undefined, playerId: number, userService: UsersService): Promise<Lobby> {
+  public static async create(player: Socket | undefined, playerId: number, userService: UsersService): Promise<Lobby | null> {
     const lobby = new Lobby();
 
     try {
@@ -41,7 +41,7 @@ export class Lobby {
       return lobby;
     } catch (error) {
       console.log("An error occurred during lobby initialization:", error);
-      throw error; // You can re-throw the error or handle it here
+      return null;
     }
   }
 

@@ -17,6 +17,7 @@ import {
   Chat,
   useActivityLogout,
 } from "./home/components/index";
+import SocketError from "./game/components/gameNetwork/SocketError";
 import IoConnection from "./socket/IoConnection";
 import "./App.css";
 import { Socket } from "socket.io-client";
@@ -57,6 +58,7 @@ const App: React.FC = () => {
             <HomePage />
             <IoConnection setSocket={setSocket} socketRef={socketRef} />
             <GameInvitation socket={socketRef.current} />
+            <SocketError socket={socketRef.current}></SocketError>
           </ProtectedRoute>
         }
       >
