@@ -26,12 +26,12 @@ export class AuthController {
     }
 
   @Public()
-  @Post('signup')
+  @Post('signup' )
   async signup(@Body() dto: AuthDto, @Res() res: Response) {
       return await this.authService.signup(dto, res);
   }
 
-  @Post('signin')
+  @Post('signin' )
   async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
 
     return await this.authService.signin(dto, res, req);

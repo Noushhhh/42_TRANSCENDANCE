@@ -34,7 +34,7 @@ const MockComponent: React.FC = () => {
 
 const App: React.FC = () => {
 
-  useActivityLogout(600000);
+  // useActivityLogout(600000);
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
 
