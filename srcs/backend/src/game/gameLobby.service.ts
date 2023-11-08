@@ -34,7 +34,9 @@ export class GameLobbyService {
   async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
-    if (!player) return;
+    if (!player) {
+      throw new NotFoundException("player not found");
+    }
 
     if (this.isInLobby(player)) {
       console.log('Already in a lobby', player?.id);
@@ -47,16 +49,20 @@ export class GameLobbyService {
           value.player1 = player;
           value.gameState.gameState.p1Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
-          if (!playerDb)
-            throw new NotFoundException("player not found")
-          value.gameState.gameState.p1Name = playerDb?.username;
+          if (!playerDb) {
+            throw new NotFoundException("player not found");
+          }
+          const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
+          value.gameState.gameState.p1Name = playerUserName;
         } else if (!value.player2) {
           value.player2 = player;
           value.gameState.gameState.p2Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
-          if (!playerDb)
-            throw new NotFoundException("player not found")
-          value.gameState.gameState.p2Name = playerDb?.username;
+          if (!playerDb) {
+            throw new NotFoundException("player not found");
+          }
+          const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
+          value.gameState.gameState.p2Name = playerUserName;
         }
         player?.join(key);
         this.gatewayOut.isInLobby(true, player);
@@ -71,12 +77,10 @@ export class GameLobbyService {
       }
     }
 
-
     const lobbyName = uuid();
     const lobby = await Lobby.create(player, playerDbId, this.userService);
     if (!lobby) {
-      this.gatewayOut.emitToUser(player?.id, "error", { statusCode: 404, message: "Error during lobby creation" });
-      return;
+      throw new NotFoundException("Error during lobby creation");
     }
 
     lobbies.set(lobbyName, lobby);

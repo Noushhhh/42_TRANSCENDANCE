@@ -73,7 +73,7 @@ export class playerStatistics {
     });
 
     if (!player) {
-      return -1
+      throw new NotFoundException("Player not found")
     }
 
     await this.prisma.user.update({

@@ -15,9 +15,20 @@ import SocketError from "./gameNetwork/SocketError";
 
 interface GameContainerProps {
   socket: Socket | undefined;
+  error: string;
+  handleError: (error: SocketErrorObj) => void;
 }
 
-const GameContainer: FC<GameContainerProps> = ({ socket }) => {
+interface SocketErrorObj {
+  statusCode: number;
+  message: string;
+}
+
+const GameContainer: FC<GameContainerProps> = ({
+  socket,
+  error,
+  handleError,
+}) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
@@ -76,7 +87,10 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           console.log(data);
         })
         .catch((error) => {
-          console.log("j'ai bien reçu l'erreur = ", error);
+          handleError({
+            statusCode: 404,
+            message: "Adding game to history failed",
+          });
         });
     }, 1500);
   };
@@ -163,7 +177,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       );
     }
   } else if (isInLobby === false && socket) {
-    return <GameMenu socket={socket} />;
+    return <GameMenu socket={socket} handleError={handleError} />;
   }
 };
 

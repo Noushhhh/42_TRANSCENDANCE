@@ -37,7 +37,11 @@ export class GameController {
   @Get('lobby')
   async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
     if (req.user) {
-      await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
+      try { // dto.clientId
+        await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
+      } catch (error) {
+        throw error;
+      }
       return { status: 'player connected to lobby' };
     }
     return { status: 'player not connected to lobby' };
@@ -47,7 +51,11 @@ export class GameController {
   @Get('addGameToPlayer')
   async addGameToPlayer(@Req() req: Request) {
     if (req.user) {
-      await this.playerStats.addGamePlayedToOneUser(req.user?.id);
+      try { // req.user?.id
+        await this.playerStats.addGamePlayedToOneUser(1347);
+      } catch (error) {
+        throw error;
+      }
       return { msg: 'player games incremented' };
     }
     return { msg: 'error trying to increment game played' };

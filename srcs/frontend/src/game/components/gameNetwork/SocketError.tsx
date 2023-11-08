@@ -3,6 +3,8 @@ import { Socket } from "socket.io-client";
 
 interface SocketErrorProps {
   socket: Socket | undefined;
+  error: string;
+  handleError: (error: SocketErrorObj) => void;
 }
 
 interface SocketErrorObj {
@@ -10,28 +12,25 @@ interface SocketErrorObj {
   message: string;
 }
 
-const SocketError: FC<SocketErrorProps> = ({ socket }) => {
-  const [error, setError] = useState<string>("");
-  const [errorStatus, setErrorStatus] = useState<number>(0);
+const SocketError: FC<SocketErrorProps> = ({ socket, error, handleError }) => {
+  // const [error, setError] = useState<string>("");
+  // const [errorStatus, setErrorStatus] = useState<number>(0);
 
   useEffect(() => {
     socket?.on("error", handleError);
-    console.log("socket.id = ", socket?.id);
 
     return () => {
       socket?.off("error", handleError);
     };
   });
 
-  const handleError = (error: SocketErrorObj) => {
-    setError(error.message);
-    setErrorStatus(error.statusCode);
-    console.error("error %d : %s", error.statusCode, error.message);
-    setTimeout(() => {
-      setError("");
-      setErrorStatus(0);
-    }, 1500);
-  };
+  // const handleError = (error: SocketErrorObj) => {
+  //   setError(error.message);
+  //   console.error("error %d : %s", error.statusCode, error.message);
+  //   setTimeout(() => {
+  //     setError("");
+  //   }, 1500);
+  // };
 
   return (
     <div

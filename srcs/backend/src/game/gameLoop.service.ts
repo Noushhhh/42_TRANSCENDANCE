@@ -133,9 +133,20 @@ export class GameLoopService {
         if (score.p1Score === SCORE_TO_WIN || score.p2Score === SCORE_TO_WIN) {
           const gameState = lobby.gameState.gameState;
           const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
-          await this.playerStats.addWinToPlayer(winnerId);
-          await this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false);
-          await this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false);
+          const winnerSocket = this.getSocketIdWithId(winnerId);
+          if (await this.playerStats.addWinToPlayer(winnerId) === -1) {
+            if (winnerSocket)
+              this.gatewayOut.emitToUser(winnerSocket, "error", { statusCode: 404, message: "player not found" });
+          }
+          if (await this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false) === -1 ||
+            await this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false) === -1) {
+            const p1SocketId = this.getSocketIdWithId(gameState.p1Id);
+            const p2SocketId = this.getSocketIdWithId(gameState.p2Id);
+            if (p1SocketId && p2SocketId) {
+              this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error trying to add game in match history" });
+              this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error trying to add game in match history" });
+            }
+          }
           this.gatewayOut.emitToRoom(key, "printWinner", score.p1Score === SCORE_TO_WIN ? `${lobby.gameState.gameState.p1Name} WON!` : `${lobby.gameState.gameState.p2Name} WON!`)
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {
@@ -153,4 +164,14 @@ export class GameLoopService {
       }
     }
   };
+
+  private getSocketIdWithId(playerId: number): string | undefined {
+    for (const [key, value] of lobbies) {
+      console.log("player id and pId in gameState", playerId, value.gameState.gameState.p1Id, value.gameState.gameState.p2Id)
+      if (playerId === value.gameState.gameState.p1Id || playerId === value.gameState.gameState.p2Id) {
+        return playerId === value.gameState.gameState.p1Id ? value.player1?.id : value.player2?.id;
+      }
+    }
+    return undefined;
+  }
 }

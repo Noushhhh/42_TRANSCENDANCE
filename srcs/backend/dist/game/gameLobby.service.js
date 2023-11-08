@@ -51,8 +51,9 @@ let GameLobbyService = class GameLobbyService {
         return __awaiter(this, void 0, void 0, function* () {
             this.gatewayOut.updateLobbiesGameState();
             const player = this.socketMap.getSocket(playerId);
-            if (!player)
-                return;
+            if (!player) {
+                throw new common_1.NotFoundException("player not found");
+            }
             if (this.isInLobby(player)) {
                 console.log('Already in a lobby', player === null || player === void 0 ? void 0 : player.id);
                 return;
@@ -63,17 +64,21 @@ let GameLobbyService = class GameLobbyService {
                         value.player1 = player;
                         value.gameState.gameState.p1Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
-                        if (!playerDb)
+                        if (!playerDb) {
                             throw new common_1.NotFoundException("player not found");
-                        value.gameState.gameState.p1Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        }
+                        const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        value.gameState.gameState.p1Name = playerUserName;
                     }
                     else if (!value.player2) {
                         value.player2 = player;
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
-                        if (!playerDb)
+                        if (!playerDb) {
                             throw new common_1.NotFoundException("player not found");
-                        value.gameState.gameState.p2Name = playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        }
+                        const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
+                        value.gameState.gameState.p2Name = playerUserName;
                     }
                     player === null || player === void 0 ? void 0 : player.join(key);
                     this.gatewayOut.isInLobby(true, player);
@@ -90,8 +95,7 @@ let GameLobbyService = class GameLobbyService {
             const lobbyName = (0, uuid_1.v4)();
             const lobby = yield lobbies_1.Lobby.create(player, playerDbId, this.userService);
             if (!lobby) {
-                this.gatewayOut.emitToUser(player === null || player === void 0 ? void 0 : player.id, "error", { statusCode: 404, message: "Error during lobby creation" });
-                return;
+                throw new common_1.NotFoundException("Error during lobby creation");
             }
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
