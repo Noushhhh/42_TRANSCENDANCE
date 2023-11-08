@@ -5,31 +5,34 @@ import { Socket } from "socket.io-client";
 
 interface GameMenuProps {
   socket: Socket;
+  handleError: (error: SocketErrorObj) => void;
 }
 
-const GameMenu: FC<GameMenuProps> = ({ socket }) => {
+interface SocketErrorObj {
+  statusCode: number;
+  message: string;
+}
+
+const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
   // @to-do REMOVE LOCALHOST
   const lobby = () => {
-    try {
-      fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`, {
-        method: "GET",
-        credentials: "include",
+    fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Player not found " + response.status);
+        }
+        return response.json();
       })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("HTTP error, status: " + response.status);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } catch (error) {
-      console.log("error: ", error);
-    }
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((error) => {
+        handleError({ statusCode: 404, message: "Error in lobby creation" });
+        console.error(error);
+      });
   };
 
   return (

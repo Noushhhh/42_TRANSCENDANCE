@@ -2,7 +2,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GamePhysics from "./gamePhysics/GamePhysics";
 import "../styles/GameContainer.css";
 import ScoreBoard from "./gameNetwork/ScoreBoard";
-import { Socket, io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { GameState } from "../assets/data";
 import WaitingForPlayer from "./gameNetwork/WaitingForPlayer";
 import GameMenu from "./GameMenu";
@@ -11,12 +11,24 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
+import SocketError from "./gameNetwork/SocketError";
 
 interface GameContainerProps {
   socket: Socket | undefined;
+  error: string;
+  handleError: (error: SocketErrorObj) => void;
 }
 
-const GameContainer: FC<GameContainerProps> = ({ socket }) => {
+interface SocketErrorObj {
+  statusCode: number;
+  message: string;
+}
+
+const GameContainer: FC<GameContainerProps> = ({
+  socket,
+  error,
+  handleError,
+}) => {
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
@@ -75,7 +87,10 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
           console.log(data);
         })
         .catch((error) => {
-          console.log("j'ai bien reçu l'erreur = ", error);
+          handleError({
+            statusCode: 404,
+            message: "Adding game to history failed",
+          });
         });
     }, 1500);
   };
@@ -162,7 +177,7 @@ const GameContainer: FC<GameContainerProps> = ({ socket }) => {
       );
     }
   } else if (isInLobby === false && socket) {
-    return <GameMenu socket={socket} />;
+    return <GameMenu socket={socket} handleError={handleError} />;
   }
 };
 
