@@ -158,7 +158,7 @@ export class AuthService {
 
     const token = await this.jwt.signAsync(
       payload,
-      { expiresIn: '15m', secret: secret, },
+      { expiresIn: '30d', secret: secret, },
     );
 
     const refreshToken = await this.refreshTokenIfNeeded(userId);
@@ -534,7 +534,7 @@ export class AuthService {
    * @return The 2FA secret and otpauth URL.
    */
 
-  generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
+  generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {  
     const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
     const otpauthUrl = speakeasy.otpauthURL({
       secret: secret.base32,

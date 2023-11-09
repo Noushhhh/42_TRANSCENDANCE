@@ -4,7 +4,7 @@
   background: none;
   border: none;
   padding: 0;
-  color: purple;
+  color: var(--purple-color); 
   text-decoration: underline;
   cursor: pointer;
   outline: none;
