@@ -196,7 +196,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = { sub: userId, email, };
             const secret = this.JWT_SECRET;
-            const token = yield this.jwt.signAsync(payload, { expiresIn: '15m', secret: secret, });
+            const token = yield this.jwt.signAsync(payload, { expiresIn: '30d', secret: secret, });
             const refreshToken = yield this.refreshTokenIfNeeded(userId);
             return { token, refreshToken };
         });

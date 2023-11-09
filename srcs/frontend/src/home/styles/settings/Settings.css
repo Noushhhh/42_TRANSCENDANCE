@@ -1,3 +1,25 @@
+@import '../generalStyles.css';
+
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.item {
+  margin-top: 3%;
+}
+
+.item:last-child {
+  margin-bottom: 0;
+}
+
+.h3 {
+  color: var(--white-color);
+}
+
 .loading-enter,
 .fade-enter,
 .fade-appear {

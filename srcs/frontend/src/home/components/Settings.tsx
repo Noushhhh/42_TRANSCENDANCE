@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { getPublicName, getUserAvatar, updatePublicName, updateAvatar, hasMessage } from '../tools/Api';
 import SignOutLink from '../tools/SignoutLink';
 import { CSSTransition } from 'react-transition-group';
-import '../styles/settings/Settings.css';
+import  '../styles/generalStyles.css'
 import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
 
 
@@ -134,7 +134,7 @@ const Settings: React.FC = React.memo(() => {
 
   if (showLoading) {
     return (
-      <div className='container'>
+      <div className='settings-container'>
         <LoadingSpinner />
       </div>
     );
@@ -154,41 +154,44 @@ const Settings: React.FC = React.memo(() => {
   // We also give it to our element using the "ref" prop. This way, the "CSSTransition" component can find our element easily, just like how we can find someone easily if they're wearing a name tag!
 
   return (
-    <div className='container'>
+    <div className='settings-container'>
+
       {/* nodeRef for username */}
       <CSSTransition nodeRef={usernameRef} in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
-        <h3 ref={usernameRef} className=''>{username}</h3>
+        <h3  className="h3" ref={usernameRef} >{username}</h3>
       </CSSTransition>
 
       {isUpdatingProfileName && (
         <CSSTransition in={true} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingProfileName(false)}>
           <>
-            <input type="text" value={newUsername ?? ''} onChange={e => setNewPublicName(e.target.value)} />
-            <button onClick={checkUsernameAndUpdate}>Confirm</button>
+            <input type="text" className='item' value={newUsername ?? ''} onChange={e => setNewPublicName(e.target.value)} />
+            <button className="button" style={{'margin' : '2%'}} onClick={checkUsernameAndUpdate}>Confirm</button>
           </>
         </CSSTransition>
       )}
 
-      <button onClick={() => setIsUpdatingProfileName(!isUpdatingProfileName)}> Update Public Name </button>
+      <button className="button" onClick={() => setIsUpdatingProfileName(!isUpdatingProfileName)}> Update Public Name </button>
 
       {/* nodeRef for avatar */}
       <CSSTransition nodeRef={avatarRef} in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
-        <img ref={avatarRef} className='img' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
+        <img ref={avatarRef}  className='item' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
       </CSSTransition>
 
 
       {isUpdatingAvatar && (
         <CSSTransition in={isUpdatingAvatar} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingAvatar(false)}>
           <>
-            <input type="file" onChange={e => e.target.files && checkAndShowInputAvatar(e.target.files[0])} />
-            <button onClick={sendNewAvatarToBack}>Confirm</button>
+            <input type="file"  style={{'margin' : "1%" , 'color' : 'white'}} onChange={e => e.target.files && checkAndShowInputAvatar(e.target.files[0])} />
+            <button className="button" style={{'margin' : '2%'}} onClick={sendNewAvatarToBack}>Confirm</button>
           </>
         </CSSTransition>
       )}
 
-      <button onClick={() => setIsUpdatingAvatar(!isUpdatingAvatar)}> Update Avatar </button>
+      <button className="button" style={{'marginTop': '1%'}} onClick={() => setIsUpdatingAvatar(!isUpdatingAvatar)}> Update Avatar </button>
 
-      <SignOutLink />
+      <div style={{'marginTop' : '3%'}}>
+        < SignOutLink />
+      </div>
 
       {promptError && <p>{promptError}</p>}
     </div>
