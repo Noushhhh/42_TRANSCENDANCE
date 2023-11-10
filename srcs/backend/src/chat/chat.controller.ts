@@ -116,7 +116,8 @@ export class ChatController {
     }
 
     @Post('addChannelToUser')
-    async addChannelToUser(@Body() channelInfo: CreateChannelDto): Promise<number> {
+    async addChannelToUser(
+        @Body() channelInfo: CreateChannelDto): Promise<number> {
         return this.chatService.addChannelToUser(channelInfo);
     }
 
@@ -173,11 +174,10 @@ export class ChatController {
         return this.chatService.removeAdminFromChannel(dto.inviterId, dto.invitedId, dto.channelId);
     }
 
-    @Post('addUserToChannel/:userId/:channelId')
+    @Post('addUserToChannel')
     async addUserToChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<number> {
-        return this.chatService.addUserToChannel(userId, channelId);
+        @Body() dto: PairUserIdChannelId): Promise<number> {
+        return this.chatService.addUserToChannel(dto.userId, dto.channelId);
     }
 
     @Post('addUserToProtectedChannel')

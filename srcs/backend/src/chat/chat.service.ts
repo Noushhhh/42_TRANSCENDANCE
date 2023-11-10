@@ -135,7 +135,7 @@ export class ChatService {
     return user.blockedUsers.map(user => user.id);
   }
 
-  async getAllMessagesByChannelId( channelId: number, userId: number): Promise<Message[]> {
+  async getAllMessagesByChannelId(channelId: number, userId: number): Promise<Message[]> {
 
     const channel = await this.prisma.channel.findUnique({
       where: {
@@ -166,7 +166,7 @@ export class ChatService {
     await this.getChannelById(message.channelId);
 
     let isUserMuted: { isMuted: boolean, isSet: boolean, rowId: number };
-    isUserMuted = await this.isMute({userId: message.senderId, channelId: message.channelId});
+    isUserMuted = await this.isMute({ userId: message.senderId, channelId: message.channelId });
 
     if (isUserMuted.isMuted === true)
       return;
@@ -219,7 +219,7 @@ export class ChatService {
         throw new NotFoundException("Error getting channels");
       const existingChannelNames = channels.map(channel => channel.name);
 
-      if (existingChannelNames.some(channelName => channelInfo.name === channelName)){
+      if (existingChannelNames.some(channelName => channelInfo.name === channelName)) {
         if (channelInfo.name)
           throw new NotAcceptableException("ChannelName must be unique");
       }
@@ -236,7 +236,7 @@ export class ChatService {
           // admins: channelInfo.ownerId,
           type: ChannelType[channelInfo.type as keyof typeof ChannelType],
           participants: {
-              connect: participants,
+            connect: participants,
           },
           admins: {
             connect: [{ id: channelInfo.ownerId }]
@@ -261,7 +261,7 @@ export class ChatService {
       throw new NotFoundException("Channel not found");
     }
 
-    return channel.admins.some((element) => element.id === Number(userId));
+    return channel.admins.some((element) => element.id === userId);
   }
 
   async isOwner(userId: number, channelId: number): Promise<boolean> {
@@ -287,7 +287,7 @@ export class ChatService {
     );
 
     if (!channel) {
-      throw new NotFoundException(`Channel not found with id: ${channelId}`);
+      throw new NotFoundException(`Channel not found`);
     }
 
     return (channel.participants.length);
@@ -295,13 +295,8 @@ export class ChatService {
 
   async kickUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
-    console.log('0');
-
-
     if (await this.isAdmin(userId, channelId) === true)
       throw new NotAcceptableException("You can't kick a channel Admin");
-
-    console.log('1');
 
     if (await this.getNumberUsersInChannel(channelId) === 2) {
       await this.deleteAllMessagesInChannel(channelId);
@@ -312,8 +307,6 @@ export class ChatService {
       return true;
     }
 
-    console.log('2');
-
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
@@ -323,12 +316,8 @@ export class ChatService {
       },
     })
 
-    console.log('3');
-
     if (!response)
       return false;
-
-    console.log('4');
 
     return true;
   }
@@ -342,11 +331,10 @@ export class ChatService {
 
   async banUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
-    const nbrUser: number = await this.getNumberUsersInChannel(channelId);
+    await this.getChannelById(channelId);
 
-    if (await this.isAdmin(userId, channelId) === true) {
+    if (await this.isAdmin(userId, channelId) === true)
       throw new NotAcceptableException("You can't ban a channel Admin");
-    }
 
     if (await this.getNumberUsersInChannel(channelId) <= 2) {
       await this.deleteAllMessagesInChannel(channelId);
@@ -455,46 +443,41 @@ export class ChatService {
 
   async addAdminToChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean> {
 
-    try {
+    const inviterId: number = Number(inviterIdStr);
+    const invitedId: number = Number(invitedIdStr);
+    const channelId: number = Number(channelIdStr);
 
-      const inviterId: number = Number(inviterIdStr);
-      const invitedId: number = Number(invitedIdStr);
-      const channelId: number = Number(channelIdStr);
+    if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
+      throw new Error("Wrong parameters passed to addAdminToChannel");
+    }
 
-      if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
-        throw new Error("Wrong parameters passed to addAdminToChannel");
-      }
+    if (await this.isAdmin(inviterId, channelId) === false) {
+      throw new ForbiddenException("Is not admin");
+    }
 
-      if (await this.isAdmin(inviterId, channelId) === false) {
-        throw new ForbiddenException("Is not admin");
-      }
+    if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
+      throw new NotFoundException("addAdminToChannel: user you want to add to admin is not in channel")
+    }
 
-      if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
-        throw new Error("addAdminToChannel: user you want to add to admin is not in channel")
-      }
+    const userToAdd = await this.prisma.user.findUnique({
+      where: { id: invitedId }
+    })
 
-      const userToAdd = await this.prisma.user.findUnique({
-        where: { id: invitedId }
-      })
+    if (!userToAdd)
+      return false;
 
-      if (!userToAdd)
-        return false;
-
-      const response = await this.prisma.channel.update({
-        where: { id: channelId },
-        data: {
-          admins: {
-            connect: {
-              id: invitedId,
-            }
+    const response = await this.prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        admins: {
+          connect: {
+            id: invitedId,
           }
         }
-      })
-      if (!response)
-        throw new Error("addAdminToChannel: Channel not found");
-    } catch (error) {
-      throw new Error("Error in addAdminToChannel");
-    }
+      }
+    })
+    if (!response)
+      throw new NotFoundException("addAdminToChannel: Channel not found");
     return true;
   }
 
@@ -585,7 +568,7 @@ export class ChatService {
     const channelId: number = Number(channelIdStr);
 
     if (await this.isUserIsBan(channelId, userId))
-      throw new HttpException("User is ban from this channel", HttpStatus.NOT_ACCEPTABLE);
+      throw new NotAcceptableException("User is ban from this channel");
 
     const channel = await this.prisma.channel.update({
       where: { id: channelId },
@@ -662,7 +645,7 @@ export class ChatService {
       where: { id: channelId }
     })
     if (!channel)
-      throw new NotFoundException(`Channel with id ${channelId} not found`);
+      throw new NotFoundException(`Channel not found`);
     return channel;
   }
 
@@ -694,11 +677,11 @@ export class ChatService {
 
   async unblockUser(callerId: number, targetId: number) {
 
-    await this.getUserById(targetId);
-    await this.getUserById(callerId);
-
     if (callerId === targetId)
       throw new UnauthorizedException('Can\'t block yourself');
+
+    await this.getUserById(targetId);
+    await this.getUserById(callerId);
 
     await this.prisma.user.update({
       where: { id: callerId },

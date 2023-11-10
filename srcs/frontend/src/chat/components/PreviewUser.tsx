@@ -26,10 +26,6 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
             setMutedUntil(event.target.value);
     };
 
-    const callSetMutedUntil = async () => {
-
-    }
-
     if (mutedMode) {
         return (
             <div className="PreviewUser MutedMode fadeIn">

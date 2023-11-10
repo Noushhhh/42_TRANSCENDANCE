@@ -80,7 +80,8 @@ function ChatPrompt({ addMessage, }: ChatPromptProps): JSX.Element {
   }, []);
 
   const messageEvent = (data: Message) => {
-    console.log("do i trigger my own event ?");
+    console.log("Message received:");
+    console.log(data);
     if (!data) return;
     if (isWhitespace(data.content)) return;
     addMessage(data, "MessageFrom");
