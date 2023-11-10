@@ -22,11 +22,19 @@ function Stats() {
   };
 
   return (
-    <div>
+    <div style={{ width: "100%", height: "100%" }}>
       {userId === 0 ? (
         <>Loading ...</>
       ) : (
-        <div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            height: "100%",
+          }}
+        >
           <GameStats userId={userId} />
           <MatchHistory userId={userId} />
         </div>

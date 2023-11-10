@@ -45,8 +45,6 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
 
       const formattedResponse = await response.json();
 
-      console.log("c'est good ? ", formattedResponse.matchHistory);
-      console.log(formattedResponse);
       setMatchHistory(formattedResponse.matchHistory.reverse());
 
       setIsLoading(false);
@@ -72,6 +70,9 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
         gap: "1rem",
         overflow: "scroll",
         maxHeight: "50vh",
+        width: "40%",
+        border: "2px solid white",
+        padding: "0.5rem",
       }}
     >
       {matchHistory.map((match, id) => (
