@@ -51,8 +51,8 @@ export class GameController {
   @Get('addGameToPlayer')
   async addGameToPlayer(@Req() req: Request) {
     if (req.user) {
-      try { // req.user?.id
-        await this.playerStats.addGamePlayedToOneUser(1347);
+      try {
+        await this.playerStats.addGamePlayedToOneUser(req.user?.id);
       } catch (error) {
         throw error;
       }

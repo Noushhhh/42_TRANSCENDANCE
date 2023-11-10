@@ -14,6 +14,7 @@ import { GameModule } from './game/game.module';
 import { SocketService } from './chat/socket.service';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { JwtService } from '@nestjs/jwt';
     ConfigModule.forRoot({}),
     ChatModule,
     PrismaModule,
-    GameModule
+    GameModule,
+    StatsModule
   ],
   controllers: [AppController, ChatController],
   providers: [AppService, ChatService, PrismaService, SocketService, AuthService, JwtService],
