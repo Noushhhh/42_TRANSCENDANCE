@@ -31,7 +31,6 @@ export class ChatGateway implements OnModuleInit {
 
             if (response) {
                 socket.data.userId = response;
-                console.log(`${socket.data.userId} is connecting...`);
                 // next allow us to accept the incoming socket as the token is valid
                 next();
             } else {
@@ -88,6 +87,14 @@ export class ChatGateway implements OnModuleInit {
         }
     }
 
+    async notifyChannelDeleted(channelId: number, participantsIds: number[]){
+        for (const id of participantsIds){
+            const socket = await this.getSocketByUserId(id);
+            if (socket)
+                socket.emit("channelDeleted", channelId);
+        }
+    }
+
     @SubscribeMessage("joinChannel")
     handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is joining channelId: ${channelId}`);
@@ -117,6 +124,7 @@ export class ChatGateway implements OnModuleInit {
         if (!socket)
             return
         socket.join(String(channelId));
+        socket.emit("addedToChannel");
         console.log(`userId: ${userId} is joining of ${channelId}`);
     }
 
@@ -135,15 +143,12 @@ export class ChatGateway implements OnModuleInit {
 
     @SubscribeMessage('message')
     async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
-        let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
+        let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number  };
         isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
         if (isSenderMuted.isMuted === true){
             return true ;
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
-        data.content += " passing server side ";
-        console.log("passing by emit message with");
-        console.log(data);
         client.to(String(data.channelId)).emit("messageBack", data);
         return false ;
     }

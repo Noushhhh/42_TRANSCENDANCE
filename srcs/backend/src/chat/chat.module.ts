@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 
 @Module ({
-    imports: [PrismaModule, ChatModule],
+    imports: [PrismaModule],
     controllers: [ChatController],
     providers: [ChatService, ConfigService, ChatGateway, SocketService, AuthService, JwtService, UsersService],
 })

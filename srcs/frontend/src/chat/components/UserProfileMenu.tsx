@@ -12,7 +12,7 @@ import {
   isUserIsBlockedBy,
   fetchConversation,
 } from "./ChannelUtils";
-import { useSetChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -37,6 +37,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
+  const channelId: number = useChannelIdContext();
 
   const socket = useSocketContext();
   const userId = useUserIdContext();
@@ -105,7 +106,12 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           userId,
           socket
         );
+        const data = {
+          channelId,
+          userId: user.id
+        }
         socket.emit("joinChannel", channelIdCreated);
+        socket.emit("notifySomeoneJoinChannel", data);
       } catch (error) {
         console.log("error while creating channel");
       }

@@ -88,9 +88,6 @@ export const fetchUser = async (
       },
       body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
-    if (response.status === 400){
-      return;
-    }
 
     const listChannelId = await response.json();
 

@@ -9,7 +9,6 @@ import { SocketService } from "./socket.service";
 import { ChannelNameDto, PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { ChannelIdPostDto, UserIdPostDto, MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
-import { Not } from "typeorm";
 
 interface MessageToStore {
   channelId: number;
@@ -39,8 +38,9 @@ export class ChatService {
     // "readonly" to be sure that socketService can't be substitute with
     // others services (security)
     // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
-    private readonly socketService: SocketService,
+    // private readonly socketService: SocketService,
     private readonly userService: UsersService,
+    // private readonly chatGateway: ChatGateway
   ) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
@@ -75,51 +75,45 @@ export class ChatService {
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
-
-    try {
-      const channel = await this.prisma.channel.findUnique({
-        where: {
-          id: channelId,
-        },
-        include: {
-          messages: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 1,
+    const channel = await this.prisma.channel.findUnique({
+      where: {
+        id: channelId,
+      },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
           },
-          participants: {}
+          take: 1,
         },
-      });
+        participants: {}
+      },
+    });
 
-      if (!channel) {
-        throw new ForbiddenException("Channel does not exist");
-      }
-
-      let lastMessage = channel.messages[0];
-
-      const numberParticipants = channel.participants.length;
-
-      const channelHeader: ChannelLight = {
-        name: numberParticipants > 2 ? channel.name : "",
-        lastMsg: lastMessage ? lastMessage.content : '',
-        dateLastMsg: lastMessage ? lastMessage.createdAt : null,
-        channelId,
-      };
-
-      let userBlockedLastMessageSender: boolean = false;
-
-      if (lastMessage)
-        userBlockedLastMessageSender = await this.isUserIsBlockedBy(userId, lastMessage.senderId);
-
-      if (userBlockedLastMessageSender)
-        channelHeader.lastMsg = "";
-
-      return channelHeader;
+    if (!channel) {
+      throw new NotFoundException("Channel not found");
     }
-    catch (error) {
-      throw new Error("Error fetching database");
-    }
+
+    let lastMessage = channel.messages[0];
+
+    const numberParticipants = channel.participants.length;
+
+    const channelHeader: ChannelLight = {
+      name: numberParticipants > 2 ? channel.name : "",
+      lastMsg: lastMessage ? lastMessage.content : '',
+      dateLastMsg: lastMessage ? lastMessage.createdAt : null,
+      channelId,
+    };
+
+    let userBlockedLastMessageSender: boolean = false;
+
+    if (lastMessage)
+      userBlockedLastMessageSender = await this.isUserIsBlockedBy(userId, lastMessage.senderId);
+
+    if (userBlockedLastMessageSender)
+      channelHeader.lastMsg = "";
+
+    return channelHeader;
   }
 
   async getBlockedUsersById(userId: number): Promise<number[]> {
@@ -293,6 +287,13 @@ export class ChatService {
     return (channel.participants.length);
   }
 
+  async notifyClientChannelDeleted(channelId: number): Promise<void>{
+    await this.getChannelById(channelId);
+    const users: User[] = await this.getUsersFromChannelId(channelId);
+    const ids: number[] = users.map(user => user.id);
+    // this.chatGateway.notifyChannelDeleted(channelId, ids);
+  }
+
   async kickUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
     if (await this.isAdmin(userId, channelId) === true)
@@ -303,7 +304,8 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
+      await this.notifyClientChannelDeleted(channelId);
+      // this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
       return true;
     }
 
@@ -341,7 +343,8 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(callerId, channelId);
+      await this.notifyClientChannelDeleted(channelId);
+      // this.socketService.alertChannelDeleted(callerId, channelId);
       return true;
     }
 
@@ -360,13 +363,7 @@ export class ChatService {
     return true;
   }
 
-  async leaveChannel(userIdStr: number, channelIdStr: number, newOwnerId?: number): Promise<boolean> {
-
-    const userId = Number(userIdStr);
-    const channelId = Number(channelIdStr);
-
-    if (isNaN(userId) || isNaN(channelId))
-      return false;
+  async leaveChannel(userId: number, channelId: number, newOwnerId?: number): Promise<boolean> {
 
     await this.getChannelById(channelId);
 
@@ -402,7 +399,8 @@ export class ChatService {
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
-      this.socketService.alertChannelDeleted(userId, channelId);
+      await this.notifyClientChannelDeleted(channelId);
+      // this.socketService.alertChannelDeleted(userId, channelId);
       return true;
     }
 
@@ -421,14 +419,7 @@ export class ChatService {
     return true;
   }
 
-  async isUserIsInChannel(userIdStr: number, channelIdStr: number): Promise<boolean> {
-
-    const userId: number = Number(userIdStr);
-    const channelId: number = Number(channelIdStr);
-
-    if (isNaN(userId) || isNaN(channelId)) {
-      throw new Error("Wrong parameters passed to addAdminToChannel");
-    }
+  async isUserIsInChannel(userId: number, channelId: number): Promise<boolean> {
 
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
@@ -436,26 +427,19 @@ export class ChatService {
     });
 
     if (!channel)
-      throw new Error("IsUserIsInChannel: user not found");
+      throw new NotFoundException("IsUserIsInChannel: user not found");
 
     return channel.participants.some((elem) => elem.id === userId);
   }
 
-  async addAdminToChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean> {
+  async addAdminToChannel(inviterId: number, invitedId: number, channelId: number): Promise<boolean> {
 
-    const inviterId: number = Number(inviterIdStr);
-    const invitedId: number = Number(invitedIdStr);
-    const channelId: number = Number(channelIdStr);
-
-    if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
-      throw new Error("Wrong parameters passed to addAdminToChannel");
-    }
 
     if (await this.isAdmin(inviterId, channelId) === false) {
       throw new ForbiddenException("Is not admin");
     }
 
-    if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
+    if (await this.isUserIsInChannel(invitedId, channelId) === false) {
       throw new NotFoundException("addAdminToChannel: user you want to add to admin is not in channel")
     }
 
@@ -481,16 +465,7 @@ export class ChatService {
     return true;
   }
 
-  async removeAdminFromChannel(inviterIdStr: number, invitedIdStr: number, channelIdStr: number): Promise<boolean> {
-
-
-    const inviterId: number = Number(inviterIdStr);
-    const invitedId: number = Number(invitedIdStr);
-    const channelId: number = Number(channelIdStr);
-
-    if (isNaN(invitedId) || isNaN(inviterId) || isNaN(channelId)) {
-      throw new Error("Wrong parameters passed to addAdminToChannel");
-    }
+  async removeAdminFromChannel(inviterId: number, invitedId: number, channelId: number): Promise<boolean> {
 
     if (inviterId === invitedId) {
       throw new HttpException("You can't kick yourself", HttpStatus.FORBIDDEN);
@@ -506,7 +481,7 @@ export class ChatService {
         HttpStatus.FORBIDDEN);
     }
 
-    if (await this.isUserIsInChannel(invitedIdStr, channelId) === false) {
+    if (await this.isUserIsInChannel(invitedId, channelId) === false) {
       throw new HttpException(`user: ${invitedId} is not in channel`,
         HttpStatus.FORBIDDEN);
     }
@@ -563,9 +538,7 @@ export class ChatService {
     return channel.admins;
   }
 
-  async addUserToChannel(userIdStr: number, channelIdStr: number): Promise<number> {
-    const userId: number = Number(userIdStr);
-    const channelId: number = Number(channelIdStr);
+  async addUserToChannel(userId: number, channelId: number): Promise<number> {
 
     if (await this.isUserIsBan(channelId, userId))
       throw new NotAcceptableException("User is ban from this channel");
@@ -585,22 +558,20 @@ export class ChatService {
   }
 
   async isChannelNameExist(channelName: string): Promise<isChannelExist | false> {
-    try {
-      const isExist = await this.prisma.channel.findFirst({
-        where: { name: channelName },
-      })
-      if (isExist) {
-        return {
-          isExist: true,
-          channelType: isExist.type,
-          id: isExist.id
-        };
-      }
-      else {
-        return false;
-      }
-    } catch (error) {
-      throw new Error("Error searching channel");
+    const isExist = await this.prisma.channel.findFirst({
+      where: { name: channelName },
+    })
+    if (!isExist)
+      throw new NotFoundException("Channel not found");
+    if (isExist) {
+      return {
+        isExist: true,
+        channelType: isExist.type,
+        id: isExist.id
+      };
+    }
+    else {
+      return false;
     }
   }
 
@@ -615,18 +586,14 @@ export class ChatService {
     return channel.bannedUsers.some(user => user.id === userId);
   }
 
-  async addUserToProtectedChannel(channelId: number, password: string, userId: number): Promise<void> {
-    try {
-      const channel = await this.getChannelById(channelId);
-      if (!channel.password)
-        throw new ForbiddenException('Channel password not found');
-      const passwordMatch = await argon.verify(channel.password, password);
-      if (!passwordMatch)
-        throw new ForbiddenException('Incorrect channel password');
-      await this.addUserToChannel(userId, channelId);
-    } catch (error) {
-      throw error;
-    }
+  async addUserToProtectedChannel(channelId: number, providedPassword: string, userId: number): Promise<void> {
+    const channel = await this.getChannelById(channelId);
+    if (!channel.password)
+      throw new ForbiddenException('Channel password not found');
+    const passwordMatch = await argon.verify(channel.password, providedPassword);
+    if (!passwordMatch)
+      throw new ForbiddenException('Incorrect channel password');
+    await this.addUserToChannel(userId, channelId);
   }
 
   async getUserById(channelId: number): Promise<User | null> {
@@ -848,7 +815,5 @@ export class ChatService {
         mutedUntil: dto.mutedUntil,
       },
     })
-
   }
-
 }
