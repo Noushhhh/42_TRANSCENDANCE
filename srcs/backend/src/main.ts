@@ -31,6 +31,7 @@ async function bootstrap() {
       'Content-Type',
       'Access-Control-Request-Method',
       'Access-Control-Request-Headers',
+      'x-user-id',
     ],
     optionsSuccessStatus: 200,
     credentials: true,
