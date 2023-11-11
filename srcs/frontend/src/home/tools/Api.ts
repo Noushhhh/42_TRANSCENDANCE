@@ -134,38 +134,3 @@ export const fetchImageAsFile = async (imageUrl: string, imageName: string): Pro
         throw error; // Re-throw the error to allow higher level handling
     }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
-* ****************************************************************************
- * Update profile on the backend.
- * @param {File | null} profileImage - The profile image file.
- * @param {string} profileName - The profile name.
- * @returns {Promise<boolean>} A promise that resolves to a boolean indicating the success of the update.
- * @throws {Error} If the update fails.
-* ****************************************************************************
-*/
-export const updateProfileBackend = async (profileImage: File | null, profileName: string) => {
-  const formData = new FormData();
-  formData.append("profileImage", profileImage || new Blob());
-  formData.append("profileName", profileName);
-
-  const response = await fetch("http://localhost:8081/api/users/update", {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-
-  const data = await response.json();
-
-  if (data.valid) {
-    return true;
-  } else {
-    throw new Error(
-      ` ${data?.statusCode}: ${data?.message}` ||
-        "An error occurred when reaching the server to update your profile, please contact the website administrator"
-    );
-  }
-};
-

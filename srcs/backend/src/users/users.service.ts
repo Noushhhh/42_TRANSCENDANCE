@@ -1,11 +1,17 @@
-import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UseFilters } from "@nestjs/common";
+import {
+    ForbiddenException, Injectable, NotFoundException, UnauthorizedException,
+    InternalServerErrorException,
+    Response as NestResponse
+} from "@nestjs/common";
+import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { UserProfileData } from '../interfaces/user.interface';
-import multer from 'multer';
+import { ExtractJwt } from '../decorators/extract-jwt.decorator';
+import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+import * as fs from 'fs';
 
 
 @Injectable()
@@ -41,23 +47,18 @@ export class UsersService {
             const user = await this.prisma.user.findUnique({
                 where: { username: payload?.email },
             });
-
-            if (!user?.firstConnexion) {
+            const isNotRegistered = user?.firstConnexion;
+            if (isNotRegistered) {
+                throw new NotFoundException('Client is not registered yet');
+            } else {
                 return {
                     statusCode: 200,
                     valid: true,
                     message: 'Client already registered',
                 };
-            } else {
-                return {
-                    statusCode: 404,
-                    valid: false,
-                    message: 'Client is not registered yet',
-                };
             }
         } catch (error) {
-            console.error(`Passing by isClientRegistered ${error}`);
-            return { statusCode: 401, valid: false, message: error };
+            throw new UnauthorizedException(error);
         }
     }
 
@@ -145,6 +146,39 @@ export class UsersService {
         }
     }
 
+
+    async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
+        // Get the user profile using the decoded payload's subject
+        const user = await this.getUserData(decodedPayload.sub);
+        const path = user?.avatar;
+    
+        if (!path) {
+            throw new NotFoundException('Avatar not found');
+        }
+    
+        // Set the appropriate MIME type for the avatar image
+        // This example assumes the avatar is a JPEG image, adjust accordingly
+        res.type('image/jpeg');
+    
+        // Create a read stream for the avatar file
+        const stream = fs.createReadStream(path);
+    
+        stream.on('open', () => {
+            stream.pipe(res);
+        });
+    
+        stream.on('error', (err: NodeJS.ErrnoException) => {
+            // Handle file read/stream errors
+            if (err.code === 'ENOENT') {
+                // File not found, throw NestJS NotFoundException
+                throw new NotFoundException('Avatar not found');
+            } else {
+                // Other errors, throw NestJS InternalServerErrorException
+                throw new InternalServerErrorException('Error fetching avatar');
+            }
+        });
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
 
@@ -192,7 +226,8 @@ export class UsersService {
 
             },
         });
-
+        if (!user)
+            throw new NotFoundException('User not found in getUserData service');
         return user;
     }
 
@@ -219,7 +254,7 @@ export class UsersService {
                     publicName: publicName,
                     firstConnexion: false
                 },
-                
+
             });
             return ({
                 statusCode: 200,
@@ -231,8 +266,8 @@ export class UsersService {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
         try {
@@ -275,7 +310,7 @@ export class UsersService {
             throw new UnauthorizedException();
         return user;
     }
-   
+
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
@@ -290,13 +325,13 @@ export class UsersService {
                 throw new NotFoundException(`User not found with id ${userId}`);
             }
             return user;
-        } 
+        }
         catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
             throw error;
         }
     }
-    
+
     async getUsernameWithId(userId: number): Promise<string> {
         try {
             const user = await this.prisma.user.findUnique({
@@ -313,7 +348,7 @@ export class UsersService {
             throw error;
         }
     }
-    
+
 
     async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
         console.log("username INPUT ====", usernameinput);

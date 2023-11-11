@@ -1,22 +1,24 @@
-// import { PrismaService } from '../prisma/prisma.service';
-import { AllExceptionsFilter } from '../auth/exception/all-exception.filter';
+// NestJS and related imports
 import {
-    Controller, Get, UseGuards, Req, Post,
-    Put, UseInterceptors, UploadedFile,
-    Request as NestRequest,
-    Response as NestResponse, Query, UseFilters
-} from '@nestjs/common'
-import { Prisma, User } from '@prisma/client';
-import { Request, Response } from 'express';
+    Controller, Get, Post, Put, Query,
+    UseGuards, UseInterceptors, UploadedFile,
+    UseFilters, Req, Request as NestRequest,
+    Response as NestResponse, UnauthorizedException,
+    NotFoundException
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+
+// Local imports from within the project
+import { AllExceptionsFilter } from '../auth/exception/all-exception.filter';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { UsersService } from './users.service';
 import { UserIdDto } from './dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-import * as fs from 'fs';
-import { UserProfileData } from '../interfaces/user.interface';
-import { PassportSerializer } from '@nestjs/passport';
+import { Response } from 'express';
+
+// External libraries or utilities
+import { User } from '@prisma/client';
 
 
 @UseFilters(AllExceptionsFilter)
@@ -44,43 +46,6 @@ export class   UsersController {
 
     /**
     * ****************************************************************************
-       * Updates the user's publicName and avatar.
-       * @async
-       * @post
-       * @param {Express.Multer.File} profileImage - User's profile image.
-       * @param {Request} req - Express request object.
-       * @param {DecodedPayload | null} decodedPayload - Decoded JWT payload.
-       * @param {Response} res - Express response object.
-       * @returns {Promise<Response>} - Returns a promise that resolves with the response object.
-    * ****************************************************************************
-    */
-    @Post('update')
-    @UseInterceptors(FileInterceptor('profileImage'))
-    async createOrUpdateProfile(
-        @UploadedFile() profileImage: Express.Multer.File,
-        @NestRequest() req: Request,
-        @ExtractJwt() decodedPayload: DecodedPayload | null,
-        @NestResponse() res: Response
-    ): Promise<Response> {
-
-        this.checkDecodedPayload(decodedPayload, res, "Unable to decode token in \
-      user module, createOrUpdateProfile controller\n");
-
-        const { profileName } = req.body;
-        const result = await this.UsersService.handleProfileSetup(
-            decodedPayload,
-            profileName,
-            profileImage
-        );
-        return res
-            .status(result.statusCode)
-            .json({ statusCode: result.statusCode, valid: result.valid, message: result.message });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-    * ****************************************************************************
        * Checks if the client has already registered their publicName.
        * @async
        * @get
@@ -93,19 +58,16 @@ export class   UsersController {
     async checkFirstConnection(
         @ExtractJwt() decodedPayload: DecodedPayload | null,
         @NestResponse() res: Response
-    ): Promise<Response> {
-        if (!decodedPayload) {
-            console.error(
-                'Unable to decode token in isClientRegistered controller in user module\n'
-            );
+    ): Promise<any> {
+        try {
+            const result = await this.UsersService.isClientRegistered(decodedPayload);
             return res
-                .status(401)
-                .json({ statusCode: 404, valid: false, message: 'Unable to decode token in usermodule' });
+                .status(result.statusCode)
+                .json({ statusCode: result.statusCode, valid: result.valid, message: result.message });
+
+        } catch (error) {
+            throw new UnauthorizedException(error);
         }
-        const result = await this.UsersService.isClientRegistered(decodedPayload);
-        return res
-            .status(result.statusCode)
-            .json({ statusCode: result.statusCode, valid: result.valid, message: result.message });
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -123,29 +85,10 @@ export class   UsersController {
         @ExtractJwt() decodedPayload: DecodedPayload,
         @NestResponse() res: Response
     ) {
-        this.checkDecodedPayload(decodedPayload, res, "Unable to decode token in user \
-      module getUserAvatar controller" )
-
-        // Get the user profile using the decoded payload's subject
-        const user = await this.UsersService.getUserData(decodedPayload.sub);
-        if (!user) {
-            return (res.status(404).send({ statusCode: 404, valid: false, message: "User doesn't exist\n" }));
-        }
-        if (user.avatar) {
-
-            // Create a read stream for the avatar file
-            const stream = fs.createReadStream(user.avatar);
-
-            // Handle stream errors
-            stream.on('error', (error) => {
-                console.error('Error reading avatar file:', error);
-                res.status(500).send('Error reading avatar file');
-            });
-            // Pipe the stream to the response
-            stream.pipe(res);
-        } else {
-            // If the user doesn't have an avatar, return a 404 status
-            return (res.status(404).send({ statusCode: 404, message: "Avatar not found" }));
+        try {
+            await this.UsersService.getUserAvatar(decodedPayload, res)
+        } catch (error) {
+            throw error;
         }
     }
 
@@ -215,11 +158,11 @@ export class   UsersController {
     // ─────────────────────────────────────────────────────────────────────────────
 
 
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    getMe(@Req() req: Request) {
-        return req.user;
-    }
+    // @UseGuards(JwtAuthGuard)
+    // @Get('me')
+    // getMe(@Req() req: Request) {
+    //     return req.user;
+    // }
 
     @Get('UserWithId')
     FindWithId(userId: number): Promise<User>{

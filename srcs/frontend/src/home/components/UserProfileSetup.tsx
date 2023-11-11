@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
-import { fetchImageAsFile, updateAvatar, updateProfileBackend, updatePublicName } from "../tools/Api";
+import { fetchImageAsFile, updateAvatar, updatePublicName } from "../tools/Api";
 
 const defaultImage ='defaultProfileImage.jpg';
 

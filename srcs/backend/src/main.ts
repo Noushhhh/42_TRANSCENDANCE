@@ -55,5 +55,10 @@ async function bootstrap() {
   await app.listen(4000);
 }
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, throwing an error, or other logic here
+});
+
 // Call the bootstrap function to start the application
 bootstrap();
