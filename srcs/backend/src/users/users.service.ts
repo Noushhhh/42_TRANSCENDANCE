@@ -14,6 +14,7 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import * as fs from 'fs';
 
 
+
 @Injectable()
 export class UsersService {
     // Declare private variables for JWT secret and upload folder path
@@ -64,51 +65,68 @@ export class UsersService {
 
     // ─────────────────────────────────────────────────────────────────────
 
+    /**
+     * Retrieves and sends the user's avatar image in the response.
+     * 
+     * @param {DecodedPayload} decodedPayload - The JWT decoded payload.
+     * @param {Response} res - The response object from NestJS.
+     * @throws {NotFoundException} - Throws when the avatar or user is not found.
+     * @throws {InternalServerErrorException} - Throws for any other errors.
+     */
     async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
-        // Get the user profile using the decoded payload's subject
-        const user = await this.getUserData(decodedPayload.sub);
-        const path = user?.avatar;
-    
-        if (!path) {
-            throw new NotFoundException('Avatar not found');
-        }
-    
-        // Set the appropriate MIME type for the avatar image
-        // This example assumes the avatar is a JPEG image, adjust accordingly
-        res.type('image/jpeg');
-    
-        // Create a read stream for the avatar file
-        const stream = fs.createReadStream(path);
-    
-        stream.on('open', () => {
-            stream.pipe(res);
-        });
-    
-        stream.on('error', (err: NodeJS.ErrnoException) => {
-            // Handle file read/stream errors
-            if (err.code === 'ENOENT') {
-                // File not found, throw NestJS NotFoundException
+        try {
+            // Get the user profile using the decoded payload's subject (usually the user ID)
+            const user = await this.getUserData(decodedPayload.sub);
+            
+            // Check if the user has an avatar set
+            const path = user?.avatar;
+            if (!path) {
                 throw new NotFoundException('Avatar not found');
-            } else {
-                // Other errors, throw NestJS InternalServerErrorException
-                throw new InternalServerErrorException('Error fetching avatar');
             }
-        });
+    
+            // Set the appropriate MIME type for the avatar image
+            // This example assumes the avatar is a JPEG image, adjust accordingly
+            res.type('image/jpeg');
+    
+            // Create a read stream for the avatar file
+            const stream = fs.createReadStream(path);
+    
+            stream.on('open', () => {
+                // Pipe the read stream to the response object to send the image data
+                stream.pipe(res);
+            });
+    
+            stream.on('error', (err: NodeJS.ErrnoException) => {
+                // Handle file read/stream errors
+                if (err.code === 'ENOENT') {
+                    // File not found, throw NestJS NotFoundException
+                    throw new NotFoundException('Avatar not found');
+                } else {
+                    // Other errors, throw NestJS InternalServerErrorException
+                    throw new InternalServerErrorException('Error fetching avatar');
+                }
+            });
+        } catch (error) {
+            // Catch any other errors that might occur and throw an InternalServerErrorException
+            console.error('Error in getUserAvatar service:', error);
+            throw new InternalServerErrorException('Error in getUserAvatar service');
+        }
     }
+    
 
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
 
     /**
-    * ****************************************************************************
+     * ****************************************************************************
      * Saves an image to the local folder.
      * @async
      * @private
      * @param {Express.Multer.File} file - Image file to be saved.
      * @param {string} filePath - File path where the image will be saved.
      * @returns {Promise<void>} - Returns a promise that resolves when the image is saved.
-    * ****************************************************************************
-    */
+     * ****************************************************************************
+     */
     private async saveImageToLocalFolder(
         file: Express.Multer.File,
         filePath: string
@@ -125,10 +143,24 @@ export class UsersService {
 
             // End the write stream
             writeStream.end();
+
+            // Return a promise that resolves when the write stream finishes writing
+            return new Promise((resolve, reject) => {
+                writeStream.on('finish', resolve);
+                writeStream.on('error', (error: Error) => {
+                    // Log the error and reject the promise if an error occurs during the write process
+                    console.error('Error saving image to local folder:', error);
+                    reject(new InternalServerErrorException('Failed to save image to local folder'));
+                });
+            });
         } catch (error) {
-            throw error;
+            // If an exception is thrown during the process, log the error
+            console.error('Error in saveImageToLocalFolder service:', error);
+            // Throw a NestJS InternalServerErrorException for consistent error handling
+            throw new InternalServerErrorException('Error in saveImageToLocalFolder service');
         }
     }
+
 
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
@@ -151,81 +183,120 @@ export class UsersService {
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Updates the public name of a user.
+     *
+     * @param {number} userId - The ID of the user.
+     * @param {string} publicName - The new public name to be set for the user.
+     * @returns {object} - An object with the status of the update operation.
+     * @throws {ForbiddenException} - Throws when the public name is already taken by another user.
+     * @throws {NotFoundException} - Throws if there is an error during the update process.
+     */
     async updatePublicName(userId: number, publicName: string) {
-
-        const user = await this.prisma.user.findUnique({
-            where: { publicName: publicName },
-            select: {
-                id: true,
-                username: true,
-                publicName: true,
-            },
-        });
-
-        if (user && user?.id !== userId)
-            throw new ForbiddenException("User already taken, take another one");
         try {
+            // Check if the public name is already taken by another user
+            const user = await this.prisma.user.findUnique({
+                where: { publicName: publicName },
+                select: {
+                    id: true,
+                    username: true,
+                    publicName: true,
+                },
+            });
+
+            // If the public name is taken by another user, throw a ForbiddenException
+            if (user && user.id !== userId) {
+                throw new ForbiddenException("Public name already taken, please choose another one");
+            }
+
+            // Update the user's public name in the database
             await this.prisma.user.update({
                 where: { id: userId },
                 data: {
                     publicName: publicName,
                     firstConnexion: false
                 },
-
             });
+
+            // Return a success response
             return ({
                 statusCode: 200,
                 valid: true,
-                message: "User name was updated successfully",
+                message: "Public name was updated successfully",
             });
         } catch (error) {
-            throw new NotFoundException("There was an error updating public name");
+            // Log the error for debugging purposes
+            console.error('Error in updatePublicName service:', error);
+            // Throw a NotFoundException for any errors during the update process
+            throw new NotFoundException("There was an error updating the public name");
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+         * Updates the avatar for a given user.
+         * 
+         * @param userId - The ID of the user whose avatar is to be updated.
+         * @param avatar - The new avatar file.
+         *
+    ***/
 
     async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
         try {
-            const uniqueFilename = uuidv4() + extname(avatar.originalname);
-            const filePath = `${this.uploadFolder}/${uniqueFilename}`;
+            // Retrieve the current user's details from the database
+            const currentUser = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { avatar: true },
+            });
 
-            try {
-                await this.saveImageToLocalFolder(avatar, filePath);
-            } catch (error) {
-                console.error('Error saving image to local folder:', error);
-                throw new Error('Failed to save image to local folder');
+            // If the user is not found, throw a NotFoundException
+            if (!currentUser) {
+                throw new NotFoundException('User not found');
             }
 
+            // Extract the path of the old avatar
+            const oldAvatarPath = currentUser.avatar;
+
+            // If there is an old avatar, attempt to delete it
+            if (oldAvatarPath) {
+                try {
+                    // Use fs.unlinkSync for synchronous file deletion
+                    fs.unlinkSync(oldAvatarPath);
+                } catch (err) {
+                    // If deletion fails, throw an InternalServerErrorException
+                    throw new InternalServerErrorException('Error deleting old avatar');
+                }
+            }
+
+            // Generate a unique filename for the new avatar
+            const uniqueFilename = uuidv4() + extname(avatar.originalname);
+            // Combine the upload folder path with the unique filename
+            const newFilePath = `${this.uploadFolder}/${uniqueFilename}`;
+
+            // Attempt to save the new avatar to the local folder
+            try {
+                await this.saveImageToLocalFolder(avatar, newFilePath);
+            } catch (error) {
+                // If saving fails, throw an InternalServerErrorException
+                throw new InternalServerErrorException('Failed to save image to local folder');
+            }
+
+            // Update the user's avatar path in the database
             try {
                 await this.prisma.user.update({
                     where: { id: userId },
-                    data: { avatar: filePath },
+                    data: { avatar: newFilePath },
                 });
             } catch (error) {
-                console.error('Error updating user avatar in database:', error);
-                throw new Error('Failed to update user avatar in database');
+                // If updating the database fails, throw an InternalServerErrorException
+                throw new InternalServerErrorException('Failed to update user avatar in database');
             }
-
         } catch (error) {
-            console.error('Error in updateAvatar service:', error);
-            throw error;
+            // Catch any other errors that might occur and throw an InternalServerErrorException
+            throw new InternalServerErrorException('Error in updateAvatar service');
         }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-
-
-    async validateUser(username: string): Promise<any> {
-        const user = await this.findUserWithUsername(username);
-        if (!user)
-            throw new UnauthorizedException();
-        return user;
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
