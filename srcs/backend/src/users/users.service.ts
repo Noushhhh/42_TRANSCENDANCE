@@ -228,7 +228,8 @@ export class UsersService {
             // Log the error for debugging purposes
             console.error('Error in updatePublicName service:', error);
             // Throw a NotFoundException for any errors during the update process
-            throw new NotFoundException("There was an error updating the public name");
+            // throw new NotFoundException("There was an error updating the public name");
+            throw error;
         }
     }
 
@@ -248,7 +249,7 @@ export class UsersService {
             // Retrieve the current user's details from the database
             const currentUser = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { avatar: true },
+                select: { avatar: true, fortyTwoStudent: true },
             });
 
             // If the user is not found, throw a NotFoundException
@@ -260,7 +261,7 @@ export class UsersService {
             const oldAvatarPath = currentUser.avatar;
 
             // If there is an old avatar, attempt to delete it
-            if (oldAvatarPath) {
+            if (oldAvatarPath && !currentUser.fortyTwoStudent) {
                 try {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);
@@ -295,7 +296,8 @@ export class UsersService {
             }
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
-            throw new InternalServerErrorException('Error in updateAvatar service');
+            // throw new InternalServerErrorException('Error in updateAvatar service');
+            throw error;
         }
     }
 

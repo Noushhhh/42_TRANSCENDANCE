@@ -56,6 +56,8 @@ export class AuthService {
         data: {
           username: dto.username,
           hashPassword, 
+          fortyTwoStudent: false,
+          avatar: null 
         },
       });
       console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);

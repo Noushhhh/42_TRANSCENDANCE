@@ -86,16 +86,16 @@ export class   UsersController {
         @NestResponse() res: Response
     ) {
         try {
-            await this.UsersService.getUserAvatar(decodedPayload, res)
+            return await this.UsersService.getUserAvatar(decodedPayload, res)
         } catch (error) {
-            throw error;
+            throw error; 
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────
 
     @Get('getprofilename')
-    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload,
+    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload, 
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
         const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res, "unable to decode token in user \
@@ -139,16 +139,12 @@ export class   UsersController {
     async updateAvatar(
         @ExtractJwt() decodedPayload: DecodedPayload | null,
         @UploadedFile() avatar: Express.Multer.File, @NestResponse() res: Response) {
-        const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res,
-            "Error decoding payload in updateAvatar controller, user module");
-        if (!isPayloadDecoded)
-            return;
-        const userId: number | undefined = decodedPayload?.sub;
         try {
-            await this.UsersService.updateAvatar(userId, avatar);
+            await this.UsersService.updateAvatar(decodedPayload?.sub, avatar);
             res.status(200).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
             res.status(500).send({ statusCode: 500, valid: false, message: error });
+            throw error;
         }
     }
     // ─────────────────────────────────────────────────────────────────────────────
