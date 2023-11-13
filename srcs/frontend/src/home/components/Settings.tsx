@@ -92,12 +92,11 @@ const Settings: React.FC = React.memo(() => {
       // if pubicName updated successfully, set the publicName var to newUsername 
       // before re-rendering the component so the user can see the update inmediatelly
       setIsUpdatingProfileName(false);
-      setPublicName(newUsername);
     } catch (error) {
-      if (hasMessage(error)) {
-        setError(error.message);
-      }
+      console.error("Failed to update ProfileName:", error);
+      return;
     }
+    setPublicName(newUsername);
   }, [setIsUpdatingProfileName, updatePublicName, newUsername]);
 
   const checkAndShowInputAvatar = useCallback(async (newFile: File): Promise<void> => {
@@ -105,16 +104,16 @@ const Settings: React.FC = React.memo(() => {
   }, []);
 
   const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
-    if (newAvatar) {
-      try {
-        await updateAvatar(newAvatar);
-        setAvatarUrl(URL.createObjectURL(newAvatar));
-        setIsUpdatingAvatar(false);
-      } catch (error) {
-        // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
-        console.error("Failed to update avatar:", error);
-      }
+    try {
+      await updateAvatar(newAvatar);
+      setIsUpdatingAvatar(false);
+    } catch (error) {
+      // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
+      console.error("Failed to update avatar:", error);
+      return;
     }
+    if (newAvatar)
+      setAvatarUrl(URL.createObjectURL(newAvatar));
   }, [newAvatar, updateAvatar]);
 
 /*

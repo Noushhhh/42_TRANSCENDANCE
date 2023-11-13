@@ -51,13 +51,15 @@ const UserProfileSetup: React.FC = React.memo(() => {
       // Use the custom hook function to update the public name and avatar
       await updatePublicName(profileName);
       await updateAvatar(profileImage);
-      navigate("/home");
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);
+        return;
       }
     }
-  }, [profileName, profileImage, updateAvatar, navigate]);
+    navigate("/home");
+  }, [updateAvatar, updatePublicName, navigate]);
+
 
   // Display loading spinner or error message based on the hook's states
   if (isAvatarUpdating || isPublicNameLoading) {

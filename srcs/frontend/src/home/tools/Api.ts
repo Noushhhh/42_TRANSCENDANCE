@@ -80,19 +80,19 @@ export const useUpdatePublicName = () => {
       const error = new Error("Please enter a valid user name");
       setError(error);
       setIsLoading(false);
-      return;
+      throw error;
     }
     if (publicName.length < 2 || publicName.length > 50) {
       const error = new Error("Please enter a user name between 2 and 50 characters");
       setError(error);
       setIsLoading(false);
-      return;
+      throw error;
     }
     if (!/^[a-zA-Z0-9-_]+$/.test(publicName)) {
       const error = new Error("User name can only contain alphanumeric characters, hyphens, and underscores");
       setError(error);
       setIsLoading(false);
-      return;
+      throw error;
     }
 
     try {
