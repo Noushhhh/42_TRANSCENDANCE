@@ -5,8 +5,13 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { UserProfileData } from '../interfaces/user.interface';
-import multer from 'multer';
 
+
+interface FriendRequestFromUser {
+    id: number;
+    publicName?: string | null;
+    userName: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -219,7 +224,7 @@ export class UsersService {
                     publicName: publicName,
                     firstConnexion: false
                 },
-                
+
             });
             return ({
                 statusCode: 200,
@@ -231,8 +236,8 @@ export class UsersService {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
         try {
@@ -275,7 +280,7 @@ export class UsersService {
             throw new UnauthorizedException();
         return user;
     }
-   
+
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
@@ -290,13 +295,13 @@ export class UsersService {
                 throw new NotFoundException(`User not found with id ${userId}`);
             }
             return user;
-        } 
+        }
         catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
             throw error;
         }
     }
-    
+
     async getUsernameWithId(userId: number): Promise<string> {
         try {
             const user = await this.prisma.user.findUnique({
@@ -313,7 +318,7 @@ export class UsersService {
             throw error;
         }
     }
-    
+
 
     async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
         console.log("username INPUT ====", usernameinput);
@@ -331,5 +336,185 @@ export class UsersService {
             console.error(`Error fetching user with id ${usernameinput}`, error);
             throw error;
         }
+    }
+
+    async addFriend(selfId: number, targetId: number) {
+
+    }
+
+    async sendFriendRequest(senderId: number, targetId: number) {
+        const sender = await this.prisma.user.findUnique({
+            where: {
+                id: senderId,
+            }
+        })
+
+        if (!sender) throw new NotFoundException("User not found");
+
+        const target = await this.prisma.user.findUnique({
+            where: {
+                id: targetId
+            }
+        })
+
+        if (!target) throw new NotFoundException("User not found");
+
+        await this.prisma.user.update({
+            where: { id: senderId },
+            data: {
+                pendingRequestFor: {
+                    connect: { id: targetId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: targetId },
+            data: {
+                pendingRequestFrom: {
+                    connect: { id: senderId }
+                }
+            }
+        })
+    }
+
+    async getPendingRequests(userId: number): Promise<FriendRequestFromUser[]> {
+        const pendingRequests = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                pendingRequestFrom: true,
+            },
+        });
+
+        if (!pendingRequests) return [];
+
+        const transformedArray: FriendRequestFromUser[] = pendingRequests?.pendingRequestFrom.map((user) => ({
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+        }));
+
+        return transformedArray;
+    }
+
+    async acceptFriendRequest(senderId: number, targetId: number) {
+        const sender = await this.prisma.user.findUnique({
+            where: {
+                id: senderId,
+            }
+        })
+
+        if (!sender) throw new NotFoundException("User not found");
+
+        const target = await this.prisma.user.findUnique({
+            where: {
+                id: targetId
+            }
+        })
+
+        if (!target) throw new NotFoundException("User not found");
+
+        await this.prisma.user.update({
+            where: { id: senderId },
+            data: {
+                pendingRequestFrom: {
+                    disconnect: { id: targetId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: targetId },
+            data: {
+                pendingRequestFor: {
+                    disconnect: { id: senderId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: senderId },
+            data: {
+                friends: {
+                    connect: { id: targetId }
+                },
+                friendOf: {
+                    connect: { id: targetId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: targetId },
+            data: {
+                friendOf: {
+                    connect: { id: senderId }
+                },
+                friends: {
+                    connect: { id: senderId }
+                }
+            }
+        })
+    }
+
+    async getFriendsList(userId: number): Promise<FriendRequestFromUser[]> {
+        const friendsList = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                friends: true,
+            },
+        });
+
+        if (!friendsList) return [];
+
+        const transformedArray: FriendRequestFromUser[] = friendsList?.friends.map((user) => ({
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+        }));
+
+        return transformedArray;
+    }
+
+    async removeFriend(senderId: number, targetId: number) {
+        const sender = await this.prisma.user.findUnique({
+            where: {
+                id: senderId,
+            }
+        })
+
+        if (!sender) throw new NotFoundException("User not found");
+
+        const target = await this.prisma.user.findUnique({
+            where: {
+                id: targetId
+            }
+        })
+
+        if (!target) throw new NotFoundException("User not found");
+
+        await this.prisma.user.update({
+            where: { id: senderId },
+            data: {
+                friends: {
+                    disconnect: { id: targetId }
+                },
+                friendOf: {
+                    disconnect: { id: targetId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: targetId },
+            data: {
+                friends: {
+                    disconnect: { id: senderId }
+                },
+                friendOf: {
+                    disconnect: { id: senderId }
+                }
+            }
+        })
     }
 }

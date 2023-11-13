@@ -20,6 +20,7 @@ import { createChannel } from "./ChannelUtils";
 import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
+import { sendFriendRequest } from "../../user/FriendUtils";
 
 interface UserProfileMenuProps {
   user: User;
@@ -44,10 +45,17 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const navigate = useNavigate();
 
   const open = Boolean(anchorEl);
-  const menu: string[] = ["Profile", "Private message", "Play", "Block"];
+  const menu: string[] = [
+    "Profile",
+    "Private message",
+    "Add Friend",
+    "Play",
+    "Block",
+  ];
   const menuIfBlock: string[] = [
     "Profile",
     "Private message",
+    "Add Friend",
     "Play",
     "Unblock",
   ];
@@ -87,6 +95,15 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleProfilClick = () => {
     handleClose();
+  };
+
+  const handleAddFriend = () => {
+    try {
+      sendFriendRequest(userId, user.id);
+      socket.emit("pendingRequestSent", user.id);
+    } catch (error) {
+      console.error("Error trying to send friend request");
+    }
   };
 
   const handlePrivateMessageClick = async () => {
@@ -164,6 +181,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const menuFunctions: { [key: string]: () => void } = {
     Profile: handleProfilClick,
     "Private message": handlePrivateMessageClick,
+    "Add Friend": handleAddFriend,
     Play: handlePlayClick,
     Block: handleBlockClick,
   };

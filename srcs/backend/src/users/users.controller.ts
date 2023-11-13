@@ -4,13 +4,13 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters
+    Response as NestResponse, Query, UseFilters, Body, BadRequestException
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { UsersService } from './users.service';
-import { UserIdDto } from './dto';
+import { UserIdDto, friendRequestDto } from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
@@ -20,11 +20,11 @@ import { PassportSerializer } from '@nestjs/passport';
 
 
 @UseFilters(AllExceptionsFilter)
-@Controller('users') 
-export class   UsersController {
+@Controller('users')
+export class UsersController {
     constructor(
-        private   UsersService:UsersService 
-    ) {  };
+        private UsersService: UsersService
+    ) { };
 
     // ─────────────────────────────────────────────────────────────────────────────
 
@@ -188,8 +188,8 @@ export class   UsersController {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     @Put('updateavatar')
     @UseInterceptors(FileInterceptor('avatar'))
@@ -222,18 +222,75 @@ export class   UsersController {
     }
 
     @Get('UserWithId')
-    FindWithId(userId: number): Promise<User>{
+    FindWithId(userId: number): Promise<User> {
         return this.UsersService.findUserWithId(userId);
     }
 
     @Get('getUsernameWithId')
     getUsernameWithId(
-        @Query() dto: UserIdDto): Promise<string>{
+        @Query() dto: UserIdDto): Promise<string> {
         return this.UsersService.getUsernameWithId(dto.userId);
     }
-    
+
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined> {
         return this.UsersService.findUserWithUsername(username);
+    }
+
+    @Post('sendFriendRequest')
+    sendFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+        try {
+            this.UsersService.sendFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId);
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+        return { status: "Friend request sent" };
+    }
+
+    @Get('getPendingRequests')
+    async getPendingRequests(@Req() req: Request) {
+        const userId = req.headers['x-user-id'];
+        if (typeof userId === 'string') {
+            const userIdInt = parseInt(userId);
+            const pendingRequests = await this.UsersService.getPendingRequests(userIdInt);
+
+            return { pendingRequests: pendingRequests };
+        }
+        throw new BadRequestException("Error trying to parse userID");
+    }
+
+    @Post('acceptFriendRequest')
+    async acceptFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+        try {
+            this.UsersService.acceptFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+
+        return { status: "Friend request accepted" }
+    }
+
+    @Get('getFriendsList')
+    async getFriendsList(@Req() req: Request) {
+        const userId = req.headers['x-user-id'];
+        if (typeof userId === 'string') {
+            const userIdInt = parseInt(userId);
+
+            const friendsList = await this.UsersService.getFriendsList(userIdInt);
+            return { friendsList: friendsList };
+        }
+        throw new BadRequestException("Error trying to parse userID");
+    }
+
+    @Post('removeFriend')
+    async removeFriend(@Body() friendRequestDto: friendRequestDto) {
+        try {
+            this.UsersService.removeFriend(friendRequestDto.senderId, friendRequestDto.targetId);
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
     }
 }

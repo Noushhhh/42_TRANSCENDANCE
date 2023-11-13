@@ -27,8 +27,6 @@ export class StatsController {
   async getMatchHistory(@Req() req: Request) {
     const userId = req.headers['x-user-id'];
 
-    console.log("Je suis ici dans le controller");
-
     if (typeof userId === 'string') {
       const userIdInt = parseInt(userId);
       const matchHistory = await this.statsService.getMatchHistory(userIdInt);

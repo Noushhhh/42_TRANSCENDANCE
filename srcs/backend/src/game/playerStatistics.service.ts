@@ -40,6 +40,7 @@ export class playerStatistics {
         },
       },
     })
+    console.log("UNE GAME A ETE AJOUTEE AU DEUX JOUEURS");
     return 0;
   }
 
@@ -84,6 +85,8 @@ export class playerStatistics {
         },
       },
     });
+
+    console.log("UNE GAME A ETE AJOUTEE A 1 JOUEUR = ", playerId);
     return 0;
   }
 
@@ -125,6 +128,8 @@ export class playerStatistics {
         }
       },
     })
+
+    console.log("UNE GAME A ETE AJOUTEE AU MATCH HISTORY: ", playerId, opponentName);
     return 0;
   }
 }

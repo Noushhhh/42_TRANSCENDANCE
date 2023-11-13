@@ -76,7 +76,6 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
       }}
     >
       {matchHistory.map((match, id) => (
-        // <div key={id}>{match.opponentName}</div>
         <MatchCard
           key={id}
           p1="Me"

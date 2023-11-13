@@ -22,3 +22,13 @@ export class UserIdDto {
         @Type(() => Number)
         userId!: number;
 }
+
+export class friendRequestDto {
+        @IsInt()
+        @Type(() => Number)
+        senderId!: number;
+
+        @IsInt()
+        @Type(() => Number)
+        targetId!: number;
+}
