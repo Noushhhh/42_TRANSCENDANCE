@@ -53,11 +53,9 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     console.log("in channelDeletedEvent");
     await fetchUser(setChannelHeader, channelId, socket);
   } catch (errors) {
-
   }
  };
 
- 
  useEffect(() => {
     if (stateMessageToClick[0] === true) {
       setHeaderTitle("Create a channel");
@@ -177,5 +175,4 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     </div>
   );
 }
-
 export default MessageSide;

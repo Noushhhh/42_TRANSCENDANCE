@@ -15,7 +15,7 @@ interface Message {
 
 interface isChannelNameConnected {
   isConnected: boolean;
-  name: string;
+  name: string | null;
 }
 
 enum ChannelType {
@@ -106,7 +106,10 @@ export const fetchUser = async (
         channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
         if (!channelInfo)
           return null;
-        header.name = channelInfo.name;
+        if (channelInfo.name)
+          header.name = channelInfo.name;
+        else 
+          header.name = "";
       }
       header.isConnected = channelInfo.isConnected;
       return header;
@@ -270,7 +273,7 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     if (!users)
-    throw new Error("Error fetching database");
+      throw new Error("Error fetching database");
     if (users.length < 2) {
       return channelInfo;
     }
@@ -283,9 +286,10 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
         channelInfo.isConnected = response;
       })
       .catch((error) => {
-      throw error;
+        throw error;
       });
-      channelInfo.name = users[userIndex].username;
+      if (users[userIndex].publicName)
+        channelInfo.name = users[userIndex].publicName;
       return channelInfo;
   } catch (errors){
     throw errors;

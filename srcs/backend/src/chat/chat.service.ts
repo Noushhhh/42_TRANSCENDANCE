@@ -186,7 +186,7 @@ export class ChatService {
 
     const users: User[] = await this.prisma.user.findMany({
       where: {
-        username: {
+        publicName: {
           startsWith: substring
         }
       }
@@ -503,7 +503,12 @@ export class ChatService {
 
     const caller: User | undefined = await this.userService.findUserWithId(userId);
 
-    const users: User[] = channel.participants.filter((user) => user.username.startsWith(substring));
+
+
+    const users: User[] = channel.participants.filter((user) => {
+      if (user.publicName)
+        user.publicName.startsWith(substring)
+    });
 
     return users.filter(user => user.username !== caller.username);
   }

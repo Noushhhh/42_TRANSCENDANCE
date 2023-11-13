@@ -185,7 +185,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     <div>
       <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
-        {user.username}
+        {user.publicName&& user.publicName}
       </p>
       <Menu
         id="fade-menu"
