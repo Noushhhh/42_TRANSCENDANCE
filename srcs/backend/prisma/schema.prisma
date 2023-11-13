@@ -22,7 +22,7 @@ model User {
   avatar   String? @default("https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg")
 
   hashPassword        String
-  publicName        String?        @unique
+  publicName          String?        @unique
 
   twoFASecret String?
   twoFAUrl    String?
