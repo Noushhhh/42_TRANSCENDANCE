@@ -72,6 +72,11 @@ const Settings: React.FC = React.memo(() => {
     Promise.all([fetchPublicName(), fetchUserAvatar()])
       .then(() => setShowLoading(false)) // Set showLoading to false after the data has been fetched
       .catch(() => setShowLoading(false)); // Also set showLoading to false if there's an error
+
+    return () => {
+      setError(null);
+    };
+
   }, []);
 
 
@@ -83,6 +88,7 @@ const Settings: React.FC = React.memo(() => {
     }
 
     try {
+      setError(null);
       await updatePublicName(newUsername);
       setPublicName(newUsername);
       alert('Username updated successfully!');
@@ -90,7 +96,6 @@ const Settings: React.FC = React.memo(() => {
     } catch (error) {
       if (hasMessage(error)) {
         setError(error.message);
-        alert(error.message);
       }
     }
   }, [newUsername]);
@@ -102,6 +107,7 @@ const Settings: React.FC = React.memo(() => {
   const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
     if (newAvatar) {
       try {
+        setError(null);
         await updateAvatar(newAvatar);
         setAvatarUrl(URL.createObjectURL(newAvatar));
         setIsUpdatingAvatar(false);
@@ -110,7 +116,7 @@ const Settings: React.FC = React.memo(() => {
         if (hasMessage(error)) setError(error.message);
       }
     }
-  }, [newAvatar]);
+ }, [newAvatar]);
 
 /*
 

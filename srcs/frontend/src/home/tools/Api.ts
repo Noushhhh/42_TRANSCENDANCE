@@ -1,6 +1,9 @@
 
 // api.ts
 
+// Assuming API_BASE_URL is defined in a configuration file or environment variable
+const API_BASE_URL = "http://localhost:8081";
+
 /**
  * @brief Checks if a given object has a property named 'message' and if the value of that property is a string.
  * @param x The object to check.
@@ -87,27 +90,61 @@ export const updatePublicName = async (publicName: string) => {
   }
 }
   
+// ─────────────────────────────────────────────────────────────────────────────
 
-
-// returns server response to notify user if the avatar was updated or not
-// error hadling is treated using try and catch
+// Define an asynchronous function to update the avatar
 export const updateAvatar = async (newAvatar: File | null) => {
-    const formData = new FormData();
-    formData.append("avatar", newAvatar || new Blob());
-    if (!newAvatar)
-        return;
-    const response = await fetch("http://localhost:8081/api/users/updateavatar", {
-        method: "PUT",
-        body: formData,
-        credentials: "include",
+  // Early return if no file is provided
+  if (!newAvatar) return;
+
+  // Define allowed file types for the avatar
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  // Check if the provided file type is allowed, throw an error if not
+  if (!allowedTypes.includes(newAvatar.type)) {
+    throw new Error("Unsupported file type. Please upload a JPEG, PNG, or GIF image.");
+  }
+
+  // Define a maximum file size (5MB in this case)
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  // Check if the file size exceeds the maximum limit, throw an error if it does
+  if (newAvatar.size > maxFileSize) {
+    throw new Error("File size too large. Please upload an image smaller than 5MB.");
+  }
+
+  // Create a new FormData object to hold the file data for sending
+  const formData = new FormData();
+  // Append the new avatar file to the FormData object
+  formData.append("avatar", newAvatar);
+
+  try {
+    // Perform an HTTP PUT request to the server to update the avatar
+    const response = await fetch(`${API_BASE_URL}/api/users/updateavatar`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include", // Include credentials for authentication
     });
 
-    const data = await response.json();
-    if (!data.valid) {
-        throw new Error(`${data.statusCode} ${data.message}`)
+    // Check if the server response is not OK (e.g., 200, 201), throw an error if it's not
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
     }
+
+    // Parse the JSON response from the server
+    const data = await response.json();
+    // Check if the response indicates an unsuccessful update, throw an error if it does
+    if (!data.valid) {
+      throw new Error(`Update failed: ${data.message}`);
+    }
+
+    // Return the response data, could be used for UI updates or logging
     return data;
-}
+  } catch (error) {
+    // Log and re-throw any errors for higher-level handling (e.g., UI error messages)
+    console.error("Error updating avatar:", error);
+    throw error;
+  }
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 
