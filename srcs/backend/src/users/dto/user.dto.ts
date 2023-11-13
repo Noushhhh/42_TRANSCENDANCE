@@ -22,3 +22,9 @@ export class UserIdDto {
         @Type(() => Number)
         userId!: number;
 }
+
+export class UpdatePublicNameDto {
+        @IsString()
+        @IsNotEmpty()
+        publicName!: string;
+}

@@ -4,9 +4,10 @@ import {
     UseGuards, UseInterceptors, UploadedFile,
     UseFilters, Req, Request as NestRequest,
     Response as NestResponse, UnauthorizedException,
-    NotFoundException
+    NotFoundException, HttpException, HttpStatus, Body
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdatePublicNameDto } from './dto/user.dto';
 
 // Local imports from within the project
 import { AllExceptionsFilter } from '../auth/exception/all-exception.filter';
@@ -117,17 +118,34 @@ export class   UsersController {
 
     // ─────────────────────────────────────────────────────────────────────
     @Put('updatepublicname')
-    async updatePublicName(@ExtractJwt() decodedPayload: DecodedPayload,
-        @NestResponse() res: Response, @Query('username') publicName: string) {
-        const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res, "unable to decode token in user" +
-            "module, updatePublicName controller");
-        if (!isPayloadDecoded)
-            return;
+    @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
+    async updatePublicName(
+        @ExtractJwt() decodedPayload: DecodedPayload,
+        @Body() updatePublicNameDto: UpdatePublicNameDto
+    ) {
+        // Extract the publicName from the DTO
+        const { publicName } = updatePublicNameDto;
+
         try {
+            // Use decodedPayload.sub as the user identifier
             const result = await this.UsersService.updatePublicName(decodedPayload.sub, publicName);
-            res.status(result?.statusCode || 500).send({ valid: result?.valid || false, message: result?.message })
+
+            if (!result.valid) {
+                throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
+            }
+
+            return result; // Return the result directly
         } catch (error) {
-            throw error;
+            // If it's a known error, rethrow it
+            if (error instanceof HttpException) {
+                throw error;
+            }
+
+            // For unknown errors, throw a generic internal server error
+            throw new HttpException(
+                'An error occurred while updating the public name.',
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
