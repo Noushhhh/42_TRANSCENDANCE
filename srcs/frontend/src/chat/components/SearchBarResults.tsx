@@ -61,6 +61,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 setError("error fetching data");
             }
         }
+        
         const fetch = async () => {
 
             if (action === "admin" && setSearchBarResults){
@@ -69,7 +70,7 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 setSearchBarResults(true);
             }
             if (inputValue.length > 0){
-                fetchUsers();
+                await fetchUsers();
             }
         }
         fetch();

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Socket } from 'socket.io-client';
 import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
+import { ErrorSharp } from '@mui/icons-material';
 
 interface Message {
   id: number // id: 0
@@ -87,25 +88,13 @@ export const fetchUser = async (
       },
       body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
-    if (response.status === 400){
-      console.log("0 fetchUser");
-      return;
-    }
 
     const listChannelId = await response.json();
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
       const channelId = Number(id);
-      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader`, {
-        method: "POST",
-        credentials: 'include',
-        headers: {
-          "Content-Type": "application/json", // Add appropriate headers if needed
-        },
-        body: JSON.stringify({ channelId, userId }), // Include the data you want to send in the request body
-      }
-      );
-      console.log("1 fetchUser");
+      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader?channelId=${channelId}&userId=${userId}`);
+      handleHTTPErrors(response, {});
       const header: Channel = await response.json();
 
       let channelInfo: isChannelNameConnected | null = {
@@ -120,21 +109,19 @@ export const fetchUser = async (
         header.name = channelInfo.name;
       }
       header.isConnected = channelInfo.isConnected;
-      console.log("5 fetchUser");
       return header;
     });
-    console.log("6 fetchUser");
     const channelHeaders = await Promise.all(fetchChannelHeaders);
-    console.log("7 fetchUser");
     setChannelHeader(channelHeaders);
     } catch (error) {
-    console.log("error in fetchUser");
+      throw error;
   }
 };
 
 export const getNumberUsersInChannel = async (channelId: number): Promise<number> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
     const numberUsersInChannel: number = await response.json();
     return numberUsersInChannel;
   } catch (error: any) {
@@ -144,21 +131,12 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
 
 export const getChannelName = async (channelId: number, userId: number): Promise<string> => {
   try {
-    const response: Response = await fetch("http://localhost:4000/api/chat/getChannelName", {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ channelId, userId }),
-    })
-    if (!response.ok) {
-      throw new Error('Erreur lors de la récupération des données');
-    }
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}&userId=${userId}`);
+    handleHTTPErrors(response, {});
     const channelName = await response.text();
     return channelName;
   } catch (error) {
-    throw new Error("Channel not found");
+    throw error;
   }
 }
 
@@ -210,10 +188,8 @@ function compareUsersWithNumbers(users: User[], participants: number[]): boolean
     return false;
   }
 
-  // Create an array of user IDs from the users array
   const userIds = users.map((user) => user.id);
 
-  // Check if all user IDs are present in the participants array
   for (const userId of userIds) {
     if (!participants.includes(userId)) {
       return false;
@@ -246,14 +222,14 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
       body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
 
-    if (!response) {
+    if (!response.ok) {
       throw new Error('Erreur lors de la récupération des données');
     }
 
-    console.log(response);
     channelList = await response.json();
     for (const convId of channelList) {
-      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${convId}`);
+      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${convId}`);
+      handleHTTPErrors(response, {});
       const userList = await response.json();
       if (compareUsersWithNumbers(userList, participants) === true) {
         return convId;
@@ -274,63 +250,46 @@ export function isUserConnected(userId: number, socket: Socket): Promise<boolean
   });
 }
 
+export const isChannelNameExist = async (updatedChannelName: string): Promise<void> => {
+  try {
+    const response = await fetch('http://localhost:4000/api/chat/isChannelNameExist', );
+
+  } catch (error) {
+
+  }
+
+}
+
 export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: number, socket: Socket): Promise<isChannelNameConnected | null> => {
   const channelInfo: isChannelNameConnected = {
     name: '',
     isConnected: false,
   };
-
-  const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
-  const users: User[] = await response.json();
-  if (!users)
+  try {
+    const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
+    const users: User[] = await response.json();
+    if (!users)
     throw new Error("Error fetching database");
-  if (users.length < 2) {
-    return channelInfo;
-  }
-  var userIndex: number = -1;
+    if (users.length < 2) {
+      return channelInfo;
+    }
+    var userIndex: number = -1;
+    
+    userId === users[0].id ? userIndex = 1 : userIndex = 0;
 
-  userId === users[0].id ? userIndex = 1 : userIndex = 0;
-
-  await isUserConnected(users[userIndex].id, socket)
+    await isUserConnected(users[userIndex].id, socket)
     .then((response: boolean) => {
-      channelInfo.isConnected = response;
-    })
-    .catch((error) => {
-      // Gérer les erreurs, si nécessaire
-    });
-  channelInfo.name = users[userIndex].username;
-  return channelInfo;
-}
-
-export const kickUserFromChannel = async (
-  userId: number,
-  channelId: number,
-  setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>>,
-  socket: Socket,
-  callerId: number): Promise<boolean> => {
-
-  if (isNaN(channelId) || channelId <= 0 || isNaN(userId) || userId <= 0 || isNaN(callerId) || callerId <= 0) {
-    throw new Error("Invalid parameters");
+        channelInfo.isConnected = response;
+      })
+      .catch((error) => {
+      throw error;
+      });
+      channelInfo.name = users[userIndex].username;
+      return channelInfo;
+  } catch (errors){
+    throw errors;
   }
-
-  const requestOptions: RequestInit = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json", // Add appropriate headers if needed
-    },
-    body: JSON.stringify({ userId, channelId }), // Include the data you want to send in the request body
-  };
-
-  const response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${userId}/${channelId}/${callerId}`, requestOptions);
-  if (!response)
-    return false;
-
-  if (response.status === 403) {
-    console.log("acces refuse :", response.statusText);
-  }
-
-  await fetchUser(setChannelHeader, userId, socket);
-  return true;
 }
 
 export const leaveChannel = async (
@@ -347,7 +306,7 @@ export const leaveChannel = async (
         "Content-Type": "application/json",
       },
       credentials: 'include',
-    body: JSON.stringify({ userId, channelId, newOwnerId }),
+      body: JSON.stringify({ userId, channelId, newOwnerId }),
   };
   const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
   handleHTTPErrors(response, {});
@@ -361,19 +320,15 @@ export const leaveChannel = async (
 }
 
 export const getUsernamesBySubstring = async (userIdCaller: number, substring: string): Promise<User[]> => {
-
-  if (isNaN(userIdCaller) || userIdCaller <= 0)
-    throw new Error("userId is NaN");
-
-  const cleanSubstring: string = encodeURIComponent(substring);
-
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getLoginsFromSubstring/${cleanSubstring}`);
+    const cleanSubstring: string = encodeURIComponent(substring);
+    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesFromSubstring?substring=${cleanSubstring}`);
+    handleHTTPErrors(response, {});
     const listUsers: User[] = await response.json();
     const filteredListUsers = listUsers.filter((user: User) => user.id !== userIdCaller);
     return filteredListUsers;
-  } catch (error) {
-    throw new Error("Error fetching data");
+  } catch (errors) {
+    throw errors;
   }
 }
 
@@ -383,123 +338,87 @@ export const getUsernamesInChannelFromSubstring = async (
   userId: number
 ): Promise<User[] | null> => {
 
-  if (isNaN(channelId) || channelId <= 0) {
-    throw new Error("Invalid channelId");
-  }
-
   const cleanSubstring: string = encodeURIComponent(substringLogin);
 
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getLoginsInChannelFromSubstring/${channelId}/${cleanSubstring}/${userId}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
-    }
+    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`);
+    handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     return users;
-  } catch (error) {
-    throw new Error("Failed to fetch data");
+  } catch (errors) {
+    throw errors;
   }
 }
 
 export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
   try {
-    const requestOptions: RequestInit = {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel/${channelId}`);
-
-    const numberUsers: number = await response.json();
-    if (numberUsers === 2 && userList[0]) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${userList[0].id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 201) {
-        console.log(`userId ${userList[0].id} ban of ${channelId}`);
-        const data = {
-          channelId,
-          userId: userList[0].id,
-        }
-        socket.emit("notifySomeoneLeaveChannel", data);
-      }
-    }
-
     for (const user of userList) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403) {
-        throw new Error("Action disallowed (you are not admin)");
+      const userId: number = user.id;
+      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, channelId, callerId })
+      });
+      if (!response.ok){
+        console.log("promise rejected");
+        return Promise.reject(await response.json());
       }
-      else if (response.status === 406) {
-        throw new Error("You can't ban a channel Admin");
-      } else if (response.status === 201) {
+      if (response.status === 201) {
+        console.log("statut 201");
         const data = {
           channelId,
           userId: user.id,
         }
         socket.emit("notifySomeoneLeaveChannel", data);
-        console.log(`userId ${user.id} ban of ${channelId}`);
       }
     }
-
-  } catch (error: any) {
-    console.log("ban user list called error");
+  } catch (error) {
+    console.log("error handler banuserlist");
     throw error;
   }
 };
 
 export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
-  try {
-    console.log('kick user is called');
-
-    const requestOptions: RequestInit = {
-      method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     for (const user of userList) {
-      const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel/${user.id}/${channelId}/${callerId}`, requestOptions);
-      if (response.status === 403) {
-        throw new Error("Action disallowed (you are not admin)");
-      }
-      else if (response.status === 406) {
-        throw new Error("You can't kick a channel Admin");
-      } else if (response.status === 201) {
-        const data = {
-          channelId,
-          userId: user.id
+      try {
+        const userId: number = user.id;
+        const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel`, {
+          method: "POST",
+          credentials: 'include',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId, channelId, callerId })
+        });
+        if (response.status === 201) {
+          const data = {
+            channelId,
+            userId: user.id
+          }
+          socket.emit("notifySomeoneLeaveChannel", data);
         }
-        socket.emit("notifySomeoneLeaveChannel", data);
+        if (!response.ok)
+          return Promise.reject(await response.json());
+      } catch (errors){
+        throw errors;
       }
     }
-
-  } catch (error: any) {
-    throw error;
-  }
-};
+  };
 
 export const fetchChannelUsers = async (channelId: number): Promise<User[]> => {
 
   try {
-
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId/${channelId}`);
-    if (!response.ok) {
-      throw new Error("Error fetching data");
-    }
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`);
+    handleHTTPErrors(response, {});
     const users: User[] = await response.json();
-
     return users;
-
-  } catch (error) {
-    throw new Error("Error fetching data");
+  } catch (errors) {
+    throw errors;
   }
-
 }
-
 
 export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => {
 
@@ -514,56 +433,60 @@ export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => 
     return admins;
 
   } catch (error) {
-    throw new Error("Error fetching data");
+    throw error;
   }
 }
 
-export const fetchUserAdminTable = async (channelId: number): Promise<{ user: User, isAdmin: boolean }[]> => {
+export const fetchUserAdminTable = async (channelId: number): Promise<{ user: User, isAdmin: boolean, updated: boolean }[]> => {
 
   try {
 
     const users: User[] = await fetchChannelUsers(channelId);
     const admins: User[] = await fetchChannelAdmins(channelId);
 
-    const userAdminTable: { user: User, isAdmin: boolean }[] = users.map((user) => ({
+    const userAdminTable: { user: User, isAdmin: boolean, updated: boolean }[] = users.map((user) => ({
       user,
-      isAdmin: admins.some((admin) => admin.id === user.id)
+      isAdmin: admins.some((admin) => admin.id === user.id),
+      updated: false,
     }))
 
     return userAdminTable;
-
   } catch (error) {
     throw new Error("Error fetching data");
   }
 }
 
 export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boolean }[], channelId: number, inviterId: number): Promise<void> => {
-
   try {
-
-    const requestOptions: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    };
-
     for (const user of userList) {
+      const invitedId: number = user.user.id;
       const response: Response = new Response();
       if (user.isAdmin === true) {
-        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+          body: JSON.stringify( { inviterId, invitedId, channelId } )
+        });
+        handleHTTPErrors(response, {});
       } else {
-        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel/${inviterId}/${user.user.id}/${channelId}`, requestOptions);
+        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+          body: JSON.stringify( { inviterId, invitedId, channelId } )
+        });
+        handleHTTPErrors(response, {});
       }
     }
-
   } catch (error: any) {
-    if (error.status === 403)
-      throw new Error("Action disallowed (you are not admin)");
-    throw new Error("Error updating administrators");
+    console.log(error);
+    throw error;
   }
-
 }
 
 export const addUserIdToChannel = async (channelId: number, userId: number): Promise<number> => {
@@ -573,16 +496,11 @@ export const addUserIdToChannel = async (channelId: number, userId: number): Pro
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ userId, channelId })
     };
-    const response = await fetch(`http://localhost:4000/api/chat/addUserToChannel/${userId}/${channelId}`, requestOptions);
+    const response = await fetch(`http://localhost:4000/api/chat/addUserToChannel`, requestOptions);
     if (!response.ok) {
-      if (response.status === 406) {
-        return Promise.reject(new Error("You are banned from this channel"));
-      }
-      if (response.status === 404) {
-        return Promise.reject(new Error("Channel not found"));
-      }
-      throw new Error("Error adding user to channel");
+      return Promise.reject(await response.json());
     }
     const channelIdAdded: number = await response.json();
     return channelIdAdded;
@@ -592,55 +510,37 @@ export const addUserIdToChannel = async (channelId: number, userId: number): Pro
 }
 
 export const addUserListToChannel = async (userList: User[], channelId: number, socket: Socket): Promise<Response[]> => {
-  const requestOptions: RequestInit = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
 
-  const errorMessages: ErrorMessages = {
-    406: "Ban users can't be added",
-    404: "User not found",
-    403: "Forbidden action",
-  };
-
-  // Créez un tableau de promesses pour les réponses.
   const responses: Promise<Response>[] = userList.map((user) => {
-    return fetch(`http://localhost:4000/api/chat/addUserToChannel/${user.id}/${channelId}`, requestOptions);
+    const userId: number = user.id;
+    return fetch(`http://localhost:4000/api/chat/addUserToChannel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ userId, channelId })
+    });
   });
 
-  // Utilisez Promise.all pour attendre que toutes les promesses se terminent.
   return Promise.all(responses)
-    .then((responses) => {
-      // Traitez les réponses ici.
-      const errors = responses.filter((response) => response.status !== 201);
-      if (errors.length > 0) {
-        // S'il y a des erreurs, gérer-les et renvoyer une erreur si nécessaire.
-        const errorMessagesList = errors.map((error) => {
-          const userId = userList[responses.indexOf(error)].id;
-          const errorMessage = errorMessages[error.status] || "Unknown error";
-          return (`${errorMessage}`);
-        });
-        if (errorMessagesList.length > 0) {
-          throw new Error(errorMessagesList[0]);
-        }
-      }
+    .then(async (responses) => {
 
-      // Si tout se passe bien, émettez un événement avec socket.
-      userList.forEach((user) => {
-        const data = {
-          userId: user.id,
-          channelId,
-        };
-        socket.emit("notifySomeoneJoinChannel", data);
-      });
+      let index: number = 0;
+      for (const response of responses){
+        if (response.ok){
+          const data = {
+            userId: userList[index].id,
+            channelId,
+          };
+          socket.emit("notifySomeoneJoinChannel", data);
+        }
+        index++;
+      }
 
       return responses;
     })
     .catch((error) => {
-      // Gérez les erreurs globales ici.
-      console.error("Error in addUserListToChannel:", error);
       throw error;
     });
 };
@@ -680,6 +580,7 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
     }
     return { channelType: channel.channelType, channelId: channelIdJoined };
   } catch (error) {
+    console.log("case of error join channel");
     throw error;
   }
 }
@@ -772,14 +673,8 @@ export const getBlockedUsersById = async (userId: number): Promise<number[]> => 
 
 export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
-      },
-      body: JSON.stringify({ userId, channelId })
-    });
+    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId?channelId=${channelId}&userId=${userId}`);
+    handleHTTPErrors(response, {});
     const messageList = await response.json();
     if (!messageList)
       return;
@@ -794,7 +689,6 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
 
 export const manageChannelPassword = async (channelId: number, channelType: string, actualPassword: string, newPassword: string) => {
   try {
-    console.log("manage password called client");
     const response: Response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
       method: 'POST',
       credentials: 'include',
@@ -851,17 +745,6 @@ export const getChannelType = async (channelId: number) => {
   }
 }
 
-/*export const isAdmin = async (channelId: number, userId: number) => {
-  try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/isAdmin?channelId=${channelId}&userId=${userId}`);
-    handleHTTPErrors(response, {});
-    const isAdmin = await response.json();
-    console.log(isAdmin);
-  } catch (error) {
-    throw error;
-  }
-}*/
-
 export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
   try {
     console.log("is owner called");
@@ -886,18 +769,7 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
       credentials: 'include',
       body: JSON.stringify({ mutedUserId, callerUserId, channelId, mutedUntil })
     });
-    if (response.ok) {
-      
-      // Le statut de la réponse est OK (200)
-      // Traitez la réponse normalement
-    } else {
-      // La réponse indique une erreur
-      // Extrait le message d'erreur de la réponse
-      const errorResponse = await response.json();
-      const errorMessage = errorResponse.message; // Assurez-vous que la propriété "message" existe dans la réponse
-      console.error(`Erreur de l'API : ${errorMessage}`);
-    }
-    // handleHTTPErrors(response, {});
+    handleHTTPErrors(response, {});
     console.log("mute called");
   } catch (errors) {
     throw errors;
@@ -908,9 +780,7 @@ export const getUsername = async (userId: number): Promise<string> => {
   try {
     const response: Response = await fetch(`http://localhost:4000/api/users/getUsernameWithId?userId=${userId}`);
     handleHTTPErrors(response, {});
-    console.log('before await response');
     const username: string = await response.text();
-    console.log('after await response');
     return username;
   } catch (errors){
     throw errors;

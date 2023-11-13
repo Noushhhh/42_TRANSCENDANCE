@@ -166,5 +166,64 @@ export class MessageToStoreDto {
     @IsInt()
     @Min(0)
     senderId!: number;
+}
 
+export class getChannelUsernamesDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    substring!: string;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+}
+
+export class getUsernamesDto {
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    substring!: string;
+}
+
+export class KickOrBanChannelDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    userId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
+
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    callerId!: number;
+}
+
+export class ManageAdminDto {
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    inviterId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    invitedId!: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    channelId!: number;
 }

@@ -40,36 +40,37 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     setStateMessageToClick([false, false]);
   };
 
-/*  useEffect(() => {
+  useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
     };
-  });*/
+  });
 
  const channelDeletedEvent = async (channelId: number) => {
   // check if need to uncomment this part, I think no
-  /*try {
-    await leaveChannel(userId, channelId, setChannelHeader, socket);
+  try {
+    console.log("in channelDeletedEvent");
+    await fetchUser(setChannelHeader, channelId, socket);
   } catch (errors) {
 
-  }*/
+  }
  };
 
-  useEffect(() => {
+ 
+ useEffect(() => {
     if (stateMessageToClick[0] === true) {
       setHeaderTitle("Create a channel");
     } else if (stateMessageToClick[1] === true)
       setHeaderTitle("Join a channel");
   }, [stateMessageToClick]);
-
+  
   function findChannelById(channelId: number): Channel | undefined {
     return channelHeader.find((channel) => channel.channelId === channelId);
   }
-
+  
   useEffect(() => {
     socket.on("messageBack", messageEvent);
-
     socket.on("changeConnexionState", changeConnexionStateEvent);
     return () => {
       socket.off("messageBack", messageEvent);
@@ -77,7 +78,20 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     };
   });
 
+  useEffect(() => {
+    socket.on("addedToChannel", addedToChannelEvent);    
+
+    return () => {
+      socket.off("addedToChannel", addedToChannelEvent);
+    };
+  }, [])
+  
+  const addedToChannelEvent = async () => {
+    await fetchUser(setChannelHeader, userId, socket);
+  }
+
   const messageEvent = (data: Message) => {
+    console.log(data);
     if (!data) return;
     setPreviewLastMessage(data);
     const foundChannel = findChannelById(data.channelId);
@@ -92,11 +106,8 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   useEffect( () => {
     const callFetchUser = async () => {
       try {
-        console.log("begining fetching users");
         await fetchUser(setChannelHeader, userId, socket);
-        console.log("end fetching users");
       } catch (error) {
-        console.log("error fetching users");
       }
     };
     callFetchUser();

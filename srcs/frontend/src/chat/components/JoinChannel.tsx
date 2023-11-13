@@ -43,34 +43,39 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
     const socket = useSocketContext();
 
     const handleClick = async () => {
-        if (apiResponse) {
-            if (await isUserIsBan(apiResponse.id, userId) === true) {
+        try {
+            if (apiResponse) {
+                if (await isUserIsBan(apiResponse.id, userId) === true) {
                 setError("You are banned from this channel");
             }
             let channelType: { channelType: ChannelType; channelId: number; } | null = null;
             try {
                 channelType = await joinChannel(apiResponse, userId);
             } catch (error: any){
+                console.log(error);
                 setError(error.message);
             }
             if ( ! channelType)
-                return ;
-            switch (channelType.channelType.toString()) {
-                case "PUBLIC":
-                    setStateMessageToClick([false, false]);
-                    socket.emit("joinChannel", channelType.channelId);
-                    await fetchUser(setChannelHeader, userId, socket);
-                    break;
+            return ;
+        switch (channelType.channelType.toString()) {
+            case "PUBLIC":
+                setStateMessageToClick([false, false]);
+                socket.emit("joinChannel", channelType.channelId);
+                await fetchUser(setChannelHeader, userId, socket);
+                break;
                 case "PRIVATE":
                     setError("You can't join private channel");
                     break;
-                case "PASSWORD_PROTECTED":
-                    setDisplayPasswordInput(true);
-                    break;
-            }
+                    case "PASSWORD_PROTECTED":
+                        setDisplayPasswordInput(true);
+                        break;
+                    }
         }
         else {
             setError("Channel doesnt exist");
+        }
+        } catch (error: any){
+            setError(error.message);
         }
     }
 
