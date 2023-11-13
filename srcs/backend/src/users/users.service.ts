@@ -85,7 +85,6 @@ export class UsersService {
             }
     
             // Set the appropriate MIME type for the avatar image
-            // This example assumes the avatar is a JPEG image, adjust accordingly
             res.type('image/jpeg');
     
             // Create a read stream for the avatar file
