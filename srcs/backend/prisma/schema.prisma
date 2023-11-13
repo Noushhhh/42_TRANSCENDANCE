@@ -30,6 +30,7 @@ model User {
   refreshToken RefreshToken[]
 
   firstConnexion Boolean @default(true)
+  fortyTwoStudent Boolean  @default(true)
   loggedIn       Boolean @default(false)
   TwoFA          Boolean @default(false)
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getPublicName, getUserAvatar, updatePublicName, updateAvatar, hasMessage } from '../tools/Api';
+import { getPublicName, getUserAvatar, useUpdatePublicName, useUpdateAvatar, hasMessage } from '../tools/Api';
 import SignOutLink from '../tools/SignoutLink';
 import { CSSTransition } from 'react-transition-group';
 import  '../styles/generalStyles.css'
@@ -16,14 +16,17 @@ import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loadin
                |
 */
 const Settings: React.FC = React.memo(() => {
+
   const [username, setPublicName] = useState<string | null>(null);
+  const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
+  const [promptError, setError] = useState<string | null>(null);
+  const [showLoading, setShowLoading] = useState(true);
   const [newUsername, setNewPublicName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
-  const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
-  const [promptError, setError] = useState<string | null>(null);
-  const [showLoading, setShowLoading] = useState(true);
+  const { updateAvatar, isLoading: isAvatarUpdating, error: avatarUpdateError } = useUpdateAvatar();
+  const { updatePublicName, isLoading: isPublicNameLoading, error: publicNameError } = useUpdatePublicName();
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -72,45 +75,46 @@ const Settings: React.FC = React.memo(() => {
     Promise.all([fetchPublicName(), fetchUserAvatar()])
       .then(() => setShowLoading(false)) // Set showLoading to false after the data has been fetched
       .catch(() => setShowLoading(false)); // Also set showLoading to false if there's an error
+
+    return () => {
+      setError(null);
+    };
+
   }, []);
 
 
   const checkUsernameAndUpdate = useCallback(async (): Promise<void> => {
-    // Check if newUsername is not empty
-    if (!newUsername) {
-      alert('Username cannot be empty');
-      return;
-    }
 
     try {
+      setError(null);
+      setIsUpdatingProfileName(true);
       await updatePublicName(newUsername);
-      setPublicName(newUsername);
-      alert('Username updated successfully!');
+      // if pubicName updated successfully, set the publicName var to newUsername 
+      // before re-rendering the component so the user can see the update inmediatelly
       setIsUpdatingProfileName(false);
     } catch (error) {
-      if (hasMessage(error)) {
-        setError(error.message);
-        alert(error.message);
-      }
+      console.error("Failed to update ProfileName:", error);
+      return;
     }
-  }, [newUsername]);
+    setPublicName(newUsername);
+  }, [setIsUpdatingProfileName, updatePublicName, newUsername]);
 
   const checkAndShowInputAvatar = useCallback(async (newFile: File): Promise<void> => {
     setNewAvatar(newFile);
   }, []);
 
   const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
-    if (newAvatar) {
-      try {
-        await updateAvatar(newAvatar);
-        setAvatarUrl(URL.createObjectURL(newAvatar));
-        setIsUpdatingAvatar(false);
-        alert('Avatar updated successfully!');
-      } catch (error) {
-        if (hasMessage(error)) setError(error.message);
-      }
+    try {
+      await updateAvatar(newAvatar);
+      setIsUpdatingAvatar(false);
+    } catch (error) {
+      // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
+      console.error("Failed to update avatar:", error);
+      return;
     }
-  }, [newAvatar]);
+    if (newAvatar)
+      setAvatarUrl(URL.createObjectURL(newAvatar));
+  }, [newAvatar, updateAvatar]);
 
 /*
 
@@ -132,7 +136,7 @@ const Settings: React.FC = React.memo(() => {
     };
   }, [username, avatarUrl]);
 
-  if (showLoading) {
+  if (showLoading || isAvatarUpdating || isPublicNameLoading) {
     return (
       <div className='settings-container'>
         <LoadingSpinner />
@@ -155,11 +159,13 @@ const Settings: React.FC = React.memo(() => {
 
   return (
     <div className='settings-container'>
-
       {/* nodeRef for username */}
       <CSSTransition nodeRef={usernameRef} in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
         <h3  className="h3" ref={usernameRef} >{username}</h3>
       </CSSTransition>
+
+      {avatarUpdateError && <p>Error updating avatar: {avatarUpdateError.message}</p>}
+      {publicNameError && <p>Error updating Public Name: {publicNameError.message}</p>}
 
       {isUpdatingProfileName && (
         <CSSTransition in={true} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingProfileName(false)}>
