@@ -250,6 +250,16 @@ export function isUserConnected(userId: number, socket: Socket): Promise<boolean
   });
 }
 
+export const isChannelNameExist = async (updatedChannelName: string): Promise<void> => {
+  try {
+    const response = await fetch('http://localhost:4000/api/chat/isChannelNameExist', );
+
+  } catch (error) {
+
+  }
+
+}
+
 export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: number, socket: Socket): Promise<isChannelNameConnected | null> => {
   const channelInfo: isChannelNameConnected = {
     name: '',

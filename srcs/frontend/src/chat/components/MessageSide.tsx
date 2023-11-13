@@ -87,12 +87,11 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   }, [])
   
   const addedToChannelEvent = async () => {
-    console.log("you've been added to channel");
     await fetchUser(setChannelHeader, userId, socket);
-    console.log("you've been added to channel");
   }
 
   const messageEvent = (data: Message) => {
+    console.log(data);
     if (!data) return;
     setPreviewLastMessage(data);
     const foundChannel = findChannelById(data.channelId);

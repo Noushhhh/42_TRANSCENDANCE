@@ -17,7 +17,7 @@ export class ChatGateway implements OnModuleInit {
     @WebSocketServer()
     server!: Server;
 
-    constructor(private socketService: SocketService,
+    constructor(
         private authService: AuthService,
         private chatService: ChatService) { };
 
@@ -88,6 +88,7 @@ export class ChatGateway implements OnModuleInit {
     }
 
     async notifyChannelDeleted(channelId: number, participantsIds: number[]){
+        console.log("notifyChannelDeleted called server-side");
         for (const id of participantsIds){
             const socket = await this.getSocketByUserId(id);
             if (socket)

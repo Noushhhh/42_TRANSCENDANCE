@@ -1,13 +1,12 @@
-import { HttpException, HttpStatus, Injectable, Inject, NotFoundException, BadRequestException, NotAcceptableException, ServiceUnavailableException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException, Inject, forwardRef, NotAcceptableException, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType, MutedUser } from "@prisma/client";
 import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
-import { SocketService } from "./socket.service";
-import { ChannelNameDto, PairUserIdChannelId, muteDto } from "./dto/chat.dto";
-import { ChannelIdPostDto, UserIdPostDto, MessageToStoreDto } from "./dto/chat.dto";
+import { PairUserIdChannelId, muteDto } from "./dto/chat.dto";
+import { MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
 
 interface MessageToStore {
@@ -34,14 +33,7 @@ interface isChannelExist {
 export class ChatService {
 
   constructor(private prisma: PrismaService,
-    // "private" to keep utilisation of the service inside the class
-    // "readonly" to be sure that socketService can't be substitute with
-    // others services (security)
-    // @Inject(ChatGateway) private readonly chatGateway: ChatGateway,
-    // private readonly socketService: SocketService,
-    private readonly userService: UsersService,
-    // private readonly chatGateway: ChatGateway
-  ) { }
+              private readonly userService: UsersService) { }
 
   async getAllConvFromId(id: number): Promise<number[]> {
 
@@ -51,7 +43,7 @@ export class ChatService {
     });
 
     if (!user) {
-      throw new ForbiddenException(`User with ID ${id} not found.`);
+      throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
     const conversationIds = user.conversations.map((conversation) => conversation.id);
@@ -287,19 +279,12 @@ export class ChatService {
     return (channel.participants.length);
   }
 
-  async notifyClientChannelDeleted(channelId: number): Promise<void>{
-    await this.getChannelById(channelId);
-    const users: User[] = await this.getUsersFromChannelId(channelId);
-    const ids: number[] = users.map(user => user.id);
-    // this.chatGateway.notifyChannelDeleted(channelId, ids);
-  }
-
   async kickUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
     if (await this.isAdmin(userId, channelId) === true)
       throw new NotAcceptableException("You can't kick a channel Admin");
 
-    if (await this.getNumberUsersInChannel(channelId) === 2) {
+    /*if (await this.getNumberUsersInChannel(channelId) <= 2) {
       await this.deleteAllMessagesInChannel(channelId);
       await this.prisma.channel.delete({
         where: { id: channelId },
@@ -307,7 +292,7 @@ export class ChatService {
       await this.notifyClientChannelDeleted(channelId);
       // this.socketService.alertChannelDeleted(callerId, channelId); // mettre cette func dans un fichier
       return true;
-    }
+    }*/
 
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
@@ -338,15 +323,14 @@ export class ChatService {
     if (await this.isAdmin(userId, channelId) === true)
       throw new NotAcceptableException("You can't ban a channel Admin");
 
-    if (await this.getNumberUsersInChannel(channelId) <= 2) {
+    /*if (await this.getNumberUsersInChannel(channelId) <= 2) {
       await this.deleteAllMessagesInChannel(channelId);
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
       await this.notifyClientChannelDeleted(channelId);
-      // this.socketService.alertChannelDeleted(callerId, channelId);
       return true;
-    }
+    }*/
 
     await this.kickUserFromChannel(userId, channelId, callerId);
 
@@ -392,17 +376,16 @@ export class ChatService {
     }
 
     if (await this.isAdmin(userId, channelId))
-      throw new HttpException("Admin can't leave channel", HttpStatus.NOT_ACCEPTABLE);
+      throw new ForbiddenException("Admin can't leave channel");
 
-    if (await this.getNumberUsersInChannel(channelId) === 2) {
+    /*if (await this.getNumberUsersInChannel(channelId) <= 2) {
       await this.deleteAllMessagesInChannel(channelId);
       await this.prisma.channel.delete({
         where: { id: channelId },
       })
       await this.notifyClientChannelDeleted(channelId);
-      // this.socketService.alertChannelDeleted(userId, channelId);
       return true;
-    }
+    }*/
 
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
@@ -562,7 +545,7 @@ export class ChatService {
       where: { name: channelName },
     })
     if (!isExist)
-      throw new NotFoundException("Channel not found");
+      throw new NotFoundException("Channel not exist");
     if (isExist) {
       return {
         isExist: true,

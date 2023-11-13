@@ -188,8 +188,8 @@ export class ChatController {
 
     @Post('isChannelNameExist')
     async isChannelNameExist(
-        @Body() channelNameDto: ChannelNameDto): Promise<isChannelExist | false> {
-        return this.chatService.isChannelNameExist(channelNameDto.channelName);
+        @Body() dto: ChannelNameDto): Promise<isChannelExist | false> {
+        return this.chatService.isChannelNameExist(dto.channelName);
     }
 
     @Post('isUserIsBan')
