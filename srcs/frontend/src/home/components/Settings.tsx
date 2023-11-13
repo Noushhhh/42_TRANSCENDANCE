@@ -16,6 +16,7 @@ import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loadin
                |
 */
 const Settings: React.FC = React.memo(() => {
+
   const [username, setPublicName] = useState<string | null>(null);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [promptError, setError] = useState<string | null>(null);
@@ -109,7 +110,6 @@ const Settings: React.FC = React.memo(() => {
         await updateAvatar(newAvatar);
         setAvatarUrl(URL.createObjectURL(newAvatar));
         setIsUpdatingAvatar(false);
-        alert('Avatar updated successfully!');
       } catch (error) {
         // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
         console.error("Failed to update avatar:", error);
@@ -137,7 +137,7 @@ const Settings: React.FC = React.memo(() => {
     };
   }, [username, avatarUrl]);
 
-  if (showLoading) {
+  if (showLoading || isAvatarUpdating || isPublicNameLoading) {
     return (
       <div className='settings-container'>
         <LoadingSpinner />
