@@ -1,0 +1,19 @@
+:root {
+    /* Colors */
+    --purple-color: #cc4cd7;
+    --white-color: #FFFFFF;
+    --black-color: #201F1F;
+    --green-color: #48BC3E;
+    --red-color: #d74c65;
+    --blue-color: #2cbdbd;
+    --background-color: #201F1F;
+  
+    /* Fonts */
+    --main-font: 'PressStart2P', cursive;
+  
+    /* Transition Duration */
+    --transition-duration: 500ms;
+  
+    /* Other variables can be added as needed */
+  }
+  

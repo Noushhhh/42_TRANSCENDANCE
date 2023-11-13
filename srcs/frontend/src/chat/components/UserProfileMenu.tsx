@@ -25,7 +25,7 @@ interface UserProfileMenuProps {
   user: User;
 }
 
-interface InvitationRes {
+interface GatewayResponse {
   success: boolean;
   message: string;
 }
@@ -122,17 +122,26 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handlePlayClick = async () => {
     if ((await isUserIsBlockedBy(user.id, userId)) === true) return;
 
-    socket.emit("invitation", { user1: userId, user2: user.id }, (res: InvitationRes) => {
-      
-      if (res.success === false) {
-        handleInvitationStatus(res.message);
+    socket.emit(
+      "invitation",
+      { user1: userId, user2: user.id },
+      (res: GatewayResponse) => {
+        if (res.success === false) {
+          handleInvitationStatus(res.message);
+        }
       }
-    });
+    );
   };
 
   const handleInvitation = (accepted: boolean) => {
     if (accepted === true) {
-      socket.emit("launchGameWithFriend", { user1: userId, user2: user.id });
+      socket.emit(
+        "launchGameWithFriend",
+        { user1: userId, user2: user.id },
+        (res: GatewayResponse) => {
+          console.log(res.message);
+        }
+      );
       // navigate("/home/game");
     }
     if (accepted === false) {

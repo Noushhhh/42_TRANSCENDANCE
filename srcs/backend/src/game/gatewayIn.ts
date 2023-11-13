@@ -6,12 +6,14 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
   WsException,
+  OnGatewayInit,
+  OnGatewayConnection
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { gameSockets } from './gameSockets';
-import { OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
 import { GatewayOut } from './gatewayOut';
@@ -39,12 +41,13 @@ interface InvitationData {
   id: string;
 }
 
+@Injectable()
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
+export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   @WebSocketServer()
   server!: Server;
 
@@ -58,7 +61,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     private readonly userService: UsersService,
   ) { }
 
-  onModuleInit() {
+  afterInit() {
     this.server.use(async (socket, next) => {
 
       // check token validity return the userId if correspond to associated token
@@ -66,12 +69,11 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
       const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
 
       if (response) {
-        socket.data.userId = response;
         this.gameSockets.server = this.server;
+        socket.data.userId = response;
         const clientId = socket.id;
         this.gameSockets.setSocket(clientId, socket);
         socket.setMaxListeners(15);
-        socket.data.userId = response;
         this.gameSockets.printSocketMap();
         // next allow us to accept the incoming socket as the token is valid
         next();
@@ -79,14 +81,18 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
         next(new WsException('invalid token'));
       }
     })
-    this.server.on('connection', async (socket) => {
-      console.log(`userId ${socket.data.userId} is connected from game gateway`);
-    });
+    // this.server.on('connection', async (socket) => {
+    //   console.log(`userId ${socket.data.userId} is connected from game gateway`);
+    // });
   }
 
-  handleDisconnect(client: Socket) {
+  handleConnection(socket: Socket) {
+    console.log(`userId ${socket.data.userId} is connected from game gateway`);
+  }
+
+  async handleDisconnect(client: Socket) {
     console.log("client " + client.id + " is disconnected from game gateway")
-    this.gameLobby.removePlayerFromLobby(client);
+    await this.gameLobby.removePlayerFromLobby(client);
     this.gameSockets.removeSocket(client.id);
   }
 
@@ -121,8 +127,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   }
 
   @SubscribeMessage('removeFromLobby')
-  removeFromLobby(@ConnectedSocket() client: Socket) {
-    this.gameLobby.removePlayerFromLobby(client);
+  async removeFromLobby(@ConnectedSocket() client: Socket) {
+    await this.gameLobby.removePlayerFromLobby(client);
   }
 
   @SubscribeMessage('resizeEvent')
@@ -136,7 +142,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
   }
 
   @SubscribeMessage("launchGameWithFriend")
-  launchGameWithFriend(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId): WebSocketResponse {
+  async launchGameWithFriend(@ConnectedSocket() client: Socket, @MessageBody() playersId: PlayersId): Promise<WebSocketResponse> {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
@@ -154,8 +160,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
       };
       return response;
     }
-
-    this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
+    await this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
     const response: WebSocketResponse = {
       success: true,
       message: 'Game will be launched',
@@ -260,7 +265,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
     let clientId: number | null = null;
     let otherId_: number | null = null;
-    console.log("les id que je recois: ", client.id, otherId);
+
     for (const socket of sockets) {
       console.log(socket[0]);
       if (socket[0] === client.id || socket[0] === otherId) {
@@ -282,5 +287,13 @@ export class GatewayIn implements OnGatewayDisconnect, OnModuleInit {
       message: 'Users ID well found',
     };
     return response;
+  }
+
+  private sendError(message: string, statusCode: number, client: Socket) {
+    const errorObj = {
+      message: message,
+      statusCode: statusCode
+    }
+    this.gatewayOut.emitToUser(client.id, "error", errorObj);
   }
 }

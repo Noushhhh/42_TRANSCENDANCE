@@ -34,6 +34,9 @@ export class GameLobbyService {
   async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
+    if (!player) {
+      throw new NotFoundException("player not found");
+    }
 
     if (this.isInLobby(player)) {
       console.log('Already in a lobby', player?.id);
@@ -46,16 +49,20 @@ export class GameLobbyService {
           value.player1 = player;
           value.gameState.gameState.p1Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
-          if (!playerDb)
-            throw new NotFoundException("player not found")
-          value.gameState.gameState.p1Name = playerDb?.username;
+          if (!playerDb) {
+            throw new NotFoundException("player not found");
+          }
+          const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
+          value.gameState.gameState.p1Name = playerUserName;
         } else if (!value.player2) {
           value.player2 = player;
           value.gameState.gameState.p2Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
-          if (!playerDb)
-            throw new NotFoundException("player not found")
-          value.gameState.gameState.p2Name = playerDb?.username;
+          if (!playerDb) {
+            throw new NotFoundException("player not found");
+          }
+          const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
+          value.gameState.gameState.p2Name = playerUserName;
         }
         player?.join(key);
         this.gatewayOut.isInLobby(true, player);
@@ -71,57 +78,55 @@ export class GameLobbyService {
     }
 
     const lobbyName = uuid();
-    try {
-      // var: playerDbId
-      const lobby = new Lobby(player, 124153, this.userService);
-
-      console.log("je vais la ????");
-      lobbies.set(lobbyName, lobby);
-      player?.join(lobbyName);
-      this.gatewayOut.isInLobby(true, player);
-    } catch (error) {
-      console.log("erreur ici = ", error);
+    const lobby = await Lobby.create(player, playerDbId, this.userService);
+    if (!lobby) {
+      throw new NotFoundException("Error during lobby creation");
     }
+
+    lobbies.set(lobbyName, lobby);
+    player?.join(lobbyName);
+    this.gatewayOut.isInLobby(true, player);
     this.printLobbies();
-  }
-
-  async addPlayerNameToLobby(playerId: number, playerSocketId: string) {
-    for (const [key, lobby] of lobbies) {
-      const gameState = lobby.gameState.gameState;
-      if (lobby.player1?.id === playerSocketId || lobby.player2?.id === playerSocketId) {
-        const user = await this.userService.findUserWithId(playerId);
-        if (user)
-          gameState.p1Id === playerId ? gameState.p1Name = user?.username : gameState.p2Name = user?.username;
-        else
-          throw new Error("Player not found.");
-        this.gatewayOut.emitToRoom(key, 'updateGameState', lobby.gameState.gameState);
-      }
-    }
   }
 
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
     this.socketMap.printSocketMap();
 
-    const player1 = this.socketMap.getSocket(playerSocketId);
-    const player2 = this.socketMap.getSocket(friendSocketId);
-
-    if (!player1 || !player2)
-      throw new Error("Error trying to find player socket");
-
-    // this.removePlayerFromLobby(player1);
-    // this.removePlayerFromLobby(player2);
-
     const lobbyName = uuid();
-    const lobby = new Lobby(player1, playerId, this.userService);
+
+    const player1 = this.socketMap.getSocket(playerSocketId);
+    if (!player1) {
+      this.gatewayOut.emitToUser(friendSocketId, "error", { statusCode: 404, message: "player not found" });
+      return;
+    }
+
+    const player2 = this.socketMap.getSocket(friendSocketId);
+    if (!player2) {
+      this.gatewayOut.emitToUser(playerSocketId, "error", { statusCode: 404, message: "player not found" });
+      return;
+    }
+
+    const lobby = await Lobby.create(player1, playerId, this.userService);
+    if (!lobby) {
+      this.gatewayOut.emitToUser(player1.id, "error", { statusCode: 404, message: "Error during lobby creation" });
+      return;
+    }
+
     lobby.player2 = player2;
     lobby.gameState.gameState.p1Id = playerId;
     lobby.gameState.gameState.p2Id = friendId;
+
     const playerDb1 = await this.userService.findUserWithId(playerId);
+    if (!player1) {
+      this.gatewayOut.emitToUser(friendSocketId, "error", { statusCode: 404, message: "player not found" });
+      return;
+    }
+
     const playerDb2 = await this.userService.findUserWithId(friendId);
-
-
-    if (!playerDb1 || !playerDb2)
-      throw new Error("player not found")
+    if (!player2) {
+      this.gatewayOut.emitToUser(playerSocketId, "error", { statusCode: 404, message: "player not found" });
+      return;
+    }
 
     lobby.gameState.gameState.p1Name = playerDb1.username;
     lobby.gameState.gameState.p2Name = playerDb2.username;
@@ -154,12 +159,13 @@ export class GameLobbyService {
     }
   }
 
-  removePlayerFromLobby(player: Socket) {
+  async removePlayerFromLobby(player: Socket) {
     for (const [key, value] of lobbies) {
       const lobby = lobbies.get(key);
       player.leave(key);
       // If player one leave the game
       if (value.player1?.id === player.id) {
+        const p1SocketId = this.getSocketIdWithId(value.gameState.gameState.p1Id);
         if (lobby) {
           lobby.player1 = null;
         }
@@ -169,13 +175,23 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p2Id) {
-          this.playerStats.addWinToPlayer(p2Id);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+          const p2SocketId = this.getSocketIdWithId(p2Id);
+          if (await this.playerStats.addWinToPlayer(p2Id) === -1) {
+            if (p2SocketId) {
+              this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding win to player" });
+            }
+          }
+          if (await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
             value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
-            value.gameState.gameState.score.p2Score, true, false);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
-            value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
-            value.gameState.gameState.score.p1Score, false, true);
+            value.gameState.gameState.score.p2Score, true, false) ||
+            await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+              value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
+              value.gameState.gameState.score.p1Score, false, true) === -1) {
+            if (p1SocketId && p2SocketId) {
+              this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" })
+              this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding match to history" })
+            }
+          }
         } else { // there is no more player in the lobby
           lobbies.delete(key);
         }
@@ -192,6 +208,7 @@ export class GameLobbyService {
       }
       // If player one leave the game
       if (value.player2?.id === player.id) {
+        const p2SocketId = this.getSocketIdWithId(value.gameState.gameState.p2Id);
         if (lobby) {
           lobby.player2 = null;
         }
@@ -201,15 +218,24 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p1Id) {
-          this.playerStats.addWinToPlayer(p1Id);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
-            value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
-            value.gameState.gameState.score.p2Score, false, true);
-          this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
-            value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
-            value.gameState.gameState.score.p1Score, true, false);
+          const p1SocketId = this.getSocketIdWithId(p1Id);
+          if (await this.playerStats.addWinToPlayer(p1Id) === -1) {
+            if (p1SocketId)
+              this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" })
+          }
+          if (
+            await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id,
+              value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score,
+              value.gameState.gameState.score.p2Score, false, true) ||
+            await this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id,
+              value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score,
+              value.gameState.gameState.score.p1Score, true, false) === -1) {
+            if (p1SocketId && p2SocketId) {
+              this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" })
+              this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding match to history" })
+            }
+          }
         } else { // there is no more player in the lobby
-          console.log("Lobby erased in p2");
           lobbies.delete(key);
         }
 
@@ -320,5 +346,15 @@ export class GameLobbyService {
         this.gatewayOut.emitToRoom(key, 'updateGameState', value.gameState.gameState);
       }
     }
+  }
+
+  private getSocketIdWithId(playerId: number): string | undefined {
+    for (const [key, value] of lobbies) {
+      console.log("player id and pId in gameState", playerId, value.gameState.gameState.p1Id, value.gameState.gameState.p2Id)
+      if (playerId === value.gameState.gameState.p1Id || playerId === value.gameState.gameState.p2Id) {
+        return playerId === value.gameState.gameState.p1Id ? value.player1?.id : value.player2?.id;
+      }
+    }
+    return undefined;
   }
 }

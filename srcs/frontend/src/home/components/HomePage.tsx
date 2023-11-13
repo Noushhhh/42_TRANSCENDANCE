@@ -28,7 +28,7 @@ const HomePage: React.FC = () => {
                 <NavLink to="stats" className={getLinkClassName("/home/stats")}>Stats</NavLink>
                 <NavLink to="settings" className={getLinkClassName("/home/settings")}>Settings</NavLink>
                 <NavLink to="Game" className={getLinkClassName("/home/game")}>Game</NavLink>
-            </header>
+            </header >
 
             {/* Content container that will render the nested route's component (child route) */}
             <div className='content'>

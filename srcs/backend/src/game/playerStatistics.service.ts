@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -6,7 +6,7 @@ export class playerStatistics {
 
   constructor(private prisma: PrismaService) { }
 
-  async addGamePlayedToUsers(idP1: number, idP2: number) {
+  async addGamePlayedToUsers(idP1: number, idP2: number): Promise<number> {
     const p1 = await this.prisma.user.findUnique({
       where: {
         id: idP1,
@@ -18,11 +18,9 @@ export class playerStatistics {
       },
     });
 
-    console.log("2 players id: ", idP1, idP2);
-
     // @to-do throw exception if one of the 2 players is not found
     if (!p1 || !p2) {
-      throw new Error("One of the players is not found.");
+      return -1;
     }
 
     await this.prisma.user.update({
@@ -42,9 +40,10 @@ export class playerStatistics {
         },
       },
     })
+    return 0;
   }
 
-  async addWinToPlayer(playerId: number) {
+  async addWinToPlayer(playerId: number): Promise<number> {
     const player = await this.prisma.user.findUnique({
       where: {
         id: playerId,
@@ -52,9 +51,8 @@ export class playerStatistics {
     });
 
     if (!player) {
-      throw new Error("Player not found.");
+      return -1
     }
-
 
     await this.prisma.user.update({
       where: { id: playerId },
@@ -64,9 +62,10 @@ export class playerStatistics {
         },
       },
     })
+    return 0
   }
 
-  async addGamePlayedToOneUser(playerId: number) {
+  async addGamePlayedToOneUser(playerId: number): Promise<number> {
     const player = await this.prisma.user.findUnique({
       where: {
         id: playerId,
@@ -74,7 +73,7 @@ export class playerStatistics {
     });
 
     if (!player) {
-      throw new Error("Player not found.");
+      throw new NotFoundException("Player not found")
     }
 
     await this.prisma.user.update({
@@ -85,18 +84,19 @@ export class playerStatistics {
         },
       },
     });
+    return 0;
   }
 
   async addGameToMatchHistory(
     playerId: number, opponentName: string, playerScore: number,
-    opponentScore: number, p1Left: boolean, p2Left: boolean) {
-    console.log("addMatchHistory data = ", playerId, opponentName, playerScore, opponentScore, p1Left, p2Left);
+    opponentScore: number, p1Left: boolean, p2Left: boolean): Promise<number> {
+
     const player = await this.prisma.user.findUnique({
       where: { id: playerId }
     })
 
     if (!player) {
-      throw new Error("Player not found.");
+      return -1;
     }
 
     const newMatchHistory = await this.prisma.matchHistory.create({
@@ -112,7 +112,7 @@ export class playerStatistics {
     });
 
     if (!newMatchHistory)
-      throw new Error("Error during match history creation");
+      return -1;
 
     // Add the new match history entry to the player's match history.
     await this.prisma.user.update({
@@ -125,5 +125,6 @@ export class playerStatistics {
         }
       },
     })
+    return 0;
   }
 }

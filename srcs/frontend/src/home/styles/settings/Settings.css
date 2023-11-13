@@ -1,0 +1,48 @@
+@import '../generalStyles.css';
+
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.item {
+  margin-top: 3%;
+}
+
+.item:last-child {
+  margin-bottom: 0;
+}
+
+.h3 {
+  color: var(--white-color);
+}
+
+.loading-enter,
+.fade-enter,
+.fade-appear {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.loading-enter-active,
+.fade-enter-active,
+.fade-appear-active,
+.fade-exit {
+  opacity: 1;
+  transition: opacity var(--transition-duration); /* Use a CSS variable for transition duration */
+  transform: translateX(0);
+  transition: transform var(--transition-duration);
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity var(--transition-duration); /* Use a CSS variable for transition duration */
+}
+
+/* New CSS variable for transition duration */
+:root {
+  --transition-duration: 500ms;
+}

@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { blockUser as blockUserUtil, isUserIsBlockedBy } from "../../../chat/components/ChannelUtils";
+import { blockUser as blockUserUtil } from "../../../chat/components/ChannelUtils";
 
 
 interface GameInvitationProps {

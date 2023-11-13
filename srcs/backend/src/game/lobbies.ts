@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { GameState } from './gameState';
 import { Socket } from "socket.io";
 import { UsersService } from "../users/users.service";
-import { NotFoundError } from "rxjs";
 
 @Injectable()
 export class Lobby {
@@ -12,23 +11,22 @@ export class Lobby {
   gameState = new GameState();
   ballState = this.gameState.gameState.ballState;
 
-  constructor(player: Socket | undefined, playerId: number, private readonly userService: UsersService) {
-    try {
-      this.initializeLobby(player, playerId);
-    } catch (error) {
-      throw error;
-    }
-  }
+  private constructor() { }
 
-  private async initializeLobby(player: Socket | undefined, playerId: number) {
+  public static async create(player: Socket | undefined, playerId: number, userService: UsersService): Promise<Lobby | null> {
+    const lobby = new Lobby();
+
     try {
-      const playerDb = await this.userService.findUserWithId(playerId);
-      this.player1 = player;
-      this.gameState.gameState.p1Id = playerId;
-      this.gameState.gameState.p1Name = playerDb.username;
+      const playerDb = await userService.findUserWithId(playerId);
+      lobby.player1 = player;
+      lobby.gameState.gameState.p1Id = playerId;
+      const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
+      lobby.gameState.gameState.p1Name = playerUserName;
+
+      return lobby;
     } catch (error) {
-      console.log("ici j'ai l'erreur: ");
-      throw error;
+      console.log("An error occurred during lobby initialization:", error);
+      return null;
     }
   }
 
@@ -39,4 +37,3 @@ export class Lobby {
 }
 
 export let lobbies: Map<string, Lobby> = new Map();
-export let lobbiesMap: Map<string, string> = new Map();

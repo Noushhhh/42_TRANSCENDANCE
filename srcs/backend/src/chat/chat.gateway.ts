@@ -1,9 +1,9 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody, OnGatewayDisconnect, OnGatewayConnection, WsException } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody, OnGatewayDisconnect, OnGatewayConnection, OnGatewayInit, WsException } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-import { SocketService } from './socket.service';
+// import { SocketService } from './socket.service';
 import { ChatService } from './chat.service';
 
 @Injectable()
@@ -12,7 +12,7 @@ import { ChatService } from './chat.service';
         origin: '*',
     },
 })
-export class ChatGateway implements OnModuleInit {
+export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewayConnection {
 
     @WebSocketServer()
     server!: Server;
@@ -21,7 +21,7 @@ export class ChatGateway implements OnModuleInit {
         private authService: AuthService,
         private chatService: ChatService) { };
 
-    onModuleInit() {
+    afterInit() {
         // middleware to check if client-socket can connect to our gateway
         this.server.use(async (socket, next) => {
 
@@ -37,16 +37,28 @@ export class ChatGateway implements OnModuleInit {
                 next(new WsException('invalid token'));
             }
         })
-        this.server.on('connection', async (socket) => {
-            console.log(`userId ${socket.data.userId} is connected from chat gateway`);
-            this.joinRoomsForClient(socket.data.userId, socket);
-            this.readMap();
 
-            socket.on('disconnect', async () => {
-                console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
-                this.leaveRoomsForClient(socket.data.userId, socket);
-            })
-        });
+        // this.server.on('connection', async (socket) => {
+        //     console.log(`userId ${socket.data.userId} is connected from chat gateway`);
+        //     this.joinRoomsForClient(socket.data.userId, socket);
+        //     this.readMap();
+
+        //     socket.on('disconnect', async () => {
+        //         console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
+        //         this.leaveRoomsForClient(socket.data.userId, socket);
+        //     })
+        // });
+    }
+
+    handleConnection(socket: Socket) {
+        console.log(`userId ${socket.data.userId} is connected from chat gateway`);
+        this.joinRoomsForClient(socket.data.userId, socket);
+        this.readMap();
+    }
+
+    handleDisconnect(socket: Socket) {
+        console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
+        this.leaveRoomsForClient(socket.data.userId, socket);
     }
 
     async readMap() {
