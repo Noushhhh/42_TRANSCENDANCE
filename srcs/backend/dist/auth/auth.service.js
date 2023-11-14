@@ -59,6 +59,7 @@ const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
 const constants_1 = require("../auth/constants/constants");
+const uuid_1 = require("uuid");
 /**
  * @file auth.service.ts
  * @author Your Name
@@ -123,33 +124,21 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             // find user with username
             const user = yield this.usersService.findUserWithUsername(dto.username);
-            // if user not found throw exception
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
-            const userLoggedIn = yield this.checkUserLoggedIn(user.id);
-            // console.log("passing by userLoggedIn", userLoggedIn, "\n");
-            if (userLoggedIn.statusCode === 200) {
-                console.log("user already logged in ", userLoggedIn.statusCode);
-                throw new common_1.ForbiddenException('User is already logged in');
-            }
-            if (req.cookies.token && userLoggedIn.statusCode == 200)
-                throw new common_1.ForbiddenException("someone is already logged in in this sessionn");
-            else {
-                res.clearCookie('token');
-                res.clearCookie('refreshToken');
-            }
-            // compare password
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
-            // if password wrong throw exception
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
-            // send back the token
-            const result = yield this.signToken(user.id, user.username, res);
-            // Update the user's logged in status in the database
-            if (result.valid) {
-                this.updateUserLoggedIn(user.id, true);
-                res.status(200).send({ valid: result.valid, message: result.message });
+            // Check for existing session
+            const existingSession = yield this.prisma.user.findFirst({
+                where: { id: user.id, sessionId: { not: null } },
+            });
+            if (existingSession) {
+                throw new common_1.ForbiddenException('User is already logged in');
             }
+            const result = yield this.signToken(user.id, user.username, res);
+            if (result.valid)
+                res.status(200).send({ valid: result.valid, message: result.message });
         });
     }
     /**
@@ -232,6 +221,11 @@ let AuthService = class AuthService {
             else {
                 return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
             }
+            const sessionId = this.generateSessionId();
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: { sessionId },
+            });
             return ({ statusCode: 200, valid: true, message: "Authentication successful" });
         });
     }
@@ -258,60 +252,6 @@ let AuthService = class AuthService {
             }
             catch (error) {
                 throw new common_1.InternalServerErrorException('Failed to create refresh token');
-            }
-        });
-    }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function updates the user's logged in status.
-     * @param userId The user's ID.
-     * @param inputBoolean The new logged in status.
-     */
-    updateUserLoggedIn(userId, inputBoolean) {
-        return __awaiter(this, void 0, void 0, function* () {
-            //update user login status 
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    loggedIn: inputBoolean,
-                },
-            });
-        });
-    }
-    // ─────────────────────────────────────────────────────────────────────────────
-    /**
-     * @brief This function checks if the user is logged in.
-     * @param userId The user's ID.
-     * @return The user's logged in status.
-     */
-    checkUserLoggedIn(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const user = yield this.usersService.findUserWithId(userId);
-                if (!user)
-                    throw new common_1.ForbiddenException('Username not found');
-                // console.log("Passing by checkUserLoggedIn", user.loggedIn, user);
-                if (user.loggedIn) {
-                    return ({
-                        statusCode: 200,
-                        valid: true,
-                        message: "User is logged in"
-                    });
-                }
-                else {
-                    return ({
-                        statusCode: 400,
-                        valid: true,
-                        message: "User is not logged in"
-                    });
-                }
-            }
-            catch (error) {
-                return ({
-                    statusCode: 400,
-                    valid: false,
-                    message: `Error finding userid ${userId} ` + error
-                });
             }
         });
     }
@@ -365,16 +305,19 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             // Clear the JWT cookie or session
             if (!decodedPayload)
-                return;
+                throw new common_1.ForbiddenException("problem obtaining paylod when signing out");
             try {
+                yield this.prisma.user.update({
+                    where: { id: decodedPayload.sub },
+                    data: { sessionId: null },
+                });
                 res.clearCookie('token');
                 res.clearCookie('refreshToken');
-                this.updateUserLoggedIn(decodedPayload.sub, false);
                 return res.status(200).send({ message: 'Signed out successfully' });
             }
             catch (error) {
                 console.error(error);
-                return res.status(401).send({ message: "Cookie not found" });
+                throw error;
             }
         });
     }
@@ -600,6 +543,10 @@ let AuthService = class AuthService {
                 },
             });
         });
+    }
+    // Method to generate a unique session identifier
+    generateSessionId() {
+        return (0, uuid_1.v4)(); // Generates and returns a new UUID (v4)
     }
 };
 exports.AuthService = AuthService;

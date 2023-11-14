@@ -6,11 +6,16 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 import { ValidationPipe} from '@nestjs/common';
 import * as express from 'express';
 import cookieParser from 'cookie-parser';
+import cron from 'node-cron';
+import { SessionService } from './auth/session.service';
+
 
 // The bootstrap function is the entry point of the application
 async function bootstrap() {
   // Create a new NestJS application instance
   const app = await NestFactory.create(AppModule);
+
+  const sessionService = app.get(SessionService);
 
   // Use the ValidationPipe to validate incoming requests
   app.useGlobalPipes(
@@ -51,6 +56,11 @@ async function bootstrap() {
 
   // Use the AllExceptionsFilter to handle exceptions globally
   app.useGlobalFilters(app.get(AllExceptionsFilter));
+
+  cron.schedule('* * * * *', async () => {
+    await sessionService.clearExpiredSessions();
+    console.log("Cron job executed every minute");
+  });
 
   // Start the application and listen on port 4000
   await app.listen(4000);
