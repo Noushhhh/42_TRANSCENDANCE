@@ -1,10 +1,13 @@
 import React, { FC } from "react";
 import { removeFriend } from "../../../user/FriendUtils";
+import { Socket } from "socket.io-client";
 
 interface FriendsMenuProps {
   myId: number;
   friend: FriendType;
   position: { top: number; left: number };
+  socket: Socket;
+  closeFriendMenu: () => void;
 }
 
 interface FriendType {
@@ -13,7 +16,13 @@ interface FriendType {
   userName: string;
 }
 
-const FriendsMenu: FC<FriendsMenuProps> = ({ myId, friend, position }) => {
+const FriendsMenu: FC<FriendsMenuProps> = ({
+  myId,
+  friend,
+  position,
+  socket,
+  closeFriendMenu,
+}) => {
   return (
     <div
       style={{
@@ -26,11 +35,12 @@ const FriendsMenu: FC<FriendsMenuProps> = ({ myId, friend, position }) => {
       }}
     >
       <button
-        onClick={() =>
-          removeFriend(myId, friend).catch((e) => {
+        onClick={() => {
+          removeFriend(myId, friend, socket).catch((e) => {
             console.log(e);
-          })
-        }
+          });
+          closeFriendMenu();
+        }}
       >
         Remove friend
       </button>

@@ -38,21 +38,17 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
   }, []);
 
   useEffect(() => {
-    const asyncRefresh = async () => {
-      await refreshFriendList();
+    const refreshFriendList = async () => {
+      await getFriendsList(userId, setFriendsList).catch((e) => {
+        console.log(e);
+      });
     };
 
-    socket.on("refreshFriendList", asyncRefresh);
+    socket.on("refreshFriendList", refreshFriendList);
     return () => {
-      socket.off("refreshFriendList", asyncRefresh);
+      socket.off("refreshFriendList", refreshFriendList);
     };
   }, []);
-
-  const refreshFriendList = async () => {
-    await getFriendsList(userId, setFriendsList).catch((e) => {
-      console.log(e);
-    });
-  };
 
   const handleClick = (event: React.MouseEvent, friend: FriendType) => {
     if (!friendsMenu.visible) {
@@ -88,6 +84,8 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
           myId={userId}
           friend={friendsMenu.friend!}
           position={friendsMenu.position}
+          socket={socket}
+          closeFriendMenu={closeFriendMenu}
         />
       )}
     </div>

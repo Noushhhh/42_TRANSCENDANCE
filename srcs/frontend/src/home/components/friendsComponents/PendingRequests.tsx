@@ -33,12 +33,10 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
   );
   const [requestsNumber, setRequestsNumber] = useState<number>(0);
   const [showFriendRequests, setShowFriendRequests] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
   useEffect(() => {
     fetchPendingRequests(
-      setIsLoading,
       userId,
       setPendingRequests,
       setRequestsNumber
@@ -50,7 +48,6 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
   useEffect(() => {
     const refreshPendingRequests = async () => {
       await fetchPendingRequests(
-        setIsLoading,
         userId,
         setPendingRequests,
         setRequestsNumber
@@ -68,8 +65,6 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
   const handleShowFriendRequests = () => {
     setShowFriendRequests((curr) => !curr);
   };
-
-  if (isLoading) return <>Loading ...</>;
 
   if (error) return <>Something went wrong, please try again ...</>;
 

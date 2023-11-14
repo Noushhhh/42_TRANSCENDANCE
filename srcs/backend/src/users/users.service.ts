@@ -457,6 +457,42 @@ export class UsersService {
         })
     }
 
+    async refuseFriendRequest(senderId: number, targetId: number) {
+        const sender = await this.prisma.user.findUnique({
+            where: {
+                id: senderId,
+            }
+        })
+
+        if (!sender) throw new NotFoundException("User not found");
+
+        const target = await this.prisma.user.findUnique({
+            where: {
+                id: targetId
+            }
+        })
+
+        if (!target) throw new NotFoundException("User not found");
+
+        await this.prisma.user.update({
+            where: { id: senderId },
+            data: {
+                pendingRequestFrom: {
+                    disconnect: { id: targetId }
+                }
+            }
+        })
+
+        await this.prisma.user.update({
+            where: { id: targetId },
+            data: {
+                pendingRequestFor: {
+                    disconnect: { id: senderId }
+                }
+            }
+        })
+    }
+
     async getFriendsList(userId: number): Promise<FriendRequestFromUser[]> {
         const friendsList = await this.prisma.user.findUnique({
             where: { id: userId },

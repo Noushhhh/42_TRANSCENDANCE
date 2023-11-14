@@ -67,6 +67,24 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(client.id).emit("refreshPendingRequests");
   }
 
+  @SubscribeMessage('friendRequestRefused')
+  async friendRequestRefused(@ConnectedSocket() client: Socket, @MessageBody() targetId: number) {
+    const targetSocketId = await this.getSocketIdWithId(targetId);
+    if (!targetSocketId) return;
+
+    this.server.to(targetSocketId).emit("refreshPendingRequests");
+    this.server.to(client.id).emit("refreshPendingRequests");
+  }
+
+  @SubscribeMessage('refreshFriendList')
+  async refreshFriendList(@ConnectedSocket() client: Socket, @MessageBody() targetId: number) {
+    const targetSocketId = await this.getSocketIdWithId(targetId);
+    if (!targetSocketId) return;
+
+    this.server.to(targetSocketId).emit("refreshFriendList");
+    this.server.to(client.id).emit("refreshFriendList");
+  }
+
   private async getSocketIdWithId(playerId: number): Promise<string | undefined> {
     const clients = await this.server.fetchSockets();
     for (const client of clients) {

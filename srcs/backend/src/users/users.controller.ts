@@ -238,9 +238,9 @@ export class UsersController {
     }
 
     @Post('sendFriendRequest')
-    sendFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+    async sendFriendRequest(@Body() friendRequestDto: friendRequestDto) {
         try {
-            this.UsersService.sendFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId);
+            await this.UsersService.sendFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId);
         } catch (error) {
             console.log(error);
             throw error;
@@ -263,13 +263,25 @@ export class UsersController {
     @Post('acceptFriendRequest')
     async acceptFriendRequest(@Body() friendRequestDto: friendRequestDto) {
         try {
-            this.UsersService.acceptFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
+            await this.UsersService.acceptFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
         } catch (error) {
             console.log(error);
             throw error;
         }
 
         return { status: "Friend request accepted" }
+    }
+
+    @Post('refuseFriendRequest')
+    async refuseFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+        try {
+            await this.UsersService.refuseFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+
+        return { status: "Friend request refused" }
     }
 
     @Get('getFriendsList')
@@ -287,7 +299,7 @@ export class UsersController {
     @Post('removeFriend')
     async removeFriend(@Body() friendRequestDto: friendRequestDto) {
         try {
-            this.UsersService.removeFriend(friendRequestDto.senderId, friendRequestDto.targetId);
+            await this.UsersService.removeFriend(friendRequestDto.senderId, friendRequestDto.targetId);
         } catch (error) {
             console.log(error);
             throw error;

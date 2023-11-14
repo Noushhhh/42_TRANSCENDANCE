@@ -97,9 +97,9 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     handleClose();
   };
 
-  const handleAddFriend = () => {
+  const handleAddFriend = async () => {
     try {
-      sendFriendRequest(userId, user.id);
+      await sendFriendRequest(userId, user.id);
       socket.emit("pendingRequestSent", user.id);
     } catch (error) {
       console.error("Error trying to send friend request");
