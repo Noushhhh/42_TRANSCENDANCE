@@ -57,9 +57,10 @@ async function bootstrap() {
   // Use the AllExceptionsFilter to handle exceptions globally
   app.useGlobalFilters(app.get(AllExceptionsFilter));
 
+  //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
   cron.schedule('* * * * *', async () => {
     await sessionService.clearExpiredSessions();
-    console.log("Cron job executed every minute");
+    // console.log("Cron job executed every minute");
   });
 
   // Start the application and listen on port 4000
