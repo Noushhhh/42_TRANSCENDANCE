@@ -1,4 +1,4 @@
-import { InternalServerErrorException, ForbiddenException, Res, Req, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { InternalServerErrorException, ForbiddenException, Res, Req, Injectable, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import { AuthDto } from './dto';
@@ -15,6 +15,7 @@ import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { v4 as uuidv4 } from 'uuid';
 import cron from 'node-cron'; // Importing node-cron for scheduling tasksd
+import { StrictEventEmitter } from 'socket.io/dist/typed-events';
 
 
 
@@ -86,27 +87,28 @@ export class AuthService {
    * @return The result of the signin operation.
    */
   async signin(dto: AuthDto, res: Response, req: Request) {
-    // find user with username
+
+    if (req.cookies['userSession']) {
+      throw new ForbiddenException('A user is already logged in. Please log out before logging in as a different user.');
+    }
     const user = await this.usersService.findUserWithUsername(dto.username);
     if (!user) throw new ForbiddenException('Username not found');
 
     const passwordMatch = await argon.verify(user.hashPassword, dto.password);
     if (!passwordMatch) throw new ForbiddenException('Incorrect password');
 
-    // Check for existing session
-    const existingSession = await this.prisma.user.findFirst({
-      where: { id: user.id, sessionId: { not: null } },
-    });
-
-    if (existingSession) {
+    // Enhanced session check logic
+    if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
       throw new ForbiddenException('User is already logged in');
     }
 
-
-
     const result = await this.signToken(user.id, user.username, res);
-    if (result.valid)
-      res.status(200).send({ valid: result.valid, message: result.message });
+    if (!result.valid) {
+      // Consider providing more detailed feedback based on the error
+      throw new ForbiddenException('Authentication failed');
+    }
+
+    res.status(200).send({ valid: result.valid, message: result.message });
   }
 
   /**
@@ -150,29 +152,101 @@ export class AuthService {
 
 
   // ─────────────────────────────────────────────────────────────────────────────
-  async generateTokens(userId: number, email: string): Promise<{ token: string, refreshToken: { token: string, expiresAt: Date } }> {
-    const payload = { sub: userId, email, };
-    const secret = this.JWT_SECRET;
 
-    const token = await this.jwt.signAsync(
-      payload,
-      { expiresIn: '30d', secret: secret, },
-    );
+/**
+ * Generates JWT and refresh tokens for a user and updates session information in the database.
+ * @param userId - The ID of the user.
+ * @param email - The email of the user.
+ * @returns An object containing the generated JWT and refresh tokens, along with their expiration information.
+ */
+async generateTokens(userId: number, email: string): Promise<{ newToken: {token: string, expiresAt: Date}, refreshToken: { token: string, expiresAt: Date } }> {
+  const payload = { sub: userId, email };
+  const secret = this.JWT_SECRET;
+  const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
 
-    const refreshToken = await this.refreshTokenIfNeeded(userId);
+  let token, tokenExpiresAt;
+  try {
+    token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
+    tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
 
-    return { token, refreshToken };
+  } catch (error) {
+    if (error instanceof Error)
+      throw new Error("Error generating JWT token: " + error.message);
+    else
+      throw new Error("Error generating JWT token");
   }
+
+  let refreshToken;
+  try {
+    refreshToken = await this.refreshTokenIfNeeded(userId);
+  } catch (error) {
+    if (error instanceof Error)
+      throw new Error("Error generating refresh token: " + error.message);
+    else
+      throw new Error("Error generating refresh token");
+  }
+
+  const sessionId = this.generateSessionId();
+  const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
+
+  try {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { sessionId, sessionExpiresAt },
+    });
+  } catch (error) {
+    if (error instanceof Error)
+      throw new Error("Error updating user session in database: " + error.message);
+    else
+      throw new Error("Error updating user session in database");
+  }
+  let newToken = {token: token, expiresAt: tokenExpiresAt}
+  return { newToken, refreshToken };
+}
+
 
   // ─────────────────────────────────────────────────────────────────────────────
 
-  setTokens(tokens: { token: string, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
-    if (tokens.refreshToken) {
-      res.cookie('refreshToken', tokens.refreshToken.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: (tokens.refreshToken.expiresAt.getTime() - Date.now()) });
+  /**
+   * Sets JWT and refresh tokens in HTTP-only cookies on the response object.
+   * @param tokens - Object containing the JWT token and refresh token with their expiration times.
+   * @param res - HTTP response object to set cookies on.
+   */
+  setTokens(tokens: { newToken: {token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
+    // Error handling for undefined tokens
+    if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
+      throw new Error("Invalid or missing tokens provided.");
     }
 
-    res.cookie('token', tokens.token, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
+    // Set refresh token cookie
+    const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
+    res.cookie('refreshToken', tokens.refreshToken.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: refreshTokenMaxAge
+    });
+
+    // Assuming the JWT token also has an expiresAt property to calculate its maxAge
+    const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
+    res.cookie('token', tokens.newToken.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: tokenMaxAge
+    });
+
+    const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
+
+    // Set the session cookie in the response
+    res.cookie('userSession', sessionValue, {
+      httpOnly: true, // Makes the cookie inaccessible to client-side scripts
+      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
+      sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
+      maxAge: tokenMaxAge  // Sets the cookie to expire in 1 day (example)
+    });
   }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -185,27 +259,27 @@ export class AuthService {
    * @return A promise that resolves to void.
    */
   async signToken(userId: number, email: string, res: Response): Promise<any> {
-    const { token, refreshToken } = await this.generateTokens(userId, email);
-    this.setTokens({ token, refreshToken }, res);
+    const { newToken, refreshToken } = await this.generateTokens(userId, email);
+    this.setTokens({ newToken, refreshToken }, res);
 
     if (!refreshToken) {
-      return ({ statusCode: 409, valid: false, message: "Problem creating refresh token for user" });
+      throw new ConflictException("Problem creating refresh token for user")
     }
 
-    const decodedToken = jwt.verify(token, this.JWT_SECRET);
-    if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-      res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
-        { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
-    } else {
-      return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
-    }
-
-    const sessionId = this.generateSessionId();
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { sessionId },
-    });
-
+    /*     const decodedToken = jwt.verify(newToken.token, this.JWT_SECRET);
+        if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
+          res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
+            { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
+        } else {
+          return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
+        }
+    
+        const sessionId = this.generateSessionId();
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { sessionId },
+        });
+     */
     return ({ statusCode: 200, valid: true, message: "Authentication successful" });
   }
 
@@ -286,17 +360,18 @@ export class AuthService {
    * @return The result of the signout operation.
    */
   async signout(decodedPayload: DecodedPayload | null, res: Response) {
-    // Clear the JWT cookie or session
     if (!decodedPayload)
       throw new ForbiddenException("problem obtaining paylod when signing out");
     try {
       await this.prisma.user.update({
         where: { id: decodedPayload.sub },
-        data: { sessionId: null },
+        data: { sessionId: null, sessionExpiresAt: null },
       });
 
+    // Clear the JWT cookie or session
       res.clearCookie('token');
       res.clearCookie('refreshToken');
+      res.clearCookie('userSession');
       return res.status(200).send({ message: 'Signed out successfully' });
     } catch (error) {
       console.error(error);
@@ -544,5 +619,24 @@ export class AuthService {
   private generateSessionId(): string {
     return uuidv4(); // Generates and returns a new UUID (v4)
   }
+
+  private convertToMilliseconds(timeStr: string): number {
+    const timeValue = parseInt(timeStr.slice(0, -1), 10);
+    const timeUnit = timeStr.slice(-1);
+
+    switch (timeUnit) {
+      case 'd': // Days
+        return timeValue * 24 * 60 * 60 * 1000;
+      case 'h': // Hours
+        return timeValue * 60 * 60 * 1000;
+      case 'm': // Minutes
+        return timeValue * 60 * 1000;
+      case 's': // Seconds
+        return timeValue * 1000;
+      default:
+        throw new Error(`Unsupported time format: ${timeStr}`);
+    }
+  }
+
 
 }
