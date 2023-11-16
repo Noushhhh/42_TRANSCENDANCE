@@ -190,17 +190,26 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('message')
-    async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
-        if (this.isInRoom(client, data.channelId) === false)
-            return true;
+    async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<void> {
+        console.log("server triggered with");
+        console.log(data);
+        if (data.content.length > 5000){
+            console.log("TOOLONG_ERROR");
+            data.content = "Message too long. Maximum length: 5000";
+            return ;
+        }
+        if (this.isInRoom(client, data.channelId) === false){
+            console.log("NOTINROOM_ERROR")
+            return ;
+        }
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number  };
         isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
         if (isSenderMuted.isMuted === true){
-            return true ;
+            console.log("CHANGECONTENT_ERROR")
+            data.content = "You are muted in this channel. Others users can't see your message";
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
         console.log(`senderId == ${data.senderId}`);
         client.to(String(data.channelId)).except(String(`whoBlocked${data.senderId}`)).emit("messageBack", data);
-        return false ;
     }
 }

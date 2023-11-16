@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
@@ -21,6 +21,7 @@ class CommonUserIdDto {
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     userId!: number;
 }
 
@@ -160,7 +161,8 @@ export class MessageToStoreDto {
     channelId!: number;
 
     @IsNotEmpty()
-    @MaxLength(2000)
+    @MaxLength(5000)
+    @IsString()
     content!: string;
 
     @IsInt()

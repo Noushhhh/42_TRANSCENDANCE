@@ -94,7 +94,11 @@ export class ChatController {
     @Post('addMessageToChannel')
     async addMessageToChannelId(
         @Body() message: MessageToStoreDto) {
-            return this.chatService.addMessageToChannelId(message);
+            try {
+                return this.chatService.addMessageToChannelId(message);
+            } catch (error){
+                console.log("ERROR", error);
+            }
     }
 
     @Get('getUsersFromChannelId')
