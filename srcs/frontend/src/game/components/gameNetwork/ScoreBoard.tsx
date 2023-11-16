@@ -2,6 +2,11 @@ import "../../styles/ScoreBoard.css";
 import React, { FC, useEffect, useState } from "react";
 import { ScoreBoardProps, GameState } from "../../assets/data";
 
+export const formatPlayerName = (playerName: string): string => {
+  if (playerName.length > 8) return playerName.substring(0, 8) + "...";
+  return playerName;
+};
+
 const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
   const [p1Score, setP1Score] = useState(0);
   const [p2Score, setP2Score] = useState(0);
@@ -22,10 +27,7 @@ const ScoreBoard: FC<ScoreBoardProps> = ({ socket }) => {
     setP2Name(formatPlayerName(gameState.p2Name));
   };
 
-  const formatPlayerName = (playerName: string): string => {
-    if (playerName.length > 8) return playerName.substring(0, 8) + "...";
-    return playerName;
-  };
+  
 
   return (
     <div

@@ -48,6 +48,13 @@ model User {
   gamesWon          Int            @default(0)
   matchHistory      MatchHistory[]
 
+  // Friend list
+  friends   User[]  @relation("Friends")
+  friendOf  User[]  @relation("Friends")
+
+  pendingRequestFrom  User[]  @relation("PendingRequest")
+  pendingRequestFor   User[]  @relation("PendingRequest")
+
   @@map("users")
 }
 

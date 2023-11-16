@@ -150,10 +150,10 @@ const GameContainer: FC<GameContainerProps> = ({
   };
 
   if (isInLobby === true) {
-    if (isLobbyFull === false) {
+    if (isLobbyFull === false && socket) {
       return (
         <>
-          <WaitingForPlayer />
+          <WaitingForPlayer socket={socket} />
         </>
       );
     } else if (isLobbyFull === true && socket) {

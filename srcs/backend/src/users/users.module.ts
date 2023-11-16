@@ -4,6 +4,9 @@ import { UsersService } from './users.service';
 // import { JwtExtractionMiddleware } from '../strategies';
 // import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from '../strategies/jwt.strategy';
+import { UsersGateway } from './users.gateway';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 // import { AuthService } from '../auth/auth.service';
 
 
@@ -14,7 +17,10 @@ import { JwtStrategy } from '../strategies/jwt.strategy';
         // AuthService,
         UsersService, 
         // ConfigService, 
-        JwtStrategy
+        JwtStrategy,
+        UsersGateway,
+        AuthService,
+        JwtService
     ],
     exports: [UsersService]
     // providers:[ConfigService]

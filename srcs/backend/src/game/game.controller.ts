@@ -37,7 +37,7 @@ export class GameController {
   @Get('lobby')
   async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
     if (req.user) {
-      try { // dto.clientId
+      try {
         await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
       } catch (error) {
         throw error;

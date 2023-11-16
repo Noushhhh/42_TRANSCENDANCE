@@ -20,6 +20,7 @@ import { createChannel } from "./ChannelUtils";
 import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
+import { removeFriend, sendFriendRequest } from "../../user/FriendUtils";
 
 interface UserProfileMenuProps {
   user: User;
@@ -34,6 +35,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [invitationStatus, setInvitationStatus] = useState<string>("");
+  const [areUsersFriend, setAreUsersFriend] = useState<boolean>(false);
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -45,10 +47,17 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const navigate = useNavigate();
 
   const open = Boolean(anchorEl);
-  const menu: string[] = ["Profile", "Private message", "Play", "Block"];
+  const menu: string[] = [
+    "Profile",
+    "Private message",
+    areUsersFriend === false ? "Add Friend" : "Remove Friend",
+    "Play",
+    "Block",
+  ];
   const menuIfBlock: string[] = [
     "Profile",
     "Private message",
+    areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
     "Unblock",
   ];
@@ -70,6 +79,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
+    handleAreUsersFriend();
     setAnchorEl(event.currentTarget);
     const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
     setIsBlocked(isBlocked);
@@ -88,6 +98,33 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleProfilClick = () => {
     handleClose();
+  };
+
+  const handleAddFriend = async () => {
+    try {
+      await sendFriendRequest(userId, user.id);
+      socket.emit("pendingRequestSent", user.id);
+    } catch (error) {
+      console.error("Error trying to send friend request");
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    try {
+      await removeFriend(userId, user.id, socket);
+    } catch (error) {
+      console.log("Error trying to remove friend");
+    }
+  };
+
+  const handleAreUsersFriend = () => {
+    socket.emit(
+      "areUsersFriend",
+      { userId1: userId, userId2: user.id },
+      (res: boolean) => {
+        setAreUsersFriend(res);
+      }
+    );
   };
 
   const handlePrivateMessageClick = async () => {
@@ -167,9 +204,13 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     handleClose();
   };
 
+  const addOrRemove = areUsersFriend ? "Remove Friend" : "Add Friend";
+
   const menuFunctions: { [key: string]: () => void } = {
     Profile: handleProfilClick,
     "Private message": handlePrivateMessageClick,
+    [addOrRemove]:
+      areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
     Block: handleBlockClick,
   };
@@ -177,6 +218,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const menuFunctionsBlocked: { [key: string]: () => void } = {
     Profile: handleProfilClick,
     "Private message": handlePrivateMessageClick,
+    [addOrRemove]:
+      areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
     Unblock: handleUnblockClick,
   };

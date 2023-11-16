@@ -127,9 +127,11 @@ export class GameLobbyService {
       this.gatewayOut.emitToUser(playerSocketId, "error", { statusCode: 404, message: "player not found" });
       return;
     }
+    const p1UserName = playerDb1.publicName ? playerDb1.publicName : playerDb1.username;
+    const p2UserName = playerDb2.publicName ? playerDb2.publicName : playerDb2.username;
 
-    lobby.gameState.gameState.p1Name = playerDb1.username;
-    lobby.gameState.gameState.p2Name = playerDb2.username;
+    lobby.gameState.gameState.p1Name = p1UserName;
+    lobby.gameState.gameState.p2Name = p2UserName;
 
     lobbies.set(lobbyName, lobby);
     player1.join(lobbyName);
