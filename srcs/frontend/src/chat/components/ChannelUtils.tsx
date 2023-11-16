@@ -168,15 +168,14 @@ export const createChannel = async (
       method: "POST",
       credentials: 'include',
       headers: {
-        "Content-Type": "application/json", // Add appropriate headers if needed
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(channelToAdd), // Include the data you want to send in the request body
+      body: JSON.stringify(channelToAdd),
     });
 
-    if (!response.ok)
-      throw new Error("Error creating channel");
-    if (response.status === 406)
-      throw new Error("Channel name already exist");
+    if (!response.ok){
+      return Promise.reject(await response.json());
+    }
     await fetchUser(setChannelHeader, userId, socket);
     const channelId: number = await response.json();
     return channelId;
@@ -348,6 +347,7 @@ export const getUsernamesInChannelFromSubstring = async (
     const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
+    console.log(users);
     return users;
   } catch (errors) {
     throw errors;
@@ -528,25 +528,32 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
   });
 
   return Promise.all(responses)
-    .then(async (responses) => {
+  .then(async (responses) => {
+    const errors = [];
+    let index = 0;
 
-      let index: number = 0;
-      for (const response of responses){
-        if (response.ok){
-          const data = {
-            userId: userList[index].id,
-            channelId,
-          };
-          socket.emit("notifySomeoneJoinChannel", data);
-        }
-        index++;
+    for (const response of responses) {
+      if (response.ok) {
+        const data = {
+          userId: userList[index].id,
+          channelId,
+        };
+        socket.emit("notifySomeoneJoinChannel", data);
+      } else {
+        errors.push(await response.json());
       }
+      index++;
+    }
 
-      return responses;
-    })
-    .catch((error) => {
-      throw error;
-    });
+    for (const error of errors){
+      return Promise.reject(error);
+    }
+
+    return responses;
+  })
+  .catch((error) => {
+    throw error;
+  });
 };
 
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> => {
@@ -655,7 +662,7 @@ export const unblockUser = async (callerId: number, targetId: number) => {
     });
 }
 
-export const getBlockedUsersById = async (userId: number): Promise<number[]> => {
+/*export const getBlockedUsersById = async (userId: number): Promise<number[]> => {
   try {
     const response = await fetch(`http://localhost:4000/api/chat/getBlockedUsersById`, {
       method: 'POST',
@@ -673,7 +680,7 @@ export const getBlockedUsersById = async (userId: number): Promise<number[]> => 
   } catch (error) {
     throw error;
   }
-}
+}*/
 
 export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
   try {

@@ -30,16 +30,6 @@ function ContentMessage({
   // useState that represent all the messages inside the socket:
   const [messages, setMessages] = useState<Message[]>([]);
 
-  useEffect(() => {
-    console.log("RENDER CONTENT MESSAGE, messages = ", messages);
-
-    return () => {
-      console.log("RETURN CONTENT MESSAGE, messages = ", messages);
-    };
-  });
-
-  // console.log(messages);
-
   const userId: number = useUserIdContext();
 
   const contentMessageWidth: string = channelInfo ? "reduce" : "wide";

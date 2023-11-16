@@ -150,21 +150,32 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleBlockClick = async () => {
-    // Ajoutez ici la logique pour "Bloquer"
-    await blockUser(userId, user.id);
-    await fetchUser(setChannelHeader, userId, socket);
-    // await fetchConversation();
-    console.log("blocked");
-    handleClose();
+    try {
+
+      // Ajoutez ici la logique pour "Bloquer"
+      await blockUser(userId, user.id);
+      socket.emit("block", { blockerId: userId, blockedId: user.id });
+      await fetchUser(setChannelHeader, userId, socket);
+      // await fetchConversation();
+      console.log("blocked");
+      handleClose();
+    } catch (error) {
+      console.log("error blocking user");
+    }
   };
 
   const handleUnblockClick = async () => {
-    // Ajoutez ici la logique pour "Bloquer"
-    await unblockUser(userId, user.id);
-    await fetchUser(setChannelHeader, userId, socket);
-    // await fetchUser(setChannelHeader, userId, socket);
-    console.log("Unblocked");
-    handleClose();
+    try {
+      // Ajoutez ici la logique pour "Bloquer"
+      await unblockUser(userId, user.id);
+      socket.emit("unblock", { blockerId: userId, blockedId: user.id });
+      await fetchUser(setChannelHeader, userId, socket);
+      // await fetchUser(setChannelHeader, userId, socket);
+      console.log("Unblocked");
+      handleClose();
+    } catch (error) {
+      console.log("error unblocking user");
+    }
   };
 
   const menuFunctions: { [key: string]: () => void } = {

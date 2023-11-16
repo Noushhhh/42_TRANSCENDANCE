@@ -249,6 +249,7 @@ export class ChatController {
         return this.chatService.isMute(dto);
     }
 
+    @UseGuards(AdminGuard)
     @Post('mute')
     async mute(
         @Body() dto: muteDto) {

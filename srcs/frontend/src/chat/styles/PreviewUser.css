@@ -22,6 +22,9 @@
     border-radius: 14px;
     margin-right: 6px;
     position: relative;
+    max-width: unset!important;
+    height:29px!important;
+    width: 29px!important;
 }
 
 .PreviewUser span{

@@ -48,7 +48,7 @@ const useActivityLogout = (timeToLogout: number = 600000) => {
     const now = new Date().getTime();
     const expiresIn: number = accessTokenExpiresAt.getTime() - now;
     console.log(expiresIn);
-    if (expiresIn <= 5 * 60 * 1000) {
+    if (expiresIn <= 25 * 60 * 1000) { // @to-do change this to 5 * 60 * 1000 in prod 
       refreshToken().catch((error) => {
         console.error('Error refreshing token:', error);
       });

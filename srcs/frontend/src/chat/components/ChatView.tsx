@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/ChatView.css";
 import MessageComponent from "./Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
@@ -24,27 +24,44 @@ interface ChatViewProps {
 function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatViewProps): JSX.Element {
 
   const [conversationFetched, setConversationFetched] = useState<Message[]>([]);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const channelId = useChannelIdContext();
 
   let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
-
+  
   const addMsgToFetchedConversation = (message: Message) => {
     setConversationFetched(prevState => [...prevState, message]);
   }
+  
+  const scrollToBottom = () => {
+    if (anchorRef.current) {
+      anchorRef.current.scrollIntoView({ behavior: 'smooth', block:'end' });
+    }
+  };
 
   useEffect(() => {
-    const callFetchConversation = async () => {  
+    const callFetchConversation = async () => {
       setConversationFetched([]);
       setMessages([]);
       try {
-        if (channelId !== -1)
+        if (channelId !== -1){
           await fetchConversation(userId, channelId, addMsgToFetchedConversation);
+          setTimeout(() => {
+            scrollToBottom();
+          }, 950);
+        }
       } catch (error) {
         console.log('error while fetching conv');
       }
     }
     callFetchConversation();
   }, ([channelId]));
+
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
 
   if (channelId === -1)
     return (<div className="ChatViewContainer"></div>)
@@ -76,6 +93,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
             />
           )
         })}
+      <div className="anchor-autoscroll" style={{height:'1px'}} ref={anchorRef}></div>
       </div>
     </div>
   );

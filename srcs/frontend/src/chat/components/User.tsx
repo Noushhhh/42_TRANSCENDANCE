@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
-import avatar from "./avatar_tdeville.jpeg"
+import avatar from "./caf438ea-b608-40a3-8a58-f884190b2e9f.jpg"
 import { getUserAvatar } from "../../home/tools/Api";
 
 interface UserProps {
@@ -19,22 +19,6 @@ interface UserProps {
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
 
     const [error, setError] = useState<string | null>(null);
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-    const fetchUserAvatar = async (): Promise<void> => {
-      const userAvatarResultFromBack = await getUserAvatar();
-      if (userAvatarResultFromBack) {
-        setAvatarUrl(userAvatarResultFromBack);
-      } else {
-        setError('There was an error fetching the avatar, please contact the system administrator');
-      }
-    }
-
-    useEffect(() => {
-    
-        Promise.all([fetchUserAvatar()])
-          .catch(() => setError("error fetching avatar")); // Also set showLoading to false if there's an error
-      }, []);
 
     const handleDivClick = () => {
         console.log("run here ?");
@@ -60,7 +44,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     {user.publicName && user.publicName}
@@ -72,7 +56,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>

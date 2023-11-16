@@ -12,7 +12,7 @@ function ChannelManager({ display,setStateMessageToClick }: ChannelManagerProps)
 
     return (
         <div style={{height:"calc(100% - 60px)"}}>
-            {display[0] ? <CreateChannelPopup /> : null}
+            {display[0] ? <CreateChannelPopup setIsDisplay={setStateMessageToClick}/> : null}
             {display[1] ? <JoinChannel setStateMessageToClick={setStateMessageToClick}/> : null}
         </div>
     )

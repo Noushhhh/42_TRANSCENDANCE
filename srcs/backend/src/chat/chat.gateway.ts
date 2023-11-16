@@ -38,33 +38,48 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             }
         })
 
-        // this.server.on('connection', async (socket) => {
-        //     console.log(`userId ${socket.data.userId} is connected from chat gateway`);
-        //     this.joinRoomsForClient(socket.data.userId, socket);
-        //     this.readMap();
+        /*this.server.on('connection', async (socket) => {
+            console.log(`userId ${socket.data.userId} is connected from chat gateway`);
+            this.joinRoomsForClient(socket.data.userId, socket);
+            this.readMap();
 
-        //     socket.on('disconnect', async () => {
-        //         console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
-        //         this.leaveRoomsForClient(socket.data.userId, socket);
-        //     })
-        // });
+            socket.on('disconnect', async () => {
+                console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
+                this.leaveRoomsForClient(socket.data.userId, socket);
+            })
+        });*/
     }
 
     handleConnection(socket: Socket) {
         console.log(`userId ${socket.data.userId} is connected from chat gateway`);
         this.joinRoomsForClient(socket.data.userId, socket);
-        this.readMap();
+        this.joinBlockedRooms(socket.data.userId, socket);
     }
 
     handleDisconnect(socket: Socket) {
         console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
         this.leaveRoomsForClient(socket.data.userId, socket);
+        this.leaveBlockedRooms(socket.data.userId, socket);
     }
 
     async readMap() {
         const sockets = await this.server.fetchSockets();
         for (const socket of sockets) {
             console.log(`userId:${socket.data.userId} is ${socket.id}`);
+        }
+    }
+
+    async joinBlockedRooms(userId: number, socket: Socket) {
+        const blockedUsersId: number[] = await this.chatService.getBlockedUsersById(userId);
+        for (const id of blockedUsersId) {
+            socket.join(String(`whoBlocked${id}`));
+        }
+    }
+
+    async leaveBlockedRooms(userId: number, socket: Socket) {
+        const blockedUsersId: number[] = await this.chatService.getBlockedUsersById(userId);
+        for (const id of blockedUsersId) {
+            socket.leave(String(`whoBlocked${id}`));
         }
     }
 
@@ -78,7 +93,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async leaveRoomsForClient(userId: number, socket: Socket) {
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
         for (const channelId of channelIds) {
-            // console.log(`userId:${socket.data.userId} is leaving channelId:${channelId}`);
             socket.leave(String(channelId));
         }
     }
@@ -108,6 +122,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         }
     }
 
+    @SubscribeMessage("block")
+    handleBlock(@MessageBody() data: { blockerId: number, blockedId: number }, @ConnectedSocket() client: Socket) {
+        console.log(`userId: ${data.blockerId} is blocking ${data.blockedId}`);
+        client.join(String(`whoBlocked${data.blockedId}`));
+    }
+
+    @SubscribeMessage("unblock")
+    handleUnblock(@MessageBody() data: { blockerId: number, blockedId: number }, @ConnectedSocket() client: Socket) {
+        console.log(`userId: ${data.blockerId} is unblocking ${data.blockedId}`);
+        client.leave(String(`whoBlocked${data.blockedId}`));
+    }
+
     @SubscribeMessage("joinChannel")
     handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is joining channelId: ${channelId}`);
@@ -126,7 +152,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const socket = await this.getSocketByUserId(userId);
         if (!socket)
             return
-        console.log(`userId: ${userId} is leaving of ${channelId}`);
+        socket.emit("kickedOrBanned", channelId);
         socket.leave(String(channelId));
     }
 
@@ -154,15 +180,27 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return false;
     }
 
+    isInRoom(client: Socket, channelId: number): boolean {
+        const rooms = [...client.rooms].slice(1, );
+        for (const room of rooms){
+            if (room == String(channelId))
+                return true;
+        }
+        return false;
+    }
+
     @SubscribeMessage('message')
     async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
+        if (this.isInRoom(client, data.channelId) === false)
+            return true;
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number  };
         isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
         if (isSenderMuted.isMuted === true){
             return true ;
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
-        client.to(String(data.channelId)).emit("messageBack", data);
+        console.log(`senderId == ${data.senderId}`);
+        client.to(String(data.channelId)).except(String(`whoBlocked${data.senderId}`)).emit("messageBack", data);
         return false ;
     }
 }
