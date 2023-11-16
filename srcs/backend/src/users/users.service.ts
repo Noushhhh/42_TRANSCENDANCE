@@ -11,6 +11,7 @@ interface FriendRequestFromUser {
     id: number;
     publicName?: string | null;
     userName: string;
+    avatar?: string | null;
 }
 
 @Injectable()
@@ -338,10 +339,6 @@ export class UsersService {
         }
     }
 
-    async addFriend(selfId: number, targetId: number) {
-
-    }
-
     async sendFriendRequest(senderId: number, targetId: number) {
         const sender = await this.prisma.user.findUnique({
             where: {
@@ -358,6 +355,9 @@ export class UsersService {
         })
 
         if (!target) throw new NotFoundException("User not found");
+
+        if (await this.areUsersFriends(senderId, targetId))
+            return;
 
         await this.prisma.user.update({
             where: { id: senderId },
@@ -392,6 +392,7 @@ export class UsersService {
             id: user.id,
             publicName: user.publicName,
             userName: user.username,
+            avatar: user.avatar
         }));
 
         return transformedArray;
@@ -507,6 +508,7 @@ export class UsersService {
             id: user.id,
             publicName: user.publicName,
             userName: user.username,
+            avatar: user.avatar,
         }));
 
         return transformedArray;
@@ -552,5 +554,30 @@ export class UsersService {
                 }
             }
         })
+    }
+
+    async getFriendIds(userId: number): Promise<number[]> {
+        const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { friends: true } });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const userIdMap = user.friends.map((friend) => friend.id);
+
+        return user.friends.map((friend) => friend.id);
+    }
+
+    async areUsersFriends(userId1: number, userId2: number) {
+        const user1 = await this.prisma.user.findUnique({
+            where: { id: userId1 },
+            include: { friends: true },
+        });
+
+        if (!user1) {
+            throw new Error(`User with id ${userId1} not found.`);
+        }
+
+        return user1.friends.some((friend) => friend.id === userId2);
     }
 }

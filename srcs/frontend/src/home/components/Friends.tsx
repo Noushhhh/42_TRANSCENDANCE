@@ -29,7 +29,7 @@ const Friends: FC<FriendsProps> = ({ socket }) => {
       ) : (
         <div>
           <PendingRequests userId={userId} socket={socket} />
-          <FriendsList userId={userId} socket={socket}/>
+          <FriendsList userId={userId} socket={socket} />
         </div>
       )}
     </div>

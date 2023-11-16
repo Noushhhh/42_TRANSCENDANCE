@@ -18,6 +18,7 @@ const spanStyle: React.CSSProperties = {
   backgroundColor: "red",
   padding: "0.5rem",
   borderRadius: "100%",
+  marginRight: "1rem",
 };
 
 const mainDivStyle: React.CSSProperties = {

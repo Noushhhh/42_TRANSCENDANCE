@@ -1,4 +1,5 @@
-import React from "react";
+import React, { FC, useEffect } from "react";
+import { Socket } from "socket.io-client";
 import styled, { keyframes } from "styled-components";
 
 const fadeInAnimation = keyframes`
@@ -34,7 +35,18 @@ const Dot = styled.div`
   animation: ${dotAnimation} 1s infinite;
 `;
 
-const WaitingForPlayer = () => {
+interface WaitingForPlayerProps {
+  socket: Socket;
+}
+
+const WaitingForPlayer: FC<WaitingForPlayerProps> = ({ socket }) => {
+  useEffect(() => {
+    socket.emit("updateStatus", "In queue");
+    return () => {
+      socket.emit("updateStatus", "Online");
+    };
+  }, []);
+
   return (
     <div
       className="waiting-screen"

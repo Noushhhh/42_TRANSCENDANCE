@@ -3,8 +3,9 @@ import { AllExceptionsFilter } from './auth/exception/all-exception.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { ValidationPipe} from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
+import * as path from 'path';
 import cookieParser from 'cookie-parser';
 
 // The bootstrap function is the entry point of the application
@@ -51,6 +52,9 @@ async function bootstrap() {
 
   // Use the AllExceptionsFilter to handle exceptions globally
   app.useGlobalFilters(app.get(AllExceptionsFilter));
+
+  // Serve static files from the 'uploads' folder
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
   // Start the application and listen on port 4000
   await app.listen(4000);

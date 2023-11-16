@@ -174,6 +174,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
 
+    // @to-do gerer le cas de crash ici
     const p1 = await this.userService.findUserWithId(playersId.user1);
     if (!p1) {
       const response: WebSocketResponse = {

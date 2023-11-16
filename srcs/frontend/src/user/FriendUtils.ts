@@ -4,6 +4,7 @@ interface FriendType {
   id: number;
   publicName?: string;
   userName: string;
+  avatar?: string;
 }
 
 export const sendFriendRequest = async (senderId: number, targetId: number) => {
@@ -70,9 +71,7 @@ export const getFriendsList = async (
   setFriendsList(friendsList);
 };
 
-export const removeFriend = async (myId: number, friend: FriendType, socket: Socket) => {
-  const senderId = myId;
-  const targetId = friend.id;
+export const removeFriend = async (senderId: number, targetId: number, socket: Socket) => {
   const response = await fetch(
     "http://localhost:4000/api/users/removeFriend",
     {

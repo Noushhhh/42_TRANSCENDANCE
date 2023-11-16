@@ -18,6 +18,7 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
       handlePlayPause();
     }, 1500);
   }, []);
+
   return true;
 };
 
