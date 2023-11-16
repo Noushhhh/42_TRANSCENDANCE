@@ -15,6 +15,7 @@ interface User {
 	firstName: string | null;
 	lastName: string | null;
 	isBlocked: boolean;
+	publicName: string | null;
 }
 
 interface Message {

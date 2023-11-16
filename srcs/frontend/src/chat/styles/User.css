@@ -24,7 +24,10 @@
 }
 
 .avatar_image{
-    border-radius: 50%;
+    border-radius: 50%!important;
+    max-width: unset!important;
+    width: 49px!important;
+    height: 49px!important;
 }
 
 .User .username{

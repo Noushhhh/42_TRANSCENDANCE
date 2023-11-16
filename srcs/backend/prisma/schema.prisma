@@ -22,7 +22,7 @@ model User {
   avatar   String? @default("https://cdn.intra.42.fr/coalition/cover/302/air__1_.jpg")
 
   hashPassword        String
-  publicName        String?        @unique
+  publicName          String?        @unique
 
   twoFASecret String?
   twoFAUrl    String?
@@ -30,6 +30,7 @@ model User {
   refreshToken RefreshToken[]
 
   firstConnexion Boolean @default(true)
+  fortyTwoStudent Boolean  @default(true)
   loggedIn       Boolean @default(false)
   TwoFA          Boolean @default(false)
 

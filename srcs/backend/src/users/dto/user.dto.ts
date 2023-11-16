@@ -1,9 +1,10 @@
 // Importing validation decorators from 'class-validator' package
-import {    IsNotEmpty, 
-            IsString, 
-            IsUrl,
-            IsInt, Min
-        } from "class-validator";
+import {
+        IsNotEmpty,
+        IsString,
+        IsUrl,
+        IsInt, Min
+} from "class-validator";
 
 import { Type } from "class-transformer";
 
@@ -12,7 +13,7 @@ import { Type } from "class-transformer";
 export class CreateUserDto {
         @IsNotEmpty() @IsString() username!: string;
         @IsNotEmpty() @IsString() hashPassword!: string;
-        @IsNotEmpty() @IsUrl({ require_protocol: false }, { message: 'Invalid URL format' }) 
+        @IsNotEmpty() @IsUrl({ require_protocol: false }, { message: 'Invalid URL format' })
         avatar!: string;
 }
 
@@ -31,4 +32,10 @@ export class friendRequestDto {
         @IsInt()
         @Type(() => Number)
         targetId!: number;
+}
+
+export class UpdatePublicNameDto {
+        @IsString()
+        @IsNotEmpty()
+        publicName!: string;
 }

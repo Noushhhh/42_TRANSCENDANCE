@@ -12,7 +12,6 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
-
 @UseFilters(AllExceptionsFilter)
 @Controller('auth')
 export class AuthController {

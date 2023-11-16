@@ -28,7 +28,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const [searchBarResults, setSearchBarResults] = useState<boolean>(false);
     const [userList, setUserList] = useState<User[]>([]);
     const [inputValue, setInputValue] = useState<string>("");
-    const [listUserAdmin, setListUserAdmin] = useState<{ user: User, isAdmin: boolean }[]>([]);
+    const [listUserAdmin, setListUserAdmin] = useState<{ user: User, isAdmin: boolean, updated: boolean }[]>([]);
     const [mutedUser, setMutedUser] = useState<User>();
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
@@ -42,9 +42,9 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     let isItDisplay: string = isSettingsMenuDisplay ? "isDisplay" : "isNotDisplay";
 
     const updateUserAdminList = (user: User): void => {
-        const updatedList: { user: User, isAdmin: boolean }[] = listUserAdmin.map(userAdmin => {
+        const updatedList: { user: User, isAdmin: boolean, updated: boolean }[] = listUserAdmin.map(userAdmin => {
             if (userAdmin.user.id === user.id) {
-                return { ...userAdmin, isAdmin: !userAdmin.isAdmin };
+                return { ...userAdmin, isAdmin: !userAdmin.isAdmin, updated: !userAdmin.updated };
             }
             return userAdmin;
         });
@@ -64,7 +64,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const fetchDataAdmins = async () => {
         if (action === "admin") {
             try {
-                const userAdminTable: { user: User, isAdmin: boolean }[] = await fetchUserAdminTable(channelId);
+                const userAdminTable: { user: User, isAdmin: boolean, updated: boolean }[] = await fetchUserAdminTable(channelId);
                 setListUserAdmin(userAdminTable);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -86,7 +86,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             } else if (action === "kick") {
                 await kickUserList(userList, channelId, userId, socket);
             } else if (action === "admin") {
-                await manageAdminsToChannel(listUserAdmin, channelId, userId);
+                await manageAdminsToChannel(listUserAdmin.filter(user => user.updated === true), channelId, userId);
             } else if (action === "add") {
                 await addUserListToChannel(userList, channelId, socket);
             } else if (action === "mute") {
@@ -103,7 +103,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             await fetchUser(setChannelHeader, userId, socket);
         }
         catch (error: any) {
-            console.log("in catch frontend");
+            console.log(error);
             setError(error.message);
         }
     }

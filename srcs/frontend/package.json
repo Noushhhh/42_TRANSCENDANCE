@@ -11,9 +11,10 @@
     "@nestjs/platform-socket.io": "^10.2.8",
     "@prisma/client": "^5.5.2",
     "@testing-library/jest-dom": "^6.1.4",
-    "@testing-library/react": "^14.0.0",
+    "@testing-library/react": "^14.1.0",
     "@testing-library/user-event": "^14.5.1",
-    "axios": "^1.6.0",
+    "axios": "^1.6.1",
+    "http": "^0.0.1-security",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "konva": "^9.2.3",
@@ -26,7 +27,8 @@
     "run": "^1.4.0",
     "socket.io-client": "^4.7.2",
     "socket.io-parser": "^4.2.4",
-    "styled-components": "^6.1.0",
+    "styled-components": "^6.1.1",
+    "url": "^0.11.3",
     "web-vitals": "^3.5.0"
   },
   "scripts": {

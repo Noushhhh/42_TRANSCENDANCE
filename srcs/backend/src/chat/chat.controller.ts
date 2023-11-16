@@ -1,7 +1,8 @@
 import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
-    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto
+    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
+    getUsernamesDto, KickOrBanChannelDto, ManageAdminDto
 } from "./dto/chat.dto";
 import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -72,99 +73,72 @@ export class ChatController {
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
-    @Get('getLastMsg/:id')
-    async getLastMessage(@Param('id') id: number) {
-        return this.chatService.getLastMessage(id);
-    }
-
-    @Post('getChannelName')
+    @Get('getChannelName')
     async getChannelName(
-        @Body() data: PairUserIdChannelId): Promise<string> {
-        return this.chatService.getChannelName(data.channelId, data.userId);
+        @Query() dto: PairUserIdChannelId): Promise<string> {
+        return this.chatService.getChannelName(dto.channelId, dto.userId);
     }
 
-    @Post('getChannelHeader')
-    async getChannelHeadersFromUserId(@Body() pair: PairUserIdChannelId): Promise<ChannelLight> {
-        return this.chatService.getChannelHeadersFromId(pair.channelId, pair.userId);
+    @Get('getChannelHeader')
+    async getChannelHeadersFromUserId(
+        @Query() dto: PairUserIdChannelId): Promise<ChannelLight> {
+        return this.chatService.getChannelHeadersFromId(dto.channelId, dto.userId);
     }
 
-    @Post('getAllMessagesByChannelId')
+    @Get('getAllMessagesByChannelId')
     async getAllMessagesByChannelId(
-        @Body() PairIdDto: PairUserIdChannelId): Promise<Message[]> {
-        try {
-            const messages = this.chatService.getAllMessagesByChannelId(PairIdDto.userId, PairIdDto.channelId);
-            return messages;
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
+        @Query() dto: PairUserIdChannelId): Promise<Message[]> {
+        return this.chatService.getAllMessagesByChannelId(dto.channelId, dto.userId);
     }
 
     @Post('addMessageToChannel')
     async addMessageToChannelId(
         @Body() message: MessageToStoreDto) {
-        try {
             return this.chatService.addMessageToChannelId(message);
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
     }
 
-    @Get('getUsersFromChannelId/:id')
-    async getUsersFromChannelId(@Param('id') id: number): Promise<User[]> {
-        return this.chatService.getUsersFromChannelId(id);
+    @Get('getUsersFromChannelId')
+    async getUsersFromChannelId(
+        @Query() dto: ChannelIdDto): Promise<User[]> {
+        return this.chatService.getUsersFromChannelId(dto.channelId);
     }
 
-    @Get('getLoginsInChannelFromSubstring/:channelId/:substring/:userId')
-    async getLoginsInChannelFromSubstring(
-        @Param('substring') substring: string,
-        @Param('channelId') channelId: number,
-        @Param('userId') userId: number): Promise<User[]> {
-        return this.chatService.getLoginsInChannelFromSubstring(channelId, substring, userId)
+    @Get('getUsernamesInChannelFromSubstring')
+    async getUsernamesInChannelFromSubstring(
+        @Query() dto: getChannelUsernamesDto): Promise<User[]> {
+        return this.chatService.getUsernamesInChannelFromSubstring(dto.channelId, dto.substring, dto.userId)
     }
 
-    @Get('getLoginsFromSubstring/:substring')
-    async getLoginsFromSubstring(@Param('substring') substring: string): Promise<User[]> {
-        return this.chatService.getLoginsFromSubstring(substring)
+    @Get('getUsernamesFromSubstring')
+    async getUsernamesFromSubstring(
+        @Query() dto: getUsernamesDto): Promise<User[]> {
+        return this.chatService.getUsernamesFromSubstring(dto.substring)
     }
 
     @Post('addChannelToUser')
-    async addChannelToUser(@Body() channelInfo: CreateChannelDto): Promise<number> {
-        try {
-            return this.chatService.addChannelToUser(channelInfo);
-        } catch (error) {
-            throw new HttpException('Cannot find channel', HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @Get('isAdmin')
-    async isAdmin(
-        @Query() dto: PairUserIdChannelId): Promise<boolean> {
-        return this.chatService.isAdmin(dto.userId, dto.channelId);
+    async addChannelToUser(
+        @Body() channelInfo: CreateChannelDto): Promise<number> {
+        return this.chatService.addChannelToUser(channelInfo);
     }
 
     @Get('isOwner')
     async isOwner(
         @Query() dto: PairUserIdChannelId): Promise<boolean> {
-        return this.chatService.isAdmin(dto.userId, dto.channelId);
+        return this.chatService.isOwner(dto.userId, dto.channelId);
     }
 
     @UseGuards(AdminGuard)
-    @Post('kickUserFromChannel/:userId/:channelId/:callerId')
+    @Post('kickUserFromChannel')
     async kickUserFromChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number,
-        @Param('callerId') callerId: number): Promise<boolean> {
-        console.log("kick user called");
-        return this.chatService.kickUserFromChannel(userId, channelId, callerId);
+        @Body() dto: KickOrBanChannelDto): Promise<boolean> {
+        return this.chatService.kickUserFromChannel(dto.userId, dto.channelId, dto.callerId);
     }
 
     @UseGuards(AdminGuard)
-    @Post('banUserFromChannel/:userId/:channelId/:callerId')
+    @Post('banUserFromChannel')
     async banUserFromChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number,
-        @Param('callerId') callerId: number): Promise<boolean> {
-        return this.chatService.banUserFromChannel(userId, channelId, callerId);
+        @Body() dto: KickOrBanChannelDto): Promise<boolean> {
+        return this.chatService.banUserFromChannel(dto.userId, dto.channelId, dto.callerId);
     }
 
     @Post('leaveChannel')
@@ -173,10 +147,10 @@ export class ChatController {
         return this.chatService.leaveChannel(dto.userId, dto.channelId, dto.newOwnerId);
     }
 
-    @Get('getNumberUsersInChannel/:channelId')
+    @Get('getNumberUsersInChannel')
     async getNumberUsersInChannel(
-        @Param('channelId') channelId: number): Promise<number> {
-        return this.chatService.getNumberUsersInChannel(channelId);
+        @Query() dto: ChannelIdDto): Promise<number> {
+        return this.chatService.getNumberUsersInChannel(dto.channelId);
     }
 
     @Get('getAdmins')
@@ -186,36 +160,24 @@ export class ChatController {
         return this.chatService.getAdmins(dto.channelId);
     }
 
-    @Get('isUserIsInChannel/:userId/:channelId')
-    async isUserIsInChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.isUserIsInChannel(userId, channelId);
-    }
-
     @UseGuards(AdminGuard)
-    @Post('addAdminToChannel/:inviterId/:invitedId/:channelId')
+    @Post('addAdminToChannel')
     async addAdminToChannel(
-        @Param('inviterId') inviterId: number,
-        @Param('invitedId') invitedId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.addAdminToChannel(inviterId, invitedId, channelId);
+        @Body() dto: ManageAdminDto): Promise<boolean> {
+        return this.chatService.addAdminToChannel(dto.inviterId, dto.invitedId, dto.channelId);
     }
 
     @UseGuards(AdminGuard)
-    @Post('removeAdminFromChannel/:inviterId/:invitedId/:channelId')
+    @Post('removeAdminFromChannel')
     async removeAdminFromChannel(
-        @Param('inviterId') inviterId: number,
-        @Param('invitedId') invitedId: number,
-        @Param('channelId') channelId: number): Promise<boolean> {
-        return this.chatService.removeAdminFromChannel(inviterId, invitedId, channelId);
+        @Body() dto: ManageAdminDto): Promise<boolean> {
+        return this.chatService.removeAdminFromChannel(dto.inviterId, dto.invitedId, dto.channelId);
     }
 
-    @Post('addUserToChannel/:userId/:channelId')
+    @Post('addUserToChannel')
     async addUserToChannel(
-        @Param('userId') userId: number,
-        @Param('channelId') channelId: number): Promise<number> {
-        return this.chatService.addUserToChannel(userId, channelId);
+        @Body() dto: PairUserIdChannelId): Promise<number> {
+        return this.chatService.addUserToChannel(dto.userId, dto.channelId);
     }
 
     @Post('addUserToProtectedChannel')
@@ -226,8 +188,8 @@ export class ChatController {
 
     @Post('isChannelNameExist')
     async isChannelNameExist(
-        @Body() channelNameDto: ChannelNameDto): Promise<isChannelExist | false> {
-        return this.chatService.isChannelNameExist(channelNameDto.channelName);
+        @Body() dto: ChannelNameDto): Promise<isChannelExist | false> {
+        return this.chatService.isChannelNameExist(dto.channelName);
     }
 
     @Post('isUserIsBan')

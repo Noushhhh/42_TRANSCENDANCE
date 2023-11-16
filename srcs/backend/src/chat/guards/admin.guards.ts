@@ -14,7 +14,16 @@ export class AdminGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
 
-        const channelId: number = Number(request.params.channelId);
+        let channelId: number | undefined = undefined;
+
+        if (request.body && 'channelId' in request.body) {
+            channelId = Number(request.body.channelId);
+        } else if (request.params && request.params.hasOwnProperty('channelId')){
+            channelId = Number(request.params.channelId);
+        }
+
+        if (!channelId)
+            return false;
 
         const jwtCookie = request.cookies['token'];
         const secret = this.config.get('JWT_SECRET');

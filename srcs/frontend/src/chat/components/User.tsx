@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
-import { useUserIdContext } from "../contexts/userIdContext";
 import avatar from "./avatar_tdeville.jpeg"
-import { useChannelIdContext } from "../contexts/channelIdContext";
+import { getUserAvatar } from "../../home/tools/Api";
 
 interface UserProps {
     user: User;
@@ -18,6 +17,24 @@ interface UserProps {
 }
 
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
+
+    const [error, setError] = useState<string | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+    const fetchUserAvatar = async (): Promise<void> => {
+      const userAvatarResultFromBack = await getUserAvatar();
+      if (userAvatarResultFromBack) {
+        setAvatarUrl(userAvatarResultFromBack);
+      } else {
+        setError('There was an error fetching the avatar, please contact the system administrator');
+      }
+    }
+
+    useEffect(() => {
+    
+        Promise.all([fetchUserAvatar()])
+          .catch(() => setError("error fetching avatar")); // Also set showLoading to false if there's an error
+      }, []);
 
     const handleDivClick = () => {
         console.log("run here ?");
@@ -43,10 +60,10 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    <img className="avatar_image" src={avatar} alt="" width={49} height={49}/>
+                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
-                    {user.username}
+                    {user.publicName && user.publicName}
                 </div>
             </div>
         )
@@ -55,7 +72,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    <img className="avatar_image" src={avatar} alt="" width={49} height={49}/>
+                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>
