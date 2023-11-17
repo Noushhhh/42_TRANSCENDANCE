@@ -5,15 +5,15 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.16",
-    "@mui/material": "^5.14.17",
+    "@mui/icons-material": "^5.14.18",
+    "@mui/material": "^5.14.18",
     "@nestjs/platform-express": "^10.2.8",
     "@nestjs/platform-socket.io": "^10.2.8",
-    "@prisma/client": "^5.5.2",
+    "@prisma/client": "^5.6.0",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.0",
     "@testing-library/user-event": "^14.5.1",
-    "axios": "^1.6.1",
+    "axios": "^1.6.2",
     "http": "^0.0.1-security",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
@@ -59,6 +59,6 @@
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
     "backend": "file:../../backend",
-    "prisma": "^5.5.2"
+    "prisma": "^5.6.0"
   }
 }

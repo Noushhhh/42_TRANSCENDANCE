@@ -17,6 +17,7 @@ import {
   Chat,
   useActivityLogout,
   UserProfileSetup,
+  ActivityLogoutHandler
 } from "./home/components/index";
 import SocketError from "./game/components/gameNetwork/SocketError";
 import IoConnection from "./socket/IoConnection";
@@ -37,7 +38,6 @@ interface SocketErrorObj {
 }
 
 const App: React.FC = () => {
-  // useActivityLogout(600000);
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
   const [error, setError] = useState<string>("");
@@ -61,6 +61,7 @@ const App: React.FC = () => {
         path="/home"
         element={
           <ProtectedRoute>
+            <ActivityLogoutHandler />
             <HomePage />
             <IoConnection setSocket={setSocket} socketRef={socketRef} />
             <GameInvitation socket={socketRef.current} />

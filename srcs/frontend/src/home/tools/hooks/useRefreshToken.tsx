@@ -1,35 +1,32 @@
-import { useState } from 'react';
-import { hasMessage } from '../Api';
+import { useState, useCallback } from 'react';
+import axios from 'axios';
 
-const useRefreshToken = () => {
-  const [error, setError] = useState<string | null>(null);
+const API_BASE_URL = "http://localhost:8081";
 
-  const refreshToken = async () => {
+export const useRefreshToken = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshTokenIfNeeded = useCallback(async () => {
+    setIsRefreshing(true);
     try {
-      const response = await fetch('http://localhost:8081/api/auth/refreshToken', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorMessage = 'Failed to refresh token';
-        console.error(errorMessage);
-        setError(errorMessage);
-        return Promise.reject(new Error(errorMessage));
+      console.log("passing by userRefreshToken");
+      const response = await axios.post(`${API_BASE_URL}/api/auth/refreshToken`); // Adjust the endpoint if necessary
+      if (response.status === 200 ) {
+        // Assuming the response contains the new token
+        // Update the token in local storage or context
+        // localStorage.setItem('token', response.data.newToken);
+        setIsRefreshing(false);
+        return true;
+      } else {
+        setIsRefreshing(false);
+        return false;
       }
     } catch (error) {
-      if (hasMessage(error)) {
-        const errorMessage = 'There was an error signing out: ' + error.message;
-        console.error(errorMessage);
-        setError(errorMessage); // Set error state
-      }
-      else
-        setError("There was an error signin out");
-      return Promise.reject(error);
+      console.error('Error refreshing token:', error);
+      setIsRefreshing(false);
+      return false;
     }
-  };
+  }, []);
 
-  return { refreshToken, error };
+  return { refreshTokenIfNeeded, isRefreshing };
 };
-
-export default useRefreshToken;
