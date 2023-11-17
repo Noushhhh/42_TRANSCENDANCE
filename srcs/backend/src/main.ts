@@ -7,11 +7,9 @@ import { ValidationPipe} from '@nestjs/common';
 import * as express from 'express';
 import * as path from 'path';
 import cookieParser from 'cookie-parser';
-import { urlencoded, json } from 'express';
-import * as bodyParser from 'body-parser';
 
 // The bootstrap function is the entry point of the application
-async function bootstrap() {
+export default async function App() {
   // Create a new NestJS application instance
   const app = await NestFactory.create(AppModule);
 
@@ -44,6 +42,7 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   // Use express.json middleware to parse incoming JSON payloads
+  // set a large limit to avoid server crash for large body request
   app.use(express.json({limit: '50mb'}));
   app.use(express.urlencoded({limit: '50mb', extended: true, parameterLimit: 50000}));
 
@@ -65,4 +64,4 @@ async function bootstrap() {
 }
 
 // Call the bootstrap function to start the application
-bootstrap();
+App();

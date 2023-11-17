@@ -57,8 +57,14 @@ export class ChatService {
         participants: {}
       }
     });
+
     if (!channel)
       throw new NotFoundException("Channel not found");
+
+    const caller: User = await this.getUserById(callerId);
+    if (!caller)
+      throw new NotFoundException(`User with id ${callerId} not found`);
+
     const numberUsersInChannel: number = channel.participants.length;
     if (numberUsersInChannel === 2) {
       return (callerId === channel.participants[0].id ? channel.participants[1].username : channel.participants[0].username)
@@ -133,7 +139,7 @@ export class ChatService {
     });
 
     if (!channel) {
-      throw new ForbiddenException("Channel not found");
+      throw new NotFoundException("Channel not found");
     }
 
     const blockedUsersId: number[] = await this.getBlockedUsersById(userId);
@@ -603,7 +609,7 @@ export class ChatService {
     await this.addUserToChannel(userId, channelId);
   }
 
-  async getUserById(channelId: number): Promise<User | null> {
+  async getUserById(channelId: number): Promise<User> {
 
     const user: User | null = await this.prisma.user.findUnique({
       where: { id: channelId }
