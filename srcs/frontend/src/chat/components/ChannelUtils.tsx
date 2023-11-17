@@ -69,6 +69,7 @@ export const getMyUserId = async (): Promise<number> => {
     method: 'GET',
   })
   const user = await response.json();
+  console.log("USER ID = ", user.id);
   return user.id;
 }
 
