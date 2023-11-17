@@ -12,6 +12,7 @@ import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
 import SocketError from "./gameNetwork/SocketError";
+import PlayAgain from "./gameNetwork/PlayAgain";
 
 interface GameContainerProps {
   socket: Socket | undefined;
@@ -74,24 +75,25 @@ const GameContainer: FC<GameContainerProps> = ({
       setGameLaunchedRef();
       handlePlayPause();
 
-      fetch("http://localhost:4000/api/game/addGameToPlayer", {
-        method: "GET",
-        credentials: "include",
-      })
-        .then((response) => {
-          if (!response.ok)
-            throw new Error("HTTP error, status: " + response.status);
-          return response.json();
-        })
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((error) => {
-          handleError({
-            statusCode: 404,
-            message: "Adding game to history failed",
-          });
-        });
+      // @to-do remove this code if not used
+      // fetch("http://localhost:4000/api/game/addGameToPlayer", {
+      //   method: "GET",
+      //   credentials: "include",
+      // })
+      //   .then((response) => {
+      //     if (!response.ok)
+      //       throw new Error("HTTP error, status: " + response.status);
+      //     return response.json();
+      //   })
+      //   .then((data) => {
+      //     console.log(data);
+      //   })
+      //   .catch((error) => {
+      //     handleError({
+      //       statusCode: 404,
+      //       message: "Adding game to history failed",
+      //     });
+      //   });
     }, 1500);
   };
 
@@ -168,10 +170,12 @@ const GameContainer: FC<GameContainerProps> = ({
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} isPaused={isPaused} />
           <PrintWinner socket={socket} />
+          <PlayAgain socket={socket} />
           <AutoLaunch
             start={start}
             setGameLaunchedRef={setGameLaunchedRef}
             handlePlayPause={handlePlayPause}
+            socket={socket}
           />
         </div>
       );

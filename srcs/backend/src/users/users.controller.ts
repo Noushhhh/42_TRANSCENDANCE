@@ -168,11 +168,11 @@ export class UsersController {
     // ─────────────────────────────────────────────────────────────────────────────
 
 
-    // @UseGuards(JwtAuthGuard)
-    // @Get('me')
-    // getMe(@Req() req: Request) {
-    //     return req.user;
-    // }
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    getMe(@Req() req: Request) {
+        return req.user;
+    }
 
     @Get('UserWithId')
     FindWithId(userId: number): Promise<User> {

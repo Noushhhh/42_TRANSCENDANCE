@@ -12,7 +12,10 @@ import {
   isUserIsBlockedBy,
   fetchConversation,
 } from "./ChannelUtils";
-import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
+import {
+  useChannelIdContext,
+  useSetChannelIdContext,
+} from "../contexts/channelIdContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -29,6 +32,11 @@ interface UserProfileMenuProps {
 interface GatewayResponse {
   success: boolean;
   message: string;
+}
+
+interface InvitationRes {
+  res: boolean;
+  client: number;
 }
 
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
@@ -72,7 +80,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       socket.off("lobbyIsCreated", handleLobbyCreation);
       socket.off("invitationStatus", handleInvitationStatus);
     };
-  });
+  }, []);
 
   const handleLobbyCreation = () => {
     navigate("/home/game");
@@ -145,8 +153,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
         );
         const data = {
           channelId,
-          userId: user.id
-        }
+          userId: user.id,
+        };
         socket.emit("joinChannel", channelIdCreated);
         socket.emit("notifySomeoneJoinChannel", data);
       } catch (error) {
@@ -170,8 +178,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     );
   };
 
-  const handleInvitation = (accepted: boolean) => {
-    if (accepted === true) {
+  const handleInvitation = (invitationRes: InvitationRes) => {
+    if (invitationRes.res === true && invitationRes.client === user.id) {
       socket.emit(
         "launchGameWithFriend",
         { user1: userId, user2: user.id },
@@ -181,7 +189,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       );
       // navigate("/home/game");
     }
-    if (accepted === false) {
+    if (invitationRes.res === false) {
       handleInvitationStatus("Invitation refused");
     }
   };
@@ -228,7 +236,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     <div>
       <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
-        {user.publicName&& user.publicName}
+        {user.publicName && user.publicName}
       </p>
       <Menu
         id="fade-menu"

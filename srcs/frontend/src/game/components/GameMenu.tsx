@@ -47,6 +47,7 @@ const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
         fontSize: "1rem",
       }}
     >
+      <button onClick={() => socket.emit("printLobbies")}>PRINT LOBBIES</button>
       <Button onClick={() => lobby()}>Find a game</Button>
       <SpectateGame socket={socket} />
     </div>

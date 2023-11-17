@@ -12,7 +12,6 @@ const GamePlayed: FC<GamePlayedProps> = ({ userId }) => {
   const [error, setError] = useState();
 
   useEffect(() => {
-    console.log("RENDER");
     const fetchGameStats = async () => {
       setIsLoading(true);
 
@@ -63,7 +62,7 @@ const GamePlayed: FC<GamePlayedProps> = ({ userId }) => {
         justifyContent: "space-around",
         gap: "2rem",
         width: "100%",
-        marginBottom: "1rem"
+        marginBottom: "1rem",
       }}
     >
       <div>{gamePlayed} game played</div>
