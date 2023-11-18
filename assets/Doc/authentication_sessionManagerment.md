@@ -43,6 +43,23 @@ Handles requests for JWT token refreshes.
 - Issues a new access token upon validation.
 - Updates session information in the database.
 
+## 6. Create SessionService 🛠️
+
+Responsible for managing session-related operations in the backend.
+
+### Implementation
+- Develop a `SessionService` class.
+- Implement `clearExpiredSessions` method to remove expired sessions from the database.
+
+## 7. Automate Session Cleanup ⏲️
+
+Set up periodic cleanup of expired sessions.
+
+### Backend Implementation
+- Utilize a cron job (implemented as a NestJS module).
+- Periodically execute `clearExpiredSessions`.
+- Configure the cron job to run at appropriate intervals (e.g., every minute).
+
 ## Documentation Best Practices 📚
 
 - **Security Considerations**: Focus on securing token processes and session cookies.
