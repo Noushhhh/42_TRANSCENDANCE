@@ -30,8 +30,9 @@ model User {
   refreshToken RefreshToken[]
 
   firstConnexion Boolean @default(true)
-  fortyTwoStudent Boolean  @default(true)
-  loggedIn       Boolean @default(false)
+  sessionId      String? @unique // nullable and unique session ID
+  sessionExpiresAt DateTime? // nullable field for session expiration timestamp
+  fortyTwoStudent Boolean  @default(true) // identify if it is exernal user or student
   TwoFA          Boolean @default(false)
 
   // Channel related
@@ -47,6 +48,13 @@ model User {
   gamesPlayed       Int            @default(0)
   gamesWon          Int            @default(0)
   matchHistory      MatchHistory[]
+
+  // Friend list
+  friends   User[]  @relation("Friends")
+  friendOf  User[]  @relation("Friends")
+
+  pendingRequestFrom  User[]  @relation("PendingRequest")
+  pendingRequestFor   User[]  @relation("PendingRequest")
 
   @@map("users")
 }

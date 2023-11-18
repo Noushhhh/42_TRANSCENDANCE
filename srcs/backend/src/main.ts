@@ -3,14 +3,20 @@ import { AllExceptionsFilter } from './auth/exception/all-exception.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { ValidationPipe} from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
+import * as path from 'path';
 import cookieParser from 'cookie-parser';
+import cron from 'node-cron';
+import { SessionService } from './auth/session.service';
+
 
 // The bootstrap function is the entry point of the application
 async function bootstrap() {
   // Create a new NestJS application instance
   const app = await NestFactory.create(AppModule);
+
+  const sessionService = app.get(SessionService);
 
   // Use the ValidationPipe to validate incoming requests
   app.useGlobalPipes(
@@ -52,13 +58,21 @@ async function bootstrap() {
   // Use the AllExceptionsFilter to handle exceptions globally
   app.useGlobalFilters(app.get(AllExceptionsFilter));
 
+  // Serve static files from the 'uploads' folder
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+  //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
+  cron.schedule('* * * * *', async () => {
+    await sessionService.clearExpiredSessions();
+    // console.log("Cron job executed every minute");
+  });
+
   // Start the application and listen on port 4000
   await app.listen(4000);
 }
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Application specific logging, throwing an error, or other logic here
 });
 
 // Call the bootstrap function to start the application

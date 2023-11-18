@@ -20,20 +20,22 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
   const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {
+    socket.emit("updateStatus", "In game");
     resizeEvent();
     window.addEventListener("resize", resizeEvent);
 
     return () => {
       window.removeEventListener("resize", resizeEvent);
+      socket.emit("updateStatus", "Online");
     };
   }, []);
 
   const resizeEvent = () => {
-    GameConfigController.setKonvaWidth((window.innerWidth * 0.8));
-    GameConfigController.setKonvaHeight(((window.innerWidth * 0.8) * 6) / 12);
-    stageRef.current?.width((window.innerWidth * 0.8));
-    stageRef.current?.height(((window.innerWidth * 0.8) * 6) / 12);
-    setKonvaSize([(window.innerWidth * 0.8), ((window.innerWidth * 0.8) * 6) / 12]);
+    GameConfigController.setKonvaWidth(window.innerWidth * 0.8);
+    GameConfigController.setKonvaHeight((window.innerWidth * 0.8 * 6) / 12);
+    stageRef.current?.width(window.innerWidth * 0.8);
+    stageRef.current?.height((window.innerWidth * 0.8 * 6) / 12);
+    setKonvaSize([window.innerWidth * 0.8, (window.innerWidth * 0.8 * 6) / 12]);
     socket.emit("resizeEvent");
   };
 

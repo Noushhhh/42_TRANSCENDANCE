@@ -81,9 +81,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         next(new WsException('invalid token'));
       }
     })
-    // this.server.on('connection', async (socket) => {
-    //   console.log(`userId ${socket.data.userId} is connected from game gateway`);
-    // });
   }
 
   handleConnection(socket: Socket) {
@@ -160,6 +157,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       };
       return response;
     }
+
     await this.gameLobby.launchGameWithFriend(playersId.user1, p1SocketId, playersId.user2, p2SocketId);
     const response: WebSocketResponse = {
       success: true,
@@ -174,6 +172,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
 
+    // @to-do gerer le cas de crash ici
     const p1 = await this.userService.findUserWithId(playersId.user1);
     if (!p1) {
       const response: WebSocketResponse = {
@@ -226,6 +225,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       };
       return response;
     }
+  
     this.gatewayOut.emitToUser(p2SocketId, "invitation", { playerName: p1Name, playerSocketId: client.id });
     const response: WebSocketResponse = {
       success: true,
@@ -239,18 +239,23 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     const playerToInvite = this.gameSockets.getSocket(res.id);
     if (!playerToInvite) {
       const response: WebSocketResponse = {
-        success: true,
-        message: 'Invitation accepted',
+        success: false,
+        message: 'Player not found',
       };
       return response;
     };
 
-    this.gatewayOut.emitToUser(res.id, "isInviteAccepted", res.res);
+    this.gatewayOut.emitToUser(res.id, "isInviteAccepted", { res: res.res, client: client.data.userId });
     const response: WebSocketResponse = {
       success: true,
       message: 'Player has well answer the invitation',
     };
     return response;
+  }
+
+  @SubscribeMessage('printLobbies')
+  printLobbies() {
+    this.gameLobby.printLobbies();
   }
 
   @SubscribeMessage('requestLobbyState')
@@ -287,6 +292,39 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       message: 'Users ID well found',
     };
     return response;
+  }
+
+  @SubscribeMessage('acceptReplay')
+  acceptReplay(@ConnectedSocket() client: Socket) {
+    const opponentId = this.gameLobby.getPlayerOpponentSocketId(client.id);
+    const isP1 = this.gameLobby.isThisClientP1(client.id);
+
+    if (opponentId) {
+      if (isP1) {
+        this.gatewayOut.emitToUser(opponentId, "player1Replay", true);
+        this.gatewayOut.emitToUser(client.id, "player1Replay", true);
+      } else {
+        this.gatewayOut.emitToUser(opponentId, "player2Replay", true);
+        this.gatewayOut.emitToUser(client.id, "player2Replay", true);
+      }
+    }
+  }
+
+  @SubscribeMessage('refuseReplay')
+  async refuseReplay(@ConnectedSocket() client: Socket) {
+    // const opponentId = this.gameLobby.getPlayerOpponentSocketId(client.id);
+    // const isP1 = this.gameLobby.isThisClientP1(client.id);
+
+    // if (opponentId) {
+    //   if (isP1) {
+    //     this.gatewayOut.emitToUser(opponentId, "player1Replay", true);
+    //     this.gatewayOut.emitToUser(client.id, "player1Replay", true);
+    //   } else {
+    //     this.gatewayOut.emitToUser(opponentId, "player2Replay", true);
+    //     this.gatewayOut.emitToUser(client.id, "player2Replay", true);
+    //   }
+    // }
+    await this.gameLobby.removePlayerFromLobby(client);
   }
 
   private sendError(message: string, statusCode: number, client: Socket) {
