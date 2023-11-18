@@ -4,7 +4,7 @@ import { useSignOut } from './useSignOut';
 import { useRefreshToken } from "./useRefreshToken";
 import { useTokenExpired } from './useTokenExpired';
 
-const useActivityLogout = (timeToLogout = 1000 * 30, refreshCheckInterval = 1000 * 15) => {
+const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval = 1000 * 60 * 10) => {
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
   const { refreshTokenIfNeeded } = useRefreshToken();

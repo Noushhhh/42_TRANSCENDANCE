@@ -19,22 +19,6 @@ interface UserProps {
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
 
     const [error, setError] = useState<string | null>(null);
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-    const fetchUserAvatar = async (): Promise<void> => {
-      const userAvatarResultFromBack = await getUserAvatar();
-      if (userAvatarResultFromBack) {
-        setAvatarUrl(userAvatarResultFromBack);
-      } else {
-        setError('There was an error fetching the avatar, please contact the system administrator');
-      }
-    }
-
-    useEffect(() => {
-    
-        Promise.all([fetchUserAvatar()])
-          .catch(() => setError("error fetching avatar")); // Also set showLoading to false if there's an error
-      }, []);
 
     const handleDivClick = () => {
         console.log("run here ?");
@@ -60,7 +44,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={""} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     {user.publicName && user.publicName}
@@ -72,7 +56,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    {avatarUrl && <img className="avatar_image" src={avatarUrl} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={""} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>

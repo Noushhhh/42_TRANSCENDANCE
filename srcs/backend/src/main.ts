@@ -3,8 +3,9 @@ import { AllExceptionsFilter } from './auth/exception/all-exception.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { ValidationPipe} from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
+import * as path from 'path';
 import cookieParser from 'cookie-parser';
 import cron from 'node-cron';
 import { SessionService } from './auth/session.service';
@@ -57,6 +58,8 @@ async function bootstrap() {
   // Use the AllExceptionsFilter to handle exceptions globally
   app.useGlobalFilters(app.get(AllExceptionsFilter));
 
+  // Serve static files from the 'uploads' folder
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
   //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
   cron.schedule('* * * * *', async () => {
     await sessionService.clearExpiredSessions();

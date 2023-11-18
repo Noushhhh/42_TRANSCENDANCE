@@ -37,14 +37,6 @@ export class GameState {
     p2Size: 150 / 1200.0,
   }
 
-  public setP1Size = (num: number) => {
-    this.playerSize.p1Size = this.playerSize.p1Size * num;
-  }
-
-  public setP2Size = (num: number) => {
-    this.playerSize.p2Size = this.playerSize.p2Size * num;
-  }
-
   gameState = {
     p1Size: this.playerSize.p1Size,
     p2Size: this.playerSize.p2Size,
@@ -73,6 +65,7 @@ export class GameState {
       ballSpeed: 12.5 / 1200.0,
     },
     isPaused: true,
+    isGameFinished: false,
     score: {
       p1Score: 0,
       p2Score: 0,

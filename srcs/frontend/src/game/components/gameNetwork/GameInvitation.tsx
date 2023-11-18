@@ -36,7 +36,7 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
       socket?.off("lobbyIsCreated", handleLobbyCreation);
       socket?.off("getUsersId", handleGetUsersId);
     };
-  });
+  }, [socket]);
 
   const handleInvitation = async (data: InvitationData) => {
     setInvitation(true);
