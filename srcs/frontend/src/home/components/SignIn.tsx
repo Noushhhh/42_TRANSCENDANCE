@@ -48,9 +48,13 @@ const signInAPI = async (email: string, password: string) => {
       });
   
         if (!response.ok) {
-            const data = await response.json();
-            throw new Error(`${data.statusCode} ${data.message}`);
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
         }
+
+        const data = await response.json();
+        if (!data.valid) {
+            throw new Error(`SignIn Filed: ${data.message}`);
+      }
     } catch (error) {
         if (hasMessage(error))
             console.error("Error during signInAPI:", error.message);
