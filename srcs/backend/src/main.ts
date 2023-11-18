@@ -60,6 +60,7 @@ async function bootstrap() {
 
   // Serve static files from the 'uploads' folder
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
   //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
   cron.schedule('* * * * *', async () => {
     await sessionService.clearExpiredSessions();
@@ -72,7 +73,6 @@ async function bootstrap() {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Application specific logging, throwing an error, or other logic here
 });
 
 // Call the bootstrap function to start the application
