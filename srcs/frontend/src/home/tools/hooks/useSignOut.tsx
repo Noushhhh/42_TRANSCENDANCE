@@ -11,7 +11,7 @@ export const useSignOut = () => {
         credentials: 'include',
       });
       if (response.ok) {
-        localStorage.setItem('logout', 'true'); // Broadcast logout event
+        localStorage.setItem('logout', Date.now().toString());
         navigate('/signin');
       } else {
         console.error('Failed to sign out.');

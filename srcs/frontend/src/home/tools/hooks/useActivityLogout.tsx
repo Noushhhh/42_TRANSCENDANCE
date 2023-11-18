@@ -10,80 +10,79 @@ const useActivityLogout = (timeToLogout = 1000 * 30, refreshCheckInterval = 1000
   const { refreshTokenIfNeeded } = useRefreshToken();
   const checkToken = useTokenExpired();
 
-
   useEffect(() => {
-    //timerId inside useEffect to avoid errrors
-    // let timerId : NodeJS.Timeout | undefined; 
-    // console.log(`passing by timerId defined in useEffect ${timerId}`);
+    // Declare timerId for tracking user inactivity
+    let timerId: NodeJS.Timeout | null = null;
 
     const resetTimer = () => {
-      let timeSinceLastActivity: number | null = null;
+      console.log("Resetting timer");
+      if (timerId) clearTimeout(timerId);
 
-      //if timer difined clear it
-      // if (timerId !== undefined) {
-      //   console.log(`Passing by clearTimeout TIMERID : ${timerId}`);
-      //   clearTimeout(timerId);
-      // }
-
-      //calculate the last timer the user was active, this because we can be in multiple taps
       const lastActivity = localStorage.getItem("lastActivity");
-      if (lastActivity) timeSinceLastActivity = Date.now() - Number(lastActivity);
-      console.log(`TIMER SINCE LAST EVENT PASSING BY RESET : ${timeSinceLastActivity}`)
-      // timerId = setTimeout(() => {
-      //   // if no time Since last activity or timer since last activity is grater than timeToLogout force sign out
-        if (timeSinceLastActivity && timeSinceLastActivity >= timeToLogout) {
-          console.log(`Timer expired, logging out user.`);
+      const timeSinceLastActivity = lastActivity ? Date.now() - Number(lastActivity) : null;
+
+      if (timeSinceLastActivity && timeSinceLastActivity >= timeToLogout) {
+        console.log("User inactive for too long. Signing out.");
+        handleSignOut();
+        navigate('/signin');
+      } else {
+        timerId = setTimeout(() => {
+          console.log("Inactivity timeout reached. Signing out.");
           handleSignOut();
           navigate('/signin');
-        }
-      // }, timeToLogout)
-      // console.log(`Timer set with ID: ${timerId}`);
-    };
-   
-    // Set up event listeners for user activity
-    const events = ['click', 'load', 'keypress'];
-    events.forEach(event => window.addEventListener(event, () => {
-      console.log(`User activity detected: ${event}`);
-      // resetTimer();
-      localStorage.setItem("lastActivity", Date.now().toString());
-    }));
-
-    // Event listener for local storage changes
-    const onStorageUpdate = (event: StorageEvent) => {
-      if (event.key === "lastActivity") {
-        resetTimer();
+        }, timeToLogout - (timeSinceLastActivity ?? 0));
       }
     };
 
-    // Listen to storage events
-    window.addEventListener('storage', onStorageUpdate);
-    // // Initial reset of the timer
+    const updateLastActivity = () => {
+      console.log("Updating last activity time");
+      localStorage.setItem("lastActivity", Date.now().toString());
+      resetTimer();
+    };
 
+    const events = ['click', 'load', 'keypress'];
+    events.forEach(event => window.addEventListener(event, updateLastActivity));
+
+    const onStorageUpdate = (event: StorageEvent) => {
+      if (event.key === "lastActivity") {
+        console.log("Local storage updated. Resetting timer.");
+        updateLastActivity();
+      }
+    };
+
+    window.addEventListener('storage', onStorageUpdate);
+
+    updateLastActivity(); // Initialize last activity time
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, updateLastActivity));
+      window.removeEventListener('storage', onStorageUpdate);
+      if (timerId) clearTimeout(timerId);
+      localStorage.removeItem("lastActivity");
+    };
+  }, [navigate, handleSignOut, timeToLogout]);
+
+  useEffect(() => {
     // Function to check token status and refresh if needed
     const checkTokenStatusAndRefresh = async () => {
-      console.log(`passing by checkTokenStatusAndRefresh called with SETINTERVAL`);
+      console.log("Checking token status and refreshing if needed");
       const currentTokenExpired = await checkToken();
       if (currentTokenExpired === false) {
         await refreshTokenIfNeeded();
       } else if (currentTokenExpired === true) {
+        console.log("Token expired. Signing out.");
         handleSignOut();
         navigate('/signin');
       }
     };
 
-    resetTimer();
-    // Set up interval to check token status
     const tokenCheckIntervalId = setInterval(checkTokenStatusAndRefresh, refreshCheckInterval);
 
-    // Cleanup function
     return () => {
-      events.forEach(event => window.removeEventListener(event, resetTimer));
-      const lastTimerId = localStorage.getItem("inactivityTimerId");
-      if (lastTimerId) clearTimeout(Number(lastTimerId));
+      console.log("Clearing token check interval");
       clearInterval(tokenCheckIntervalId);
-      window.removeEventListener('storage', onStorageUpdate);
     };
-  }, [navigate, handleSignOut, timeToLogout, refreshCheckInterval, checkToken, refreshTokenIfNeeded]);
+  }, [navigate, handleSignOut, checkToken, refreshTokenIfNeeded]);
 
   return null;
 };

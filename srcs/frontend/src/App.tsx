@@ -3,6 +3,8 @@ import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { useSignOut } from "./home/tools/hooks/useSignOut";
+import { useNavigate } from "react-router-dom";
 import {
   Welcome,
   SignIn,
@@ -41,6 +43,27 @@ const App: React.FC = () => {
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
   const [error, setError] = useState<string>("");
+  const signOut = useSignOut();
+  const navigate = useNavigate();
+// ─────────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'logout') {
+        console.log('Logout detected in another tab');
+        signOut();
+        navigate('/signin');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [signOut, navigate]);
+// ─────────────────────────────────────────────────────────────────────────────
+
 
   const handleError = (error: SocketErrorObj) => {
     setError(error.message);
