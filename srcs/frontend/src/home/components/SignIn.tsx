@@ -112,8 +112,6 @@ const SignIn: React.FC = () => {
         }
     };
 
-    // ... JSX ...
-
     return (
         <div className="container">
             <GoBackButton />
