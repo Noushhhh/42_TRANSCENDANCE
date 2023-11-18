@@ -45,13 +45,13 @@ export class AuthController {
   async refreshToken(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response): Promise<Response> {
     try {
       if (!decodedPayload) {
-        throw new BadRequestException('Invalid token payload');
+        throw new BadRequestException('Access token not found in cookies');
       }
       const result: any = await this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
       return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
     } catch (error) {
-      console.error('Error in refreshToken controller:', error);
-      throw new InternalServerErrorException('Internal server error');
+      console.error();
+      throw new Error(`Error in refreshToken controller: ${error}`);
     }
   }
 

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
 import { hasMessage } from "../tools/Api";
-
+import useTokenExpired  from "../tools/hooks/useTokenExpired";
 /*************************************************************************** */
 /**
  * @function InputField
@@ -68,47 +68,53 @@ const signInAPI = async (email: string, password: string) => {
  * @returns {JSX.Element} Rendered Sign-In component.
  */
 /*************************************************************************** */
+// ... imports ...
+
 const SignIn: React.FC = () => {
     // States to manage email, password, error messages and loading state.
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
+    const  checkToken = useTokenExpired();
     // Hook for programmatic navigation.
     const navigate = useNavigate();
     const checkFirstConnection = useCheckFirstConnection();
 
-    // Event handler for the Sign In button click.
+    const checkIfAlreadyLoggedIn = async () => {
+        const tokenExpired = await checkToken();
+        if (tokenExpired === false) {
+            navigate('/home');
+        }
+    }
+
+    useEffect(() => {
+        checkIfAlreadyLoggedIn();
+    }, [navigate, checkToken]);
+
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsLoading(true);
 
         try {
             await signInAPI(email, password);
-            const userNotRegistered = await checkFirstConnection();
-
-            if (!userNotRegistered) {
-                navigate('/userprofilesetup', { state: { email } });
-            } else {
-                navigate('/home');
-            }
+            const userIsRegisterd = await checkFirstConnection();
+            navigate(userIsRegisterd ? '/home' : '/userprofilesetup', { state: { email } });
         } catch (error) {
-            if (hasMessage(error) && error.message.includes('4')) {
-                setErrorMessage(`${error.message}`);
-            } else {
-                setErrorMessage('An unexpected error occurred. Please try again later.');
-            }
+            const errorMessage = hasMessage(error) ? error.message : 'An unexpected error occurred. Please try again later.';
+            setErrorMessage(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
 
+    // ... JSX ...
+
     return (
         <div className="container">
             <GoBackButton />
-            <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
-            {errorMessage && <div style={{ color: 'white' }}>{errorMessage}</div>}
+            <h1 className="title">Pong Game</h1>
+            {errorMessage && <div className="error-message">{errorMessage}</div>}
             <InputField type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
             <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
             <button className="button" onClick={handleSubmit} disabled={isLoading || !email || !password}>

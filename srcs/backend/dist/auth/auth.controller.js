@@ -59,14 +59,14 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!decodedPayload) {
-                    throw new common_1.BadRequestException('Invalid token payload');
+                    throw new common_1.BadRequestException('Access token not found in cookies');
                 }
                 const result = yield this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
                 return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
             }
             catch (error) {
-                console.error('Error in refreshToken controller:', error);
-                throw new common_1.InternalServerErrorException('Internal server error');
+                console.error();
+                throw new Error(`Error in refreshToken controller: ${error}`);
             }
         });
     }
