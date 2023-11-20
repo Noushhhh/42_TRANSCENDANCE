@@ -12,7 +12,10 @@ import {
   isUserIsBlockedBy,
   fetchConversation,
 } from "./ChannelUtils";
-import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
+import {
+  useChannelIdContext,
+  useSetChannelIdContext,
+} from "../contexts/channelIdContext";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -20,6 +23,7 @@ import { createChannel } from "./ChannelUtils";
 import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
+import { removeFriend, sendFriendRequest } from "../../user/FriendUtils";
 
 interface UserProfileMenuProps {
   user: User;
@@ -30,10 +34,16 @@ interface GatewayResponse {
   message: string;
 }
 
+interface InvitationRes {
+  res: boolean;
+  client: number;
+}
+
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [invitationStatus, setInvitationStatus] = useState<string>("");
+  const [areUsersFriend, setAreUsersFriend] = useState<boolean>(false);
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -45,10 +55,17 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const navigate = useNavigate();
 
   const open = Boolean(anchorEl);
-  const menu: string[] = ["Profile", "Private message", "Play", "Block"];
+  const menu: string[] = [
+    "Profile",
+    "Private message",
+    areUsersFriend === false ? "Add Friend" : "Remove Friend",
+    "Play",
+    "Block",
+  ];
   const menuIfBlock: string[] = [
     "Profile",
     "Private message",
+    areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
     "Unblock",
   ];
@@ -63,13 +80,14 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       socket.off("lobbyIsCreated", handleLobbyCreation);
       socket.off("invitationStatus", handleInvitationStatus);
     };
-  });
+  }, []);
 
   const handleLobbyCreation = () => {
     navigate("/home/game");
   };
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
+    handleAreUsersFriend();
     setAnchorEl(event.currentTarget);
     const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
     setIsBlocked(isBlocked);
@@ -90,6 +108,33 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     handleClose();
   };
 
+  const handleAddFriend = async () => {
+    try {
+      await sendFriendRequest(userId, user.id);
+      socket.emit("pendingRequestSent", user.id);
+    } catch (error) {
+      console.error("Error trying to send friend request");
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    try {
+      await removeFriend(userId, user.id, socket);
+    } catch (error) {
+      console.log("Error trying to remove friend");
+    }
+  };
+
+  const handleAreUsersFriend = () => {
+    socket.emit(
+      "areUsersFriend",
+      { userId1: userId, userId2: user.id },
+      (res: boolean) => {
+        setAreUsersFriend(res);
+      }
+    );
+  };
+
   const handlePrivateMessageClick = async () => {
     console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
@@ -108,8 +153,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
         );
         const data = {
           channelId,
-          userId: user.id
-        }
+          userId: user.id,
+        };
         socket.emit("joinChannel", channelIdCreated);
         socket.emit("notifySomeoneJoinChannel", data);
       } catch (error) {
@@ -137,8 +182,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     );
   };
 
-  const handleInvitation = (accepted: boolean) => {
-    if (accepted === true) {
+  const handleInvitation = (invitationRes: InvitationRes) => {
+    if (invitationRes.res === true && invitationRes.client === user.id) {
       socket.emit(
         "launchGameWithFriend",
         { user1: userId, user2: user.id },
@@ -148,7 +193,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       );
       // navigate("/home/game");
     }
-    if (accepted === false) {
+    if (invitationRes.res === false) {
       handleInvitationStatus("Invitation refused");
     }
   };
@@ -179,9 +224,13 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     }
   };
 
+  const addOrRemove = areUsersFriend ? "Remove Friend" : "Add Friend";
+
   const menuFunctions: { [key: string]: () => void } = {
     Profile: handleProfilClick,
     "Private message": handlePrivateMessageClick,
+    [addOrRemove]:
+      areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
     Block: handleBlockClick,
   };
@@ -189,6 +238,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const menuFunctionsBlocked: { [key: string]: () => void } = {
     Profile: handleProfilClick,
     "Private message": handlePrivateMessageClick,
+    [addOrRemove]:
+      areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
     Unblock: handleUnblockClick,
   };
@@ -197,7 +248,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     <div>
       <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
-        {user.publicName&& user.publicName}
+        {user.publicName && user.publicName}
       </p>
       <Menu
         id="fade-menu"

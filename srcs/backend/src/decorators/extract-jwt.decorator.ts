@@ -1,5 +1,7 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+// Import necessary modules and classes
+import { createParamDecorator, ExecutionContext, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+
 
 /**
 * ****************************************************************************
@@ -14,38 +16,41 @@ import * as jwt from 'jsonwebtoken';
  * @returns {DecodedPayload | null} - Returns the decoded JWT payload or null if the token is invalid or not found.
   * ****************************************************************************
   */
+
+// Create a custom decorator named ExtractJwt
 export const ExtractJwt = createParamDecorator((data, context: ExecutionContext) => {
-  // Get the JWT_SECRET from the environment variables
+  // Get the JWT secret from environment variables
   const JWT_SECRET = process.env.JWT_SECRET;
 
-  // Check if JWT_SECRET is set, otherwise throw an error
+  // If the JWT secret is not set, throw an error
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable not set!');
   }
 
-  // Get the request object from the ExecutionContext
+  // Get the HTTP request object from the execution context
   const request = context.switchToHttp().getRequest();
 
-  // Get the cookies from the request object
+  // Get the cookies from the request
   const cookies = request.cookies;
 
-  // Get the access_token from the cookies
+  // Get the access token from the cookies
   const accessToken = cookies['token'];
 
-  // If there's no access_token, return null
+  // If the access token is not found in the cookies, throw an UnauthorizedException
+  // This results in a 401 Unauthorized HTTP response
   if (!accessToken) {
-    return null;
+    throw new UnauthorizedException('Access token not found in cookies');
   }
 
-  // Try to decode the access_token using the JWT_SECRET
+  // Try to decode the access token using the JWT secret
   try {
     const decodedToken = jwt.verify(accessToken, JWT_SECRET);
 
     // If the token is successfully decoded, return the decoded token
     return decodedToken;
   } catch (error) {
-    // If there's an error while decoding the token (e.g., the token is invalid),
-    // return null
-    return null;
+    // If the token is invalid (i.e., it cannot be decoded), throw a BadRequestException
+    // This results in a 400 Bad Request HTTP response
+    throw new BadRequestException('Invalid access token');
   }
 });

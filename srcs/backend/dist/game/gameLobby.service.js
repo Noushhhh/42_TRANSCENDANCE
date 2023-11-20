@@ -61,6 +61,7 @@ let GameLobbyService = class GameLobbyService {
             for (const [key, value] of lobbies_1.lobbies) {
                 if (!value.player1 || !value.player2) {
                     if (!value.player1) {
+                        // Adding p1 to lobby
                         value.player1 = player;
                         value.gameState.gameState.p1Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
@@ -71,6 +72,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p1Name = playerUserName;
                     }
                     else if (!value.player2) {
+                        // Adding p1 to lobby
                         value.player2 = player;
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
@@ -80,23 +82,26 @@ let GameLobbyService = class GameLobbyService {
                         const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
                         value.gameState.gameState.p2Name = playerUserName;
                     }
+                    // Adding player to socket room and set him to "isInLobby"
                     player === null || player === void 0 ? void 0 : player.join(key);
                     this.gatewayOut.isInLobby(true, player);
+                    // If the lobby is full, I tell it to the clients so it launch the game
                     if (value.player1 != null && value.player2 != null) {
                         this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
                         value.gameState.gameState.isLobbyFull = true;
-                        this.playerStats.addGamePlayedToUsers(value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
                     }
                     // @to-do using a debug function here
                     this.printLobbies();
                     return;
                 }
             }
+            // If there are no lobbies with one player in it
             const lobbyName = (0, uuid_1.v4)();
             const lobby = yield lobbies_1.Lobby.create(player, playerDbId, this.userService);
             if (!lobby) {
                 throw new common_1.NotFoundException("Error during lobby creation");
             }
+            console.log("LOBBY CREATE WITH ", playerDbId);
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
             this.gatewayOut.isInLobby(true, player);
@@ -135,15 +140,16 @@ let GameLobbyService = class GameLobbyService {
                 this.gatewayOut.emitToUser(playerSocketId, "error", { statusCode: 404, message: "player not found" });
                 return;
             }
-            lobby.gameState.gameState.p1Name = playerDb1.username;
-            lobby.gameState.gameState.p2Name = playerDb2.username;
+            const p1UserName = playerDb1.publicName ? playerDb1.publicName : playerDb1.username;
+            const p2UserName = playerDb2.publicName ? playerDb2.publicName : playerDb2.username;
+            lobby.gameState.gameState.p1Name = p1UserName;
+            lobby.gameState.gameState.p2Name = p2UserName;
             lobbies_1.lobbies.set(lobbyName, lobby);
             player1.join(lobbyName);
             this.gatewayOut.isInLobby(true, player1);
             player2.join(lobbyName);
             this.gatewayOut.isInLobby(true, player2);
             lobby.gameState.gameState.isLobbyFull = true;
-            this.playerStats.addGamePlayedToUsers(playerDb1.id, playerDb2.id);
             this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
             // @to-do using a debug function here
             this.printLobbies();
@@ -180,25 +186,13 @@ let GameLobbyService = class GameLobbyService {
                     // If there is a player 2, he wins
                     // There was a game so add this
                     // game to the player's match history
-                    if (p2Id) {
-                        const p2SocketId = this.getSocketIdWithId(p2Id);
-                        if ((yield this.playerStats.addWinToPlayer(p2Id)) === -1) {
-                            if (p2SocketId) {
-                                this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding win to player" });
-                            }
-                        }
-                        if ((yield this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id, value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score, value.gameState.gameState.score.p2Score, true, false)) ||
-                            (yield this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id, value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score, value.gameState.gameState.score.p1Score, false, true)) === -1) {
-                            if (p1SocketId && p2SocketId) {
-                                this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" });
-                                this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding match to history" });
-                            }
-                        }
+                    if (p2Id && value.gameState.gameState.isGameFinished === false) {
+                        yield this.playerStats.addGameStatsToPlayers(value, p2Id, true, false);
                     }
-                    else { // there is no more player in the lobby
+                    else if (!p2Id) { // there is no more player in the lobby
                         lobbies_1.lobbies.delete(key);
                     }
-                    // Telling the client player 1 is not in a lobby anymore
+                    // Telling the client that player 1 is not in a lobby anymore
                     this.gatewayOut.isInLobby(false, player);
                     // Re init the room game state
                     value.gameState = new gameState_1.GameState();
@@ -220,24 +214,13 @@ let GameLobbyService = class GameLobbyService {
                     // If there is a player 1, he wins
                     // There was a game so add this
                     // game to the player's match history
-                    if (p1Id) {
-                        const p1SocketId = this.getSocketIdWithId(p1Id);
-                        if ((yield this.playerStats.addWinToPlayer(p1Id)) === -1) {
-                            if (p1SocketId)
-                                this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" });
-                        }
-                        if ((yield this.playerStats.addGameToMatchHistory(value.gameState.gameState.p1Id, value.gameState.gameState.p2Name, value.gameState.gameState.score.p1Score, value.gameState.gameState.score.p2Score, false, true)) ||
-                            (yield this.playerStats.addGameToMatchHistory(value.gameState.gameState.p2Id, value.gameState.gameState.p1Name, value.gameState.gameState.score.p2Score, value.gameState.gameState.score.p1Score, true, false)) === -1) {
-                            if (p1SocketId && p2SocketId) {
-                                this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error while adding match to history" });
-                                this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error while adding match to history" });
-                            }
-                        }
+                    if (p1Id && value.gameState.gameState.isGameFinished === false) {
+                        yield this.playerStats.addGameStatsToPlayers(value, p1Id, false, true);
                     }
-                    else { // there is no more player in the lobby
+                    else if (!p1Id) { // there is no more player in the lobby
                         lobbies_1.lobbies.delete(key);
                     }
-                    // Telling the client player 1 is not in a lobby anymore
+                    // Telling the client that player 2 is not in a lobby anymore
                     this.gatewayOut.isInLobby(false, player);
                     // Re init the room game state
                     value.gameState = new gameState_1.GameState();
@@ -347,12 +330,29 @@ let GameLobbyService = class GameLobbyService {
     getSocketIdWithId(playerId) {
         var _a, _b;
         for (const [key, value] of lobbies_1.lobbies) {
-            console.log("player id and pId in gameState", playerId, value.gameState.gameState.p1Id, value.gameState.gameState.p2Id);
             if (playerId === value.gameState.gameState.p1Id || playerId === value.gameState.gameState.p2Id) {
                 return playerId === value.gameState.gameState.p1Id ? (_a = value.player1) === null || _a === void 0 ? void 0 : _a.id : (_b = value.player2) === null || _b === void 0 ? void 0 : _b.id;
             }
         }
         return undefined;
+    }
+    getPlayerOpponentSocketId(playerId) {
+        var _a, _b, _c, _d, _e;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === playerId || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === playerId) {
+                return ((_c = value.player1) === null || _c === void 0 ? void 0 : _c.id) === playerId ? (_d = value.player2) === null || _d === void 0 ? void 0 : _d.id : (_e = value.player1) === null || _e === void 0 ? void 0 : _e.id;
+            }
+        }
+        return undefined;
+    }
+    isThisClientP1(playerId) {
+        var _a, _b, _c;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === playerId || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === playerId) {
+                return ((_c = value.player1) === null || _c === void 0 ? void 0 : _c.id) === playerId ? true : false;
+            }
+        }
+        return false;
     }
 };
 exports.GameLobbyService = GameLobbyService;

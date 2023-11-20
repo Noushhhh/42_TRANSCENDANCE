@@ -1,94 +1,88 @@
-import { useNavigate } from "react-router-dom";
-import { useSignOut } from "./useSignOut";
-import { useEffect, useCallback } from "react";
-import Cookies from 'js-cookie';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSignOut } from './useSignOut';
+import { useRefreshToken } from "./useRefreshToken";
+import { useTokenExpired } from './useTokenExpired';
 
-const refreshToken = async () => {
-  try {
-    const response = await fetch('http://localhost:8081/api/auth/refreshToken', {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!response.ok) {
-      return Promise.reject(new Error('Failed to refresh token'));
-    }
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    return Promise.reject(error);
-  }
-};
-
-const useActivityLogout = (timeToLogout: number = 600000) => {
+const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval = 1000 * 60 * 10) => {
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
-  let inactivityTimer: NodeJS.Timeout;
-
-  const logoutAndNavigate = useCallback(() => {
-    const result: number = Date.now() - Number(localStorage.getItem('lastActivity') || '0');
-    if (result >= timeToLogout) {
-      handleSignOut();
-      localStorage.setItem('logout', 'true'); // Broadcast logout event
-      navigate('signin');
-    }
-  }, [handleSignOut, navigate]);
-
-  const resetTimer = useCallback(() => {
-    clearTimeout(inactivityTimer);
-    localStorage.setItem('lastActivity', Date.now().toString());
-    inactivityTimer = setTimeout(logoutAndNavigate, timeToLogout);
-  }, [logoutAndNavigate]);
-
-  const handleTokenExpiration = useCallback(() => {
-    const tokenExpires = Cookies.get('tokenExpires');
-    if (!tokenExpires) {
-      console.warn('Token expiration time not found in cookie');
-      return;
-    }
-    const accessTokenExpiresAt = new Date(tokenExpires);
-    const now = new Date().getTime();
-    const expiresIn: number = accessTokenExpiresAt.getTime() - now;
-    console.log(expiresIn);
-    if (expiresIn <= 25 * 60 * 1000) { // @to-do change this to 5 * 60 * 1000 in prod 
-      refreshToken().catch((error) => {
-        console.error('Error refreshing token:', error);
-      });
-    }
-  }, [handleSignOut]);
-
-  const handleWindowClose = useCallback(() => {
-    handleSignOut();
-    localStorage.removeItem('logout'); // Clear logout event
-  }, [handleSignOut]);
-
-  const handleLogoutEvent = useCallback(() => {
-    // Handle logout event
-    if (localStorage.getItem('logout') === 'true') {
-      navigate('signin');
-      handleSignOut();
-    }
-  }, [handleSignOut, navigate]);
+  const { refreshTokenIfNeeded } = useRefreshToken();
+  const checkToken = useTokenExpired();
 
   useEffect(() => {
-    window.addEventListener('load', resetTimer);
-    window.addEventListener('mousemove', resetTimer);
-    window.addEventListener('keypress', resetTimer);
-    window.addEventListener('touchstart', resetTimer);
-    window.addEventListener('beforeunload', handleWindowClose);
-    window.addEventListener('storage', handleLogoutEvent); // Listen for logout event
+    // Declare timerId for tracking user inactivity
+    let timerId: NodeJS.Timeout | null = null;
 
-    const tokenExpirationCheck = setInterval(handleTokenExpiration, 6000);
+    const resetTimer = () => {
+      console.log("Resetting timer");
+      if (timerId) clearTimeout(timerId);
+
+      const lastActivity = localStorage.getItem("lastActivity");
+      const timeSinceLastActivity = lastActivity ? Date.now() - Number(lastActivity) : null;
+
+      if (timeSinceLastActivity && timeSinceLastActivity >= timeToLogout) {
+        console.log("User inactive for too long. Signing out.");
+        handleSignOut();
+        navigate('/signin');
+      } else {
+        timerId = setTimeout(() => {
+          console.log("Inactivity timeout reached. Signing out.");
+          handleSignOut();
+          navigate('/signin');
+        }, timeToLogout - (timeSinceLastActivity ?? 0));
+      }
+    };
+
+    const updateLastActivity = () => {
+      console.log("Updating last activity time");
+      localStorage.setItem("lastActivity", Date.now().toString());
+      resetTimer();
+    };
+
+    const events = ['click', 'load', 'keypress'];
+    events.forEach(event => window.addEventListener(event, updateLastActivity));
+
+    const onStorageUpdate = (event: StorageEvent) => {
+      if (event.key === "lastActivity") {
+        console.log("Local storage updated. Resetting timer.");
+        updateLastActivity();
+      }
+    };
+
+    window.addEventListener('storage', onStorageUpdate);
+
+    updateLastActivity(); // Initialize last activity time
 
     return () => {
-      window.removeEventListener('load', resetTimer);
-      window.removeEventListener('mousemove', resetTimer);
-      window.removeEventListener('keypress', resetTimer);
-      window.removeEventListener('touchstart', resetTimer);
-      window.removeEventListener('beforeunload', handleWindowClose);
-      window.removeEventListener('storage', handleLogoutEvent); // Remove event listener
-
-      clearInterval(tokenExpirationCheck);
+      events.forEach(event => window.removeEventListener(event, updateLastActivity));
+      window.removeEventListener('storage', onStorageUpdate);
+      if (timerId) clearTimeout(timerId);
+      localStorage.removeItem("lastActivity");
     };
-  }, [resetTimer, handleWindowClose, handleTokenExpiration, logoutAndNavigate, handleLogoutEvent]);
+  }, [navigate, handleSignOut, timeToLogout]);
+
+  useEffect(() => {
+    // Function to check token status and refresh if needed
+    const checkTokenStatusAndRefresh = async () => {
+      console.log("Checking token status and refreshing if needed");
+      const currentTokenExpired = await checkToken();
+      if (currentTokenExpired === false) {
+        await refreshTokenIfNeeded();
+      } else if (currentTokenExpired === true) {
+        console.log("Token expired. Signing out.");
+        handleSignOut();
+        navigate('/signin');
+      }
+    };
+
+    const tokenCheckIntervalId = setInterval(checkTokenStatusAndRefresh, refreshCheckInterval);
+
+    return () => {
+      console.log("Clearing token check interval");
+      clearInterval(tokenCheckIntervalId);
+    };
+  }, [navigate, handleSignOut, checkToken, refreshTokenIfNeeded]);
 
   return null;
 };

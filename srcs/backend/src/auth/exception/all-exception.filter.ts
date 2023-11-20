@@ -45,13 +45,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       this.logger.error(`Exception occurred: ${exception}`);
     }
 
-    // If the backend crashes, set loggedIn to false for all users
-    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.prisma.user.updateMany({
-        data: { loggedIn: false },
-      });
-    }
-
     // Send the response with the appropriate status code and a JSON object containing the error details
     // This provides a consistent structure for error responses.
     response.status(status).json({

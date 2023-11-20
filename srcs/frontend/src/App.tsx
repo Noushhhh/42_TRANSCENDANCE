@@ -3,6 +3,8 @@ import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { useSignOut } from "./home/tools/hooks/useSignOut";
+import { useNavigate } from "react-router-dom";
 import {
   Welcome,
   SignIn,
@@ -17,6 +19,7 @@ import {
   Chat,
   useActivityLogout,
   UserProfileSetup,
+  ActivityLogoutHandler
 } from "./home/components/index";
 import SocketError from "./game/components/gameNetwork/SocketError";
 import IoConnection from "./socket/IoConnection";
@@ -37,10 +40,30 @@ interface SocketErrorObj {
 }
 
 const App: React.FC = () => {
-  // useActivityLogout(600000);
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
   const [error, setError] = useState<string>("");
+  const signOut = useSignOut();
+  const navigate = useNavigate();
+// ─────────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'logout') {
+        console.log('Logout detected in another tab');
+        signOut();
+        navigate('/signin');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [signOut, navigate]);
+// ─────────────────────────────────────────────────────────────────────────────
+
 
   const handleError = (error: SocketErrorObj) => {
     setError(error.message);
@@ -61,6 +84,7 @@ const App: React.FC = () => {
         path="/home"
         element={
           <ProtectedRoute>
+            <ActivityLogoutHandler />
             <HomePage />
             <IoConnection setSocket={setSocket} socketRef={socketRef} />
             <GameInvitation socket={socketRef.current} />
@@ -77,7 +101,7 @@ const App: React.FC = () => {
           path="chat"
           element={<ChatBoxContainer socket={socketRef.current} />}
         />
-        <Route path="friends" element={<Friends />} />
+        <Route path="friends" element={<Friends socket={socketRef.current}/>} />
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
         <Route
