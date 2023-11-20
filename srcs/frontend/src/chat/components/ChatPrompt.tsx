@@ -34,6 +34,7 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(message),
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((createdMessage) => {

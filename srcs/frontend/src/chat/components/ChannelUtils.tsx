@@ -592,23 +592,21 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
   }
 }
 
-export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
+export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<Response> => {
   try {
     const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ callerId, targetId })
+      body: JSON.stringify({ callerId, targetId }),
+      credentials: "include",
     });
 
     if (!response.ok) {
       Promise.reject(await response.json());
     }
-
     const data = await response.json();
-    console.log('Réponse du serveur :', data);
-
     return data;
   } catch (error) {
     console.error('Erreur :', error);
@@ -619,10 +617,11 @@ export const isUserIsBlockedBy = async (callerId: number, targetId: number): Pro
 export const blockUser = async (callerId: number, targetId: number) => {
   fetch("http://localhost:4000/api/chat/blockUser", {
     method: 'POST',
+    credentials: 'include',
     headers: {
-      'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ callerId, targetId }) // Convertit l'objet JavaScript en JSON
+    body: JSON.stringify({ callerId, targetId }),
   })
     .then(response => {
       if (!response.ok) {
@@ -640,6 +639,7 @@ export const blockUser = async (callerId: number, targetId: number) => {
 export const unblockUser = async (callerId: number, targetId: number) => {
   fetch("http://localhost:4000/api/chat/unblockUser", {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
     },
