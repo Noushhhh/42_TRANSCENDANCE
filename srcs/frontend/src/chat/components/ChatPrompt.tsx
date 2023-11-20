@@ -53,6 +53,10 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
+    if (msgToSend.content.length > 5000){
+      alert('message too long: 5000char max');
+      return ;
+    }
     if (isWhitespace(message)) {
       setMessage("");
       return;
