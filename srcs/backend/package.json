@@ -10,7 +10,8 @@
     "start": "nodemon",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:e2e": "jest --watch --no-cache --config ./test/jest-e2e.json"
   },
   "author": "",
   "license": "ISC",
@@ -53,6 +54,9 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.3",
+    "@babel/preset-env": "^7.23.3",
+    "@babel/preset-typescript": "^7.23.3",
     "@types/cookie-parser": "^1.4.6",
     "@types/jest": "^29.5.8",
     "@types/multer": "^1.4.10",

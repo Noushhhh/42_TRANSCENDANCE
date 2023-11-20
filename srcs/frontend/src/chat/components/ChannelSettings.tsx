@@ -5,7 +5,7 @@ import HandleSettingsMenu from "./HandleSettingsMenu";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import { useSocketContext } from "../contexts/socketContext";
 import { Socket } from "socket.io-client";
-import { useSetChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface ChannelSettingsProps {
   settingsChannel: boolean;
@@ -31,6 +31,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
   const [selectedMenu, setSelectedMenu] = useState<MenuItem>();
 
   const socket: Socket = useSocketContext();
+  const channelId: number = useChannelIdContext();
 
   let isDisplay: string = settingsChannel ? "isDisplaySettings" : "isReduceSettings";
 
@@ -41,6 +42,11 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
       socket.off("channelDeleted", channelDeletedEvent);
     };
   });
+
+  useEffect(() => {
+    setSettingsChannel(false);
+    setisSettingsMenuDisplay(false);
+  }, [channelId])
 
   const channelDeletedEvent = (channelId: number) => {
     console.log(`ping received client-side with id: ${channelId}`);

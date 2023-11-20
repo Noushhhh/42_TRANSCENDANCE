@@ -13,6 +13,7 @@ import ChannelManagerMenu from "./ChannelManagerMenu";
 import ChannelManager from "./ChannelManager";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import { Socket } from "socket.io-client";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface MessageSideProps {
   setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,15 +36,26 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   const socket: Socket = useSocketContext();
   const channelHeader = useChannelHeaderContext();
   const setChannelHeader = useSetChannelHeaderContext();
+  const setChannelId = useSetChannelIdContext();
+  const channelId: number = useChannelIdContext();
 
   const setStateMessageToFalse = () => {
     setStateMessageToClick([false, false]);
   };
 
+  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
+    console.log("client know that he is been kicked or ban");
+    await fetchUser(setChannelHeader, userId, socket);
+    if (bannedFromChannelId === channelId)
+      setChannelId(-1);
+  }
+
   useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
+    socket.on("kickedOrBanned", kickedOrBannedEvent);
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
+      socket.off("kickedOrBanned", kickedOrBannedEvent);
     };
   });
 

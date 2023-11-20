@@ -14,8 +14,6 @@ interface PreviewUserProps {
 
 function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMutedUntil }: PreviewUserProps): JSX.Element {
 
-    // const [mutedUntilDate, setMutedUntilDate] = useState('');
-
     const removeUser = (user: User) => {
         removeUserFromList(user);
     }
@@ -30,7 +28,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
         return (
             <div className="PreviewUser MutedMode fadeIn">
                 <span className="SpanMutedMode">
-                    <img className="previewUserAvatar previewMutedMode" src={avatar} alt="" width={29} height={29} />
+                    <img className="previewUserAvatar previewMutedMode"  src={`http://localhost:4000/${user.avatar}`}  alt="" width={29} height={29} />
                     {user.username} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
                 </span>
                 <div style={{display:"flex", flexDirection:"column"}}>
@@ -44,7 +42,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
     return (
         <div className="PreviewUser fadeIn">
             <span>
-                <img className="previewUserAvatar" src={avatar} alt="" width={29} height={29} />
+                <img className="previewUserAvatar"  src={`http://localhost:4000/${user.avatar}`}  alt="" width={29} height={29} />
                 {user.username} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
             </span>
         </div>

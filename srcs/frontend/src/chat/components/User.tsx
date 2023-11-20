@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
-import avatar from "./avatar_tdeville.jpeg"
+import avatar from "./caf438ea-b608-40a3-8a58-f884190b2e9f.jpg"
 import { getUserAvatar } from "../../home/tools/Api";
 
 interface UserProps {
@@ -44,7 +44,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    {<img className="avatar_image" src={""} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     {user.publicName && user.publicName}
@@ -56,7 +56,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    {<img className="avatar_image" src={""} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>

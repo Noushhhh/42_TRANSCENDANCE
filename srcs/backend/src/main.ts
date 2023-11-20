@@ -12,7 +12,7 @@ import { SessionService } from './auth/session.service';
 
 
 // The bootstrap function is the entry point of the application
-async function bootstrap() {
+export default async function App() {
   // Create a new NestJS application instance
   const app = await NestFactory.create(AppModule);
 
@@ -42,16 +42,18 @@ async function bootstrap() {
     optionsSuccessStatus: 200,
     credentials: true,
   };
-
+  
   // Enable CORS for all routes in the application
   app.enableCors(corsOptions);
-
+  
   // Use express.json middleware to parse incoming JSON payloads
-  app.use(express.json());
-
+  // set a large limit to avoid server crash for large body request
+  app.use(express.json({limit: '50mb'}));
+  app.use(express.urlencoded({limit: '50mb', extended: true, parameterLimit: 50000}));
+  
   // Use cookie-parser middleware to parse incoming cookies
   app.use(cookieParser());
-
+  
   // Set a global route prefix for the application
   app.setGlobalPrefix('api');
 
@@ -69,11 +71,11 @@ async function bootstrap() {
 
   // Start the application and listen on port 4000
   await app.listen(4000);
-}
+  }
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 // Call the bootstrap function to start the application
-bootstrap();
+App();
