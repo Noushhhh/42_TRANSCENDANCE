@@ -26,14 +26,15 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
     return /^\s*$/.test(str);
   }
 
-  const storeMsgToDatabase = (message: MessageToStore) => {
+  const storeMsgToDatabase = async (message: MessageToStore) => {
     const { id, ...newMessage }: Partial<Message> = message;
-    fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
+    await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(message),
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((createdMessage) => {
@@ -53,21 +54,19 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
-    let isUserIsMuted: boolean = false;
+    if (msgToSend.content.length > 5000){
+      alert('message too long: 5000char max');
+      return ;
+    }
     if (isWhitespace(message)) {
       setMessage("");
       return;
     }
-    socket.emit("message", msgToSend, (response: boolean) => {
-      console.log("IS ACTUALLY EMITTING...");
-      isUserIsMuted = response;
-      if (isUserIsMuted === true) {
-        msgToSend.content =
-          "You are actually blocked from this channel. Others users won't see your message";
-      }
-      addMessage(msgToSend, "MessageTo");
-    });
+    socket.emit("message", msgToSend);
+    addMessage(msgToSend, "MessageTo");
     const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+    console.log("parsed message content == ");
+    console.log(parsedMessage.content);
     storeMsgToDatabase(parsedMessage);
     setMessage("");
   };

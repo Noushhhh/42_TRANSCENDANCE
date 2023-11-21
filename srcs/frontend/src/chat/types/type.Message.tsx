@@ -9,13 +9,9 @@ interface MessageToStore{
 interface User {
 	id: number;
 	username: string;
-	login: string;
-	hashPassword: string;
-	email: string | null;
-	firstName: string | null;
-	lastName: string | null;
 	isBlocked: boolean;
 	publicName: string | null;
+	avatar: string;
 }
 
 interface Message {

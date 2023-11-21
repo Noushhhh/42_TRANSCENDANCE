@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, NotFoundException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
@@ -44,6 +44,11 @@ export class AdminGuard implements CanActivate {
         if (!channel)
             throw new NotFoundException('Channel not found');
 
-        return channel.admins.some(admin => (admin.id === userId))
+        const isAdmin: boolean = channel.admins.some(admin => (admin.id === userId));
+
+        if (!isAdmin)
+            throw new ForbiddenException("Unauthorized: you are not admin");
+
+        return isAdmin;
     }
 }

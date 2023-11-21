@@ -4,7 +4,7 @@ import {
     pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
     getUsernamesDto, KickOrBanChannelDto, ManageAdminDto
 } from "./dto/chat.dto";
-import { IsIn, IsNumber, IsString, IsInt, Min, IsDate } from 'class-validator';
+import { IsIn, IsNumber, IsString, IsInt, Min, IsDate, Max, maxLength, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
@@ -12,17 +12,21 @@ import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 import { OwnerGuard } from "./guards/owner.guards";
-import { ParseIntPipe } from "@nestjs/common";
+import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 
 export class ChannelDTO {
     @IsString()
+    @MaxLength(35)
     name!: string;
 
     @IsString()
+    @MaxLength(35)
     password!: string;
 
     @IsNumber()
     @Type(() => Number)
+    @Min(0)
+    @Max(2000000)
     ownerId!: number;
 
     @IsNumber({}, { each: true })
@@ -34,26 +38,24 @@ export class ChannelDTO {
 
 export class CreateChannelDto {
     @IsString()
+    @MaxLength(35)
     name!: string;
 
     @IsString()
+    @MaxLength(35)
     password!: string;
 
     @IsNumber()
     @Type(() => Number)
+    @Min(0)
+    @Max(2000000)
     ownerId!: number;
 
     @IsNumber({}, { each: true })
     participants!: number[];
 
-    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED'])
     type!: string;
-}
-
-interface MessageToStore {
-    channelId: number;
-    content: string;
-    senderId: number;
 }
 
 interface isChannelExist {
@@ -63,16 +65,17 @@ interface isChannelExist {
 }
 
 @Controller('chat')
+@UseGuards(JwtAuthGuard)
 export class ChatController {
-
+    
     constructor(private chatService: ChatService) { };
-
+    
     @Post('getAllConvFromId')
     async getAllConvFromId(
         @Body() userIdDto: UserIdDto) {
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
-
+        
     @Get('getChannelName')
     async getChannelName(
         @Query() dto: PairUserIdChannelId): Promise<string> {
@@ -249,6 +252,7 @@ export class ChatController {
         return this.chatService.isMute(dto);
     }
 
+    @UseGuards(AdminGuard)
     @Post('mute')
     async mute(
         @Body() dto: muteDto) {

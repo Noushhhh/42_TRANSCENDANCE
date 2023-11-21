@@ -8,9 +8,13 @@ import { createChannel } from "./ChannelUtils";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
+import { Socket } from "socket.io-client";
 
+interface CreateChannelPopupProps{
+    setIsDisplay: React.Dispatch<React.SetStateAction<boolean[]>>;
+}
 
-function CreateChannelPopup()  {
+function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
 
     const [userListChannel, setUserListChannel] = useState<User[]>([]);
     const [channelName, setChannelName] = useState<string>("");
@@ -21,9 +25,10 @@ function CreateChannelPopup()  {
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
+    const [canSendApiCall, setCanSendApiCall] = useState<boolean>(true);
 
-    const socket = useSocketContext();
-    const userId = useUserIdContext();
+    const socket: Socket = useSocketContext();
+    const userId: number = useUserIdContext();
 
     const setChannelHeader = useSetChannelHeaderContext();
 
@@ -70,12 +75,18 @@ function CreateChannelPopup()  {
             if (channelName.length < 1)
                 setError("Channel name can't be empty");
             else{
+                if (canSendApiCall === false)
+                    return
+                setCanSendApiCall(false);
                 const participantsId: number [] = userListChannel.map(user => user.id);
                 const channelIdCreated: number = await createChannel(channelName, password, participantsId, channelType, setChannelHeader, userId, socket);
                 socket.emit("joinChannel", channelIdCreated);
+                setIsDisplay([ false, false]);
             }
         } catch (error: any){
             setError(error.message);
+        } finally {
+            setCanSendApiCall(true);
         }
       };
 

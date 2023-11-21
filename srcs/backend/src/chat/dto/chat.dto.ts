@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
@@ -14,6 +14,7 @@ class CommonChannelIdDto {
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     channelId!: number;
 }
 
@@ -21,6 +22,7 @@ class CommonUserIdDto {
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     userId!: number;
 }
 
@@ -28,6 +30,7 @@ class CommonChannelIdPostDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 }
 
@@ -52,12 +55,13 @@ export class ChannelIdPostDto extends CommonChannelIdPostDto {}
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()
     @IsString()
-    // @Min(6)
-    // @Max(22)
+    @Min(6)
+    @Max(22)
     password!: string;
 
     @IsInt()
     @Min(0)
+    @Max(2000000)
     userId!: number;
 }
 
@@ -65,11 +69,15 @@ export class PairUserIdChannelId {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
+    @IsNotEmpty()
     channelId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
+    @IsNotEmpty()
     userId!: number;
 }
 
@@ -77,11 +85,13 @@ export class pairUserId{
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     callerId!: number;
     
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     targetId!: number;
 }
 
@@ -89,6 +99,7 @@ export class ManagePasswordDto{
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     channelId!: number;
 
     @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
@@ -109,6 +120,7 @@ export class ManageChannelTypeDto{
     @IsInt()
     @Min(0)
     @Type(() => Number)
+    @Max(2000000)
     channelId!: number;
 
     @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
@@ -119,17 +131,20 @@ export class LeaveChannelDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     userId!: number;
 
     @IsOptional()
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     newOwnerId!: number;
 }
 
@@ -137,16 +152,19 @@ export class muteDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     mutedUserId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     callerUserId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 
     @Type(() => Date)
@@ -157,14 +175,17 @@ export class muteDto {
 export class MessageToStoreDto {
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 
     @IsNotEmpty()
-    @MaxLength(2000)
+    @MaxLength(5000)
+    @IsString()
     content!: string;
 
     @IsInt()
     @Min(0)
+    @Max(2000000)
     senderId!: number;
 }
 
@@ -172,6 +193,8 @@ export class getChannelUsernamesDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @IsNotEmpty()
+    @Max(2000000)
     channelId!: number;
 
     @IsString()
@@ -182,6 +205,7 @@ export class getChannelUsernamesDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     userId!: number;
 }
 
@@ -197,17 +221,20 @@ export class KickOrBanChannelDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     userId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     callerId!: number;
 }
 
@@ -215,15 +242,18 @@ export class ManageAdminDto {
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     inviterId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     invitedId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
+    @Max(2000000)
     channelId!: number;
 }
