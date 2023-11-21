@@ -60,6 +60,7 @@ const speakeasy = __importStar(require("speakeasy"));
 const users_service_1 = require("../users/users.service");
 const constants_1 = require("../auth/constants/constants");
 const uuid_1 = require("uuid");
+const qrcode_1 = __importDefault(require("qrcode"));
 /**
  * @file auth.service.ts
  * @author Your Name
@@ -611,12 +612,28 @@ let AuthService = class AuthService {
      */
     enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
+            console.log("secret = ", secret);
             yield this.prisma.user.update({
                 where: { id: userId },
                 data: {
                     TwoFA: true,
+                    twoFASecret: secret,
                 },
             });
+            const generateQR = (otpauthUrl) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const url = yield qrcode_1.default.toDataURL(otpauthUrl);
+                    return url;
+                }
+                catch (err) {
+                    console.error(err);
+                }
+            });
+            const QRUrl = yield generateQR(otpauthUrl);
+            if (QRUrl)
+                return QRUrl;
+            return "";
         });
     }
     // Method to generate a unique session identifier

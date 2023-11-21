@@ -9,28 +9,29 @@ import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+import { UserIdDto } from '../users/dto';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
 @UseFilters(AllExceptionsFilter)
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
-    @Get('token')
-    async getToken(@Req() req: Request) {
-        // Extract the access token from the request cookies
-        const accessToken = req.cookies['token'];
-        return { accessToken}
-    }
-
-  @Public()
-  @Post('signup' )
-  async signup(@Body() dto: AuthDto, @Res() res: Response) {
-      return await this.authService.signup(dto, res);
+  @Get('token')
+  async getToken(@Req() req: Request) {
+    // Extract the access token from the request cookies
+    const accessToken = req.cookies['token'];
+    return { accessToken }
   }
 
-  @Post('signin' )
+  @Public()
+  @Post('signup')
+  async signup(@Body() dto: AuthDto, @Res() res: Response) {
+    return await this.authService.signup(dto, res);
+  }
+
+  @Post('signin')
   async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
 
     return await this.authService.signin(dto, res, req);
@@ -64,27 +65,29 @@ export class AuthController {
     return this.authService.signout(decodedPayload, res);
   }
 
-    @Public()
-    @Get('42Url')
-    async get42Url() {
-        const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "&response_type=code";
-        return (url);
-    }
+  @Public()
+  @Get('42Url')
+  async get42Url() {
+    const url = "https://api.intra.42.fr/oauth/authorize?client_id=" + process.env.UID_42 + "&redirect_uri=" + process.env.REDIRECT_URI + "&response_type=code";
+    return (url);
+  }
 
-    // @Public()
-    @Get('callback42')
-    async handle42Callback(@Req() req: Request, @Res() res: Response) {
-        try {
-            // Call the authService to handle 42 authentication
-            await this.authService.signToken42(req, res);
-        } catch (error) {
-            console.error(error);
-            // Handle errors here and redirect as needed
-            res.redirect('/error2');
-        }
+  // @Public()
+  @Get('callback42')
+  async handle42Callback(@Req() req: Request, @Res() res: Response) {
+    try {
+      // Call the authService to handle 42 authentication
+      await this.authService.signToken42(req, res);
+    } catch (error) {
+      console.error(error);
+      // Handle errors here and redirect as needed
+      res.redirect('/error2');
     }
+  }
 
   @Post('enable2FA')
-  async enable2FA() {
+  async enable2FA(@Body() userId: UserIdDto) {
+    const qrcodeUrl = await this.authService.enable2FA(userId.userId);
+    return { qrcode: qrcodeUrl }
   }
 }

@@ -4,6 +4,7 @@ import SignOutLink from '../tools/SignoutLink';
 import { CSSTransition } from 'react-transition-group';
 import  '../styles/generalStyles.css'
 import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
+import TwoFA from './TwoFA';
 
 
 
@@ -194,6 +195,8 @@ const Settings: React.FC = React.memo(() => {
       )}
 
       <button className="button" style={{'marginTop': '1%'}} onClick={() => setIsUpdatingAvatar(!isUpdatingAvatar)}> Update Avatar </button>
+
+      <TwoFA />
 
       <div style={{'marginTop' : '3%'}}>
         < SignOutLink />
