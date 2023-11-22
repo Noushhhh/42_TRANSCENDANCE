@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
@@ -24,6 +24,7 @@ import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
 import { removeFriend, sendFriendRequest } from "../../user/FriendUtils";
+import UserProfil from "../../user/UserProfil";
 
 interface UserProfileMenuProps {
   user: User;
@@ -44,6 +45,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [invitationStatus, setInvitationStatus] = useState<string>("");
   const [areUsersFriend, setAreUsersFriend] = useState<boolean>(false);
+  const [isUserProfilDisplayed, setIsUserProfilDisplayed] = useState(false);
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -106,6 +108,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleProfilClick = () => {
     handleClose();
+    setIsUserProfilDisplayed(true);
   };
 
   const handleAddFriend = async () => {
@@ -246,6 +249,13 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   return (
     <div>
+      {isUserProfilDisplayed ? (
+        <UserProfil
+          isDisplay={isUserProfilDisplayed}
+          setIsDisplay={setIsUserProfilDisplayed}
+          userId={user.id}
+        />
+      ) : null}
       <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
         {user.publicName && user.publicName}

@@ -31,6 +31,15 @@ const friendLignStyle: React.CSSProperties = {
   gap: "1rem",
 };
 
+export const isUrlContainsHttps = (url: string) => {
+  console.log("URL = ", url);
+  if (!url) return;
+  const firstChars = url.substring(0, 23);
+  console.log("first chars= ", firstChars);
+  if (firstChars === "https://cdn.intra.42.fr") return true;
+  return false;
+};
+
 const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
   const [friendsList, setFriendsList] = useState<FriendType[]>([]);
   const [friendsMenu, setFriendsMenu] = useState<{
@@ -96,13 +105,6 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
       friend: null,
       position: { top: 0, left: 0 },
     });
-  };
-
-  const isUrlContainsHttps = (url: string) => {
-    const firstChars = url.substring(0, 23);
-    console.log("first chars= ", firstChars);
-    if (firstChars === "https://cdn.intra.42.fr") return true;
-    return false;
   };
 
   return (

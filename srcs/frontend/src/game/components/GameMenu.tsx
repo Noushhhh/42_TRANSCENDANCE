@@ -15,24 +15,21 @@ interface SocketErrorObj {
 
 const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
   // @to-do REMOVE LOCALHOST
-  const lobby = () => {
-    fetch(`http://localhost:4000/api/game/lobby?clientId=${socket.id}`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Player not found " + response.status);
+  const lobby = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/game/lobby?clientId=${socket.id}`,
+        {
+          method: "GET",
+          credentials: "include",
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        handleError({ statusCode: 404, message: "Error in lobby creation" });
-        console.error(error);
-      });
+      );
+
+      if (!response.ok) return Promise.reject(await response.json());
+    } catch (error) {
+      handleError({ statusCode: 404, message: "Error in lobby creation" });
+      console.error(error);
+    }
   };
 
   return (

@@ -28,6 +28,7 @@ const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
 const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
+const dto_2 = require("../users/dto");
 const browserError = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 let AuthController = class AuthController {
     constructor(authService) {
@@ -99,8 +100,10 @@ let AuthController = class AuthController {
             }
         });
     }
-    enable2FA() {
+    enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
+            const qrcodeUrl = yield this.authService.enable2FA(userId.userId);
+            return { qrcode: qrcodeUrl };
         });
     }
 };
@@ -171,8 +174,9 @@ __decorate([
 ], AuthController.prototype, "handle42Callback", null);
 __decorate([
     (0, common_1.Post)('enable2FA'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [dto_2.UserIdDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 exports.AuthController = AuthController = __decorate([

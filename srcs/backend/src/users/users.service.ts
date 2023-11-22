@@ -13,13 +13,20 @@ import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import * as fs from 'fs';
 
-
-
 interface FriendRequestFromUser {
     id: number;
     publicName?: string | null;
     userName: string;
     avatar?: string | null;
+}
+
+interface UserProfile {
+    id: number;
+    publicName?: string | null;
+    userName: string;
+    avatar?: string | null;
+    gamePlayed: number;
+    gameWon: number;
 }
 
 @Injectable()
@@ -84,24 +91,24 @@ export class UsersService {
         try {
             // Get the user profile using the decoded payload's subject (usually the user ID)
             const user = await this.getUserData(decodedPayload.sub);
-            
+
             // Check if the user has an avatar set
             const path = user?.avatar;
             if (!path) {
                 throw new NotFoundException('Avatar not found');
             }
-    
+
             // Set the appropriate MIME type for the avatar image
             res.type('image/jpeg');
-    
+
             // Create a read stream for the avatar file
             const stream = fs.createReadStream(path);
-    
+
             stream.on('open', () => {
                 // Pipe the read stream to the response object to send the image data
                 stream.pipe(res);
             });
-    
+
             stream.on('error', (err: NodeJS.ErrnoException) => {
                 // Handle file read/stream errors
                 if (err.code === 'ENOENT') {
@@ -118,7 +125,7 @@ export class UsersService {
             throw new InternalServerErrorException('Error in getUserAvatar service');
         }
     }
-    
+
 
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
@@ -635,5 +642,26 @@ export class UsersService {
         }
 
         return user1.friends.some((friend) => friend.id === userId2);
+    }
+
+    async getUserProfile(userId: number): Promise<UserProfile> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new Error(`User with id ${userId} not found.`);
+        }
+
+        const userProfile: UserProfile = {
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+            avatar: user.avatar,
+            gamePlayed: user.gamesPlayed,
+            gameWon: user.gamesWon
+        }
+
+        return userProfile;
     }
 }

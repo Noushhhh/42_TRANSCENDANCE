@@ -16,6 +16,7 @@ import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { v4 as uuidv4 } from 'uuid';
 import cron from 'node-cron'; // Importing node-cron for scheduling tasksd
 import { StrictEventEmitter } from 'socket.io/dist/typed-events';
+import QRCode from 'qrcode'
 
 
 
@@ -59,9 +60,9 @@ export class AuthService {
       const user = await this.prisma.user.create({
         data: {
           username: dto.username,
-          hashPassword, 
+          hashPassword,
           fortyTwoStudent: false,
-          avatar: null 
+          avatar: null
         },
       });
       console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
@@ -153,56 +154,56 @@ export class AuthService {
 
   // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Generates JWT and refresh tokens for a user and updates session information in the database.
- * @param userId - The ID of the user.
- * @param email - The email of the user.
- * @returns An object containing the generated JWT and refresh tokens, along with their expiration information.
- */
-async generateTokens(userId: number, email: string): Promise<{ newToken: {token: string, expiresAt: Date}, refreshToken: { token: string, expiresAt: Date } }> {
-  const payload = { sub: userId, email };
-  const secret = this.JWT_SECRET;
-  const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
+  /**
+   * Generates JWT and refresh tokens for a user and updates session information in the database.
+   * @param userId - The ID of the user.
+   * @param email - The email of the user.
+   * @returns An object containing the generated JWT and refresh tokens, along with their expiration information.
+   */
+  async generateTokens(userId: number, email: string): Promise<{ newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }> {
+    const payload = { sub: userId, email };
+    const secret = this.JWT_SECRET;
+    const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
 
-  let token, tokenExpiresAt;
-  try {
-    token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
-    tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
+    let token, tokenExpiresAt;
+    try {
+      token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
+      tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
 
-  } catch (error) {
-    if (error instanceof Error)
-      throw new Error("Error generating JWT token: " + error.message);
-    else
-      throw new Error("Error generating JWT token");
+    } catch (error) {
+      if (error instanceof Error)
+        throw new Error("Error generating JWT token: " + error.message);
+      else
+        throw new Error("Error generating JWT token");
+    }
+
+    let refreshToken;
+    try {
+      refreshToken = await this.refreshTokenIfNeeded(userId);
+    } catch (error) {
+      if (error instanceof Error)
+        throw new Error("Error generating refresh token: " + error.message);
+      else
+        throw new Error("Error generating refresh token");
+    }
+
+    const sessionId = this.generateSessionId();
+    const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
+
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { sessionId, sessionExpiresAt },
+      });
+    } catch (error) {
+      if (error instanceof Error)
+        throw new Error("Error updating user session in database: " + error.message);
+      else
+        throw new Error("Error updating user session in database");
+    }
+    let newToken = { token: token, expiresAt: tokenExpiresAt }
+    return { newToken, refreshToken };
   }
-
-  let refreshToken;
-  try {
-    refreshToken = await this.refreshTokenIfNeeded(userId);
-  } catch (error) {
-    if (error instanceof Error)
-      throw new Error("Error generating refresh token: " + error.message);
-    else
-      throw new Error("Error generating refresh token");
-  }
-
-  const sessionId = this.generateSessionId();
-  const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
-
-  try {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { sessionId, sessionExpiresAt },
-    });
-  } catch (error) {
-    if (error instanceof Error)
-      throw new Error("Error updating user session in database: " + error.message);
-    else
-      throw new Error("Error updating user session in database");
-  }
-  let newToken = {token: token, expiresAt: tokenExpiresAt}
-  return { newToken, refreshToken };
-}
 
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -212,7 +213,7 @@ async generateTokens(userId: number, email: string): Promise<{ newToken: {token:
    * @param tokens - Object containing the JWT token and refresh token with their expiration times.
    * @param res - HTTP response object to set cookies on.
    */
-  setTokens(tokens: { newToken: {token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
+  setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
     // Error handling for undefined tokens
     if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
       throw new Error("Invalid or missing tokens provided.");
@@ -368,7 +369,7 @@ async generateTokens(userId: number, email: string): Promise<{ newToken: {token:
         data: { sessionId: null, sessionExpiresAt: null },
       });
 
-    // Clear the JWT cookie or session
+      // Clear the JWT cookie or session
       res.clearCookie('token');
       res.clearCookie('refreshToken');
       res.clearCookie('userSession');
@@ -561,7 +562,7 @@ async generateTokens(userId: number, email: string): Promise<{ newToken: {token:
    * @return The 2FA secret and otpauth URL.
    */
 
-  generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {  
+  generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
     const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
     const otpauthUrl = speakeasy.otpauthURL({
       secret: secret.base32,
@@ -605,14 +606,32 @@ async generateTokens(userId: number, email: string): Promise<{ newToken: {token:
    * @brief This function enables 2FA.
    * @param userId The user's ID.
    */
-  async enable2FA(userId: number) {
+  async enable2FA(userId: number): Promise<string> {
+    const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
+
+    console.log("secret = ", secret);
+
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         TwoFA: true,
+        twoFASecret: secret,
       },
     });
 
+    const generateQR = async (otpauthUrl: string) => {
+      try {
+        const url = await QRCode.toDataURL(otpauthUrl);
+        return url;
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    const QRUrl = await generateQR(otpauthUrl);
+    if (QRUrl)
+      return QRUrl;
+
+    return "";
   }
 
   // Method to generate a unique session identifier

@@ -85,14 +85,14 @@ export class UsersController {
         try {
             return await this.UsersService.getUserAvatar(decodedPayload, res)
         } catch (error) {
-            throw error; 
+            throw error;
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────
 
     @Get('getprofilename')
-    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload, 
+    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload,
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
         const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res, "unable to decode token in user \
@@ -257,5 +257,19 @@ export class UsersController {
             console.log(error);
             throw error;
         }
+    }
+
+    @Get('getUserProfil')
+    async getUserProfil(@Req() req: Request) {
+        const userId = req.headers['x-user-id'];
+
+        if (typeof userId === 'string') {
+            const userIdInt = parseInt(userId);
+
+            const userProfile = await this.UsersService.getUserProfile(userIdInt);
+            console.log("USER PROFILE = ", userProfile);
+            return { userProfile: userProfile };
+        }
+        throw new BadRequestException("Error trying to parse userID");
     }
 }
