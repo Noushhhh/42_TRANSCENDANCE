@@ -592,7 +592,7 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
   }
 }
 
-export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<Response> => {
+export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
   try {
     const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
       method: 'POST',
