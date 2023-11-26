@@ -12,6 +12,7 @@ import { UserProfileData } from '../interfaces/user.interface';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import * as fs from 'fs';
+import { use } from "passport";
 
 
 
@@ -201,17 +202,21 @@ export class UsersService {
     async updatePublicName(userId: number, publicName: string) {
         try {
             // Check if the public name is already taken by another user
-            const user = await this.prisma.user.findUnique({
-                where: { publicName: publicName },
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    publicName: {
+                        mode: 'insensitive', // Case-insensitive filter
+                        equals: publicName
+                    }
+                },
                 select: {
                     id: true,
                     username: true,
                     publicName: true,
                 },
             });
-
-            // If the public name is taken by another user, throw a ForbiddenException
-            if (user && user.id !== userId) {
+            
+            if (user) {
                 throw new ForbiddenException("Public name already taken, please choose another one");
             }
 
