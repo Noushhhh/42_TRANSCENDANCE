@@ -231,7 +231,7 @@ export class UsersService {
                 message: "Public name was updated successfully",
             });
         } catch (error) {
-            throw new NotFoundException("There was an error updating public name");
+            throw error;
         }
     }
 

@@ -67,6 +67,12 @@ export class UsersController {
         }
     }
 
+    @Get('getUserInfo')
+    async getUserInfo( @ExtractJwt() decodedPayload: DecodedPayload)
+    {
+        return decodedPayload;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**

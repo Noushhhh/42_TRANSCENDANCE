@@ -1,6 +1,6 @@
 import React, { useState , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-import useCheckFirstConnection from "../tools/hooks/useCheckFirstConnection";
+import useIsClientRegistered from "../tools/hooks/useIsClientRegistered";
 import '../styles/generalStyles.css'
 import GoBackButton from "../tools/GoBackButton";
 import { hasMessage } from "../tools/Api";
@@ -83,7 +83,7 @@ const SignIn: React.FC = () => {
     const  checkToken = useTokenExpired();
     // Hook for programmatic navigation.
     const navigate = useNavigate();
-    const checkFirstConnection = useCheckFirstConnection();
+    const isClientRegistered = useIsClientRegistered();
 
     const checkIfAlreadyLoggedIn = async () => {
         const tokenExpired = await checkToken();
@@ -102,8 +102,8 @@ const SignIn: React.FC = () => {
 
         try {
             await signInAPI(email, password);
-            const userIsRegisterd = await checkFirstConnection();
-            navigate(userIsRegisterd ? '/home' : '/userprofilesetup', { state: { email } });
+            const userIsRegisterd = await isClientRegistered();
+            navigate(userIsRegisterd ? '/home' : '/userprofilesetup');
         } catch (error) {
             const errorMessage = hasMessage(error) ? error.message : 'An unexpected error occurred. Please try again later.';
             setErrorMessage(errorMessage);
