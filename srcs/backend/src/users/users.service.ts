@@ -202,20 +202,22 @@ export class UsersService {
     async updatePublicName(userId: number, publicName: string) {
         try {
             // Check if the public name is already taken by another user
+            // This query uses a case-insensitive search to find a user with the given publicName
             const user = await this.prisma.user.findFirst({
                 where: {
                     publicName: {
-                        mode: 'insensitive', // Case-insensitive filter
-                        equals: publicName
+                        mode: 'insensitive', // Enable case-insensitive filter
+                        equals: publicName // Compare with the provided publicName
                     }
                 },
                 select: {
-                    id: true,
-                    username: true,
-                    publicName: true,
+                    id: true, // Select user id
+                    username: true, // Select username
+                    publicName: true, // Select publicName
                 },
             });
-            
+
+            // If a user with the same publicName is found, throw an exception
             if (user) {
                 throw new ForbiddenException("Public name already taken, please choose another one");
             }
