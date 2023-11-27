@@ -201,6 +201,7 @@ export class ChatService {
 
   async addChannelToUser(channelInfo: channelToAdd): Promise<number> {
     try {
+      await this.getUserById(channelInfo.ownerId);
       const channels = await this.prisma.channel.findMany();
       if (!channels)
         throw new NotFoundException("Error getting channels");

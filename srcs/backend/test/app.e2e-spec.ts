@@ -10,9 +10,16 @@ import * as path from 'path';
 import cookieParser from 'cookie-parser';
 import cron from 'node-cron';
 import { SessionService } from '../src/auth/session.service';
+import { PrismaService } from '../src/prisma/prisma.service';
+import * as pactum from 'pactum';
+import { AuthDto } from '../src/auth/dto';
+import { Req } from '@nestjs/common';
+import { UserIdDto } from '../src/users/dto';
+import { CreateChannelDto } from '../src/chat/chat.controller';
 
 describe('App e2e', () => {
     let app: INestApplication;
+    let prisma: PrismaService;
     beforeAll( async () => {
         const moduleRef = await Test.createTestingModule({
             imports:[AppModule],
@@ -70,11 +77,132 @@ describe('App e2e', () => {
           await sessionService.clearExpiredSessions();
           // console.log("Cron job executed every minute");
         });
-      
+    
         await app.init();
+        await app.listen(3333);
+
+        prisma = app.get(PrismaService);
+
+        await prisma.cleanDb();
+        pactum.request.setBaseUrl("http://localhost:3333");
     })
     afterAll(() => {
         app.close();
     })
-    it.todo("should pass");
-})
+
+    describe('Auth', () => {
+      const emptyPasswordDto: AuthDto = {
+        username: '           ',
+        password: '',
+      }
+      const emptyUsernameDto: AuthDto = {
+        username: '',
+        password: '          ',
+      }
+      const bothPasswordUsernameEmpty: AuthDto = {
+        username: '',
+        password: '          ',
+      }
+      const authDto: AuthDto = {
+        username: 'polo',
+        password: '          ',
+      }
+      
+    
+      describe('Signup', () => {
+
+        it("should throw exception", () => {
+          return pactum.spec().post('/api/auth/signup').withBody(emptyPasswordDto).expectStatus(400);
+        });
+
+        it("should throw exception", () => {
+          return pactum.spec().post('/api/auth/signup').withBody(emptyUsernameDto).expectStatus(400);
+        });
+
+        it("should throw exception", () => {
+          return pactum.spec().post('/api/auth/signup').withBody({username: authDto.username}).expectStatus(400);
+        });
+
+        it("should throw exception", () => {
+          return pactum.spec().post('/api/auth/signup').withBody({password: authDto.password}).expectStatus(400);
+        });
+
+        it("should throw exception", () => {
+          return pactum.spec().post('/api/auth/signup').withBody(bothPasswordUsernameEmpty).expectStatus(400);
+        });
+
+        it("should signup", () => {
+          return pactum.spec().post('/api/auth/signup').withBody(authDto).expectStatus(201);
+        });
+      });
+
+      describe('Signin', () => {
+        
+        it("shoud signin and store cookies", async () => {
+
+          /*const token = await pactum
+            .spec()
+            .post('/api/auth/signin')
+            .withBody(authDto)
+            .expectStatus(200)
+            .returns((ctx) => {
+              const cookies = ctx.res.headers['set-cookie'];
+              if (!cookies)
+                return null;
+              const tokenRegex = /token=([^;]+)/;
+              for (const cookie of cookies) {
+                const match = tokenRegex.exec(cookie);
+                if (match) {
+                  return match[1];
+                }
+              }
+              return null; // Retourne null si le token n'est pas trouvé
+          });*/
+
+        
+      });
+
+    });
+    describe('User', () => {
+      describe('Get me', () => {});
+    });
+
+    describe('Chat', () => {
+      it('should create channel', async () => {
+        const createChannel: CreateChannelDto = {
+          name:'awdawd',
+          password:'awdawdawd',
+          ownerId:0,
+          participants: [0],
+          type: 'PUBLIC'
+        }
+        const token = await pactum
+              .spec()
+              .post('/api/auth/signin')
+              .withBody(authDto)
+              .expectStatus(200)
+              .returns((ctx) => {
+                const cookies = ctx.res.headers['set-cookie'];
+                if (!cookies)
+                  return null;
+                const tokenRegex = /token=([^;]+)/;
+                for (const cookie of cookies) {
+                  const match = tokenRegex.exec(cookie);
+                  if (match) {
+                    return match[1];
+                  }
+                }
+                return null; // Retourne null si le token n'est pas trouvé
+            });
+          console.log('output == ');
+          console.log('output == ');
+          console.log('output == ');
+          console.log('output == ');
+          console.log('output == ');
+          console.log('output == ');
+          console.log(token);
+          return pactum.spec().post("/api/chat/addChannelToUser").withBody(createChannel).expectStatus(200).withCookies('token', `${token}`);
+      })
+    })
+
+})});

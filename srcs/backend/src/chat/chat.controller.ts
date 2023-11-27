@@ -121,6 +121,7 @@ export class ChatController {
     @Post('addChannelToUser')
     async addChannelToUser(
         @Body() channelInfo: CreateChannelDto): Promise<number> {
+            console.log('add channel to user called');
         return this.chatService.addChannelToUser(channelInfo);
     }
 
