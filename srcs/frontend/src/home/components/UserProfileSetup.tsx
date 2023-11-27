@@ -1,20 +1,20 @@
 import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 import "../styles/generalStyles.css";
 import { useSignOut } from "../tools/hooks/useSignOut";
 import { fetchImageAsFile, useUpdateAvatar, useUpdatePublicName } from "../tools/Api";
 import LoadingSpinner from "../tools/LoadingSpinner";
+import { getUserData, hasMessage } from "../tools/Api";
 
 const defaultImage = 'defaultProfileImage.jpg';
 
 const UserProfileSetup: React.FC = React.memo(() => {
-  const location = useLocation();
-  const email = location.state.email;
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { updateAvatar, isLoading: isAvatarUpdating, error: avatarUpdateError } = useUpdateAvatar();
   const { updatePublicName, isLoading: isPublicNameLoading, error: publicNameError } = useUpdatePublicName();
+  const [email, setEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
 
@@ -22,8 +22,20 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const profileNameRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        const result = await getUserData();
+        setEmail(result.publicName ? result.publicName : result.email);
+      } catch (error) {
+        console.error(hasMessage(error) ? error.message : "Something went wrong when \
+        calling when fetching user email in UserProfile compoenet");
+      }
+    }
+
+    getUserInfo();
     setDefaultImage();
-  }, []);
+
+  }, [getUserData]);
 
 
   useEffect(() => {
