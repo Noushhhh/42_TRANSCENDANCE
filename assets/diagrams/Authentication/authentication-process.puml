@@ -1,0 +1,96 @@
+@startuml authentication-workflow
+start
+
+/'                   888    888                                          888       .d888 888
+                  888    888                                          888      d88P"  888
+                  888    888                                          888      888    888
+ 8888b.  888  888 888888 88888b.       888  888  888  .d88b.  888d888 888  888 888888 888  .d88b.  888  888  888
+    "88b 888  888 888    888 "88b      888  888  888 d88""88b 888P"   888 .88P 888    888 d88""88b 888  888  888
+.d888888 888  888 888    888  888      888  888  888 888  888 888     888888K  888    888 888  888 888  888  888
+888  888 Y88b 888 Y88b.  888  888      Y88b 888 d88P Y88..88P 888     888 "88b 888    888 Y88..88P Y88b 888 d88P
+"Y888888  "Y88888  "Y888 888  888       "Y8888888P"   "Y88P"  888     888  888 888    888  "Y88P"   "Y8888888P" '/
+
+
+/' sign up  '/
+partition signup {
+:<i><b><size:15>User Registration (signup)</size></b></i>;
+note right
+    <b><size:20><color:red>1</color></size></b>
+end note
+if (Credentials Valid?) then (yes)
+  :Hash Password;
+  :Create User Record;
+  #LightGreen: return 200 ok status;
+else (no)
+  #LightPink: <color:red>throw</color> respective exception;
+endif
+}
+
+/' sign in  '/
+partition singin {
+:<i><b><size:15>User Login (signin)</size></b></i>;
+note right
+    <b><size:20><color:red>2</color></size></b>
+end note
+if (Credentials Valid?) then (yes)
+  :Generate JWT Token;
+  :Generate Refresh Token;
+  :Generate user session information;
+  :set JWT Token in cookies;
+  :set Refresh Token in cookies;
+  :set user session information in database;
+  #LightGreen: return 200 ok status;
+else (no)
+  #LightPink: <color:red>throw</color> respective exception;
+endif
+}
+
+/' Token Verification '/
+partition checkTokenValidity {
+:<i><b><size:15>Token Verification (checkTokenValidity)</size></b></i>;
+note right
+    <b><size:20><color:red>3</color></size></b>
+end note
+if (Token Valid?) then (yes)
+  #LightGreen: return 200 ok status;
+else (no)
+  #LightPink: <color:red>throw</color> respective exception;
+endif
+}
+
+/' Token refresh '/
+partition refreshToken {
+:<i><b><size:15>Token Refresh (refreshToken)</size></b></i>;
+note right
+    <b><size:20><color:red>4</color></size></b>
+end note
+if (Token Expired?) then (yes)
+  :Validate Old Token;
+  :Generate JWT Token;
+  :Generate Refresh Token **if needed**;
+  :Generate user session information;
+  :set JWT Token in cookies;
+  :set Refresh Token in cookies;
+  :set user session information in database;
+  #LightGreen: return 200 ok status;
+else (no)
+  #LightPink: <color:red>throw</color> respective exception;
+endif
+}
+
+/' Logout '/
+partition logout {
+:<i><b><size:15>User Logout (signout)</size></b></i>;
+note right
+    <b><size:20><color:red>5</color></size></b>
+end note
+if (Token Valid?) then (yes)
+  :Invalidate Token/Session;
+  #LightGreen: return 200 ok status;
+else (no)
+  #LightPink: <color:red>throw</color> respective exception;
+endif
+}
+
+stop
+@enduml

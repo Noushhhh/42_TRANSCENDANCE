@@ -174,7 +174,6 @@ export class UsersController {
     // ─────────────────────────────────────────────────────────────────────────────
 
 
-    @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
         return req.user;
