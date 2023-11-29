@@ -40,12 +40,21 @@ interface InvitationRes {
   client: number;
 }
 
+interface IsPlayerInLobbyType {
+  isInGame: boolean;
+  lobbyName: string | undefined;
+}
+
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [invitationStatus, setInvitationStatus] = useState<string>("");
   const [areUsersFriend, setAreUsersFriend] = useState<boolean>(false);
   const [isUserProfilDisplayed, setIsUserProfilDisplayed] = useState(false);
+  const [isUserInGame, setIsUserInGame] = useState<{
+    isInLobby: boolean;
+    lobbyName: string | undefined;
+  }>();
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -62,6 +71,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     "Private message",
     areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
+    "Spectate",
     "Block",
   ];
   const menuIfBlock: string[] = [
@@ -69,8 +79,15 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     "Private message",
     areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
+    "Spectate",
     "Unblock",
   ];
+
+  useEffect(() => {
+    socket.emit("isUserInGame", user.id, (data: IsPlayerInLobbyType) => {
+      setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
+    });
+  }, []);
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
@@ -194,7 +211,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           console.log(res.message);
         }
       );
-      // navigate("/home/game");
     }
     if (invitationRes.res === false) {
       handleInvitationStatus("Invitation refused");
@@ -227,6 +243,13 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     }
   };
 
+  const handleSpectateUser = () => {
+    if (isUserInGame?.isInLobby === true) {
+      socket.emit("setIntoLobby", isUserInGame.lobbyName);
+      handleLobbyCreation();
+    }
+  };
+
   const addOrRemove = areUsersFriend ? "Remove Friend" : "Add Friend";
 
   const menuFunctions: { [key: string]: () => void } = {
@@ -235,6 +258,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     [addOrRemove]:
       areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
+    Spectate: handleSpectateUser,
     Block: handleBlockClick,
   };
 
@@ -244,6 +268,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     [addOrRemove]:
       areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
+    Spectate: handleSpectateUser,
     Unblock: handleUnblockClick,
   };
 
