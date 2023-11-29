@@ -1,3 +1,5 @@
+import { hasMessage } from "../Api";
+
 // Constants
 const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/users/isClientRegistered";
 
@@ -9,9 +11,9 @@ const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/users/isClientRegist
  *                           * false if the user hasn't had a first connection
  *                           * null if the status hasn't been determined yet
  */
-const useCheckFirstConnection = () => {
+const useIsClientRegistered = () => {
 
-    const checkFirstConnection = async ():Promise<boolean> => {
+    const isClientRegistered = async ():Promise<boolean> => {
       try {
         const response = await fetch(API_IS_CLIENT_REGISTERED, {
           method: "GET",
@@ -25,13 +27,13 @@ const useCheckFirstConnection = () => {
           throw new Error(`Error status ${response.status}`);
         }
       } catch (error) {
-        console.error("User check first connection error:", error);
+        console.error("User check first connection error:", hasMessage(error) ? error.message : "");
         return false;
       }
     };
 
   // Return the user's first connection status.
-  return checkFirstConnection;
+  return isClientRegistered;
 };
 
-export default useCheckFirstConnection;
+export default useIsClientRegistered;

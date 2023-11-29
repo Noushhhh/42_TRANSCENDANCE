@@ -33,6 +33,23 @@ export const getPublicName = async () => {
     throw error;
   }
 }
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getUserData = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/getUserInfo`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`${data.statusCode} ${data.message}`);
+    }
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 

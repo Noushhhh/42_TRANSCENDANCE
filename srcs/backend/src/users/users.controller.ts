@@ -19,6 +19,7 @@ import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common
 
 
 @UseFilters(AllExceptionsFilter)
+@UseGuards(JwtAuthGuard) // Ensure the user is authenticated
 @Controller('users')
 export class UsersController {
     constructor(
@@ -65,6 +66,12 @@ export class UsersController {
         } catch (error) {
             throw new UnauthorizedException(error);
         }
+    }
+
+    @Get('getUserInfo')
+    async getUserInfo( @ExtractJwt() decodedPayload: DecodedPayload)
+    {
+        return decodedPayload;
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +121,6 @@ export class UsersController {
 
     // ─────────────────────────────────────────────────────────────────────
     @Put('updatepublicname')
-    @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
     async updatePublicName(
         @ExtractJwt() decodedPayload: DecodedPayload,
         @Body() updatePublicNameDto: UpdatePublicNameDto
@@ -133,7 +139,7 @@ export class UsersController {
             return result; // Return the result directly
         } catch (error) {
             // If it's a known error, rethrow it
-            if (error instanceof HttpException) {
+            if (error instanceof Error) {
                 throw error;
             }
 
@@ -168,7 +174,6 @@ export class UsersController {
     // ─────────────────────────────────────────────────────────────────────────────
 
 
-    @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
         return req.user;

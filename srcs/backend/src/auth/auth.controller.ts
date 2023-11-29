@@ -10,6 +10,8 @@ import { Response, Request } from 'express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { UserIdDto } from '../users/dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from './guards';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
@@ -31,17 +33,20 @@ export class AuthController {
     return await this.authService.signup(dto, res);
   }
 
+  @Public()
   @Post('signin')
   async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
 
     return await this.authService.signin(dto, res, req);
   }
 
+  @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
   @Get('checkTokenValidity')
   async checkTokenValidity(@Req() req: Request, @Res() res: Response) {
     return this.authService.checkTokenValidity(req, res);
   }
 
+  @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
   @Post('refreshToken')
   async refreshToken(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response): Promise<Response> {
     try {

@@ -29,6 +29,8 @@ const dto_1 = require("./dto");
 const public_decorators_1 = require("../decorators/public.decorators");
 const extract_jwt_decorator_1 = require("../decorators/extract-jwt.decorator");
 const dto_2 = require("../users/dto");
+const common_2 = require("@nestjs/common");
+const guards_1 = require("./guards");
 const browserError = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 let AuthController = class AuthController {
     constructor(authService) {
@@ -125,6 +127,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
 __decorate([
+    (0, public_decorators_1.Public)(),
     (0, common_1.Post)('signin'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)()),
@@ -134,6 +137,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signin", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard) // Ensure the user is authenticated
+    ,
     (0, common_1.Get)('checkTokenValidity'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
@@ -142,6 +147,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "checkTokenValidity", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard) // Ensure the user is authenticated
+    ,
     (0, common_1.Post)('refreshToken'),
     __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
     __param(1, (0, common_1.Res)()),

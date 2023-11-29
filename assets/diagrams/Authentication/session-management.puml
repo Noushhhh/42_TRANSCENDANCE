@@ -1,0 +1,49 @@
+@startuml session_management
+start
+
+:<i><b><size:15> Session Management</size></b></i>;
+:User Login (signin);
+if (<b>User Session Exists?</b>) then (<b><color:green>yes</color></b>)
+  #lightpink:<color:red><b>Throw</b></color> ForbiddenException;
+  stop
+else (<b><color:red>no</color></b>)
+  if (<b>Session Expired?</b>) then (<b><color:green>yes</color></b>)
+    #LightGreen:Allow Login;
+  else (<b><color:red>no</color></b>)
+    #lightpink:<color:red><b>Throw</b></color> ForbiddenException;
+    stop
+  endif
+endif
+
+
+partition "Create Session" {
+    note right 
+        file : **auth.service**
+        method: **generateTokens**
+    end note
+    :Generate Session ID;
+    :Store Session in Database/Memory;
+}
+
+partition "User logout" {
+    note right
+        file: **auth.service**
+        method: **signout**
+    end note
+    :Invalidate Session;
+    :Update/Remove Session Details in User Record;
+}
+
+partition "Cron Job (Every Minute)" {
+    note right
+        As a backup option we have a cron job
+        that will **check sessionExpirations**
+        for all user **every minute**
+        file: **main.ts**
+    end note
+    :Execute clearExpiredSessions();
+    :Remove Expired Sessions;
+}
+
+stop
+@enduml
