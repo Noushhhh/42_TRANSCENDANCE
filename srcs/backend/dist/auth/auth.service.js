@@ -110,7 +110,7 @@ let AuthService = class AuthService {
                 }
                 throw error;
             }
-            return res.status(200).json({ valid: true, message: "user was create successfully" });
+            return res.status(201).json({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -140,6 +140,7 @@ let AuthService = class AuthService {
                 // Consider providing more detailed feedback based on the error
                 throw new common_1.ForbiddenException('Authentication failed');
             }
+            console.log("signed in succesfuly");
             res.status(200).send({ valid: result.valid, message: result.message });
         });
     }

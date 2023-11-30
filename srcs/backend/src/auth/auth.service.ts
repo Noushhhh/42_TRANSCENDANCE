@@ -108,6 +108,7 @@ export class AuthService {
       throw new ForbiddenException('Authentication failed');
     }
 
+    console.log("signed in succesfuly");
     res.status(200).send({ valid: result.valid, message: result.message });
   }
 

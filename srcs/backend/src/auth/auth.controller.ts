@@ -32,7 +32,7 @@ export class AuthController {
 
   @Post('signin' )
   async signin(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
-
+    console.log("passing in signin service");
     return await this.authService.signin(dto, res, req);
   }
 

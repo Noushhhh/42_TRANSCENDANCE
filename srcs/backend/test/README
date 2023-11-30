@@ -1,0 +1,71 @@
+
+Do these followings steps to run the project in e2e test-mode:
+(note that db-content will be deleted)
+
+* run make down at the root of the project
+* run "cd srcs/backend"
+* run "npm run test:e2e" => you will get an error and thats normal
+* run this command  =>  docker inspect db_container | grep IPAddress | tail -1 | sed 's/^[[:space:]]*//g' | cut -d " " -f 2 | tr -d ",\""
+* change the .env file **located in prisma folder (not at the root)**. In this .env, change the container's name (db_container) to the IP you
+get with the command above.
+
+So the DATABASE_URL will be something like : 
+DATABASE_URL="postgresql://42_lyon:BornToCode@172.19.0.2:5432/ft_transcendance_database?schema=public"
+instead of :
+DATABASE_URL="postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance_database?schema=public"
+
+* rerun "npm run test:e2e" (be sure that you are located at root/srcs/backend folder)
+ => If you get a warning in console saying that there is a conflict in container's name,
+ do "docker stop containerId && docker rm containerId" and rerun "npm run test:e2e"
+* if everything went well, the output of "docker ps" should show only one container. (postgres)
+
+* If you want to leave test-mode, go back to the root, docker stop && docker rm the postgres container and run make
+
+How pactum works :
+Pactum use the AppModule to instantiate a new app instance. The test-mode run on the same db than
+prod. 
+Open the app.e2e-spec.ts file: until line 84, we just setup our App instance (same as our
+main.ts). We just tell to our app instance to listen on port 3333, so we will send request to
+localhost:3333.
+
+You need to know a fews things before starting using pactum :
+
+* As some API route are protected by AuthGuard, you need to provide a valid token to access thoses
+routes. With our design, these tokens are stored in cookies.
+I set a variable named userAccessToken. When I signin (from pactum), the variable userAccessToken is filled with
+the value of the valid token returned by our API. You are now ready to pass the token in cookies with
+this pactum options : .withCookies('token', `${userAccessToken}`).
+
+* Another cool feature about pactum is stores(), which allows you to stores data returned in the body of an 
+API call.
+
+Lets see this piece of code :
+
+ it('should get me and store userId', () => {
+        return pactum
+          .spec()
+          .get(`/api/users/me`)
+          .withCookies('token', `${userAccessToken}`)
+          .expectStatus(200)
+          .stores('userId', 'id')
+          .inspect();
+      });
+
+As I signedup/signin a new user, I dont know his userId (which I need for a lot of API call). I need to call 
+/api/users/me to get my userId, which I did in this example, above.
+With stores(), I can store the "id" variables returned in the **body** of my API call to /api/users/me.
+.stores('userId', 'id') => so this line store is as "userId". I can then reuse the content of "id", in another
+API call, like that :
+
+ it('get All conv from id', () => {
+        return pactum
+          .spec()
+          .post('/api/chat/getAllConvFromId')
+          .withBody({userId: '$S{userId}'})
+          .withCookies('token', `${userAccessToken}`)
+          .inspect()
+          .expectStatus(201)
+      })
+
+I use .withBody({userId: '$S{userId}'}) to provide my saved variable.
+Be careful to respect the Pactum syntax : '$S{userId}' S after the $ character, to refer to "stored variables".

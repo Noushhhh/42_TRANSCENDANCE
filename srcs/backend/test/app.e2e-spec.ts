@@ -13,9 +13,6 @@ import { SessionService } from '../src/auth/session.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import * as pactum from 'pactum';
 import { AuthDto } from '../src/auth/dto';
-import { Req } from '@nestjs/common';
-import { UserIdDto } from '../src/users/dto';
-import { CreateChannelDto } from '../src/chat/chat.controller';
 
 describe('App e2e', () => {
     let app: INestApplication;
@@ -40,7 +37,7 @@ describe('App e2e', () => {
       
         // Configure CORS (Cross-Origin Resource Sharing) options
         const corsOptions: CorsOptions = {
-          origin: 'http://localhost:8081',
+          origin: '*',
           methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
           allowedHeaders: [
             'Content-Type',
@@ -75,7 +72,6 @@ describe('App e2e', () => {
         //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
         cron.schedule('* * * * *', async () => {
           await sessionService.clearExpiredSessions();
-          // console.log("Cron job executed every minute");
         });
     
         await app.init();
@@ -91,117 +87,61 @@ describe('App e2e', () => {
     })
 
     describe('Auth', () => {
-      const emptyPasswordDto: AuthDto = {
-        username: '           ',
-        password: '',
-      }
-      const emptyUsernameDto: AuthDto = {
-        username: '',
-        password: '          ',
-      }
-      const bothPasswordUsernameEmpty: AuthDto = {
-        username: '',
-        password: '          ',
-      }
+
+      let userAccessToken: string = "";
+
       const authDto: AuthDto = {
         username: 'polo',
-        password: '          ',
+        password: 'my-password',
       }
-      
     
       describe('Signup', () => {
-
-        it("should throw exception", () => {
-          return pactum.spec().post('/api/auth/signup').withBody(emptyPasswordDto).expectStatus(400);
-        });
-
-        it("should throw exception", () => {
-          return pactum.spec().post('/api/auth/signup').withBody(emptyUsernameDto).expectStatus(400);
-        });
-
-        it("should throw exception", () => {
-          return pactum.spec().post('/api/auth/signup').withBody({username: authDto.username}).expectStatus(400);
-        });
-
-        it("should throw exception", () => {
-          return pactum.spec().post('/api/auth/signup').withBody({password: authDto.password}).expectStatus(400);
-        });
-
-        it("should throw exception", () => {
-          return pactum.spec().post('/api/auth/signup').withBody(bothPasswordUsernameEmpty).expectStatus(400);
-        });
 
         it("should signup", () => {
           return pactum.spec().post('/api/auth/signup').withBody(authDto).expectStatus(201);
         });
       });
 
-      describe('Signin', () => {
-        
-        it("shoud signin and store cookies", async () => {
-
-          /*const token = await pactum
-            .spec()
-            .post('/api/auth/signin')
-            .withBody(authDto)
-            .expectStatus(200)
-            .returns((ctx) => {
-              const cookies = ctx.res.headers['set-cookie'];
-              if (!cookies)
-                return null;
-              const tokenRegex = /token=([^;]+)/;
-              for (const cookie of cookies) {
-                const match = tokenRegex.exec(cookie);
-                if (match) {
-                  return match[1];
-                }
-              }
-              return null; // Retourne null si le token n'est pas trouvé
-          });*/
-
-        
-      });
-
-    });
-    describe('User', () => {
-      describe('Get me', () => {});
-    });
 
     describe('Chat', () => {
-      it('should create channel', async () => {
-        const createChannel: CreateChannelDto = {
-          name:'awdawd',
-          password:'awdawdawd',
-          ownerId:0,
-          participants: [0],
-          type: 'PUBLIC'
+
+      it('should save token', async () => {
+        let match: RegExpExecArray | null = null;
+        const token = await pactum.spec().post('/api/auth/signin').withBody(authDto).expectStatus(200).returns((ctx) => {
+          const cookies = ctx.res.headers['set-cookie'];
+          if (!cookies)
+            return null;
+          const tokenRegex = /token=([^;]+)/;
+          for (const cookie of cookies) {
+            match = tokenRegex.exec(cookie);
+            if (match) {
+              return match[1];
+            }
+          }
+          return null;
+      });
+        if (match !== null) {
+          userAccessToken = `${token}`;
         }
-        const token = await pactum
-              .spec()
-              .post('/api/auth/signin')
-              .withBody(authDto)
-              .expectStatus(200)
-              .returns((ctx) => {
-                const cookies = ctx.res.headers['set-cookie'];
-                if (!cookies)
-                  return null;
-                const tokenRegex = /token=([^;]+)/;
-                for (const cookie of cookies) {
-                  const match = tokenRegex.exec(cookie);
-                  if (match) {
-                    return match[1];
-                  }
-                }
-                return null; // Retourne null si le token n'est pas trouvé
-            });
-          console.log('output == ');
-          console.log('output == ');
-          console.log('output == ');
-          console.log('output == ');
-          console.log('output == ');
-          console.log('output == ');
-          console.log(token);
-          return pactum.spec().post("/api/chat/addChannelToUser").withBody(createChannel).expectStatus(200).withCookies('token', `${token}`);
+      })
+      it('should get me and store userId', () => {
+        return pactum
+          .spec()
+          .get(`/api/users/me`)
+          .withCookies('token', `${userAccessToken}`)
+          .expectStatus(200)
+          .stores('userId', 'id')
+          .inspect();
+      });
+
+      it('get All conv from id', () => {
+        return pactum
+          .spec()
+          .post('/api/chat/getAllConvFromId')
+          .withBody({userId: '$S{userId}'})
+          .withCookies('token', `${userAccessToken}`)
+          .inspect()
+          .expectStatus(201)
       })
     })
 

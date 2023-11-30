@@ -386,11 +386,13 @@ export class UsersService {
                 },
             });
             if (!user) {
-                throw new NotFoundException(`User not found with id ${usernameinput}`);
+                throw new NotFoundException(`User not found with username: ${usernameinput}`);
             }
+            console.log("user found is:");
+            console.log(user);
             return user;
         } catch (error) {
-            console.error(`Error fetching user with id ${usernameinput}`, error);
+            console.error(`Error fetching user with username: ${usernameinput}`, error);
             throw error;
         }
     }

@@ -72,7 +72,8 @@ export class ChatController {
     
     @Post('getAllConvFromId')
     async getAllConvFromId(
-        @Body() userIdDto: UserIdDto) {
+        @Body() userIdDto: UserIdDto): Promise<number[]> {
+        console.log("get all conv called with ", userIdDto);
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
         
