@@ -192,6 +192,7 @@ export class UsersController {
 
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined> {
+        console.log("controller: username is: ", username);
         return this.UsersService.findUserWithUsername(username);
     }
 

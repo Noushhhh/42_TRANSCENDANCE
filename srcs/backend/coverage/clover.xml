@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1700472287472" clover="3.2.0">
-  <project timestamp="1700472287472" name="All files">
+<coverage generated="1701336389016" clover="3.2.0">
+  <project timestamp="1701336389016" name="All files">
     <metrics statements="28" coveredstatements="28" conditionals="11" coveredconditionals="4" methods="2" coveredmethods="2" elements="41" coveredelements="34" complexity="0" loc="28" ncloc="28" packages="1" files="1" classes="1"/>
     <file name="auth.dto.js" path="/home/polo/Documents/transcendance_rebase/srcs/backend/dist/auth/dto/auth.dto.js">
       <metrics statements="28" coveredstatements="28" conditionals="11" coveredconditionals="4" methods="2" coveredmethods="2"/>

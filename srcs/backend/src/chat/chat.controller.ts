@@ -72,7 +72,8 @@ export class ChatController {
     
     @Post('getAllConvFromId')
     async getAllConvFromId(
-        @Body() userIdDto: UserIdDto) {
+        @Body() userIdDto: UserIdDto): Promise<number[]> {
+        console.log("get all conv called with ", userIdDto);
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
         
@@ -121,6 +122,7 @@ export class ChatController {
     @Post('addChannelToUser')
     async addChannelToUser(
         @Body() channelInfo: CreateChannelDto): Promise<number> {
+            console.log('add channel to user called');
         return this.chatService.addChannelToUser(channelInfo);
     }
 
