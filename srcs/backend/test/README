@@ -19,7 +19,10 @@ DATABASE_URL="postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance
  do "docker stop containerId && docker rm containerId" and rerun "npm run test:e2e"
 * if everything went well, the output of "docker ps" should show only one container. (postgres)
 
-* If you want to leave test-mode, go back to the root, docker stop && docker rm the postgres container and run make
+* If you want to leave test-mode, go back to the root, docker stop && docker rm the postgres container, change the DATABASE_URL in the .env
+of prisma folder to that :
+DATABASE_URL="postgresql://42_lyon:BornToCode@db_container:5432/ft_transcendance_database?schema=public"
+* and run make
 
 How pactum works :
 Pactum use the AppModule to instantiate a new app instance. The test-mode run on the same db than
