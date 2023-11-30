@@ -231,6 +231,17 @@ export class ChatController {
     @Post('manageChannelPassword')
     async manageChannelPassword(
         @Body() data: ManagePasswordDto) {
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
+        console.log("passing manage channel password");
         return this.chatService.manageChannelPassword(data.channelId, data.channelType, data.actualPassword, data.newPassword);
     }
 

@@ -63,9 +63,7 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       setMessage("");
       return;
     }
-    console.log("is it here ??");
     socket.emit("message", msgToSend, (data: boolean) => {
-      console.log("called");
       isSenderIsMuted = data;
       if (isSenderIsMuted)
         msgToSend.content = "You are muted from this channel";

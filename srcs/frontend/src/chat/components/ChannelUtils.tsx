@@ -684,8 +684,10 @@ export const manageChannelPassword = async (channelId: number, channelType: stri
       },
       body: JSON.stringify({ channelId, channelType, actualPassword, newPassword })
     });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
     const customErrorMessages: ErrorMessages = {
-      400: ": Bad input",
+      400: ": Password length is 6 to 22 characters",
       403: ": Wrong password",
     };
     handleHTTPErrors(response, customErrorMessages);

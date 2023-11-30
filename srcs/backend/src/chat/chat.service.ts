@@ -699,9 +699,11 @@ export class ChatService {
 
   async manageChannelPassword(channelId: number, channelType: string, actualPassword: string, newPassword: string) {
     const channel = await this.getChannelById(channelId);
-    if (!channel.password)
-      return;
+    if (channelType === "PASSWORD_PROTECTED" && (newPassword.length < 6 || newPassword.length > 22))
+        throw new ForbiddenException("Channel password must be 6 to 22 characterss");
     if (channel.type === "PASSWORD_PROTECTED") {
+      if (!channel.password)
+        throw new NotAcceptableException('Impossible match');
       const passwordMatch = await argon.verify(channel.password, actualPassword);
       if (!passwordMatch)
         throw new ForbiddenException('Incorrect channel password');
