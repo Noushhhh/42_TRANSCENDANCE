@@ -15,7 +15,6 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
     let timerId: NodeJS.Timeout | null = null;
 
     const resetTimer = () => {
-      console.log("Resetting timer");
       if (timerId) clearTimeout(timerId);
 
       const lastActivity = localStorage.getItem("lastActivity");
@@ -35,7 +34,6 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
     };
 
     const updateLastActivity = () => {
-      console.log("Updating last activity time");
       localStorage.setItem("lastActivity", Date.now().toString());
       resetTimer();
     };

@@ -54,6 +54,7 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
+    let isSenderIsMuted: boolean = false;
     if (msgToSend.content.length > 5000){
       alert('message too long: 5000char max');
       return ;
@@ -62,20 +63,28 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       setMessage("");
       return;
     }
-    socket.emit("message", msgToSend);
-    addMessage(msgToSend, "MessageTo");
-    const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
-    console.log("parsed message content == ");
-    console.log(parsedMessage.content);
-    storeMsgToDatabase(parsedMessage);
-    setMessage("");
+    console.log("is it here ??");
+    socket.emit("message", msgToSend, (data: boolean) => {
+      console.log("called");
+      isSenderIsMuted = data;
+      if (isSenderIsMuted)
+        msgToSend.content = "You are muted from this channel";
+      addMessage(msgToSend, "MessageTo");
+      if (isSenderIsMuted){
+        setMessage("");
+        return ;
+      }
+      const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+      storeMsgToDatabase(parsedMessage);
+      setMessage("");
+    });
   };
 
   useEffect(() => {
     socket.on("messageBack", messageEvent);
 
     return () => {
-      socket.off("messageBack", messageEvent);
+    socket.on("messageBack", messageEvent);
     };
   }, []);
 
