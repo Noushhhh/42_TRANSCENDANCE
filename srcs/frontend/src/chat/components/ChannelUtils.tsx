@@ -72,6 +72,8 @@ export const getMyUserId = async (): Promise<number> => {
     credentials: 'include',
     method: 'GET',
   })
+  if (!response.ok)
+    return Promise.reject(await response.json());
   const user = await response.json();
   return user.id;
 }
@@ -92,6 +94,9 @@ export const fetchUser = async (
       },
       body: JSON.stringify({ userId }),
     });
+
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
 
     const listChannelId = await response.json();
 

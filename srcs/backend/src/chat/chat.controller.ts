@@ -73,7 +73,6 @@ export class ChatController {
     @Post('getAllConvFromId')
     async getAllConvFromId(
         @Body() userIdDto: UserIdDto): Promise<number[]> {
-        console.log("get all conv called with ", userIdDto);
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
         
@@ -231,17 +230,6 @@ export class ChatController {
     @Post('manageChannelPassword')
     async manageChannelPassword(
         @Body() data: ManagePasswordDto) {
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
-        console.log("passing manage channel password");
         return this.chatService.manageChannelPassword(data.channelId, data.channelType, data.actualPassword, data.newPassword);
     }
 

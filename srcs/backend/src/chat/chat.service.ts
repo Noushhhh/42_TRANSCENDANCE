@@ -250,7 +250,6 @@ export class ChatService {
     if (!channel) {
       throw new NotFoundException("Channel not found");
     }
-
     return channel.admins.some((element) => element.id === userId);
   }
 

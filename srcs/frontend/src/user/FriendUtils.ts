@@ -10,6 +10,7 @@ interface FriendType {
 export const sendFriendRequest = async (senderId: number, targetId: number) => {
   const response = await fetch("http://localhost:4000/api/users/sendFriendRequest", {
     method: 'POST',
+    credentials: "include",
     headers: {
       'Content-Type': 'application/json'
     },

@@ -9,8 +9,12 @@ const TwoFA: FC = () => {
 
   useEffect(() => {
     const getMyId = async () => {
-      const id = await getMyUserId();
-      setUserId(id);
+      try {
+        const id = await getMyUserId();
+        setUserId(id);
+      } catch (error: any){
+        console.log(error.message);
+      }
     };
 
     getMyId();
