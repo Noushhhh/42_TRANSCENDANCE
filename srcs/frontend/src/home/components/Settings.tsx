@@ -20,14 +20,14 @@ const Settings: React.FC = React.memo(() => {
 
   const [username, setPublicName] = useState<string | null>(null);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-  const [promptError, setError] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(true);
   const [newUsername, setNewPublicName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
-  const { updateAvatar, isLoading: isAvatarUpdating, error: avatarUpdateError } = useUpdateAvatar();
-  const { updatePublicName, isLoading: isPublicNameLoading, error: publicNameError } = useUpdatePublicName();
+  const [promptError, setError] = useState<string | null>(null);
+  const { updateAvatar, isLoading: isAvatarUpdating} = useUpdateAvatar();
+  const { updatePublicName, isLoading: isPublicNameLoading} = useUpdatePublicName();
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -38,7 +38,6 @@ const Settings: React.FC = React.memo(() => {
   const usernameRef = React.useRef(null);
   const avatarRef = React.useRef(null);
 
-  
 
   const fetchPublicName = async (): Promise<void> => {
     try {
@@ -87,18 +86,20 @@ const Settings: React.FC = React.memo(() => {
   const checkUsernameAndUpdate = useCallback(async (): Promise<void> => {
 
     try {
-      setError(null);
-      setIsUpdatingProfileName(true);
       await updatePublicName(newUsername);
+      if (newUsername) {
+        setPublicName(newUsername);
+        setNewPublicName(null);
+      }
       // if pubicName updated successfully, set the publicName var to newUsername 
       // before re-rendering the component so the user can see the update inmediatelly
-      setIsUpdatingProfileName(false);
     } catch (error) {
       console.error("Failed to update ProfileName:", error);
-      return;
+      setError(hasMessage(error)? error.message: "Failed to update ProfileName");
     }
-    setPublicName(newUsername);
-  }, [setIsUpdatingProfileName, updatePublicName, newUsername]);
+    if (newUsername)
+      setNewPublicName(null);
+  }, [newUsername, setNewPublicName, updatePublicName]);
 
   const checkAndShowInputAvatar = useCallback(async (newFile: File): Promise<void> => {
     setNewAvatar(newFile);
@@ -107,14 +108,13 @@ const Settings: React.FC = React.memo(() => {
   const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
     try {
       await updateAvatar(newAvatar);
-      setIsUpdatingAvatar(false);
+      if (newAvatar)
+        setAvatarUrl(URL.createObjectURL(newAvatar));
     } catch (error) {
       // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
       console.error("Failed to update avatar:", error);
-      return;
+      setError(hasMessage(error) ? error.message : "Failed to update avatar");
     }
-    if (newAvatar)
-      setAvatarUrl(URL.createObjectURL(newAvatar));
   }, [newAvatar, updateAvatar]);
 
 /*
@@ -165,8 +165,13 @@ const Settings: React.FC = React.memo(() => {
         <h3  className="h3" ref={usernameRef} >{username}</h3>
       </CSSTransition>
 
-      {avatarUpdateError && <p>Error updating avatar: {avatarUpdateError.message}</p>}
-      {publicNameError && <p>Error updating Public Name: {publicNameError.message}</p>}
+      {/* {promptError && <p>{promptError}</p>} */}
+      {promptError && (
+  <div className='error-message'>
+    <p>{promptError}</p>
+    <button onClick={() => setError(null)}>Dismiss</button>
+  </div>
+)}
 
       {isUpdatingProfileName && (
         <CSSTransition in={true} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingProfileName(false)}>
@@ -202,7 +207,7 @@ const Settings: React.FC = React.memo(() => {
         < SignOutLink />
       </div>
 
-      {promptError && <p>{promptError}</p>}
+
     </div>
   );
 });
