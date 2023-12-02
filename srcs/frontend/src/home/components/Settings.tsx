@@ -96,6 +96,7 @@ const Settings: React.FC = React.memo(() => {
     } catch (error) {
       console.error("Failed to update ProfileName:", error);
       setError(hasMessage(error)? error.message: "Failed to update ProfileName");
+      setIsUpdatingProfileName(false);
     }
     if (newUsername)
       setNewPublicName(null);
@@ -114,6 +115,7 @@ const Settings: React.FC = React.memo(() => {
       // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
       console.error("Failed to update avatar:", error);
       setError(hasMessage(error) ? error.message : "Failed to update avatar");
+      setIsUpdatingAvatar(false);
     }
   }, [newAvatar, updateAvatar]);
 

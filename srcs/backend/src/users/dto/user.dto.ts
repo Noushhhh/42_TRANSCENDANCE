@@ -3,7 +3,10 @@ import {
         IsNotEmpty,
         IsString,
         IsUrl,
-        IsInt, Min
+        IsInt,
+        Min,
+        Length,
+        Matches,
 } from "class-validator";
 
 import { Type } from "class-transformer";
@@ -37,5 +40,8 @@ export class friendRequestDto {
 export class UpdatePublicNameDto {
         @IsString()
         @IsNotEmpty()
+        @IsString()
+        @Length(2, 50)
+        @Matches(/^[a-zA-Z0-9-_]+$/)
         publicName!: string;
 }

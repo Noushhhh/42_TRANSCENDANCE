@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 // Assuming API_BASE_URL is defined in a configuration file or environment variable
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = "http://localhost:4000";
 
 /**
  * @brief Checks if a given object has a property named 'message' and if the value of that property is a string.
@@ -77,42 +77,64 @@ export const getUserAvatar = async (): Promise<string | null> => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @brief Validates the user's public name.
+ *
+ * This function checks if the provided publicName is valid based on certain criteria.
+ *
+ * @param {string | null} publicName - The user's public name to validate.
+ * @throws {Error} If publicName is null, empty, or doesn't meet the criteria.
+ */
+const validatePublicName = (publicName: string | null) => {
+  // Check if publicName is null or empty
+  if (!publicName) {
+    throw new Error("Please enter a valid user name");
+  }
+  // Check if the length of publicName is between 2 and 50 characters
+  if (publicName.length < 2 || publicName.length > 50) {
+    throw new Error("User name must be between 2 and 50 characters");
+  }
+  // Check if publicName contains only alphanumeric characters, hyphens, and underscores
+  if (!/^[a-zA-Z0-9-_]+$/.test(publicName)) {
+    throw new Error("User name can only contain alphanumeric characters, hyphens, and underscores");
+  }
+};
 
-// This function is responsible for updating the public name of the user.
-// It sends a PUT request to the server with the new public name as a parameter.
-// If the server responds with a valid response, the function returns the response data.
-// If the server responds with an invalid response or if an error occurs during the fetch operation,
-// the function throws an error.
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @brief Custom hook for updating a user's public name.
+ *
+ * This hook provides a function to asynchronously update a user's public name.
+ *
+ * @returns {object} An object containing the updatePublicName function and isLoading state.
+ * - updatePublicName: A function to update the public name.
+ * - isLoading: A boolean indicating whether an update operation is in progress.
+ */
 export const useUpdatePublicName = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
+  // State variable to track whether an update operation is in progress.
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  /**
+   * @brief Update the user's public name.
+   *
+   * This function sends a PUT request to update the user's public name.
+   *
+   * @param {string | null} publicName - The new public name to set for the user.
+   * @returns {Promise} A promise that resolves with the response JSON if successful or rejects with an error.
+   * @throws {Error} If the publicName validation fails or if there's an error during the update.
+   */
   const updatePublicName = async (publicName: string | null) => {
-    setIsLoading(true);
-    setError(null);
-
-    if (!publicName) {
-      const error = new Error("Please enter a valid user name");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-    if (publicName.length < 2 || publicName.length > 50) {
-      const error = new Error("Please enter a user name between 2 and 50 characters");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-    if (!/^[a-zA-Z0-9-_]+$/.test(publicName)) {
-      const error = new Error("User name can only contain alphanumeric characters, hyphens, and underscores");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-
     try {
+      // Set isLoading to true to indicate that an update is in progress.
+      setIsLoading(true);
+
+      // Call the validatePublicName function to check the validity of publicName.
+      validatePublicName(publicName);
+
+      // Send a PUT request to the server to update the public name.
       const response = await fetch(`${API_BASE_URL}/api/users/updatepublicname`, {
         method: "PUT",
         headers: {
@@ -122,25 +144,22 @@ export const useUpdatePublicName = () => {
         credentials: "include",
       });
 
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-      }
+      // If the response status is not okay (e.g., 404 or 500), reject the promise with the response JSON.
+      if (!response.ok) return Promise.reject(await response.json())
 
-      const data = await response.json();
-      if (!data.valid) {
-        throw new Error(`Update failed: ${data.message}`);
-      }
-
+      // If the response status is okay, return the response JSON.
+      return (await response.json());
+    } catch (error) {
+      // Re-throw any errors to allow further handling in components.
+      throw error;
+    } finally {
+      // Set isLoading to false when the update operation is complete.
       setIsLoading(false);
-      return data; // Return the response data
-    } catch (err) {
-      setError(err as Error);
-      setIsLoading(false);
-      throw err; // Re-throw to allow further handling in components
     }
   };
 
-  return { updatePublicName, isLoading, error };
+  // Return the updatePublicName function and isLoading state.
+  return { updatePublicName, isLoading };
 };
 
 
@@ -150,11 +169,9 @@ export const useUpdatePublicName = () => {
 
 export const useUpdateAvatar = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
   const updateAvatar = async (newAvatar: File | null) => {
     setIsLoading(true);
-    setError(null);
 
     if (!newAvatar) {
       setIsLoading(false);
@@ -165,7 +182,6 @@ export const useUpdateAvatar = () => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(newAvatar.type)) {
       const error: Error = new Error("Unsupported file type. Please upload a JPEG, PNG, or GIF image.");
-      setError(error);
       setIsLoading(false);
       throw error;
     }
@@ -173,7 +189,6 @@ export const useUpdateAvatar = () => {
     const maxFileSize = 5 * 1024 * 1024; // 5MB
     if (newAvatar.size > maxFileSize) {
       const error = new Error("File size too large. Please upload an image smaller than 5MB.");
-      setError(error);
       setIsLoading(false);
       throw error;
     }
@@ -189,24 +204,20 @@ export const useUpdateAvatar = () => {
         credentials: "include",
       });
 
+
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        return Promise.reject(await response.json());
       }
 
-      const data = await response.json();
-      if (!data.valid) {
-        throw new Error(`Update failed: ${data.message}`);
-      }
-
-      setIsLoading(false);
-      return data;
+      return (await response.json());
     } catch (error) {
-      setError(error as Error);
-      setIsLoading(false);
       throw error // Re-throw to allow further handling in components
     }
+    finally {
+      setIsLoading(false);
+    }
   };
-  return { updateAvatar, isLoading, error };
+  return { updateAvatar, isLoading};
 };
 
 
