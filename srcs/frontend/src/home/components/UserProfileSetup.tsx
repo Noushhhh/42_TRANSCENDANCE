@@ -12,8 +12,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { updateAvatar, isLoading: isAvatarUpdating, error: avatarUpdateError } = useUpdateAvatar();
-  const { updatePublicName, isLoading: isPublicNameLoading, error: publicNameError } = useUpdatePublicName();
+  const { updateAvatar, isLoading: isAvatarUpdating} = useUpdateAvatar();
+  const { updatePublicName, isLoading: isPublicNameLoading} = useUpdatePublicName();
   const [email, setEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
@@ -64,10 +64,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       await updatePublicName(profileName);
       await updateAvatar(profileImage);
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message);
-        return;
-      }
+      console.error("Failed to update userProfileSetup:", error);
+     setErrorMessage(hasMessage(error)? error.message: "Failed to update ProfileName");
     }
     navigate("/home");
   }, [updateAvatar, updatePublicName, navigate]);
@@ -82,12 +80,10 @@ const UserProfileSetup: React.FC = React.memo(() => {
     <div className="container">
       <h1>Pong game</h1>
 
-      {avatarUpdateError && <p>Error updating avatar: {avatarUpdateError.message}</p>}
-      {publicNameError && <p>Error updating Public Name: {publicNameError.message}</p>}
-
-      <h2>Welcome {email}</h2>
 
       {errorMessage && <div style={{ color: 'white' }}>{errorMessage}</div>}
+      <h2>Welcome {email}</h2>
+
 
       <input type="text" placeholder="Choose a username" ref={profileNameRef} onChange={e => {setErrorMessage(null); setProfileName(e.target.value); }} />
       <input ref={fileInputRef} type="file" onChange={handleImageChange} />
