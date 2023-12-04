@@ -250,42 +250,6 @@ export class UsersService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    // @ TO ALEX: This function was duplicated while I've merged, so I just commented it just in case
-
-    // async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
-    //     try {
-    //         const uniqueFilename = uuidv4() + extname(avatar.originalname);
-    //         const filePath = `${this.uploadFolder}/${uniqueFilename}`;
-
-    //         try {
-    //             await this.saveImageToLocalFolder(avatar, filePath);
-    //         } catch (error) {
-    //             console.error('Error saving image to local folder:', error);
-    //             throw new Error('Failed to save image to local folder');
-    //         }
-
-    //         try {
-    //             await this.prisma.user.update({
-    //                 where: { id: userId },
-    //                 data: { avatar: filePath },
-    //             });
-    //         } catch (error) {
-    //             console.error('Error updating user avatar in database:', error);
-    //             throw new Error('Failed to update user avatar in database');
-    //         }
-
-    //     } catch (error) {
-    //         console.error('Error in updateAvatar service:', error);
-    //         // Throw a NotFoundException for any errors during the update process
-    //         // throw new NotFoundException("There was an error updating the public name");
-    //         throw error;
-    //     }
-    // }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
 
     /**
          * Updates the avatar for a given user.

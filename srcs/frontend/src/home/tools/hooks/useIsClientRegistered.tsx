@@ -1,7 +1,7 @@
 import { hasMessage } from "../Api";
 
 // Constants
-const API_IS_CLIENT_REGISTERED = "http://localhost:8081/api/users/isClientRegistered";
+const API_IS_CLIENT_REGISTERED = "http://localhost:4000/api/users/isClientRegistered";
 
 /**
  * Custom React hook to determine if the user has already had a first connection.
@@ -20,12 +20,20 @@ const useIsClientRegistered = () => {
           credentials: "include",
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          return result.valid;
-        } else {
-          throw new Error(`Error status ${response.status}`);
+        // Check if the response from the fetch request is not successful
+        if (!response.ok) {
+          // If the response is not successful, parse the response body as JSON.
+          // This assumes that the server provides a JSON response containing error details.
+          const errorDetails = await response.json();
+
+          // Reject the promise with a new Error object. 
+          // This provides a more detailed error message than simply rejecting with the raw response.
+          // Including both the response status and a message from the server (if available) in the error message
+          // makes it easier to understand the nature of the error when handling it later.
+          return Promise.reject(new Error(`Error ${response.status}: ${errorDetails.message}`));
         }
+        return true;
+
       } catch (error) {
         console.error("User check first connection error:", hasMessage(error) ? error.message : "");
         return false;

@@ -144,11 +144,19 @@ export const useUpdatePublicName = () => {
         credentials: "include",
       });
 
-      // If the response status is not okay (e.g., 404 or 500), reject the promise with the response JSON.
-      if (!response.ok) return Promise.reject(await response.json())
+      // Check if the response from the fetch request is not successful
+      if (!response.ok) {
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await response.json();
 
-      // If the response status is okay, return the response JSON.
-      return (await response.json());
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // Including both the response status and a message from the server (if available) in the error message
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(new Error(`Error ${response.status}: ${errorDetails.message}`));
+      }
+
     } catch (error) {
       // Re-throw any errors to allow further handling in components.
       throw error;

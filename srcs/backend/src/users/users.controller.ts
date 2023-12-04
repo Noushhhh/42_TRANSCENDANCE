@@ -69,9 +69,8 @@ export class UsersController {
     }
 
     @Get('getUserInfo')
-    async getUserInfo( @ExtractJwt() decodedPayload: DecodedPayload)
-    {
-        return decodedPayload;
+    async getUserInfo(@ExtractJwt() decodedPayload: DecodedPayload) {
+        return await this.UsersService.getUserData(decodedPayload.sub);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
