@@ -31,24 +31,26 @@ import GameInvitation from "./game/components/gameNetwork/GameInvitation";
 // Mock element while Paul finishes the chat, Theo finishes the game, and someone finished the friends
 // component
 const MockComponent: React.FC = () => {
-  return <div> Placeholder for unfinish component </div>;
+  return <div> Placeholder for unfinished component </div>;
 };
 
+// Interface for handling socket errors
 interface SocketErrorObj {
   statusCode: number;
   message: string;
 }
 
 const App: React.FC = () => {
+  // State and refs for managing the socket and errors
   const [socket, setSocket] = useState<Socket>();
   const socketRef = useRef<Socket | undefined>();
   const [error, setError] = useState<string>("");
   const signOut = useSignOut();
   const navigate = useNavigate();
-// ─────────────────────────────────────────────────────────────────────────────
 
+  // Effect to listen for changes in local storage, specifically for logout
   useEffect(() => {
-    const handleStorageChange = (event) => {
+    const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'logout') {
         console.log('Logout detected in another tab');
         signOut();
@@ -62,9 +64,8 @@ const App: React.FC = () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [signOut, navigate]);
-// ─────────────────────────────────────────────────────────────────────────────
 
-
+  // Function to handle socket errors and display them
   const handleError = (error: SocketErrorObj) => {
     setError(error.message);
     console.error("error %d : %s", error.statusCode, error.message);
@@ -79,7 +80,11 @@ const App: React.FC = () => {
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/authchoice" element={<AuthChoice />} />
-      <Route path="/userprofilesetup" element={<UserProfileSetup />} />
+      <Route path="/userprofilesetup" element={
+        <ProtectedRoute>
+          <UserProfileSetup />
+        </ProtectedRoute>
+      } />
       <Route
         path="/home"
         element={
@@ -96,7 +101,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        {/* add here incremented route if user first connexion can access only user settings page */}
+        {/* Nested routes for different sections of the home page */}
         <Route
           path="chat"
           element={<ChatBoxContainer socket={socketRef.current} />}
@@ -115,9 +120,11 @@ const App: React.FC = () => {
           }
         />
       </Route>
+      {/* Catch-all route for handling any unmatched URLs */}
       {/*       https://stackoverflow.com/questions/74645355/react-router-v6-catch-all-path-does-not-work-when-using-nested-routes */}
-      <Route path="*" element={<ErrorComponent />} /> {/* Catch-all route */}
+      <Route path="*" element={<ErrorComponent />} /> 
     </Routes>
   );
 };
+
 export default App;
