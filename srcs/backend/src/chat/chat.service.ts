@@ -50,7 +50,7 @@ export class ChatService {
     return conversationIds;
   }
 
-  async getChannelName(channelId: number, callerId: number): Promise<string> {
+  async getChannelName(channelId: number, callerId: number): Promise<string | null> {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
       include: {
@@ -61,15 +61,23 @@ export class ChatService {
     if (!channel)
       throw new NotFoundException("Channel not found");
 
+    if (channel.name)
+      return channel.name;
+
     const caller: User = await this.getUserById(callerId);
     if (!caller)
       throw new NotFoundException(`User with id ${callerId} not found`);
 
     const numberUsersInChannel: number = channel.participants.length;
     if (numberUsersInChannel === 2) {
-      return (callerId === channel.participants[0].id ? channel.participants[1].username : channel.participants[0].username)
+      return (callerId === channel.participants[0].id ? channel.participants[1].publicName : channel.participants[0].publicName)
     }
-    return channel.name;
+
+    let channelName: string = "";
+    for (const participant of channel.participants){
+      channelName += ` ${participant.publicName},`;
+    }
+    return channelName;
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {

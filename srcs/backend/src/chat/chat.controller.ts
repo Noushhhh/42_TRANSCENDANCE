@@ -78,7 +78,7 @@ export class ChatController {
         
     @Get('getChannelName')
     async getChannelName(
-        @Query() dto: PairUserIdChannelId): Promise<string> {
+        @Query() dto: PairUserIdChannelId): Promise<string | null> {
         return this.chatService.getChannelName(dto.channelId, dto.userId);
     }
 

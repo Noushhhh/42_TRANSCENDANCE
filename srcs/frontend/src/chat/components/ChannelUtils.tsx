@@ -141,7 +141,7 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   }
 }
 
-export const getChannelName = async (channelId: number, userId: number): Promise<string> => {
+export const getChannelName = async (channelId: number, userId: number): Promise<string | null> => {
   try {
     const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
