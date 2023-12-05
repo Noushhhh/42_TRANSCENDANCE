@@ -39,3 +39,14 @@ export class UpdatePublicNameDto {
         @IsNotEmpty()
         publicName!: string;
 }
+
+export class TwoFADataDto {
+        @IsInt()
+        @Min(0)
+        @Type(() => Number)
+        userId!: number;
+
+        @IsString()
+        @IsNotEmpty()
+        token!: string;
+} 

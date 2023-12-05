@@ -62,7 +62,6 @@ const UserProfil: FC<UserProfilProps> = ({
         );
 
         if (!response.ok) {
-          console.log("JAI EU ERREUR ICI");
           return Promise.reject(await response.json());
         }
 
