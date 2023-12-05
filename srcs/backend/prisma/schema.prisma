@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // commentaire de pmulin :
-// Si vous souhaitez utiliser la cmd npx prisma generate, utilisew
+// Si vous souhaitez utiliser la cmd npx prisma generate, utilisez
 // ce flag =
 // prisma generate --schema=./path/to/your/schema.prisma
 

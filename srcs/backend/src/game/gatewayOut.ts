@@ -2,12 +2,12 @@ import {
   WebSocketGateway,
   WebSocketServer,
   WsException,
+  OnGatewayInit
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameState } from './types';
 import { lobbies } from './lobbies';
 import { gameSockets } from './gameSockets';
-import { OnModuleInit } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 
 interface Vector2d {
@@ -20,13 +20,13 @@ interface Vector2d {
     origin: '*',
   },
 })
-export class GatewayOut implements OnModuleInit {
+export class GatewayOut implements OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
   constructor(private readonly socketMap: gameSockets, private readonly authService: AuthService) { }
 
-  onModuleInit() {
+  afterInit() {
     this.server.use(async (socket, next) => {
 
       // check token validity return the userId if correspond to associated token
