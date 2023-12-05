@@ -5,7 +5,7 @@ import { CSSTransition } from 'react-transition-group';
 import  '../styles/generalStyles.css'
 import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
 import TwoFA from './TwoFA';
-const defaultImage = 'defaultProfileImage.jpg';
+
 
 
 /*
@@ -22,7 +22,7 @@ const Settings: React.FC = React.memo(() => {
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
   const [newUsername, setNewPublicName] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState(defaultImage);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
   const [promptError, setError] = useState<string | null>(null);
@@ -53,12 +53,11 @@ const Settings: React.FC = React.memo(() => {
   }
 
   const fetchUserAvatar = async (): Promise<void> => {
-    try {
-      const userAvatarResultFromBack = await getUserAvatar();
-      if (userAvatarResultFromBack)
-        setAvatarUrl(userAvatarResultFromBack);
-    } catch (j) {
-      console.error(`passing by fetchUserAvatar ${hasMessage(j) ? j.message : ""}`);
+    const userAvatarResultFromBack = await getUserAvatar();
+    if (userAvatarResultFromBack) {
+      setAvatarUrl(userAvatarResultFromBack);
+    } else {
+      setError('There was an error fetching the avatar, please contact the system administrator');
     }
   }
 
@@ -116,8 +115,6 @@ const Settings: React.FC = React.memo(() => {
       // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
       console.error("Failed to update avatar:", error);
       setError(hasMessage(error) ? error.message : "Failed to update avatar");
-      if (defaultImage)
-        setAvatarUrl(defaultImage);
       setIsUpdatingAvatar(false);
     }
   }, [newAvatar, updateAvatar]);
@@ -191,14 +188,16 @@ const Settings: React.FC = React.memo(() => {
 
       {/* nodeRef for avatar */}
       <CSSTransition nodeRef={avatarRef} in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
-        <img ref={avatarRef} className='item' src={avatarUrl} alt="Avatar" />
+        <img ref={avatarRef}  className='item' src={avatarUrl ?? ''} alt={`avatar`} />
       </CSSTransition>
 
 
       {isUpdatingAvatar && (
         <CSSTransition in={isUpdatingAvatar} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingAvatar(false)}>
+          <>
             <input type="file"  style={{'margin' : "1%" , 'color' : 'white'}} onChange={e => e.target.files && checkAndShowInputAvatar(e.target.files[0])} />
             <button className="button" style={{'margin' : '2%'}} onClick={sendNewAvatarToBack}>Confirm</button>
+          </>
         </CSSTransition>
       )}
 
