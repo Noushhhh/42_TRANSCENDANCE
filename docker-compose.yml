@@ -19,7 +19,6 @@ services:
     networks:
       - app_network # Connect to the app network
 
-
   # Backend Service
   backend:
     container_name: backend_container # Set the container name

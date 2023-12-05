@@ -111,7 +111,7 @@ let AuthService = class AuthService {
                 }
                 throw error;
             }
-            return res.status(200).json({ valid: true, message: "user was create successfully" });
+            return res.status(201).json({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -136,12 +136,17 @@ let AuthService = class AuthService {
             if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
                 throw new common_1.ForbiddenException('User is already logged in');
             }
-            const result = yield this.signToken(user.id, user.username, res);
-            if (!result.valid) {
-                // Consider providing more detailed feedback based on the error
-                throw new common_1.ForbiddenException('Authentication failed');
+            if ((yield this.is2FaEnabled(user.id)) === false) {
+                const result = yield this.signToken(user.id, user.username, res);
+                if (!result.valid) {
+                    // Consider providing more detailed feedback based on the error
+                    throw new common_1.ForbiddenException('Authentication failed');
+                }
+                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
             }
-            res.status(200).send({ valid: result.valid, message: result.message });
+            else {
+                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+            }
         });
     }
     /**
@@ -546,7 +551,6 @@ let AuthService = class AuthService {
                 const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
                 user.twoFASecret = secret;
                 user.twoFAUrl = otpauthUrl;
-                console.log("User created", user);
                 return user;
             }
             catch (error) {
@@ -572,13 +576,8 @@ let AuthService = class AuthService {
      * @return The 2FA secret and otpauth URL.
      */
     generateTwoFASecret(userId) {
-        const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-        const otpauthUrl = speakeasy.otpauthURL({
-            secret: secret.base32,
-            label: `ft_transcendance:${userId}`,
-            issuer: 'ft_transcendance', // Customize the issuer as needed
-        });
-        return { secret: secret.base32, otpauthUrl };
+        const secret = speakeasy.generateSecret();
+        return { secret: secret.base32, otpauthUrl: secret.otpauth_url };
     }
     // ─────────────────────────────────────────────────────────────────────────────
     /**
@@ -587,7 +586,7 @@ let AuthService = class AuthService {
      * @param code The 2FA code.
      * @return Whether the 2FA code is verified.
      */
-    verifyTwoFACode(userId, code) {
+    verifyTwoFACode(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.prisma.user.findUnique({
                 where: {
@@ -595,13 +594,52 @@ let AuthService = class AuthService {
                 },
             });
             if (!user) {
-                throw new Error('User not found');
+                throw new common_1.NotFoundException('User not found');
             }
+            if (!user.twoFASecret)
+                return false;
             const verified = speakeasy.totp.verify({
-                secret: user.twoFASecret || '',
+                secret: user.twoFASecret,
                 encoding: 'base32',
                 token: code,
             });
+            if (verified === true) {
+                const result = yield this.signToken(user.id, user.username, res);
+                if (!result.valid) {
+                    // Consider providing more detailed feedback based on the error
+                    throw new common_1.ForbiddenException('Authentication failed');
+                }
+                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+            }
+            return verified;
+        });
+    }
+    validateTwoFA(userId, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            const secret = user.twoFASecret;
+            if (!secret)
+                return false;
+            const verified = speakeasy.totp.verify({
+                secret,
+                encoding: 'base32',
+                token: code
+            });
+            if (verified === true) {
+                yield this.prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        TwoFA: true,
+                    },
+                });
+            }
             return verified;
         });
     }
@@ -613,11 +651,11 @@ let AuthService = class AuthService {
     enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
-            console.log("secret = ", secret);
+            // @to-do CHECK SI LE USER EXIST 
             yield this.prisma.user.update({
                 where: { id: userId },
                 data: {
-                    TwoFA: true,
+                    TwoFA: false,
                     twoFASecret: secret,
                 },
             });
@@ -634,6 +672,38 @@ let AuthService = class AuthService {
             if (QRUrl)
                 return QRUrl;
             return "";
+        });
+    }
+    disable2FA(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            yield this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    twoFASecret: null,
+                    TwoFA: false,
+                },
+            });
+        });
+    }
+    is2FaEnabled(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            return user.TwoFA;
         });
     }
     // Method to generate a unique session identifier

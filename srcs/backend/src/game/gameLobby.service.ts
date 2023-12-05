@@ -324,6 +324,16 @@ export class GameLobbyService {
     }
   }
 
+  isPlayerInGame(playerId: number): { isInGame: boolean, lobbyName: string | undefined } {
+    const playerSocketId = this.getSocketIdWithId(playerId);
+
+    for (const [key, value] of lobbies) {
+      if (playerSocketId === value.player1?.id || playerSocketId === value.player2?.id)
+        return { isInGame: true, lobbyName: key };
+    }
+    return { isInGame: false, lobbyName: undefined };
+  }
+
   private getSocketIdWithId(playerId: number): string | undefined {
     for (const [key, value] of lobbies) {
       if (playerId === value.gameState.gameState.p1Id || playerId === value.gameState.gameState.p2Id) {

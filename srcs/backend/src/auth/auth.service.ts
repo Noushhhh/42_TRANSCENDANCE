@@ -75,7 +75,7 @@ export class AuthService {
       }
       throw error;
     }
-    return res.status(200).json({ valid: true, message: "user was create successfully" });
+    return res.status(201).json({ valid: true, message: "user was create successfully" });
   }
 
 
@@ -102,14 +102,18 @@ export class AuthService {
     if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
       throw new ForbiddenException('User is already logged in');
     }
+  
+    if (await this.is2FaEnabled(user.id) === false) {
+      const result = await this.signToken(user.id, user.username, res);
+      if (!result.valid) {
+        // Consider providing more detailed feedback based on the error
+        throw new ForbiddenException('Authentication failed');
+      }
 
-    const result = await this.signToken(user.id, user.username, res);
-    if (!result.valid) {
-      // Consider providing more detailed feedback based on the error
-      throw new ForbiddenException('Authentication failed');
+      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+    } else {
+      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
     }
-
-    res.status(200).send({ valid: result.valid, message: result.message });
   }
 
   /**
@@ -533,7 +537,6 @@ export class AuthService {
       const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
       user.twoFASecret = secret;
       user.twoFAUrl = otpauthUrl;
-      console.log("User created", user);
       return user;
     } catch (error) {
       console.error('Error saving user information to database:', error);
@@ -563,13 +566,9 @@ export class AuthService {
    */
 
   generateTwoFASecret(userId: number): { secret: string; otpauthUrl: string } {
-    const secret = speakeasy.generateSecret({ length: 20 }); // Generate a 20-character secret
-    const otpauthUrl = speakeasy.otpauthURL({
-      secret: secret.base32,
-      label: `ft_transcendance:${userId}`, // Customize the label as needed
-      issuer: 'ft_transcendance', // Customize the issuer as needed
-    });
-    return { secret: secret.base32, otpauthUrl };
+    const secret = speakeasy.generateSecret();
+
+    return { secret: secret.base32, otpauthUrl: secret.otpauth_url! };
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -580,7 +579,7 @@ export class AuthService {
    * @param code The 2FA code.
    * @return Whether the 2FA code is verified.
    */
-  async verifyTwoFACode(userId: number, code: string): Promise<boolean> {
+  async verifyTwoFACode(userId: number, code: string, res: Response): Promise<boolean> {
     const user: User | null = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -588,14 +587,58 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
+    if (!user.twoFASecret) return false;
+
     const verified = speakeasy.totp.verify({
-      secret: user.twoFASecret || '',
+      secret: user.twoFASecret,
       encoding: 'base32',
       token: code,
     });
+
+    if (verified === true) {
+      const result = await this.signToken(user.id, user.username, res);
+      if (!result.valid) {
+        // Consider providing more detailed feedback based on the error
+        throw new ForbiddenException('Authentication failed');
+      }
+      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+    }
+
+    return verified;
+  }
+
+  async validateTwoFA(userId: number, code: string): Promise<boolean> {
+    const user: User | null = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const secret = user.twoFASecret;
+
+    if (!secret) return false;
+
+    const verified = speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token: code
+    });
+
+    if (verified === true) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          TwoFA: true,
+        },
+      });
+    }
 
     return verified;
   }
@@ -609,12 +652,11 @@ export class AuthService {
   async enable2FA(userId: number): Promise<string> {
     const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
 
-    console.log("secret = ", secret);
-
+    // @to-do CHECK SI LE USER EXIST 
     await this.prisma.user.update({
       where: { id: userId },
       data: {
-        TwoFA: true,
+        TwoFA: false,
         twoFASecret: secret,
       },
     });
@@ -627,11 +669,46 @@ export class AuthService {
         console.error(err)
       }
     }
+
     const QRUrl = await generateQR(otpauthUrl);
     if (QRUrl)
       return QRUrl;
 
     return "";
+  }
+
+  async disable2FA(userId: number) {
+    const user: User | null = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFASecret: null,
+        TwoFA: false,
+      },
+    });
+  }
+
+  async is2FaEnabled(userId: number): Promise<Boolean> {
+    const user: User | null = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user.TwoFA;
   }
 
   // Method to generate a unique session identifier

@@ -16,7 +16,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import useTokenExpired from '../tools/hooks/useTokenExpired';
 
 const defaultImage = 'defaultProfileImage.jpg';
-const MIN_LOADING_TIME = 2000;
+const MIN_LOADING_TIME = 1000;
 
 const UserProfileSetup: React.FC = React.memo(() => {
   // State for profile information
@@ -27,7 +27,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
   // API hooks
   const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
-  const { updatePublicName, isLoading: isPublicNameLoading } = useUpdatePublicName();
+  const updatePublicName = useUpdatePublicName();
   const isClientRegistered = useIsClientRegistered();
   const tokenExpired = useTokenExpired();
 
@@ -86,12 +86,26 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }
 
+  // Handle updating the public name
+  const handleUpdatePublicName = useCallback(async () => {
+    if (!profileName) {
+      toast.error('Please enter a profile name.');
+      return;
+    }
+    try {
+      await updatePublicName(profileName);
+      toast.success('Profile name updated successfully!');
+      setEmail(profileName);
+    } catch (error) {
+      console.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
+      toast.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
+    }
+  }, [profileName, updatePublicName, navigate]);
+
   // Handle updating the avatar
   const handleUpdateAvatar = useCallback(async () => {
     try {
       console.log(`passing handleUpdateAvatar`);
-      setShowLoader(true);
-      setLoaderSpinner();
       await updateAvatar(profileImage);
       toast.success('Avatar updated successfully!');
     } catch (error) {
@@ -149,25 +163,9 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Handle updating the public name
-  const handleUpdatePublicName = useCallback(async () => {
-    if (!profileName) {
-      toast.error('Please enter a profile name.');
-      return;
-    }
-    try {
-      setShowLoader(true);
-      setLoaderSpinner();
-      await updatePublicName(profileName);
-      setEmail(profileName);
-      toast.success('Profile name updated successfully!');
-    } catch (error) {
-      toast.error(hasMessage(error) ? error.message : 'Failed to update profile name');
-    }
-  }, [profileName, updatePublicName, navigate]);
 
   // Render loading spinner or user profile setup form
-  if (showLoader || isAvatarUpdating || isPublicNameLoading) {
+  if (showLoader || isAvatarUpdating) {
     return <LoadingSpinner />;
   }
 

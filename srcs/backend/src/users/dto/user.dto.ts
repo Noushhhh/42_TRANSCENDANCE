@@ -45,3 +45,14 @@ export class UpdatePublicNameDto {
         @Matches(/^[a-zA-Z0-9-_]+$/)
         publicName!: string;
 }
+
+export class TwoFADataDto {
+        @IsInt()
+        @Min(0)
+        @Type(() => Number)
+        userId!: number;
+
+        @IsString()
+        @IsNotEmpty()
+        token!: string;
+} 
