@@ -25,7 +25,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const [profileImageUrl, setProfileImageUrl] = useState(defaultImage);
   const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
   const { updatePublicName, isLoading: isPublicNameLoading } = useUpdatePublicName();
-  // State to control the visibility of the loading screen
+  // State to control the visibility of the ((wloading screen
   const [showLoader, setShowLoader] = useState(true);
   const isClientRegistered = useIsClientRegistered();
   const tokenExpired = useTokenExpired();
@@ -34,9 +34,18 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+  //loadingTimeout for stopping LoaderSpinner timeout
+  let loadingTimeout: NodeJs.Timeout
+
+
+  //Set loading Spinner to false alfter MIN_LOADING_TIME passed
+  const setLoaderSpinner = () => {
+    loadingTimeout = setTimeout(() => {setShowLoader(false); clearTimeout(loadingTimeout)}, MIN_LOADING_TIME);
+  }
+
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {
-    const loadingTimeout = setTimeout(() => setShowLoader(false), MIN_LOADING_TIME);
+    setLoaderSpinner();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
   }, []);
 
@@ -116,6 +125,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       return;
     }
     try {
+      setShowLoader(true);
+      setLoaderSpinner();
       await updatePublicName(profileName);
       toast.success('Profile name updated successfully!');
     } catch (error) {
@@ -127,6 +138,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
   const handleUpdateAvatar = useCallback(async () => {
     try {
+      setShowLoader(true);
+      setLoaderSpinner();
       await updateAvatar(profileImage);
       toast.success('Avatar updated successfully!');
     } catch (error) {
