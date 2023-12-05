@@ -19,86 +19,77 @@ const defaultImage = 'defaultProfileImage.jpg';
 // Minimum time to display the loader
 const MIN_LOADING_TIME = 2000;
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 const UserProfileSetup: React.FC = React.memo(() => {
+  // State for profile name, image, image URL, and loading screen visibility
   const [profileName, setProfileName] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState(defaultImage);
   const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
   const { updatePublicName, isLoading: isPublicNameLoading } = useUpdatePublicName();
-  // State to control the visibility of the ((wloading screen
-  const [showLoader, setShowLoader] = useState(true);
+  const [showLoader, setShowLoader] = useState(true); // Controls loading spinner visibility
   const isClientRegistered = useIsClientRegistered();
   const tokenExpired = useTokenExpired();
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // Loading spinner timeout
+  let loadingTimeout: NodeJS.Timeout;
 
-  //loadingTimeout for stopping LoaderSpinner timeout
-  let loadingTimeout: NodeJs.Timeout
-
-
-  //Set loading Spinner to false alfter MIN_LOADING_TIME passed
+  // Set loading Spinner to false after MIN_LOADING_TIME passed
   const setLoaderSpinner = () => {
-    loadingTimeout = setTimeout(() => {setShowLoader(false); clearTimeout(loadingTimeout)}, MIN_LOADING_TIME);
+    loadingTimeout = setTimeout(() => {
+      setShowLoader(false);
+      clearTimeout(loadingTimeout);
+    }, MIN_LOADING_TIME);
+  }
+
+  // Fetch user information from an API
+  const fetchUserInfo = async () => {
+    try {
+      const userInfo = await getUserData();
+      console.log(userInfo.publicName, userInfo);
+      setEmail(userInfo.publicName ?? userInfo.username);
+      if (userInfo.avatar) {
+        const avatar = await getUserAvatar();
+        setProfileImage(await fetchImageAsFile(avatar ?? " ", "avatar"));
+      }
+      else {
+        // Initialize with default profile image
+        const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
+        setProfileImage(defaultProfileImage);
+      }
+    } catch (error) {
+      toast.error(hasMessage(error) ? error.message : 'Error fetching user data');
+    }
+  };
+
+  // Check if the user is authenticated
+  const checkUserAuth = async () => {
+    try {
+      if (await tokenExpired()) {
+        navigate('/signin');
+        toast.error("You are not authenticated, please sign in");
+        return;
+      }
+    } catch (error) {
+      console.error('User not authenticated accessing userProfileSetup: ',
+        hasMessage(error) ? error.message : "");
+      toast.error("You are not authenticated, please sign in");
+      navigate('/signin');
+    }
   }
 
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {
     setLoaderSpinner();
+    checkUserAuth();
+    fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
   }, []);
 
-  //Check if user is authenticated to setup user profile
-  useEffect(() => {
-    const checkUserAuth = async () => {
-      try {
-        if (await tokenExpired())
-        {
-          navigate('/signin');
-          toast.error("You are not authenticated, please sign in");
-          return;
-        }
-      } catch (error) {
-        console.error('User not authenticated accessing userProfileSetup: ',
-          hasMessage(error) ? error.message : "");
-          toast.error("You are not authenticated, please sign in");
-          navigate('/signin');
-      }
-    }
-
-    checkUserAuth();
-  }, [])
-
-  // ─────────────────────────────────────────────────────────────────────
-
-  // Fetch user data on mount
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const userInfo = await getUserData();
-        console.log(userInfo.publicName, userInfo);
-        setEmail(userInfo.publicName ?? userInfo.username);
-        if (userInfo.avatar)
-        {
-          const avatar = await getUserAvatar();
-          setProfileImage(await fetchImageAsFile(avatar ?? " ", "avatar"));
-        }
-        else {
-          // Initialize with default profile image
-          const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
-          setProfileImage(defaultProfileImage);
-        }
-      } catch (error) {
-        toast.error(hasMessage(error) ? error.message : 'Error fetching user data');
-      }
-    };
-    fetchUserInfo();
-  }, []);
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-  // Update image preview
+  // Update image preview when profileImage changes
   useEffect(() => {
     if (profileImage) {
       const imageUrl = URL.createObjectURL(profileImage);
@@ -108,8 +99,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, [profileImage]);
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+  // Handle file input change to update profileImage
   const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -117,8 +107,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, []);
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+  // Handle updating the public name
   const handleUpdatePublicName = useCallback(async () => {
     if (!profileName) {
       toast.error('Please enter a profile name.');
@@ -134,8 +123,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, [profileName, updatePublicName, navigate]);
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+  // Handle updating the avatar
   const handleUpdateAvatar = useCallback(async () => {
     try {
       setShowLoader(true);
@@ -153,25 +141,24 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, [profileImage, updateAvatar, navigate]);
 
+  // Check if the client is registered, and navigate accordingly
   const checkAndNavigate = useCallback(async () => {
     try {
-      //console.log('passing by checkAndNavigate');
       const result = await isClientRegistered();
       if (result) navigate('/home');
-      // //console.log(`passing by checkAndNavigate after condition result ${result}`);
       toast.error("You need to provide a Public Name to access the game");
     } catch (error) {
       console.error('passing by catch checkAndNavigate');
       toast.error("You need to provide a Public Name to access the game");
     }
-  },[])
-// ─────────────────────────────────────────────────────────────────────────────
+  }, [])
 
-
+  // Render loading spinner or user profile setup form
   if (showLoader || isAvatarUpdating || isPublicNameLoading) {
     return <LoadingSpinner />;
   }
 
+  // Render the user profile setup form
   return (
     <div className="container">
       <ToastContainer />
