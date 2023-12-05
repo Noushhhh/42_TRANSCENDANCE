@@ -7,7 +7,8 @@ import {
   useUpdateAvatar,
   useUpdatePublicName,
   getUserData,
-  hasMessage
+  hasMessage,
+  getUserAvatar
 } from '../tools/Api';
 import LoadingSpinner from '../tools/LoadingSpinner';
 import { ToastContainer, toast } from 'react-toastify';
@@ -15,6 +16,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import useTokenExpired from '../tools/hooks/useTokenExpired';
 
 const defaultImage = 'defaultProfileImage.jpg';
+// Minimum time to display the loader
+const MIN_LOADING_TIME = 2000;
 
 const UserProfileSetup: React.FC = React.memo(() => {
   const [profileName, setProfileName] = useState('');
@@ -22,6 +25,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const [profileImageUrl, setProfileImageUrl] = useState(defaultImage);
   const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
   const { updatePublicName, isLoading: isPublicNameLoading } = useUpdatePublicName();
+  // State to control the visibility of the loading screen
+  const [showLoader, setShowLoader] = useState(true);
   const isClientRegistered = useIsClientRegistered();
   const tokenExpired = useTokenExpired();
   const [email, setEmail] = useState('');
@@ -29,20 +34,31 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+  // useEffect hook to handle the loading screen timeout
+  useEffect(() => {
+    const loadingTimeout = setTimeout(() => setShowLoader(false), MIN_LOADING_TIME);
+    return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
+  }, []);
+
   //Check if user is authenticated to setup user profile
   useEffect(() => {
     const checkUserAuth = async () => {
       try {
         if (await tokenExpired())
+        {
           navigate('/signin');
+          toast.error("You are not authenticated, please sign in");
+          return;
+        }
       } catch (error) {
         console.error('User not authenticated accessing userProfileSetup: ',
           hasMessage(error) ? error.message : "");
           toast.error("You are not authenticated, please sign in");
           navigate('/signin');
       }
-
     }
+
+    checkUserAuth();
   }, [])
 
   // ─────────────────────────────────────────────────────────────────────
@@ -52,11 +68,18 @@ const UserProfileSetup: React.FC = React.memo(() => {
     const fetchUserInfo = async () => {
       try {
         const userInfo = await getUserData();
-        //colsole.log(userInfo.publicName, userInfo);
-        setEmail(userInfo.publicName ? userInfo.pubicName : userInfo.username);
-        // Initialize with default profile image
-        const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
-        setProfileImage(defaultProfileImage);
+        console.log(userInfo.publicName, userInfo);
+        setEmail(userInfo.publicName ?? userInfo.username);
+        if (userInfo.avatar)
+        {
+          const avatar = await getUserAvatar();
+          setProfileImage(await fetchImageAsFile(avatar ?? " ", "avatar"));
+        }
+        else {
+          // Initialize with default profile image
+          const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
+          setProfileImage(defaultProfileImage);
+        }
       } catch (error) {
         toast.error(hasMessage(error) ? error.message : 'Error fetching user data');
       }
@@ -119,16 +142,20 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
   const checkAndNavigate = useCallback(async () => {
     try {
-      if (await isClientRegistered) navigate('/home');
-      
+      //console.log('passing by checkAndNavigate');
+      const result = await isClientRegistered();
+      if (result) navigate('/home');
+      // //console.log(`passing by checkAndNavigate after condition result ${result}`);
+      toast.error("You need to provide a Public Name to access the game");
     } catch (error) {
-      toast.error(hasMessage(error) ? error.message : 'Faild to check use registration please try again later');
+      console.error('passing by catch checkAndNavigate');
+      toast.error("You need to provide a Public Name to access the game");
     }
   },[])
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-  if (isAvatarUpdating || isPublicNameLoading) {
+  if (showLoader || isAvatarUpdating || isPublicNameLoading) {
     return <LoadingSpinner />;
   }
 
