@@ -18,14 +18,25 @@ export const hasMessage = (x: unknown): x is { message: string } => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Asynchronously handles an HTTP response and extracts the content based on the 'Content-Type' header.
+ *
+ * @param {Response} response - The HTTP response object to process.
+ * @returns {Promise<JSON|string>} A promise that resolves to either parsed JSON data or plain text content.
+ *                               In case of an error, it returns a generic error message.
+ */
 const getErrorResponse = async (response: Response) => {
   try {
+    // Check if the 'Content-Type' header of the response includes 'application/json'
     if (response.headers.get('Content-Type')?.includes('application/json')) {
+      // If the 'Content-Type' is JSON, parse the response body as JSON and return it
       return await response.json();
     } else {
+      // If the 'Content-Type' is not JSON, read the response body as text and return it
       return await response.text();
     }
   } catch (error) {
+    // If an error occurs during the process, return a generic error message
     return "Error reading response";
   }
 };
