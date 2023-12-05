@@ -26,7 +26,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const [avatarFromBack, setAvatarFromBack] = useState<File | null>(null);
 
   // API hooks
-  const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
+  const  updateAvatar = useUpdateAvatar();
   const updatePublicName = useUpdatePublicName();
   const isClientRegistered = useIsClientRegistered();
   const tokenExpired = useTokenExpired();
@@ -165,7 +165,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
 
 
   // Render loading spinner or user profile setup form
-  if (showLoader || isAvatarUpdating) {
+  if (showLoader) {
     return <LoadingSpinner />;
   }
 
