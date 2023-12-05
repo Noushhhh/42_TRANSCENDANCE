@@ -102,9 +102,7 @@ export class AuthService {
     if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
       throw new ForbiddenException('User is already logged in');
     }
-    // A ce niveau la on sait si les ID sont correct et donc on a le userId
-    // if (!TwoFaEnabled) { // Ici on peut check si le client a la 2FA activé
-
+  
     if (await this.is2FaEnabled(user.id) === false) {
       const result = await this.signToken(user.id, user.username, res);
       if (!result.valid) {
@@ -116,30 +114,7 @@ export class AuthService {
     } else {
       res.status(200).send({ valid: true, message: "2FA", userId: user.id });
     }
-
-    // } else  { // Si la 2FA est activé, nous n'avons pas signé le token
-    // Alors on renvoie une réponse au back qui indique que 
-    // le client a la 2FA activée et on peut ainsi récuperer
-    // son ID
-    //   // status({userId: id})
-    // }
   }
-
-  // Fonction de validation de la 2FA qui sign le token et notifie le client
-  // qu'il est bien connecté, alors il peut acceder a toutes les pages du site
-  // async validateTwoFA(code: string, cliendId: number) {
-  //   if (codeIsValid) {
-  //     const result = await this.signToken(user.id, user.username, res);
-  //     if (!result.valid) {
-  //       // Consider providing more detailed feedback based on the error
-  //       throw new ForbiddenException('Authentication failed');
-  //     }
-
-  //     res.status(200).send({ valid: result.valid, message: result.message });
-  //   }
-  // }
-
-
 
   /**
    * @brief This function validates a user.

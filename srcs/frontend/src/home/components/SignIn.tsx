@@ -152,6 +152,7 @@ const SignIn: React.FC = () => {
         "http://localhost:4000/api/auth/verifyTwoFACode",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
