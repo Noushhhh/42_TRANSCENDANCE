@@ -63,9 +63,15 @@ export class UsersService {
             const user = await this.prisma.user.findUnique({
                 where: { username: payload?.email },
             });
+            if (!user) throw new NotFoundException('User not found');
+
             const isNotRegistered = user?.firstConnexion;
             if (isNotRegistered) {
-                throw new NotFoundException('Client is not registered yet');
+                return {
+                    statusCode: 200,
+                    valid: false,
+                    message: 'Client not registered yet',
+                };
             } else {
                 return {
                     statusCode: 200,
@@ -123,7 +129,7 @@ export class UsersService {
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
             console.error('Error in getUserAvatar service:', error);
-            throw new InternalServerErrorException('Error in getUserAvatar service');
+            throw error;
         }
     }
 
@@ -186,7 +192,7 @@ export class UsersService {
                 publicName: true,
                 avatar: true,
                 firstConnexion: true,
-
+                username: true
             },
         });
         if (!user)
@@ -249,42 +255,6 @@ export class UsersService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    // @ TO ALEX: This function was duplicated while I've merged, so I just commented it just in case
-
-    // async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
-    //     try {
-    //         const uniqueFilename = uuidv4() + extname(avatar.originalname);
-    //         const filePath = `${this.uploadFolder}/${uniqueFilename}`;
-
-    //         try {
-    //             await this.saveImageToLocalFolder(avatar, filePath);
-    //         } catch (error) {
-    //             console.error('Error saving image to local folder:', error);
-    //             throw new Error('Failed to save image to local folder');
-    //         }
-
-    //         try {
-    //             await this.prisma.user.update({
-    //                 where: { id: userId },
-    //                 data: { avatar: filePath },
-    //             });
-    //         } catch (error) {
-    //             console.error('Error updating user avatar in database:', error);
-    //             throw new Error('Failed to update user avatar in database');
-    //         }
-
-    //     } catch (error) {
-    //         console.error('Error in updateAvatar service:', error);
-    //         // Throw a NotFoundException for any errors during the update process
-    //         // throw new NotFoundException("There was an error updating the public name");
-    //         throw error;
-    //     }
-    // }
-
-    // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**

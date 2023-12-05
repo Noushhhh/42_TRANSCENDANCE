@@ -28,19 +28,6 @@ export class UsersController {
 
     // ─────────────────────────────────────────────────────────────────────────────
 
-    checkDecodedPayload(decodedPayload: DecodedPayload | null, @NestResponse() res: Response, message: string): boolean {
-        // Check if the decoded payload is valid
-        if (!decodedPayload) {
-            console.error(
-                'Unable to decode token in  controller in user module\n'
-            );
-            res.status(401).json({ statusCode: 401, valid: false, message: message });
-            return false;
-        }
-        return true;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
 
     /**
     * ****************************************************************************
@@ -69,9 +56,8 @@ export class UsersController {
     }
 
     @Get('getUserInfo')
-    async getUserInfo( @ExtractJwt() decodedPayload: DecodedPayload)
-    {
-        return decodedPayload;
+    async getUserInfo(@ExtractJwt() decodedPayload: DecodedPayload) {
+        return await this.UsersService.getUserData(decodedPayload.sub);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -102,10 +88,6 @@ export class UsersController {
     async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload,
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
-        const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res, "unable to decode token in user \
-      module getProfileName controller" );
-        if (!isPayloadDecoded)
-            return;
         try {
             const user = await this.FindWithId(decodedPayload.sub);
             return res.status(200).send({

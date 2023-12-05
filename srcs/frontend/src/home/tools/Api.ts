@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 // Assuming API_BASE_URL is defined in a configuration file or environment variable
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = "http://localhost:4000";
 
 /**
  * @brief Checks if a given object has a property named 'message' and if the value of that property is a string.
@@ -15,6 +15,31 @@ const API_BASE_URL = "http://localhost:8081";
 export const hasMessage = (x: unknown): x is { message: string } => {
   return Boolean(typeof x === "object" && x && "message" in x && typeof x.message === "string");
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Asynchronously handles an HTTP response and extracts the content based on the 'Content-Type' header.
+ *
+ * @param {Response} response - The HTTP response object to process.
+ * @returns {Promise<JSON|string>} A promise that resolves to either parsed JSON data or plain text content.
+ *                               In case of an error, it returns a generic error message.
+ */
+export const getErrorResponse = async (response: Response) => {
+  try {
+    // Check if the 'Content-Type' header of the response includes 'application/json'
+    if (response.headers.get('Content-Type')?.includes('application/json')) {
+      // If the 'Content-Type' is JSON, parse the response body as JSON and return it
+      return await response.json();
+    } else {
+      // If the 'Content-Type' is not JSON, read the response body as text and return it
+      return await response.text();
+    }
+  } catch (error) {
+    // If an error occurs during the process, return a generic error message
+    return "Error reading response";
+  }
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -64,55 +89,79 @@ export const getUserAvatar = async (): Promise<string | null> => {
       credentials: 'include'
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-    }
+      // Check if the response from the fetch request is not successful
+      if (!response.ok) {
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
+      }
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     return url;
   } catch (error) {
-    console.error('Error fetching user avatar:', error);
+    console.error(error);
     throw error;
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @brief Validates the user's public name.
+ *
+ * This function checks if the provided publicName is valid based on certain criteria.
+ *
+ * @param {string | null} publicName - The user's public name to validate.
+ * @throws {Error} If publicName is null, empty, or doesn't meet the criteria.
+ */
+const validatePublicName = async (publicName: string | null) => {
+  // Check if publicName is null or empty
+  if (!publicName) {
+    throw new Error("Please enter a valid user name");
+  }
+  // Check if the length of publicName is between 2 and 50 characters
+  if (publicName.length < 2 || publicName.length > 50) {
+    throw new Error("User name must be between 2 and 50 characters");
+  }
+  // Check if publicName contains only alphanumeric characters, hyphens, and underscores
+  if (!/^[a-zA-Z0-9-_]+$/.test(publicName)) {
+    throw new Error("User name can only contain alphanumeric characters, hyphens, and underscores");
+  }
+};
 
-// This function is responsible for updating the public name of the user.
-// It sends a PUT request to the server with the new public name as a parameter.
-// If the server responds with a valid response, the function returns the response data.
-// If the server responds with an invalid response or if an error occurs during the fetch operation,
-// the function throws an error.
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @brief Custom hook for updating a user's public name.
+ *
+ * This hook provides a function to asynchronously update a user's public name.
+ *
+ * @returns {object} An object containing the updatePublicName function and isLoading state.
+ * - updatePublicName: A function to update the public name.
+ * - isLoading: A boolean indicating whether an update operation is in progress.
+ */
 export const useUpdatePublicName = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
 
-  const updatePublicName = async (publicName: string | null) => {
-    setIsLoading(true);
-    setError(null);
-
-    if (!publicName) {
-      const error = new Error("Please enter a valid user name");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-    if (publicName.length < 2 || publicName.length > 50) {
-      const error = new Error("Please enter a user name between 2 and 50 characters");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-    if (!/^[a-zA-Z0-9-_]+$/.test(publicName)) {
-      const error = new Error("User name can only contain alphanumeric characters, hyphens, and underscores");
-      setError(error);
-      setIsLoading(false);
-      throw error;
-    }
-
+  /**
+   * @brief Update the user's public name.
+   *
+   * This function sends a PUT request to update the user's public name.
+   *
+   * @param {string | null} publicName - The new public name to set for the user.
+   * @returns {Promise} A promise that resolves with the response JSON if successful or rejects with an error.
+   * @throws {Error} If the publicName validation fails or if there's an error during the update.
+   */
+  const updatePublicName = async (publicName: string | null): Promise<any> => {
     try {
+
+      await validatePublicName(publicName);
+      // Send a PUT request to the server to update the public name.
       const response = await fetch(`${API_BASE_URL}/api/users/updatepublicname`, {
         method: "PUT",
         headers: {
@@ -122,25 +171,26 @@ export const useUpdatePublicName = () => {
         credentials: "include",
       });
 
+      // Check if the response from the fetch request is not successful
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
       }
 
-      const data = await response.json();
-      if (!data.valid) {
-        throw new Error(`Update failed: ${data.message}`);
-      }
-
-      setIsLoading(false);
-      return data; // Return the response data
-    } catch (err) {
-      setError(err as Error);
-      setIsLoading(false);
-      throw err; // Re-throw to allow further handling in components
+    } catch (error) {
+      // Re-throw any errors to allow further handling in components.
+      throw error;
     }
   };
 
-  return { updatePublicName, isLoading, error };
+  // Return the updatePublicName function and isLoading state.
+  return updatePublicName;
 };
 
 
@@ -149,32 +199,22 @@ export const useUpdatePublicName = () => {
 
 
 export const useUpdateAvatar = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
   const updateAvatar = async (newAvatar: File | null) => {
-    setIsLoading(true);
-    setError(null);
 
     if (!newAvatar) {
-      setIsLoading(false);
-      return; // Early return if no avatar is provided
+      throw new Error("You need to provide a avatar")
     }
-
     // File type and size validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(newAvatar.type)) {
       const error: Error = new Error("Unsupported file type. Please upload a JPEG, PNG, or GIF image.");
-      setError(error);
-      setIsLoading(false);
       throw error;
     }
 
     const maxFileSize = 5 * 1024 * 1024; // 5MB
     if (newAvatar.size > maxFileSize) {
       const error = new Error("File size too large. Please upload an image smaller than 5MB.");
-      setError(error);
-      setIsLoading(false);
       throw error;
     }
 
@@ -189,24 +229,25 @@ export const useUpdateAvatar = () => {
         credentials: "include",
       });
 
+
+      // Check if the response from the fetch request is not successful
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
       }
 
-      const data = await response.json();
-      if (!data.valid) {
-        throw new Error(`Update failed: ${data.message}`);
-      }
-
-      setIsLoading(false);
-      return data;
+      return (await response.json());
     } catch (error) {
-      setError(error as Error);
-      setIsLoading(false);
       throw error // Re-throw to allow further handling in components
     }
   };
-  return { updateAvatar, isLoading, error };
+  return updateAvatar;
 };
 
 
