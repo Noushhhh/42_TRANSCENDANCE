@@ -171,8 +171,6 @@ export const createChannel = async (
 
   try {
 
-    console.log("add channel called with: ", channelToAdd.name)
-
     const response = await fetch(`http://localhost:4000/api/chat/addChannelToUser`, {
       method: "POST",
       credentials: 'include',
@@ -234,7 +232,7 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
     });
 
     if (!response.ok) {
-      throw new Error('Erreur lors de la récupération des données');
+      Promise.reject(await response.json());
     }
 
     channelList = await response.json();
@@ -379,7 +377,6 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
       }
     }
   } catch (error) {
-    console.log("error handler banuserlist");
     throw error;
   }
 };
@@ -557,9 +554,17 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
 
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    // check if we need to include cookies with axios
-    const response = await axios.post("http://localhost:4000/api/chat/isUserIsBan", { channelId, userId });
-    return response.data;
+    const response = await fetch("http://localhost:4000/api/chat/isUserIsBan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ channelId, userId })
+    });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
+    return await response.json();
   } catch (error) {
     console.log(error);
   }
@@ -569,8 +574,16 @@ export const isUserIsBan = async (channelId: number, userId: number): Promise<bo
 export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<boolean> => {
   try {
     // same
-    const response = await axios.post('http://localhost:4000/api/chat/addUserToProtectedChannel', { password, userId, channelId });
-    console.log(response);
+    const response = await fetch('http://localhost:4000/api/chat/addUserToProtectedChannel', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ password, userId, channelId })
+    });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
     return true;
   } catch (error: any) {
     return false;
@@ -592,7 +605,6 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
     }
     return { channelType: channel.channelType, channelId: channelIdJoined };
   } catch (error) {
-    console.log("case of error join channel");
     throw error;
   }
 }

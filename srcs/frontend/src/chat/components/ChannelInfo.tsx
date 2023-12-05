@@ -73,7 +73,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
           setIsChannelOwner(isItChannelOwner);
           const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
           setnumberUsersInChannel(numberUsersInChannel);
-          const channelName: string = await getChannelName(channelId, userId);
+          const channelName: string | null = await getChannelName(channelId, userId);
           setChannelName(channelName);
         }
       } catch (error) {

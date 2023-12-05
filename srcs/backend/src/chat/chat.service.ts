@@ -409,15 +409,6 @@ export class ChatService {
     if (await this.isAdmin(userId, channelId))
       throw new ForbiddenException("Admin can't leave channel");
 
-    /*if (await this.getNumberUsersInChannel(channelId) <= 2) {
-      await this.deleteAllMessagesInChannel(channelId);
-      await this.prisma.channel.delete({
-        where: { id: channelId },
-      })
-      await this.notifyClientChannelDeleted(channelId);
-      return true;
-    }*/
-
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
@@ -581,11 +572,11 @@ export class ChatService {
   }
 
   async isChannelNameExist(channelName: string): Promise<isChannelExist | false> {
-    const isExist = await this.prisma.channel.findFirst({
+    const isExist: Channel | null = await this.prisma.channel.findFirst({
       where: { name: channelName },
     })
     if (!isExist)
-      throw new NotFoundException("Channel not exist");
+      throw new NotFoundException("Channel not found");
     if (isExist) {
       return {
         isExist: true,

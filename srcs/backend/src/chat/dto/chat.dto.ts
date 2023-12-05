@@ -7,6 +7,7 @@ class CommonChannelNameDto {
     @IsString()
     @IsNotEmpty()
     @IsAlphanumeric()
+    @MaxLength(22)
     channelName!: string;
 }
 
@@ -55,8 +56,8 @@ export class ChannelIdPostDto extends CommonChannelIdPostDto {}
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()
     @IsString()
-    @Min(6)
-    @Max(22)
+    @MinLength(6)
+    @MaxLength(22)
     password!: string;
 
     @IsInt()

@@ -65,7 +65,6 @@ interface isChannelExist {
 }
 
 @Controller('chat')
-@UseGuards(JwtAuthGuard)
 export class ChatController {
     
     constructor(private chatService: ChatService) { };
@@ -187,6 +186,13 @@ export class ChatController {
     @Post('addUserToProtectedChannel')
     async addUserToProtectedChannel(
         @Body() data: SignUpChannelDto): Promise<void> {
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
         return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
     }
 

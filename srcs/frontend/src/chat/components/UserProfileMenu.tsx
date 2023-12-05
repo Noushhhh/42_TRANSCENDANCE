@@ -89,10 +89,12 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
-    handleAreUsersFriend();
-    setAnchorEl(event.currentTarget);
-    const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
-    setIsBlocked(isBlocked);
+    try {
+      handleAreUsersFriend();
+      setAnchorEl(event.currentTarget);
+      const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
+      setIsBlocked(isBlocked);
+    } catch (errors: any) {}
   };
 
   const handleInvitationStatus = (status: string) => {
