@@ -610,7 +610,9 @@ let AuthService = class AuthService {
                     throw new common_1.ForbiddenException('Authentication failed');
                 }
                 res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                return verified;
             }
+            res.status(403).send({ valid: false, message: "wrong code, please try again...", userId: null });
             return verified;
         });
     }
@@ -651,7 +653,14 @@ let AuthService = class AuthService {
     enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
-            // @to-do CHECK SI LE USER EXIST 
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
             yield this.prisma.user.update({
                 where: { id: userId },
                 data: {

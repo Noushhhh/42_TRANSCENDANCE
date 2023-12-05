@@ -105,9 +105,13 @@ let AuthController = class AuthController {
     }
     enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-            const qrcodeUrl = yield this.authService.enable2FA(userId.userId);
-            return { qrcode: qrcodeUrl };
+            try {
+                const qrcodeUrl = yield this.authService.enable2FA(userId.userId);
+                return { qrcode: qrcodeUrl };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     disable2FA(userId) {
@@ -123,14 +127,24 @@ let AuthController = class AuthController {
     }
     validating2FA(TwoFAData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.authService.validateTwoFA(TwoFAData.userId, TwoFAData.token);
-            return { res: res };
+            try {
+                const res = yield this.authService.validateTwoFA(TwoFAData.userId, TwoFAData.token);
+                return { res: res };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     verifyTwoFACode(TwoFAData, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.authService.verifyTwoFACode(TwoFAData.userId, TwoFAData.token, response);
-            return { res: res };
+            try {
+                const res = yield this.authService.verifyTwoFACode(TwoFAData.userId, TwoFAData.token, response);
+                return { res: res };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     is2FaActivated(req) {
@@ -138,8 +152,13 @@ let AuthController = class AuthController {
             const userId = req.headers['x-user-id'];
             if (typeof userId === 'string') {
                 const userIdInt = parseInt(userId);
-                const is2FaEnabled = yield this.authService.is2FaEnabled(userIdInt);
-                return { res: is2FaEnabled };
+                try {
+                    const is2FaEnabled = yield this.authService.is2FaEnabled(userIdInt);
+                    return { res: is2FaEnabled };
+                }
+                catch (error) {
+                    throw error;
+                }
             }
             throw new common_1.BadRequestException("Error trying to parse userID");
         });

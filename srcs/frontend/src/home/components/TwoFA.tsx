@@ -1,8 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import { getMyUserId } from "../../chat/components/ChannelUtils";
 
-// Have to check if two FA is enabled for the user so I'll change the UI
-
 const TwoFaPopUpStyle: React.CSSProperties = {
   position: "absolute",
   display: "flex",
@@ -34,78 +32,14 @@ const TwoFA: FC = () => {
     if (!userId) return;
 
     const is2FaActivated = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:4000/api/auth/is2FaActivated",
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "X-User-ID": userId.toString(),
-            },
-          }
-        );
-
-        if (!response.ok) return Promise.reject(await response.json());
-
-        const formattedRes = await response.json();
-
-        setIs2FaActivated(formattedRes.res);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    is2FaActivated();
-  }, [userId]);
-
-  const enable2FA = async () => {
-    try {
-      const response = await fetch("http://localhost:4000/api/auth/enable2FA", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.ok) return Promise.reject(await response.json());
-
-      const formattedRes = await response.json();
-      setQrcode(formattedRes.qrcode);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const disable2FA = async () => {
-    try {
-      const response = await fetch("http://localhost:4000/api/auth/disable2FA", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.ok) return Promise.reject(await response.json());
-
-      setIs2FaActivated(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const validateTwoFA = async () => {
-    try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/validating2FA",
+        "http://localhost:4000/api/auth/is2FaActivated",
         {
-          method: "POST",
+          method: "GET",
+          credentials: "include",
           headers: {
-            "Content-Type": "application/json",
+            "X-User-ID": userId.toString(),
           },
-          body: JSON.stringify({ userId, token }),
         }
       );
 
@@ -113,15 +47,63 @@ const TwoFA: FC = () => {
 
       const formattedRes = await response.json();
 
-      if (formattedRes.res === true) {
-        setQrcode("");
-        setError("");
-        setIs2FaActivated(true);
-      } else {
-        setError("Wrong code, please try again...");
+      setIs2FaActivated(formattedRes.res);
+    };
+
+    is2FaActivated().catch((e) => console.log(e));
+  }, [userId]);
+
+  const enable2FA = async () => {
+    const response = await fetch("http://localhost:4000/api/auth/enable2FA", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!response.ok) return Promise.reject(await response.json());
+
+    const formattedRes = await response.json();
+    setQrcode(formattedRes.qrcode);
+  };
+
+  const disable2FA = async () => {
+    const response = await fetch("http://localhost:4000/api/auth/disable2FA", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!response.ok) return Promise.reject(await response.json());
+
+    setIs2FaActivated(false);
+  };
+
+  const validateTwoFA = async () => {
+    const response = await fetch(
+      "http://localhost:4000/api/auth/validating2FA",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, token }),
       }
-    } catch (error) {
-      console.log(error);
+    );
+
+    if (!response.ok) return Promise.reject(await response.json());
+
+    const formattedRes = await response.json();
+
+    if (formattedRes.res === true) {
+      setQrcode("");
+      setError("");
+      setIs2FaActivated(true);
+    } else {
+      setError("Wrong code, please try again...");
     }
   };
 
@@ -130,13 +112,18 @@ const TwoFA: FC = () => {
   if (is2FaActivated === true)
     return (
       <div style={{ marginTop: "1rem" }}>
-        <button onClick={() => disable2FA()}>Deactivate 2FA</button>
+        <button onClick={() => disable2FA().catch((e) => console.log(e))}>
+          Deactivate 2FA
+        </button>
       </div>
     );
 
   return (
     <div>
-      <button style={{ marginTop: "1rem" }} onClick={() => enable2FA()}>
+      <button
+        style={{ marginTop: "1rem" }}
+        onClick={() => enable2FA().catch((e) => console.log(e))}
+      >
         Enable 2FA
       </button>
       {qrcode.length === 0 ? null : (
@@ -153,7 +140,9 @@ const TwoFA: FC = () => {
             type="text"
             value={token}
           />
-          <button onClick={() => validateTwoFA()}>Submit!</button>
+          <button onClick={() => validateTwoFA().catch((e) => console.log(e))}>
+            Submit!
+          </button>
         </div>
       )}
     </div>

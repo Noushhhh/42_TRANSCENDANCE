@@ -102,7 +102,7 @@ export class AuthService {
     if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
       throw new ForbiddenException('User is already logged in');
     }
-  
+
     if (await this.is2FaEnabled(user.id) === false) {
       const result = await this.signToken(user.id, user.username, res);
       if (!result.valid) {
@@ -605,8 +605,10 @@ export class AuthService {
         throw new ForbiddenException('Authentication failed');
       }
       res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+      return verified;
     }
 
+    res.status(403).send({ valid: false, message: "wrong code, please try again...", userId: null });
     return verified;
   }
 
@@ -652,7 +654,16 @@ export class AuthService {
   async enable2FA(userId: number): Promise<string> {
     const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
 
-    // @to-do CHECK SI LE USER EXIST 
+    const user: User | null = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+ 
     await this.prisma.user.update({
       where: { id: userId },
       data: {

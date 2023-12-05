@@ -94,6 +94,7 @@ const SignIn: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [twoFaCode, setTwoFaCode] = useState("");
+  const [twoFaError, setTwoFaError] = useState("");
   const [displayTwoFa, setDisplayTwoFa] = useState(false);
   const [userId, setUserId] = useState(0);
   const checkToken = useTokenExpired();
@@ -117,24 +118,14 @@ const SignIn: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Faire en sorte que cette fonction nous renvoie un status
-      // pour savoir si le client est co ou si il faut qu'il passe par la 2FA
       const res = await signInAPI(email, password);
       if (res !== 0) {
-        console.log("USER ID 2FA = ", res);
         setUserId(res);
         setDisplayTwoFa(true);
       } else {
         const userIsRegisterd = await isClientRegistered();
         navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
       }
-      // if (res === idClient) { | Si le res indique 2FA alors on prompt l'input,
-      // Et on fait un call API pour verifier la 2FA
-      // setCode()
-      // await callAPI(code)
-      // const userIsRegisterd = await isClientRegistered();
-      // navigate(userIsRegisterd ? '/home' : '/userprofilesetup');
-      // }
     } catch (error) {
       const errorMessage = hasMessage(error)
         ? error.message
@@ -146,32 +137,24 @@ const SignIn: React.FC = () => {
   };
 
   const verify2FA = async () => {
-    try {
-      console.log("USERID CODE = ", userId, twoFaCode);
-      const response = await fetch(
-        "http://localhost:4000/api/auth/verifyTwoFACode",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, token: twoFaCode }),
-        }
-      );
-
-      if (!response.ok) return Promise.reject(await response.json());
-
-      const formattedRes = await response.json();
-      console.log("RES = ", formattedRes);
-      if (formattedRes.valid === true) {
-        console.log("ICI TRUE");
-        // const userIsRegisterd = await isClientRegistered();
-        // navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
-        navigate("/home");
+    const response = await fetch(
+      "http://localhost:4000/api/auth/verifyTwoFACode",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, token: twoFaCode }),
       }
-    } catch (error) {
-      console.log(error);
+    );
+
+    if (!response.ok) return Promise.reject(await response.json());
+
+    const formattedRes = await response.json();
+    if (formattedRes.valid === true) {
+      setTwoFaError("");
+      navigate("/home");
     }
   };
 
@@ -202,14 +185,18 @@ const SignIn: React.FC = () => {
 
       {displayTwoFa ? (
         <div>
+          <p style={{ color: "red", fontSize: "0.75rem" }}>{twoFaError}</p>
           <InputField
             type="text"
             value={twoFaCode}
             onChange={(e) => setTwoFaCode(e.target.value)}
             placeholder="2FA Code"
           />
-
-          <button onClick={() => verify2FA()}>Submit</button>
+          <button
+            onClick={() => verify2FA().catch((e) => setTwoFaError(e.message))}
+          >
+            Submit
+          </button>
         </div>
       ) : null}
     </div>

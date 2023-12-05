@@ -109,7 +109,7 @@ const GameContainer: FC<GameContainerProps> = ({
   const handlePlayPause = () => {
     socket?.emit("getIsPaused", !isPaused);
     setIsPaused(!isPaused);
-    if (isPaused === true) start();
+    if (isPaused === true) start().catch((e) => console.log(e));
     // else stop();
   };
 
@@ -118,16 +118,12 @@ const GameContainer: FC<GameContainerProps> = ({
   };
 
   const start = async () => {
-    try {
-      const response = await fetch("http://localhost:4000/api/game/play", {
-        method: "GET",
-        credentials: "include",
-      });
+    const response = await fetch("http://localhost:4000/api/game/play", {
+      method: "GET",
+      credentials: "include",
+    });
 
-      if (!response.ok) return Promise.reject(await response.json());
-    } catch (error) {
-      console.log(error);
-    }
+    if (!response.ok) return Promise.reject(await response.json());
   };
 
   if (isInLobby === true) {

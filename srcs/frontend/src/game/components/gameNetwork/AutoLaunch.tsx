@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 
 interface AutoLaunchProps {
-  start: () => void;
+  start: () => Promise<undefined>;
   setGameLaunchedRef: () => void;
   handlePlayPause: () => void;
   socket: Socket;
@@ -32,7 +32,7 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
   useEffect(() => {
     if (player1Replay === true && player2Replay === true) {
       setTimeout(() => {
-        start();
+        start().catch((e) => console.log(e));
         setGameLaunchedRef();
         handlePlayPause();
       }, 1500);
@@ -43,7 +43,7 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
 
   useEffect(() => {
     setTimeout(() => {
-      start();
+      start().catch((e) => console.log(e));
       setGameLaunchedRef();
       handlePlayPause();
     }, 1500);
