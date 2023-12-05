@@ -12,6 +12,7 @@ import {
 import LoadingSpinner from '../tools/LoadingSpinner';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import useTokenExpired from '../tools/hooks/useTokenExpired';
 
 const defaultImage = 'defaultProfileImage.jpg';
 
@@ -22,10 +23,29 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const { updateAvatar, isLoading: isAvatarUpdating } = useUpdateAvatar();
   const { updatePublicName, isLoading: isPublicNameLoading } = useUpdatePublicName();
   const isClientRegistered = useIsClientRegistered();
+  const tokenExpired = useTokenExpired();
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+  //Check if user is authenticated to setup user profile
+  useEffect(() => {
+    const checkUserAuth = async () => {
+      try {
+        if (await tokenExpired())
+          navigate('/signin');
+      } catch (error) {
+        console.error('User not authenticated accessing userProfileSetup: ',
+          hasMessage(error) ? error.message : "");
+          toast.error("You are not authenticated, please sign in");
+          navigate('/signin');
+      }
+
+    }
+  }, [])
+
+  // ─────────────────────────────────────────────────────────────────────
 
   // Fetch user data on mount
   useEffect(() => {
