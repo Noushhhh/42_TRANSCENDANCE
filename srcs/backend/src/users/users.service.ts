@@ -63,9 +63,15 @@ export class UsersService {
             const user = await this.prisma.user.findUnique({
                 where: { username: payload?.email },
             });
+            if (!user) throw new NotFoundException('User not found');
+
             const isNotRegistered = user?.firstConnexion;
             if (isNotRegistered) {
-                throw new NotFoundException('Client is not registered yet');
+                return {
+                    statusCode: 200,
+                    valid: false,
+                    message: 'Client not registered yet',
+                };
             } else {
                 return {
                     statusCode: 200,
@@ -123,7 +129,7 @@ export class UsersService {
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
             console.error('Error in getUserAvatar service:', error);
-            throw new InternalServerErrorException('Error in getUserAvatar service');
+            throw error;
         }
     }
 
@@ -186,7 +192,7 @@ export class UsersService {
                 publicName: true,
                 avatar: true,
                 firstConnexion: true,
-
+                username: true
             },
         });
         if (!user)

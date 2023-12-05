@@ -25,7 +25,7 @@ export const hasMessage = (x: unknown): x is { message: string } => {
  * @returns {Promise<JSON|string>} A promise that resolves to either parsed JSON data or plain text content.
  *                               In case of an error, it returns a generic error message.
  */
-const getErrorResponse = async (response: Response) => {
+export const getErrorResponse = async (response: Response) => {
   try {
     // Check if the 'Content-Type' header of the response includes 'application/json'
     if (response.headers.get('Content-Type')?.includes('application/json')) {
@@ -89,15 +89,23 @@ export const getUserAvatar = async (): Promise<string | null> => {
       credentials: 'include'
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-    }
+      // Check if the response from the fetch request is not successful
+      if (!response.ok) {
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
+      }
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     return url;
   } catch (error) {
-    console.error('Error fetching user avatar:', error);
+    console.error(error);
     throw error;
   }
 };

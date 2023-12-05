@@ -32,8 +32,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     const fetchUserInfo = async () => {
       try {
         const userInfo = await getUserData();
-        console.log(userInfo.publicName, userInfo);
-        setEmail(userInfo.publicName ? userInfo.pubicName : userInfo.email);
+        //colsole.log(userInfo.publicName, userInfo);
+        setEmail(userInfo.publicName ? userInfo.pubicName : userInfo.username);
         // Initialize with default profile image
         const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
         setProfileImage(defaultProfileImage);
