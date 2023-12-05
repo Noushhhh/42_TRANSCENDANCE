@@ -18,6 +18,20 @@ export const hasMessage = (x: unknown): x is { message: string } => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+const getErrorResponse = async (response: Response) => {
+  try {
+    if (response.headers.get('Content-Type')?.includes('application/json')) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
+  } catch (error) {
+    return "Error reading response";
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const getPublicName = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/getprofilename`, {
@@ -148,13 +162,12 @@ export const useUpdatePublicName = () => {
       if (!response.ok) {
         // If the response is not successful, parse the response body as JSON.
         // This assumes that the server provides a JSON response containing error details.
-        const errorDetails = await response.json();
+        const errorDetails = await getErrorResponse(response);
 
         // Reject the promise with a new Error object. 
         // This provides a more detailed error message than simply rejecting with the raw response.
-        // Including both the response status and a message from the server (if available) in the error message
         // makes it easier to understand the nature of the error when handling it later.
-        return Promise.reject(new Error(`Error ${response.status}: ${errorDetails.message}`));
+        return Promise.reject(errorDetails);
       }
 
     } catch (error) {
@@ -213,8 +226,16 @@ export const useUpdateAvatar = () => {
       });
 
 
+      // Check if the response from the fetch request is not successful
       if (!response.ok) {
-        return Promise.reject(await response.json());
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
       }
 
       return (await response.json());
