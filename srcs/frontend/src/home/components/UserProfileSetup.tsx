@@ -15,6 +15,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useTokenExpired from '../tools/hooks/useTokenExpired';
 
+
 const defaultImage = 'defaultProfileImage.jpg';
 const MIN_LOADING_TIME = 1000;
 

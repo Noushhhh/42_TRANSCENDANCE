@@ -80,11 +80,7 @@ const App: React.FC = () => {
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/authchoice" element={<AuthChoice />} />
-      <Route path="/userprofilesetup" element={
-        <ProtectedRoute>
-          <UserProfileSetup />
-        </ProtectedRoute>
-      } />
+      <Route path="/userprofilesetup" element={<UserProfileSetup />} />
       <Route
         path="/home"
         element={

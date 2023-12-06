@@ -138,6 +138,44 @@ const validatePublicName = async (publicName: string | null) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * @brief Validates the given password against certain criteria
+ * 
+ * @param password User's password
+ * 
+ * @returns null if the password is valid, error message otherwise
+ */
+export const validatePassword = async (password: string): Promise<any> => {
+  if (password.length < 8) {
+    throw new Error('Password should be at least 8 characters long.');
+  }
+  if (!/[a-z]/.test(password)) {
+    throw new Error('Password should contain at least one lowercase letter.');
+  }
+  if (!/[A-Z]/.test(password)) {
+    throw new Error('Password should contain at least one uppercase letter.');
+  }
+  if (!/[0-9]/.test(password)) {
+    throw new Error('Password should contain at least one digit.');
+  }
+  if (!/[@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(password)) {
+    throw new Error('Password should contain at least one special character (e.g., @, #, $, etc.).');
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const validateEmail = async (email: string): Promise<any> => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error ('Please enter a valid email address.');
+    }
+};
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
  * @brief Custom hook for updating a user's public name.
  *
  * This hook provides a function to asynchronously update a user's public name.
