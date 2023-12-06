@@ -15,6 +15,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useTokenExpired from '../tools/hooks/useTokenExpired';
 
+
 const defaultImage = 'defaultProfileImage.jpg';
 const MIN_LOADING_TIME = 1000;
 
@@ -65,6 +66,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
         const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
         setProfileImage(defaultProfileImage);
       }
+      toast.info('Please provide a Profile Name to access the game');
     } catch (error) {
       toast.error(hasMessage(error) ? error.message : 'Error fetching user data');
     }
@@ -95,6 +97,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     try {
       await updatePublicName(profileName);
       toast.success('Profile name updated successfully!');
+      toast.info('Click over continue to access the game!')
       setEmail(profileName);
     } catch (error) {
       console.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
