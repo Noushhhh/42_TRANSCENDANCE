@@ -158,6 +158,7 @@ const GameContainer: FC<GameContainerProps> = ({
   } else if (isInLobby === false && socket) {
     return <GameMenu socket={socket} handleError={handleError} />;
   }
+  return <></>
 };
 
 export default GameContainer;

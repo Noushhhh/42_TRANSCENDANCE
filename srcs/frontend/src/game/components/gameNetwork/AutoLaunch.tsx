@@ -59,7 +59,7 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
     setPlayer2Replay(res);
   };
 
-  return true;
+  return <></>;
 };
 
 export default AutoLaunch;
