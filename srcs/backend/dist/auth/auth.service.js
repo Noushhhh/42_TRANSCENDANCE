@@ -51,14 +51,14 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-const argon = __importStar(require("argon2"));
+const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
+const constants_1 = require("../auth/constants/constants");
+const argon = __importStar(require("argon2"));
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
-const users_service_1 = require("../users/users.service");
-const constants_1 = require("../auth/constants/constants");
 const uuid_1 = require("uuid");
 const qrcode_1 = __importDefault(require("qrcode"));
 /**
@@ -271,9 +271,9 @@ let AuthService = class AuthService {
         const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
         // Set the session cookie in the response
         res.cookie('userSession', sessionValue, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            httpOnly: true, // Makes the cookie inaccessible to client-side scripts
+            secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
+            sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
             maxAge: tokenMaxAge // Sets the cookie to expire in 1 day (example)
         });
     }
@@ -412,6 +412,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const code = req.query['code'];
+                console.log(`passing by singToken42 req.query['code']: ${code}`);
                 const token = yield this.exchangeCodeForToken(code);
                 if (!token) {
                     console.error('Failed to fetch access token');
@@ -464,6 +465,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendAuthorizationCodeRequest(code);
+                console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
                 return response.data.access_token;
             }
             catch (error) {
@@ -475,14 +477,19 @@ let AuthService = class AuthService {
     // ─────────────────────────────────────────────────────────────────────────────
     sendAuthorizationCodeRequest(code) {
         return __awaiter(this, void 0, void 0, function* () {
-            const requestBody = {
-                grant_type: 'authorization_code',
-                client_id: process.env.UID_42,
-                client_secret: process.env.SECRET_42,
-                code: code,
-                redirect_uri: 'http://localhost:4000/api/auth/callback42',
-            };
-            return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+            try {
+                const requestBody = {
+                    grant_type: 'authorization_code',
+                    client_id: process.env.UID_42,
+                    client_secret: process.env.SECRET_42,
+                    code: code,
+                    redirect_uri: 'http://localhost:4000/api/auth/callback42',
+                };
+                return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -540,14 +547,16 @@ let AuthService = class AuthService {
                     // use the 42 profile picture if not null
                     avatarUrl = userInfo.image.link;
                 }
+                const avatarFile = yield this.usersService.downloadFile(avatarUrl);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
                         username: userInfo.login,
-                        avatar: userInfo.image.link,
+                        avatar: null,
                     },
                 });
+                yield this.usersService.updateAvatar(user.id, avatarFile);
                 const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
                 user.twoFASecret = secret;
                 user.twoFAUrl = otpauthUrl;

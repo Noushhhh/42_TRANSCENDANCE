@@ -78,6 +78,7 @@ export class UsersController {
         try {
             return await this.UsersService.getUserAvatar(decodedPayload, res)
         } catch (error) {
+            console.error(error);
             throw error;
         }
     }

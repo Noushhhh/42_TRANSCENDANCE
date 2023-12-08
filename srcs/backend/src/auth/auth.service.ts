@@ -1,18 +1,18 @@
 import { InternalServerErrorException, ForbiddenException, Res, Req, Injectable, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
+import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { jwtConstants } from '../auth/constants/constants';
+import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
-import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import * as speakeasy from 'speakeasy';
-import { UsersService } from '../users/users.service';
-import { jwtConstants } from '../auth/constants/constants';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { v4 as uuidv4 } from 'uuid';
 import cron from 'node-cron'; // Importing node-cron for scheduling tasksd
 import { StrictEventEmitter } from 'socket.io/dist/typed-events';
@@ -393,6 +393,7 @@ export class AuthService {
   async signToken42(@Req() req: any, res: Response) {
     try {
       const code = req.query['code'];
+      console.log(`passing by singToken42 req.query['code']: ${code}`);
       const token = await this.exchangeCodeForToken(code);
       if (!token) {
         console.error('Failed to fetch access token');
@@ -450,6 +451,7 @@ export class AuthService {
   async exchangeCodeForToken(code: string): Promise<string | null> {
     try {
       const response = await this.sendAuthorizationCodeRequest(code);
+      console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
       return response.data.access_token;
     } catch (error) {
       console.error('Error fetching access token:', error);
@@ -459,14 +461,19 @@ export class AuthService {
 
   // ─────────────────────────────────────────────────────────────────────────────
   private async sendAuthorizationCodeRequest(code: string) {
-    const requestBody = {
-      grant_type: 'authorization_code',
-      client_id: process.env.UID_42,
-      client_secret: process.env.SECRET_42,
-      code: code,
-      redirect_uri: 'http://localhost:4000/api/auth/callback42',
-    };
-    return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+    try {
+      const requestBody = {
+        grant_type: 'authorization_code',
+        client_id: process.env.UID_42,
+        client_secret: process.env.SECRET_42,
+        code: code,
+        redirect_uri: 'http://localhost:4000/api/auth/callback42',
+      };
+      return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+
+    } catch (error) {
+      throw error;  
+    }
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -526,14 +533,18 @@ export class AuthService {
         // use the 42 profile picture if not null
         avatarUrl = userInfo.image.link;
       }
+      const avatarFile: Express.Multer.File = await this.usersService.downloadFile(avatarUrl); 
+
       const user = await this.prisma.user.create({
         data: {
           id: userInfo.id,
           hashPassword: this.generateRandomPassword(),
           username: userInfo.login,
-          avatar: userInfo.image.link,
+          avatar: null,
         },
       });
+
+      await this.usersService.updateAvatar(user.id, avatarFile);
       const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
       user.twoFASecret = secret;
       user.twoFAUrl = otpauthUrl;
