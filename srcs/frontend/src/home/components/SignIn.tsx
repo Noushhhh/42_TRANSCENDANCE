@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import "../styles/generalStyles.css";
 import GoBackButton from "../tools/GoBackButton";
 import { hasMessage , getErrorResponse} from "../tools/Api";
 import useTokenExpired from "../tools/hooks/useTokenExpired";
+import { verify2FA } from "../tools/Api";
 /*************************************************************************** */
 /**
  * @function InputField
@@ -104,19 +105,22 @@ const SignIn: React.FC = () => {
   const [userId, setUserId] = useState(0);
   const checkToken = useTokenExpired();
   // Hook for programmatic navigation.
-  const navigate = useNavigate();
   const isClientRegistered = useIsClientRegistered();
+  const navigate = useNavigate();
 
-  const checkIfAlreadyLoggedIn = async () => {
+  const checkIfAlreadyLoggedIn = useCallback(async () => {
     const tokenExpired = await checkToken();
     if (tokenExpired === false) {
       navigate("/home");
     }
-  };
+  }, [checkToken, navigate]);
+
+  // ─────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
-  }, []);
+  }, [checkIfAlreadyLoggedIn]);
+// ─────────────────────────────────────────────────────────────────────────────
 
   const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -134,13 +138,6 @@ const SignIn: React.FC = () => {
         const userIsRegisterd = await isClientRegistered();
         navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
       }
-      // if (res === idClient) { | Si le res indique 2FA alors on prompt l'input,
-      // Et on fait un call API pour verifier la 2FA
-      // setCode()
-      // await callAPI(code)
-      // const userIsRegisterd = await isClientRegistered();
-      // navigate(userIsRegisterd ? '/home' : '/userprofilesetup');
-      // }
     } catch (error) {
       const errorMessage = hasMessage(error)
         ? error.message
@@ -150,36 +147,18 @@ const SignIn: React.FC = () => {
       setIsLoading(false);
     }
   };
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const verify2FA = async () => {
+  const handleVerify2FA = async () => {
     try {
-      console.log("USERID CODE = ", userId, twoFaCode);
-      const response = await fetch(
-        "http://localhost:4000/api/auth/verifyTwoFACode",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, token: twoFaCode }),
-        }
-      );
-
-      if (!response.ok) return Promise.reject(await response.json());
-
-      const formattedRes = await response.json();
-      console.log("RES = ", formattedRes);
-      if (formattedRes.valid === true) {
-        console.log("ICI TRUE");
-        // const userIsRegisterd = await isClientRegistered();
-        // navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
-        navigate("/home");
-      }
+      console.log(`Passing by handleVerify2FA`);
+      await verify2FA(userId, twoFaCode, navigate);
     } catch (error) {
-      console.log(error);
+      console.error(`Error when verifying 2FA : ${hasMessage(error) ? error.message : ""}`);
+      toast.error(hasMessage(error)? error.message : 'Unable to check 2FA');
     }
   };
+// ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="container">
@@ -215,7 +194,7 @@ const SignIn: React.FC = () => {
             placeholder="2FA Code"
           />
 
-          <button onClick={() => verify2FA()}>Submit</button>
+          <button onClick={handleVerify2FA}>Submit</button>
         </div>
       ) : null}
     </div>

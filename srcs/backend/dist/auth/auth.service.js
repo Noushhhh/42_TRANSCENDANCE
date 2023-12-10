@@ -597,30 +597,39 @@ let AuthService = class AuthService {
      */
     verifyTwoFACode(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-            });
-            if (!user) {
-                throw new common_1.NotFoundException('User not found');
-            }
-            if (!user.twoFASecret)
-                return false;
-            const verified = speakeasy.totp.verify({
-                secret: user.twoFASecret,
-                encoding: 'base32',
-                token: code,
-            });
-            if (verified === true) {
-                const result = yield this.signToken(user.id, user.username, res);
-                if (!result.valid) {
-                    // Consider providing more detailed feedback based on the error
-                    throw new common_1.ForbiddenException('Authentication failed');
+            try {
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!user) {
+                    throw new common_1.NotFoundException('User not found');
                 }
-                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                if (!user.twoFASecret)
+                    return false;
+                const verified = speakeasy.totp.verify({
+                    secret: user.twoFASecret,
+                    encoding: 'base32',
+                    token: code,
+                });
+                if (!verified) {
+                    console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
+                    throw new common_1.ForbiddenException('Provided code couldn\'d be verified');
+                }
+                if (verified === true) {
+                    const result = yield this.signToken(user.id, user.username, res);
+                    if (!result.valid) {
+                        // Consider providing more detailed feedback based on the error
+                        throw new common_1.ForbiddenException('Authentication failed');
+                    }
+                    res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                }
+                return verified;
             }
-            return verified;
+            catch (error) {
+                throw error;
+            }
         });
     }
     validateTwoFA(userId, code) {

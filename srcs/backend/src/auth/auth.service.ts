@@ -591,34 +591,44 @@ export class AuthService {
    * @return Whether the 2FA code is verified.
    */
   async verifyTwoFACode(userId: number, code: string, res: Response): Promise<boolean> {
-    const user: User | null = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
+    try {
+      const user: User | null = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.twoFASecret) return false;
-
-    const verified = speakeasy.totp.verify({
-      secret: user.twoFASecret,
-      encoding: 'base32',
-      token: code,
-    });
-
-    if (verified === true) {
-      const result = await this.signToken(user.id, user.username, res);
-      if (!result.valid) {
-        // Consider providing more detailed feedback based on the error
-        throw new ForbiddenException('Authentication failed');
+      if (!user) {
+        throw new NotFoundException('User not found');
       }
-      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
-    }
 
-    return verified;
+      if (!user.twoFASecret) return false;
+
+      const verified = speakeasy.totp.verify({
+        secret: user.twoFASecret,
+        encoding: 'base32',
+        token: code,
+      });
+
+      if (!verified) {
+        console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
+        throw new ForbiddenException('Provided code couldn\'d be verified');
+      }
+
+      if (verified === true) {
+        const result = await this.signToken(user.id, user.username, res);
+        if (!result.valid) {
+          // Consider providing more detailed feedback based on the error
+          throw new ForbiddenException('Authentication failed');
+        }
+        res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+      }
+
+      return verified;
+
+    } catch (error) {
+      throw error;
+    }
   }
 
   async validateTwoFA(userId: number, code: string): Promise<boolean> {
