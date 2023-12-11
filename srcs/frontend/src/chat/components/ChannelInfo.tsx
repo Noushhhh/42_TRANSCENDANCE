@@ -77,7 +77,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
           setChannelName(channelName);
         }
       } catch (error) {
-        setError("fetching error");
+        setError("fetching  error");
       }
     }
     fetchChannelName();
