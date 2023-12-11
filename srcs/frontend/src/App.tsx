@@ -1,5 +1,4 @@
 import GameContainer from "./game/components/GameContainer";
-import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
@@ -16,8 +15,6 @@ import {
   Friends,
   Stats,
   ErrorComponent,
-  Chat,
-  useActivityLogout,
   UserProfileSetup,
   ActivityLogoutHandler,
   OAuth42Callback,
@@ -28,12 +25,6 @@ import "./App.css";
 import { Socket } from "socket.io-client";
 import { useState, useRef } from "react";
 import GameInvitation from "./game/components/gameNetwork/GameInvitation";
-
-// Mock element while Paul finishes the chat, Theo finishes the game, and someone finished the friends
-// component
-const MockComponent: React.FC = () => {
-  return <div> Placeholder for unfinished component </div>;
-};
 
 // Interface for handling socket errors
 interface SocketErrorObj {
