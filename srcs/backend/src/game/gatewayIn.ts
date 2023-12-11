@@ -312,19 +312,13 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('refuseReplay')
   async refuseReplay(@ConnectedSocket() client: Socket) {
-    // const opponentId = this.gameLobby.getPlayerOpponentSocketId(client.id);
-    // const isP1 = this.gameLobby.isThisClientP1(client.id);
-
-    // if (opponentId) {
-    //   if (isP1) {
-    //     this.gatewayOut.emitToUser(opponentId, "player1Replay", true);
-    //     this.gatewayOut.emitToUser(client.id, "player1Replay", true);
-    //   } else {
-    //     this.gatewayOut.emitToUser(opponentId, "player2Replay", true);
-    //     this.gatewayOut.emitToUser(client.id, "player2Replay", true);
-    //   }
-    // }
     await this.gameLobby.removePlayerFromLobby(client);
+  }
+
+  @SubscribeMessage('isUserInGame')
+  isUserInGame(@MessageBody() userId: number) {
+    console.log("ICI =", this.gameLobby.isPlayerInGame(userId));
+    return this.gameLobby.isPlayerInGame(userId);
   }
 
   private sendError(message: string, statusCode: number, client: Socket) {

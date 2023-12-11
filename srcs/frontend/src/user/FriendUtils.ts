@@ -77,6 +77,7 @@ export const removeFriend = async (senderId: number, targetId: number, socket: S
     "http://localhost:4000/api/users/removeFriend",
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -95,6 +96,7 @@ export const acceptFriendRequest = async (senderId: number, targetId: number,
     "http://localhost:4000/api/users/acceptFriendRequest",
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -115,6 +117,7 @@ export const refuseFriendRequest = async (senderId: number, targetId: number,
     "http://localhost:4000/api/users/refuseFriendRequest",
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

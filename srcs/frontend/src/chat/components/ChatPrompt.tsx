@@ -28,21 +28,18 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
 
   const storeMsgToDatabase = async (message: MessageToStore) => {
     const { id, ...newMessage }: Partial<Message> = message;
-    await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(message),
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((createdMessage) => {
-        console.log(createdMessage);
+    try {
+      await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+        credentials: "include",
       })
-      .catch((error) => {
-        console.error(error);
-      });
+    } catch (errors) {
+      console.log(errors);
+    }
   };
 
   const sendMessage = () => {

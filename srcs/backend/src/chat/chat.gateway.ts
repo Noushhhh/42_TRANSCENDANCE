@@ -137,12 +137,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     @SubscribeMessage("joinChannel")
     handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is joining channelId: ${channelId}`);
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         client.join(String(channelId));
     }
 
     @SubscribeMessage("leaveChannel")
     handleLeaveChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
         console.log(`userId: ${client.data.userId} is leaving channelId: ${channelId}`);
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         client.leave(String(channelId));
     }
 
@@ -153,6 +155,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!socket)
             return
         socket.emit("kickedOrBanned", channelId);
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         socket.leave(String(channelId));
     }
 
@@ -164,6 +167,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             return
         socket.join(String(channelId));
         socket.emit("addedToChannel");
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         console.log(`userId: ${userId} is joining of ${channelId}`);
     }
 
