@@ -3,13 +3,13 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters, Body, BadRequestException
+    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { UsersService } from './users.service';
-import { UserIdDto, friendRequestDto, UpdatePublicNameDto } from './dto';
+import { UserIdDto, friendRequestDto, UpdatePublicNameDto, friendDto } from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
@@ -179,11 +179,14 @@ export class UsersController {
     }
 
     @Post('sendFriendRequest')
-    async sendFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+    async sendFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
+
         try {
-            await this.UsersService.sendFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId);
+            await this.UsersService.sendFriendRequest(req.user.id, friend.id);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw error;
         }
         return { status: "Friend request sent" };
@@ -191,22 +194,22 @@ export class UsersController {
 
     @Get('getPendingRequests')
     async getPendingRequests(@Req() req: Request) {
-        const userId = req.headers['x-user-id'];
-        if (typeof userId === 'string') {
-            const userIdInt = parseInt(userId);
-            const pendingRequests = await this.UsersService.getPendingRequests(userIdInt);
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
+        const pendingRequests = await this.UsersService.getPendingRequests(req.user.id);
 
-            return { pendingRequests: pendingRequests };
-        }
-        throw new BadRequestException("Error trying to parse userID");
+        return { pendingRequests: pendingRequests };
+
     }
 
     @Post('acceptFriendRequest')
-    async acceptFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+    async acceptFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
         try {
-            await this.UsersService.acceptFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
+            await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw error;
         }
 
@@ -214,11 +217,13 @@ export class UsersController {
     }
 
     @Post('refuseFriendRequest')
-    async refuseFriendRequest(@Body() friendRequestDto: friendRequestDto) {
+    async refuseFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
         try {
-            await this.UsersService.refuseFriendRequest(friendRequestDto.senderId, friendRequestDto.targetId)
+            await this.UsersService.refuseFriendRequest(req.user.id, friend.id)
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw error;
         }
 
@@ -227,37 +232,36 @@ export class UsersController {
 
     @Get('getFriendsList')
     async getFriendsList(@Req() req: Request) {
-        const userId = req.headers['x-user-id'];
-        if (typeof userId === 'string') {
-            const userIdInt = parseInt(userId);
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
 
-            const friendsList = await this.UsersService.getFriendsList(userIdInt);
-            return { friendsList: friendsList };
-        }
-        throw new BadRequestException("Error trying to parse userID");
+        const friendsList = await this.UsersService.getFriendsList(req.user.id);
+        return { friendsList: friendsList };
     }
 
     @Post('removeFriend')
-    async removeFriend(@Body() friendRequestDto: friendRequestDto) {
+    async removeFriend(@Req() req: Request, @Body() friend: friendDto) {
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
+
         try {
-            await this.UsersService.removeFriend(friendRequestDto.senderId, friendRequestDto.targetId);
+            await this.UsersService.removeFriend(req.user.id, friend.id);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw error;
         }
     }
 
     @Get('getUserProfil')
     async getUserProfil(@Req() req: Request) {
-        const userId = req.headers['x-user-id'];
-
-        if (typeof userId === 'string') {
-            const userIdInt = parseInt(userId);
-
-            const userProfile = await this.UsersService.getUserProfile(userIdInt);
-            console.log("USER PROFILE = ", userProfile);
+        if (!req.user?.id)
+            throw new NotFoundException("User not found");
+        try {
+            const userProfile = await this.UsersService.getUserProfile(req.user.id);
             return { userProfile: userProfile };
+        } catch (error) {
+            console.error(error)
+            throw error;
         }
-        throw new BadRequestException("Error trying to parse userID");
     }
 }

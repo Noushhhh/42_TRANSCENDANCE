@@ -88,8 +88,6 @@ export class GameLobbyService {
       throw new NotFoundException("Error during lobby creation");
     }
 
-    console.log("LOBBY CREATE WITH ", playerDbId);
-
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);

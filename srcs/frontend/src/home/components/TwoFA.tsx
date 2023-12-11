@@ -37,9 +37,6 @@ const TwoFA: FC = () => {
         {
           method: "GET",
           credentials: "include",
-          headers: {
-            "X-User-ID": userId.toString(),
-          },
         }
       );
 
@@ -56,10 +53,10 @@ const TwoFA: FC = () => {
   const enable2FA = async () => {
     const response = await fetch("http://localhost:4000/api/auth/enable2FA", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userId }),
     });
 
     if (!response.ok) return Promise.reject(await response.json());
@@ -71,10 +68,10 @@ const TwoFA: FC = () => {
   const disable2FA = async () => {
     const response = await fetch("http://localhost:4000/api/auth/disable2FA", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userId }),
     });
 
     if (!response.ok) return Promise.reject(await response.json());
@@ -87,10 +84,11 @@ const TwoFA: FC = () => {
       "http://localhost:4000/api/auth/validating2FA",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId, token }),
+        body: JSON.stringify({ token }),
       }
     );
 

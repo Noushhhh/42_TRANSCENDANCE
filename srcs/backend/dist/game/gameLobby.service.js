@@ -101,7 +101,6 @@ let GameLobbyService = class GameLobbyService {
             if (!lobby) {
                 throw new common_1.NotFoundException("Error during lobby creation");
             }
-            console.log("LOBBY CREATE WITH ", playerDbId);
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
             this.gatewayOut.isInLobby(true, player);

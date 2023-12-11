@@ -151,7 +151,7 @@ const SignIn: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId, token: twoFaCode }),
+        body: JSON.stringify({ userId: userId, token: twoFaCode }),
       }
     );
 

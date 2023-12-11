@@ -38,7 +38,6 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
 
   useEffect(() => {
     fetchPendingRequests(
-      userId,
       setPendingRequests,
       setRequestsNumber
     ).catch((e) => {
@@ -49,7 +48,6 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
   useEffect(() => {
     const refreshPendingRequests = async () => {
       await fetchPendingRequests(
-        userId,
         setPendingRequests,
         setRequestsNumber
       ).catch((e) => {
