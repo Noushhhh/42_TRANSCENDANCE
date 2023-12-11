@@ -340,7 +340,7 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
       console.log("ICI TRUE");
       // const userIsRegistered = await isClientRegistered();
       // navigate(userIsRegistered ? "/home" : "/userprofilesetup");
-      navigate("/home");
+      navigate("/home/game");
     }
   } catch (error) {
     throw error;

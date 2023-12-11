@@ -88,7 +88,7 @@ const SignIn: React.FC = () => {
   const checkIfAlreadyLoggedIn = useCallback(async () => {
     const tokenExpired = await checkToken();
     if (tokenExpired === false) {
-      navigate("/home");
+      navigate("/home/game");
     }
   }, [checkToken, navigate]);
 
@@ -113,7 +113,7 @@ const SignIn: React.FC = () => {
         setDisplayTwoFa(true);
       } else {
         const userIsRegisterd = await isClientRegistered();
-        navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
+        navigate(userIsRegisterd ? "/home/game" : "/userprofilesetup");
       }
     } catch (error) {
       const errorMessage = hasMessage(error)
