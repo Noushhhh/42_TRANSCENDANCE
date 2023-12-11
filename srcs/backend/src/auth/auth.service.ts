@@ -402,38 +402,19 @@ export class AuthService {
       const userInfo = await this.getUserInfo(token);
       const user = await this.createUser(userInfo, res);
 
-      if (user.TwoFA == true) {
+      if (await this.is2FaEnabled(user.id) === false) {
+        console.log(`Passing by 2FA is not activated`);
+        const result = await this.signToken(user.id, user.username, res);
+        if (!result.valid) {
+          // Consider providing more detailed feedback based on the error
+          throw new ForbiddenException('Authentication failed');
+        }
 
+        res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+      } else {
+        res.status(200).send({ valid: true, message: "2FA", userId: user.id });
       }
 
-      // Set both JWT token and refresh token as cookies
-      const payload = {
-        sub: user.id,
-        username: user.username,
-      };
-      const secret = this.JWT_SECRET;
-      const jwtToken = await this.jwt.signAsync(payload, {
-        expiresIn: '15m',
-        secret: secret,
-      });
-      const refreshToken = await this.createRefreshToken(user.id);
-
-      res.cookie('token', jwtToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
-      });
-
-      res.cookie('refreshToken', refreshToken.token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-      });
-
-      // Redirect the user to the desired URL after successful authentication
-      res.redirect('http://localhost:8081/home');
     } catch (error) {
       console.error('Error in signToken42:', error);
       // Handle errors here, e.g., return an error response
@@ -467,7 +448,7 @@ export class AuthService {
         client_id: process.env.UID_42,
         client_secret: process.env.SECRET_42,
         code: code,
-        redirect_uri: 'http://localhost:4000/api/auth/callback42',
+        redirect_uri: 'http://localhost:8081/callback42',
       };
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 

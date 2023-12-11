@@ -177,7 +177,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     <div className="container">
       <ToastContainer />
       <h1>Pong game</h1>
-      <h2>Welcome {email}</h2>
+      <h2 style={{ color: `var(--purple-color)` }}>Welcome {email}</h2>
       <input
         type="text"
         placeholder="Choose a username"

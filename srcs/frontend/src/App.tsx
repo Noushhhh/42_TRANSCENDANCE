@@ -19,7 +19,8 @@ import {
   Chat,
   useActivityLogout,
   UserProfileSetup,
-  ActivityLogoutHandler
+  ActivityLogoutHandler,
+  OAuth42Callback,
 } from "./home/components/index";
 import SocketError from "./game/components/gameNetwork/SocketError";
 import IoConnection from "./socket/IoConnection";
@@ -81,6 +82,8 @@ const App: React.FC = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/authchoice" element={<AuthChoice />} />
       <Route path="/userprofilesetup" element={<UserProfileSetup />} />
+      <Route path="/callback42" element={<OAuth42Callback />} />
+
       <Route
         path="/home"
         element={

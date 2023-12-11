@@ -87,7 +87,7 @@ export class AuthController {
     } catch (error) {
       console.error(error);
       // Handle errors here and redirect as needed
-      res.redirect('/error2');
+      res.redirect('http://localhost:8081/error');
     }
   }
 

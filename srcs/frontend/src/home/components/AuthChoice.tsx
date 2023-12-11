@@ -22,18 +22,20 @@ const AuthChoice: React.FC = () => {
     };
 
     let url42 = () => {
-        return axios.get('http://localhost:4000/api/auth/42Url')
+        return axios.get('http://localhost:4000/api/auth/42Url',
+            { withCredentials: true })
     }
 
     const handleSignin42Nav = async () => {
-        await url42()
-        .then(response_url => {
-            window.location.href = (response_url.data);
-        })
-        .catch(error => {
+        try {
+            const response = await url42();
+            console.log(response);
+            window.location.href = response.data; // Redirects to 42 OAuth page
+        } catch (error) {
             console.log(error);
-        });
-    }
+        }
+    };
+
 
     // Return the JSX for the component.
     return (
