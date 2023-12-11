@@ -134,12 +134,10 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 ) : null
             }
             {
-            userListChannel.length > 1 ? (
                 <div className="flex">
                 <h5>Channel Name</h5>
                 <input value={channelName} onChange={handleChannelName} type="text" />
             </div>
-            ) : null
         }
             <button onClick={callCreateChannel}>Create</button>
         </div>

@@ -46,30 +46,30 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
         try {
             if (apiResponse) {
                 if (await isUserIsBan(apiResponse.id, userId) === true) {
-                setError("You are banned from this channel");
+                    setError("You are banned from this channel");
+                    return ;
             }
             let channelType: { channelType: ChannelType; channelId: number; } | null = null;
             try {
                 channelType = await joinChannel(apiResponse, userId);
             } catch (error: any){
-                console.log(error);
                 setError(error.message);
             }
             if ( ! channelType)
-            return ;
-        switch (channelType.channelType.toString()) {
-            case "PUBLIC":
-                setStateMessageToClick([false, false]);
-                socket.emit("joinChannel", channelType.channelId);
-                await fetchUser(setChannelHeader, userId, socket);
-                break;
+                return ;
+            switch (channelType.channelType.toString()) {
+                case "PUBLIC":
+                    setStateMessageToClick([false, false]);
+                    socket.emit("joinChannel", channelType.channelId);
+                    await fetchUser(setChannelHeader, userId, socket);
+                    break;
                 case "PRIVATE":
                     setError("You can't join private channel");
                     break;
-                    case "PASSWORD_PROTECTED":
-                        setDisplayPasswordInput(true);
-                        break;
-                    }
+                case "PASSWORD_PROTECTED":
+                    setDisplayPasswordInput(true);
+                    break;
+                }
         }
         else {
             setError("Channel doesnt exist");
@@ -96,18 +96,27 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
         try {
             setError(null);
             setApiResponse(null);
-            const response = await axios.post('http://localhost:4000/api/chat/isChannelNameExist',
-                { channelName: updatedChannelName });
-            if (response.status === 201) {
-                response.data.isExist ? setApiResponse(response.data) : null;
-            } else if (response.status === 400) {
-                setError('invalid charater');
+            const response: Response = await fetch('http://localhost:4000/api/chat/isChannelNameExist', {
+                method: "POST",
+                credentials: 'include',
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ channelName: updatedChannelName })
+              });
+            if (!response.ok){
+                const errorData = await response.json();
+                setError(errorData.message || 'An error occurred');
+                return ;
             }
-            else {
+            const data = await response.json();
+            console.log("status === ", response.status);
+            if (response.status === 201) {
+                setApiResponse(data);
+            } else {
                 setError('Error');
             }
         } catch (error) {
-            setError('Invalid character');
         }
     }
 

@@ -70,7 +70,11 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                 setSearchBarResults(true);
             }
             if (inputValue.length > 0){
-                await fetchUsers();
+                try {
+                    await fetchUsers();
+                } catch (error: any){
+                    console.log(error.message);
+                }
             }
         }
         fetch();

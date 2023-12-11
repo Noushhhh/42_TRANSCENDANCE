@@ -93,11 +93,11 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
           setIsChannelOwner(isItChannelOwner);
           const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
           setnumberUsersInChannel(numberUsersInChannel);
-          const channelName: string = await getChannelName(channelId, userId);
+          const channelName: string | null = await getChannelName(channelId, userId);
           setChannelName(channelName);
         }
       } catch (error) {
-        setError("fetching error");
+        setError("fetching  error");
       }
     }
     fetchChannelName();
@@ -198,7 +198,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
       <div className={`${'Container' + isContainerDisplay}`}>
         <HeaderChannelInfo handleClick={() => {handleClick()}} title={"Groups information"} />
         <div className="ChannelInfoCard ChannelName">
-          <h4>{channelName ? channelName : 'Loading...'}</h4>
+          <h4>{channelName ? channelName : 'no-name'}</h4>
           <h5>{numberUsersInChannel ? numberUsersInChannel : null} membres</h5>
         </div>
         <div className="ChannelInfoCard SettingsButton">

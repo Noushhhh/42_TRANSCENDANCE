@@ -38,7 +38,7 @@ function JoinProtectedChannel({ setStateMessageToClick, channelId }: JoinProtect
                 }
             }
         } catch (error: any) {
-            console.log(error.data.message);
+            setError(error.message);
         }
     }
 
