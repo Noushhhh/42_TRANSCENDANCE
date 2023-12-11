@@ -764,10 +764,10 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
 
 export const getUsername = async (userId: number): Promise<string> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/users/getUsernameWithId?userId=${userId}`, GetRequestOptions);
+    const response: Response = await fetch(`http://localhost:4000/api/users/getPublicName?userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
-    const username: string = await response.text();
-    return username;
+    const publicName: string = await response.text();
+    return publicName;
   } catch (errors){
     throw errors;
   }

@@ -62,6 +62,26 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
     setNewOwner(undefined);
   }
 
+
+  const updateChannelNumberMember = async (channelIdReceived: number) => {
+    console.log("updateChannelNumberMember");
+    if (channelIdReceived === channelId){
+      try {
+        const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
+        setnumberUsersInChannel(numberUsersInChannel);
+      } catch (errors){
+        console.log(errors);
+      }
+    }
+  }
+
+  useEffect(() => {
+    socket.on("channelNumberMembersChanged", updateChannelNumberMember);
+    return () => {
+      socket.off("channelNumberMembersChanged", updateChannelNumberMember);
+    };
+  });
+
   useEffect(() => {
     setError(null);
     setChannelInfo(false);
