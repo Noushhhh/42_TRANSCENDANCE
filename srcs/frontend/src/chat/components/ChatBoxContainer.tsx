@@ -27,8 +27,12 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
 
   useEffect(() => {
     const getUser = async () => {
-      const userIdFetched: number = await getMyUserId();
-      setUserId(userIdFetched);
+      try {
+        const userIdFetched: number = await getMyUserId();
+        setUserId(userIdFetched);
+      } catch (error: any){
+        console.log(error.message);
+      }
     };
     getUser();
   }, []);

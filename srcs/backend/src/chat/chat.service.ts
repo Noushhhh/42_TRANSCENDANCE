@@ -50,7 +50,7 @@ export class ChatService {
     return conversationIds;
   }
 
-  async getChannelName(channelId: number, callerId: number): Promise<string> {
+  async getChannelName(channelId: number, callerId: number): Promise<string | null> {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
       include: {
@@ -61,15 +61,23 @@ export class ChatService {
     if (!channel)
       throw new NotFoundException("Channel not found");
 
+    if (channel.name)
+      return channel.name;
+
     const caller: User = await this.getUserById(callerId);
     if (!caller)
       throw new NotFoundException(`User with id ${callerId} not found`);
 
     const numberUsersInChannel: number = channel.participants.length;
     if (numberUsersInChannel === 2) {
-      return (callerId === channel.participants[0].id ? channel.participants[1].username : channel.participants[0].username)
+      return (callerId === channel.participants[0].id ? channel.participants[1].publicName : channel.participants[0].publicName)
     }
-    return channel.name;
+
+    let channelName: string = "";
+    for (const participant of channel.participants){
+      channelName += ` ${participant.publicName},`;
+    }
+    return channelName;
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
@@ -250,7 +258,6 @@ export class ChatService {
     if (!channel) {
       throw new NotFoundException("Channel not found");
     }
-
     return channel.admins.some((element) => element.id === userId);
   }
 
@@ -401,15 +408,6 @@ export class ChatService {
 
     if (await this.isAdmin(userId, channelId))
       throw new ForbiddenException("Admin can't leave channel");
-
-    /*if (await this.getNumberUsersInChannel(channelId) <= 2) {
-      await this.deleteAllMessagesInChannel(channelId);
-      await this.prisma.channel.delete({
-        where: { id: channelId },
-      })
-      await this.notifyClientChannelDeleted(channelId);
-      return true;
-    }*/
 
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
@@ -574,11 +572,11 @@ export class ChatService {
   }
 
   async isChannelNameExist(channelName: string): Promise<isChannelExist | false> {
-    const isExist = await this.prisma.channel.findFirst({
+    const isExist: Channel | null = await this.prisma.channel.findFirst({
       where: { name: channelName },
     })
     if (!isExist)
-      throw new NotFoundException("Channel not exist");
+      throw new NotFoundException("Channel not found");
     if (isExist) {
       return {
         isExist: true,
@@ -699,9 +697,11 @@ export class ChatService {
 
   async manageChannelPassword(channelId: number, channelType: string, actualPassword: string, newPassword: string) {
     const channel = await this.getChannelById(channelId);
-    if (!channel.password)
-      return;
+    if (channelType === "PASSWORD_PROTECTED" && (newPassword.length < 6 || newPassword.length > 22))
+        throw new ForbiddenException("Channel password must be 6 to 22 characterss");
     if (channel.type === "PASSWORD_PROTECTED") {
+      if (!channel.password)
+        throw new NotAcceptableException('Impossible match');
       const passwordMatch = await argon.verify(channel.password, actualPassword);
       if (!passwordMatch)
         throw new ForbiddenException('Incorrect channel password');

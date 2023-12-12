@@ -65,7 +65,6 @@ interface isChannelExist {
 }
 
 @Controller('chat')
-@UseGuards(JwtAuthGuard)
 export class ChatController {
     
     constructor(private chatService: ChatService) { };
@@ -73,7 +72,6 @@ export class ChatController {
     @Post('getAllConvFromId')
     async getAllConvFromId(
         @Body() userIdDto: UserIdDto): Promise<number[]> {
-        console.log("get all conv called with ", userIdDto);
         return this.chatService.getAllConvFromId(userIdDto.userId);
     }
 
@@ -84,7 +82,7 @@ export class ChatController {
         
     @Get('getChannelName')
     async getChannelName(
-        @Query() dto: PairUserIdChannelId): Promise<string> {
+        @Query() dto: PairUserIdChannelId): Promise<string | null> {
         return this.chatService.getChannelName(dto.channelId, dto.userId);
     }
 
@@ -193,6 +191,13 @@ export class ChatController {
     @Post('addUserToProtectedChannel')
     async addUserToProtectedChannel(
         @Body() data: SignUpChannelDto): Promise<void> {
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
         return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
     }
 

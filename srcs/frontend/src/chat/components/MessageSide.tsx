@@ -45,7 +45,11 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     console.log("client know that he is been kicked or ban");
-    await fetchUser(setChannelHeader, userId, socket);
+    try {
+      await fetchUser(setChannelHeader, userId, socket);
+    } catch (error) {
+      console.log(error);
+    }
     if (bannedFromChannelId === channelId)
       setChannelId(-1);
   }
@@ -97,7 +101,11 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   }, [])
   
   const addedToChannelEvent = async () => {
-    await fetchUser(setChannelHeader, userId, socket);
+    try {
+      await fetchUser(setChannelHeader, userId, socket);
+    } catch (error: any){
+      console.log(error);
+    }
   }
 
   const messageEvent = (data: Message) => {
