@@ -123,12 +123,17 @@ let AuthService = class AuthService {
      */
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.cookies['userSession']) {
-                throw new common_1.ForbiddenException('A user is already logged in. Please log out before logging in as a different user.');
-            }
             const user = yield this.usersService.findUserWithUsername(dto.username);
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
+            /*  At this point, if the user sends a signin request, that means whether his token is expired
+                or he is not logged in(there is no cookies trace session in the browser), as in the fronted
+                "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
+                before sending a request to backend */
+            if (req.cookies['userSession']) {
+                //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
+                yield this.signout(user.id, res);
+            }
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
@@ -139,7 +144,6 @@ let AuthService = class AuthService {
             if ((yield this.is2FaEnabled(user.id)) === false) {
                 const result = yield this.signToken(user.id, user.username, res);
                 if (!result.valid) {
-                    // Consider providing more detailed feedback based on the error
                     throw new common_1.ForbiddenException('Authentication failed');
                 }
                 res.status(200).send({ valid: result.valid, message: result.message, userId: null });
@@ -149,6 +153,7 @@ let AuthService = class AuthService {
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     /**
      * @brief This function validates a user.
      * @param dto The data transfer object containing user information.
@@ -292,20 +297,6 @@ let AuthService = class AuthService {
             if (!refreshToken) {
                 throw new common_1.ConflictException("Problem creating refresh token for user");
             }
-            /*     const decodedToken = jwt.verify(newToken.token, this.JWT_SECRET);
-                if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-                  res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
-                    { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
-                } else {
-                  return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
-                }
-            
-                const sessionId = this.generateSessionId();
-                await this.prisma.user.update({
-                  where: { id: userId },
-                  data: { sessionId },
-                });
-             */
             return ({ statusCode: 200, valid: true, message: "Authentication successful" });
         });
     }
@@ -384,6 +375,7 @@ let AuthService = class AuthService {
     signout(userId, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log("passing by signout");
                 yield this.prisma.user.update({
                     where: { id: userId },
                     data: { sessionId: null, sessionExpiresAt: null },

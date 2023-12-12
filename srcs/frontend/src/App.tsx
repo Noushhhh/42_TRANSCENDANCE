@@ -40,6 +40,7 @@ const App: React.FC = () => {
   const signOut = useSignOut();
   const navigate = useNavigate();
 
+// ─────────────────────────────────────────────────────────────────────────────
   // Effect to listen for changes in local storage, specifically for logout
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -49,13 +50,14 @@ const App: React.FC = () => {
         navigate('/signin');
       }
     };
-
     window.addEventListener('storage', handleStorageChange);
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+
     };
   }, [signOut, navigate]);
+
+  // ─────────────────────────────────────────────────────────────────────
 
   // Function to handle socket errors and display them
   const handleError = (error: SocketErrorObj) => {
@@ -65,6 +67,8 @@ const App: React.FC = () => {
       setError("");
     }, 1500);
   };
+  // ─────────────────────────────────────────────────────────────────────
+
 
   return (
     <Routes>
