@@ -358,18 +358,17 @@ export class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+
   /**
    * @brief This function handles user signout requests.
    * @param decodedPayload The decoded payload.
    * @param res The response object.
    * @return The result of the signout operation.
    */
-  async signout(decodedPayload: DecodedPayload | null, res: Response) {
-    if (!decodedPayload)
-      throw new ForbiddenException("problem obtaining paylod when signing out");
+  async signout(userId: number, res: Response) {
     try {
       await this.prisma.user.update({
-        where: { id: decodedPayload.sub },
+        where: { id: userId },
         data: { sessionId: null, sessionExpiresAt: null },
       });
 
@@ -646,7 +645,6 @@ export class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * @brief This function enables 2FA.
    * @param userId The user's ID.

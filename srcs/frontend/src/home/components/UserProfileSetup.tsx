@@ -135,7 +135,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
         if (!avatarFromBack) {
           await handleUpdateAvatar();
         }
-        navigate('/home');
+        navigate('/home/game');
       }
       toast.error("You need to provide a Public Name to access the game");
     } catch (error) {

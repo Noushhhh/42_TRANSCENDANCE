@@ -68,7 +68,7 @@ export class AuthController {
       console.error("error decoding payload with decorator\n");
       return;
     }
-    return this.authService.signout(decodedPayload, res);
+    return this.authService.signout(decodedPayload.sub, res);
   }
 
   @Public()

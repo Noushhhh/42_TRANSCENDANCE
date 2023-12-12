@@ -381,13 +381,11 @@ let AuthService = class AuthService {
      * @param res The response object.
      * @return The result of the signout operation.
      */
-    signout(decodedPayload, res) {
+    signout(userId, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!decodedPayload)
-                throw new common_1.ForbiddenException("problem obtaining paylod when signing out");
             try {
                 yield this.prisma.user.update({
-                    where: { id: decodedPayload.sub },
+                    where: { id: userId },
                     data: { sessionId: null, sessionExpiresAt: null },
                 });
                 // Clear the JWT cookie or session
