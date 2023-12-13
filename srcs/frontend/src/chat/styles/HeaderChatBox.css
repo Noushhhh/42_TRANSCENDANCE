@@ -6,6 +6,12 @@
     color:#C7C7C7;
 }
 
+.ContactName {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .ContactName, .HeaderChatBoxLogo{
     display: flex;
     align-items: center;

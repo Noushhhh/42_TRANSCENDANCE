@@ -173,6 +173,13 @@ export class UsersController {
         return this.UsersService.getUsernameWithId(dto.userId);
     }
 
+    @Get('getPublicName')
+    getPublicName(
+        @Query() dto: UserIdDto): Promise<string | null> {
+        return this.UsersService.getPublicName(dto.userId);
+    }
+
+
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined> {
         console.log("controller: username is: ", username);

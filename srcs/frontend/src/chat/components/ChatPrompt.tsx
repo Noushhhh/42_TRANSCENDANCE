@@ -28,21 +28,18 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
 
   const storeMsgToDatabase = async (message: MessageToStore) => {
     const { id, ...newMessage }: Partial<Message> = message;
-    await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(message),
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((createdMessage) => {
-        console.log(createdMessage);
+    try {
+      await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+        credentials: "include",
       })
-      .catch((error) => {
-        console.error(error);
-      });
+    } catch (errors) {
+      console.log(errors);
+    }
   };
 
   const sendMessage = () => {
@@ -54,6 +51,7 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       createdAt: new Date(),
       messageType: "MessageTo",
     };
+    let isSenderIsMuted: boolean = false;
     if (msgToSend.content.length > 5000){
       alert('message too long: 5000char max');
       return ;
@@ -62,20 +60,26 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
       setMessage("");
       return;
     }
-    socket.emit("message", msgToSend);
-    addMessage(msgToSend, "MessageTo");
-    const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
-    console.log("parsed message content == ");
-    console.log(parsedMessage.content);
-    storeMsgToDatabase(parsedMessage);
-    setMessage("");
+    socket.emit("message", msgToSend, (data: boolean) => {
+      isSenderIsMuted = data;
+      if (isSenderIsMuted)
+        msgToSend.content = "You are muted from this channel";
+      addMessage(msgToSend, "MessageTo");
+      if (isSenderIsMuted){
+        setMessage("");
+        return ;
+      }
+      const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+      storeMsgToDatabase(parsedMessage);
+      setMessage("");
+    });
   };
 
   useEffect(() => {
     socket.on("messageBack", messageEvent);
 
     return () => {
-      socket.off("messageBack", messageEvent);
+    socket.on("messageBack", messageEvent);
     };
   }, []);
 

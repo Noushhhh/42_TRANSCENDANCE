@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/MessageToClick.css";
 import TimeElapsed from "./TimeElapsed";
 import IsConnected from "./isConnected";
-import { useSetChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
+import { getChannelName } from "./ChannelUtils";
+import { useUserIdContext } from "../contexts/userIdContext";
 
 interface Channel {
     name: string,
@@ -19,7 +21,10 @@ interface MessageToClickProps{
 
 function MessageToClick({channel, isConnected, setChannelClicked }: MessageToClickProps) {
 
+    const [channelName, setChannelName] = useState<string | null>(null);
+    
     const setChannelId = useSetChannelIdContext();
+    const userId: number = useUserIdContext();
 
     let dateObject: Date | null;
 
@@ -27,6 +32,19 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
         dateObject = new Date(channel.dateLastMsg);
     else
         dateObject = null;
+
+    useEffect(() => {
+        const fetchChannelName = async () => {
+            try {
+                let channelName: string | null = await getChannelName(channel.channelId, userId);
+                setChannelName(channelName);
+            } catch (errors: any) {
+                console.log(errors.message);
+            }
+        }
+
+        fetchChannelName();
+    }, []);
 
     const handleClick = () => {
         setChannelId(channel.channelId);
@@ -41,7 +59,7 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
             <IsConnected isConnected={isConnected} />
             <div className="ContainerPreview">
                 <div className="MessageToClickTitle">
-                    <p className="senderName">{channel.name}</p>
+                    <p title={channelName ? channelName :  ""} className="senderName">{channelName ? channelName : null}</p>
                     <p className="dateMessage">{<TimeElapsed date={dateObject} />}</p>
                 </div>
                 <div className="ContentMessageTitle">
