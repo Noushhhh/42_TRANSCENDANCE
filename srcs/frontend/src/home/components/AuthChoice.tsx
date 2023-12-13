@@ -1,15 +1,27 @@
 // Import necessary libraries and styles.
-import React from "react";
+// Import necessary libraries and styles.
+import React, { useEffect } from "react";
 import axios from 'axios';
-import { useNavigate} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast , ToastContainer} from 'react-toastify';
 import '../styles/generalStyles.css';
-
+import LoadingSpinner from "../tools/LoadingSpinner";
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {
-
-    // Using the useNavigate hook from react-router to programmatically change routes.
+    // Using the useNavigate and useLocation hooks from react-router.
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check for error message in navigation state on component mount.
+    useEffect(() => {
+        console.log("passing by authchoise useffect to check location.state");
+        console.log(location.state);
+        if (location.state && location.state.errorMessage) {
+            toast.error(location.state.errorMessage);
+        }
+
+    }, [location.state]);
 
     // Function to navigate to the SignIn route.
     const handleSignInNav = () => {
@@ -36,10 +48,10 @@ const AuthChoice: React.FC = () => {
         }
     };
 
-
     // Return the JSX for the component.
     return (
         <div className="container">
+            <ToastContainer/>
             <div>
                 <header>
                     {/* Header title for the Pong Game */}
