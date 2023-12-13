@@ -74,7 +74,8 @@ html {
   text-size-adjust: auto;
   flex-shrink: 0.2;
   flex-wrap: wrap;
-  font-size: large;
+  padding: 0.5rem 1rem; /* Adjust padding for better touch interaction */
+  border-radius: 0.25rem; /* Optional: adds rounded corners */
 }
 
 .button:hover {
@@ -89,6 +90,10 @@ img {
 }
 
 @media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Slightly reduce the base font size */
+  }
+
   .header {
     flex-direction: column;
     gap: 0.625rem;
@@ -105,5 +110,24 @@ img {
 
   .content {
     padding: 0.625rem 0;
+    width: 90vw; /* Increase width to utilize more screen space */
   }
+
+  .button {
+    font-size: medium; /* Adjust font size for smaller screens */
+    padding: 0.4rem 0.8rem; /* Adjust padding for smaller screens */
+  }
+img {
+  max-width: 30%;
+  /* Larger percentage for smaller screens */
+  height: auto;
+  /* Maintain aspect ratio */
+  display: block;
+  /* Optional: Use block to enable margin auto */
+  margin: 0 auto;
+  /* Optional: Center the image horizontally */
+  padding: 0.5rem 0;
+  /* Optional: Add some padding around the image */
 }
+}
+

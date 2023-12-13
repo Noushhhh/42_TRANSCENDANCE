@@ -12,3 +12,4 @@ export { default as SignUp } from "./SignUp";
 export { default as ErrorComponent } from "../tools/ErrorComponent";
 export { default as UserProfileSetup } from "./UserProfileSetup";
 export { default as ActivityLogoutHandler } from "./ActivityLogoutHandler"; 
+export { default as OAuth42Callback } from "./OAuth42Callback"; 
