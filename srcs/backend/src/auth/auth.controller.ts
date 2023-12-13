@@ -86,8 +86,9 @@ export class AuthController {
       await this.authService.signToken42(req, res);
     } catch (error) {
       console.error(error);
-      // Handle errors here and redirect as needed
-      res.redirect('http://localhost:8081/error');
+      // // Handle errors here and redirect as needed
+      // res.redirect('http://localhost:8081/error');
+      throw error;
     }
   }
 

@@ -76,6 +76,7 @@ let AuthService = class AuthService {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
+        this.currentUser = null;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -141,16 +142,8 @@ let AuthService = class AuthService {
             if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
                 throw new common_1.ForbiddenException('User is already logged in');
             }
-            if ((yield this.is2FaEnabled(user.id)) === false) {
-                const result = yield this.signToken(user.id, user.username, res);
-                if (!result.valid) {
-                    throw new common_1.ForbiddenException('Authentication failed');
-                }
-                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
-            }
-            else {
-                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
-            }
+            // Check if 2FA (Two-Factor Authentication) is enabled for the user
+            yield this.handleTwoFactorAuthentication(user, res);
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -401,32 +394,58 @@ let AuthService = class AuthService {
     signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Extract the 'code' from the query parameters
                 const code = req.query['code'];
                 console.log(`passing by singToken42 req.query['code']: ${code}`);
+                // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
+                // Check if the token was successfully retrieved
                 if (!token) {
                     console.error('Failed to fetch access token');
                     throw new Error('Failed to fetch access token');
                 }
+                // Retrieve user information using the token
                 const userInfo = yield this.getUserInfo(token);
+                // Create a new user or update existing user with the retrieved information
                 const user = yield this.createUser(userInfo, res);
-                if ((yield this.is2FaEnabled(user.id)) === false) {
-                    console.log(`Passing by 2FA is not activated`);
-                    const result = yield this.signToken(user.id, user.username, res);
-                    if (!result.valid) {
-                        // Consider providing more detailed feedback based on the error
-                        throw new common_1.ForbiddenException('Authentication failed');
-                    }
-                    res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                // Check if the user session already exists
+                if (req.cookies['userSession']) {
+                    // If the session exists, it means the token is expired. 
+                    // Clear the session cookies and user session from the database.
+                    yield this.signout(user.id, res);
                 }
-                else {
-                    res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+                // Enhanced session check logic: check if the user is already logged in
+                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
+                    throw new common_1.ForbiddenException('User is already logged in');
                 }
+                // Check if 2FA (Two-Factor Authentication) is enabled for the user
+                yield this.handleTwoFactorAuthentication(user, res);
             }
             catch (error) {
+                // Log and handle any errors that occur during the process
                 console.error('Error in signToken42:', error);
-                // Handle errors here, e.g., return an error response
-                throw new common_1.InternalServerErrorException('Internal server error');
+                throw error;
+            }
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    handleTwoFactorAuthentication(user, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Check if 2FA (Two-Factor Authentication) is enabled for the user
+            if ((yield this.is2FaEnabled(user.id)) === false) {
+                console.log(`Passing by 2FA is not activated`);
+                // If 2FA is not enabled, proceed to sign the token
+                const result = yield this.signToken(user.id, user.username, res);
+                // Validate the result of token signing
+                if (!result.valid) {
+                    throw new common_1.ForbiddenException('Authentication failed');
+                }
+                // Send a successful response
+                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+            }
+            else {
+                // If 2FA is enabled, indicate that in the response
+                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
             }
         });
     }

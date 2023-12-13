@@ -1,4 +1,8 @@
-import { InternalServerErrorException, ForbiddenException, Res, Req, Injectable, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  InternalServerErrorException, ForbiddenException, Res,
+  Req, Injectable, UnauthorizedException, NotFoundException,
+  ConflictException
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import { UsersService } from '../users/users.service';
@@ -34,6 +38,7 @@ import QRCode from 'qrcode'
 @Injectable()
 export class AuthService {
   private readonly JWT_SECRET: string | any;
+  private currentUser: User | null = null;
 
   constructor(
     private usersService: UsersService,
@@ -108,19 +113,11 @@ export class AuthService {
     if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
       throw new ForbiddenException('User is already logged in');
     }
-  
-    if (await this.is2FaEnabled(user.id) === false) {
-      const result = await this.signToken(user.id, user.username, res);
-      if (!result.valid) {
-        throw new ForbiddenException('Authentication failed');
-      }
-
-      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
-    } else {
-      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
-    }
+    // Check if 2FA (Two-Factor Authentication) is enabled for the user
+    await this.handleTwoFactorAuthentication(user, res);
   }
-// ─────────────────────────────────────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * @brief This function validates a user.
@@ -382,33 +379,61 @@ export class AuthService {
    */
   async signToken42(@Req() req: any, res: Response) {
     try {
+      // Extract the 'code' from the query parameters
       const code = req.query['code'];
       console.log(`passing by singToken42 req.query['code']: ${code}`);
+
+      // Exchange the code for a token
       const token = await this.exchangeCodeForToken(code);
+      // Check if the token was successfully retrieved
       if (!token) {
         console.error('Failed to fetch access token');
         throw new Error('Failed to fetch access token');
       }
+
+      // Retrieve user information using the token
       const userInfo = await this.getUserInfo(token);
+      // Create a new user or update existing user with the retrieved information
       const user = await this.createUser(userInfo, res);
 
-      if (await this.is2FaEnabled(user.id) === false) {
-        console.log(`Passing by 2FA is not activated`);
-        const result = await this.signToken(user.id, user.username, res);
-        if (!result.valid) {
-          // Consider providing more detailed feedback based on the error
-          throw new ForbiddenException('Authentication failed');
-        }
-
-        res.status(200).send({ valid: result.valid, message: result.message, userId: null });
-      } else {
-        res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+      // Check if the user session already exists
+      if (req.cookies['userSession']) {
+        // If the session exists, it means the token is expired. 
+        // Clear the session cookies and user session from the database.
+        await this.signout(user.id, res);
       }
 
+      // Enhanced session check logic: check if the user is already logged in
+      if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
+        throw new ForbiddenException('User is already logged in');
+      }
+
+      // Check if 2FA (Two-Factor Authentication) is enabled for the user
+      await this.handleTwoFactorAuthentication(user, res);
+
     } catch (error) {
+      // Log and handle any errors that occur during the process
       console.error('Error in signToken42:', error);
-      // Handle errors here, e.g., return an error response
-      throw new InternalServerErrorException('Internal server error');
+      throw error;
+    }
+  }
+// ─────────────────────────────────────────────────────────────────────────────
+
+  private async handleTwoFactorAuthentication(user: User, res: Response) {
+    // Check if 2FA (Two-Factor Authentication) is enabled for the user
+    if (await this.is2FaEnabled(user.id) === false) {
+      console.log(`Passing by 2FA is not activated`);
+      // If 2FA is not enabled, proceed to sign the token
+      const result = await this.signToken(user.id, user.username, res);
+      // Validate the result of token signing
+      if (!result.valid) {
+        throw new ForbiddenException('Authentication failed');
+      }
+      // Send a successful response
+      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+    } else {
+      // If 2FA is enabled, indicate that in the response
+      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
     }
   }
 
@@ -443,7 +468,7 @@ export class AuthService {
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 
     } catch (error) {
-      throw error;  
+      throw error;
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -504,7 +529,7 @@ export class AuthService {
         // use the 42 profile picture if not null
         avatarUrl = userInfo.image.link;
       }
-      const avatarFile: Express.Multer.File = await this.usersService.downloadFile(avatarUrl); 
+      const avatarFile: Express.Multer.File = await this.usersService.downloadFile(avatarUrl);
 
       const user = await this.prisma.user.create({
         data: {

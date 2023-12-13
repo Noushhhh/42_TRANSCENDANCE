@@ -1,27 +1,49 @@
 // Import necessary libraries and styles.
 // Import necessary libraries and styles.
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast , ToastContainer} from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import '../styles/generalStyles.css';
-import LoadingSpinner from "../tools/LoadingSpinner";
+import { hasMessage } from "../tools/Api";
+import useTokenExpired from "../tools/hooks/useTokenExpired";
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {
+
+    const [tokenExpired, setTokenExpired] = useState<boolean | null | undefined>(null);
     // Using the useNavigate and useLocation hooks from react-router.
     const navigate = useNavigate();
     const location = useLocation();
+    const checkToken = useTokenExpired();
+
+
+    // ─────────────────────────────────────────────────────────────────────
 
     // Check for error message in navigation state on component mount.
     useEffect(() => {
-        console.log("passing by authchoise useffect to check location.state");
-        console.log(location.state);
         if (location.state && location.state.errorMessage) {
             toast.error(location.state.errorMessage);
         }
 
     }, [location.state]);
+
+    // useEffect hook for checking token expiration
+    useEffect(() => {
+        // Function to update the token expiration status
+        const updateTokenStatus = async () => {
+            try {
+                const expired = await checkToken();
+                setTokenExpired(expired); // Update the token expiration state
+            } catch (error) {
+                console.error(`Error checking token in ProtectedRoute: ${hasMessage(error) ? error.message : ""}`);
+            }
+        };
+        updateTokenStatus();
+    }, [checkToken, tokenExpired]); // Dependency array with checkToken to rerun if checkToken changes
+
+    // ─────────────────────────────────────────────────────────────────────
+
 
     // Function to navigate to the SignIn route.
     const handleSignInNav = () => {
@@ -45,17 +67,22 @@ const AuthChoice: React.FC = () => {
             window.location.href = response.data; // Redirects to 42 OAuth page
         } catch (error) {
             console.log(error);
+            toast.error(hasMessage(error) ? error.message : "Error siging in, please contant web site admnistrator");
         }
     };
+
+    if (tokenExpired === false) {
+        navigate("/home/game")
+    }
 
     // Return the JSX for the component.
     return (
         <div className="container">
-            <ToastContainer/>
+            <ToastContainer />
             <div>
                 <header>
                     {/* Header title for the Pong Game */}
-                    <h1 className="title" style={{fontSize: 'xxx-large'}}>Pong Game</h1>
+                    <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
                 </header>
             </div>
 
