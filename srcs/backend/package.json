@@ -66,8 +66,8 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.5",
-    "@babel/preset-env": "^7.23.5",
+    "@babel/core": "^7.23.6",
+    "@babel/preset-env": "^7.23.6",
     "@babel/preset-typescript": "^7.23.3",
     "@nestjs/testing": "^10.2.10",
     "@types/cookie-parser": "^1.4.6",

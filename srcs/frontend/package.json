@@ -5,11 +5,11 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.19",
-    "@mui/material": "^5.14.20",
+    "@mui/icons-material": "^5.15.0",
+    "@mui/material": "^5.15.0",
     "@nestjs/platform-express": "^10.2.10",
     "@nestjs/platform-socket.io": "^10.2.10",
-    "@prisma/client": "^5.6.0",
+    "@prisma/client": "^5.7.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
@@ -60,6 +60,6 @@
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
     "backend": "file:../../backend",
-    "prisma": "^5.6.0"
+    "prisma": "^5.7.0"
   }
 }
