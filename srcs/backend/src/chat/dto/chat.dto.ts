@@ -59,11 +59,6 @@ export class SignUpChannelDto extends CommonChannelIdDto {
     @MinLength(6)
     @MaxLength(22)
     password!: string;
-
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    userId!: number;
 }
 
 export class PairUserIdChannelId {
@@ -135,12 +130,6 @@ export class LeaveChannelDto {
     @Max(2000000)
     channelId!: number;
 
-    @Type(() => Number)
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    userId!: number;
-
     @IsOptional()
     @Type(() => Number)
     @IsInt()
@@ -155,12 +144,6 @@ export class muteDto {
     @Min(0)
     @Max(2000000)
     mutedUserId!: number;
-
-    @Type(() => Number)
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    callerUserId!: number;
 
     @Type(() => Number)
     @IsInt()
@@ -184,10 +167,6 @@ export class MessageToStoreDto {
     @IsString()
     content!: string;
 
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    senderId!: number;
 }
 
 export class getChannelUsernamesDto {
@@ -203,11 +182,6 @@ export class getChannelUsernamesDto {
     @MaxLength(150)
     substring!: string;
 
-    @Type(() => Number)
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    userId!: number;
 }
 
 export class getUsernamesDto {
@@ -218,33 +192,21 @@ export class getUsernamesDto {
     substring!: string;
 }
 
-export class KickOrBanChannelDto {
+export class KickOrBanChannelDto {    
     @Type(() => Number)
     @IsInt()
     @Min(0)
     @Max(2000000)
-    userId!: number;
+    targetId!: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(0)
     @Max(2000000)
     channelId!: number;
-
-
-    @Type(() => Number)
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    callerId!: number;
 }
 
 export class ManageAdminDto {
-    @Type(() => Number)
-    @IsInt()
-    @Min(0)
-    @Max(2000000)
-    inviterId!: number;
 
     @Type(() => Number)
     @IsInt()

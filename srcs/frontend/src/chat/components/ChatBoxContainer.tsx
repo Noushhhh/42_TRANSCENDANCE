@@ -24,6 +24,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
   const [displayContentMessage, setDisplayContentMessage] = useState<boolean>(false);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
+  const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
 
   useEffect(() => {
     const getUser = async () => {
@@ -81,7 +82,11 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
             >
               <UserIdContext.Provider value={{ userId, setUserId }}>
                 {displayMessageSide || !channelClicked ? (
-                  <MessageSide setChannelClicked={setChannelClicked} />
+                  <MessageSide
+                    setChannelClicked={setChannelClicked}
+                    previewLastMessage={previewLastMessage}
+                    setPreviewLastMessage={setPreviewLastMessage}
+                  />
                 ) : null}
                 <toggleMenuMobile.Provider
                   value={{ toggleMenu, setToggleMenu }}
@@ -93,6 +98,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
                       channelInfo={channelInfo}
                       setChannelInfo={setChannelInfo}
                       backToChannels={backToChannels}
+                      setPreviewLastMessage={setPreviewLastMessage}
                     />
                   ) : null}
                   <ChannelInfo

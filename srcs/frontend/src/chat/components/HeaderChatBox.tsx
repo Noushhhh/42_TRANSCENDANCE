@@ -34,7 +34,6 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
             if (channelId === -1)
               return;
             const channelName: string | null = await getChannelName(channelId, userId);
-            console.log("channel name = ", channelName);
             setChannelName(channelName);
           } catch (errors: any) {
               console.log(errors.message);

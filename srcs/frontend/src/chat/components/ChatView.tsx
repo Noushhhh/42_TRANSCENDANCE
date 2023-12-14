@@ -4,15 +4,7 @@ import MessageComponent from "./Message";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { fetchConversation } from "./ChannelUtils";
 import { dividerClasses } from "@mui/material";
-
-interface Message {
-  id: number // id: 0
-  senderId: number
-  channelId: number
-  content: string
-  createdAt: Date
-  messageType: string
-}
+import "../types/type.Message";
 
 interface ChatViewProps {
   isChannelInfoDisplay: boolean;
@@ -61,10 +53,6 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  console.log(messages);
-  console.log(conversationFetched);
-
 
   if (channelId === -1)
     return (<div className="ChatViewContainer"></div>)

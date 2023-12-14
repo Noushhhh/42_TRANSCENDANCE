@@ -21,11 +21,8 @@ interface MessageToClickProps{
 }
 
 function MessageToClick({channel, isConnected, setChannelClicked }: MessageToClickProps) {
-
-    // const [channelName, setChannelName] = useState<string | null>(null);
     
     const setChannelId = useSetChannelIdContext();
-    const userId: number = useUserIdContext();
 
     let dateObject: Date | null;
 
@@ -34,23 +31,7 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
     else
         dateObject = null;
 
-    // useEffect(() => {
-    //     const fetchChannelName = async () => {
-    //         try {
-    //             console.log(channel.channelId);
-    //             let channelName: string | null = await getChannelName(channel.channelId, userId);
-    //             console.log(channelName);
-    //             setChannelName(channelName);
-    //         } catch (errors: any) {
-    //             console.log(errors.message);
-    //         }
-    //     }
-
-    //     fetchChannelName();
-    // }, []);
-
     const handleClick = () => {
-        console.log(channel.channelId);
         setChannelId(channel.channelId);
         setChannelClicked(true);
     }

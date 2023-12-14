@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Socket } from 'socket.io-client';
 import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
 import { ErrorSharp } from '@mui/icons-material';
@@ -184,6 +183,13 @@ export const createChannel = async (
     }
     await fetchUser(setChannelHeader, userId, socket);
     const channelId: number = await response.json();
+    for (const userId of participants){
+      const data = {
+        userId: userId,
+        channelId,
+      };
+      socket.emit("notifySomeoneJoinChannel", data);
+    }
     return channelId;
   } catch (error: any) {
     throw error;
@@ -352,14 +358,14 @@ export const getUsernamesInChannelFromSubstring = async (
 export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
   try {
     for (const user of userList) {
-      const userId: number = user.id;
+      const targetId: number = user.id;
       const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel`, {
         method: "POST",
         credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId, channelId, callerId })
+        body: JSON.stringify({ targetId, channelId })
       });
       if (!response.ok){
         console.log("promise rejected");
@@ -382,14 +388,14 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
 export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
     for (const user of userList) {
       try {
-        const userId: number = user.id;
+        const targetId: number = user.id;
         const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel`, {
           method: "POST",
           credentials: 'include',
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId, channelId, callerId })
+          body: JSON.stringify({ targetId, channelId })
         });
         if (response.status === 201) {
           const data = {
@@ -490,6 +496,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
 export const addUserIdToChannel = async (channelId: number, userId: number): Promise<number> => {
   try {
     const requestOptions: RequestInit = {
+      credentials: "include",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -614,7 +621,7 @@ export const isUserIsBlockedBy = async (callerId: number, targetId: number): Pro
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ callerId, targetId }),
+      body: JSON.stringify({ userId: targetId }),
       credentials: "include",
     });
 
@@ -629,14 +636,14 @@ export const isUserIsBlockedBy = async (callerId: number, targetId: number): Pro
   }
 }
 
-export const blockUser = async (callerId: number, targetId: number) => {
+export const blockUser = async (targetId: number) => {
   fetch("http://localhost:4000/api/chat/blockUser", {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ callerId, targetId }),
+    body: JSON.stringify({ userId: targetId }),
   })
     .then(response => {
       if (!response.ok) {
@@ -651,22 +658,19 @@ export const blockUser = async (callerId: number, targetId: number) => {
     });
 }
 
-export const unblockUser = async (callerId: number, targetId: number) => {
+export const unblockUser = async (targetId: number) => {
   fetch("http://localhost:4000/api/chat/unblockUser", {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
     },
-    body: JSON.stringify({ callerId, targetId }) // Convertit l'objet JavaScript en JSON
+    body: JSON.stringify({ userId: targetId }) // Convertit l'objet JavaScript en JSON
   })
     .then(response => {
       if (!response.ok) {
         throw new Error('Erreur réseau.');
       }
-    })
-    .then(data => {
-      console.log('Réponse du serveur :', data);
     })
     .catch(error => {
       console.error('Erreur :', error);

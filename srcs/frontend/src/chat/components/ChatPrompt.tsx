@@ -9,9 +9,10 @@ import { Socket } from "socket.io-client";
 
 interface ChatPromptProps {
   addMessage: (newMessage: Message, messageType: string) => void;
+  setPreviewLastMessage: React.Dispatch<React.SetStateAction<Message | undefined>>;
 }
 
-function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
+function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX.Element {
   const [message, setMessage] = useState("");
 
   const channelId: number = useChannelIdContext();
@@ -70,6 +71,7 @@ function ChatPrompt({ addMessage }: ChatPromptProps): JSX.Element {
         return ;
       }
       const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+      setPreviewLastMessage(msgToSend);
       storeMsgToDatabase(parsedMessage);
       setMessage("");
     });

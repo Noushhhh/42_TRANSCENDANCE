@@ -6,40 +6,31 @@ import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { useChannelIdContext } from "../contexts/channelIdContext";
+import "../types/type.Message";
 
-interface Message {
-  id: number;
-  senderId: number;
-  channelId: number;
-  content: string;
-  createdAt: Date;
-  messageType: string;
-}
 
 interface contentMessageProps {
   channelInfo: boolean;
   setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
   backToChannels: () => void;
+  setPreviewLastMessage: React.Dispatch<React.SetStateAction<Message | undefined>>;
 }
 
 function ContentMessage({
   channelInfo,
   setChannelInfo,
   backToChannels,
+  setPreviewLastMessage
 }: contentMessageProps) {
   // useState that represent all the messages inside the socket:
   const [messages, setMessages] = useState<Message[]>([]);
 
   const userId: number = useUserIdContext();
-  const channelId: number = useChannelIdContext();
 
   const contentMessageWidth: string = channelInfo ? "reduce" : "wide";
 
   const addMessage = async (newMessage: Message, messageType: string) => {
     newMessage.messageType = messageType;
-    console.log(channelId);
-    console.log(newMessage.channelId);
     setMessages((prevMessage) => [...prevMessage, newMessage]);
   };
 
@@ -56,7 +47,7 @@ function ContentMessage({
         messages={messages}
         setMessages={setMessages}
       />
-      <ChatPrompt addMessage={addMessage} />
+      <ChatPrompt addMessage={addMessage} setPreviewLastMessage={setPreviewLastMessage}/>
     </div>
   );
 }

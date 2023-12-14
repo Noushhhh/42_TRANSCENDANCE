@@ -15,7 +15,7 @@ interface User {
 }
 
 interface Message {
-    id: 0;
+    id: number;
 	senderId: number;
 	channelId: number;
 	content: string;

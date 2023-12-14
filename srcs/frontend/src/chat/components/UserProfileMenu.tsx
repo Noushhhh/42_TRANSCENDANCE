@@ -20,7 +20,6 @@ import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import { createChannel } from "./ChannelUtils";
-import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
 import { removeFriend, sendFriendRequest } from "../../user/FriendUtils";
@@ -221,7 +220,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleBlockClick = async () => {
     try {
-      await blockUser(userId, user.id);
+      await blockUser(user.id);
       socket.emit("block", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
       console.log("blocked");
@@ -234,7 +233,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const handleUnblockClick = async () => {
     try {
       // Ajoutez ici la logique pour "Bloquer"
-      await unblockUser(userId, user.id);
+      await unblockUser(user.id);
       socket.emit("unblock", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
       console.log("Unblocked");

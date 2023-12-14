@@ -15,12 +15,22 @@ import HeaderChannelInfo from "./HeaderChannelInfo";
 import { Socket } from "socket.io-client";
 import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 
-interface MessageSideProps {
-  setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
+interface Message {
+  id: number;
+  senderId: number;
+  channelId: number;
+  content: string;
+  createdAt: Date;
+  messageType: string;
 }
 
-function MessageSide({ setChannelClicked }: MessageSideProps) {
-  const [previewLastMessage, setPreviewLastMessage] = useState<Message>();
+interface MessageSideProps {
+  setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
+  previewLastMessage: Message | undefined;
+  setPreviewLastMessage: React.Dispatch<React.SetStateAction<Message | undefined>>;
+}
+
+function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMessage }: MessageSideProps) {
   const [needReload, setNeedReload] = useState<boolean>(false);
   const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
@@ -44,15 +54,13 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   };
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
-    console.log("client know that he is been kicked or ban");
     try {
       await fetchUser(setChannelHeader, userId, socket);
     } catch (error) {
       console.log(error);
     }
     if (bannedFromChannelId === channelId)
-      console.log("set to -1");
-    setChannelId(-1);
+      setChannelId(-1);
   }
 
   useEffect(() => {
@@ -134,8 +142,6 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
       fetchBoolean.current = true;
     };
   }, [needReload]);
-
-  console.log(channelHeader);
 
   return (
     <div className="MessageSide">

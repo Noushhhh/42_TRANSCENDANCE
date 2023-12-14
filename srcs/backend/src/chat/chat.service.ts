@@ -8,6 +8,7 @@ import { UnauthorizedException } from "@nestjs/common";
 import { PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
+import { CreateChannelDto } from "./chat.controller";
 
 interface MessageToStore {
   channelId: number;
@@ -161,12 +162,12 @@ export class ChatService {
     return messagesWithoutBlockedSender;
   }
 
-  async addMessageToChannelId(message: MessageToStoreDto) {
+  async addMessageToChannelId(message: MessageToStoreDto, senderId: number) {
 
     await this.getChannelById(message.channelId);
 
     let isUserMuted: { isMuted: boolean, isSet: boolean, rowId: number };
-    isUserMuted = await this.isMute({ userId: message.senderId, channelId: message.channelId });
+    isUserMuted = await this.isMute({ userId: senderId, channelId: message.channelId });
 
     if (isUserMuted.isMuted === true)
       return;
@@ -174,7 +175,7 @@ export class ChatService {
     await this.prisma.message.create({
       data: {
         content: message.content,
-        senderId: message.senderId,
+        senderId,
         channelId: message.channelId,
       }
     })
@@ -207,9 +208,9 @@ export class ChatService {
     return users;
   }
 
-  async addChannelToUser(channelInfo: channelToAdd): Promise<number> {
+  async addChannelToUser(channelInfo: CreateChannelDto, ownerId: number): Promise<number> {
     try {
-      await this.getUserById(channelInfo.ownerId);
+      await this.getUserById(ownerId);
       const channels = await this.prisma.channel.findMany();
       console.log("channel output ==");
       console.log(channels);
@@ -223,21 +224,21 @@ export class ChatService {
       }
 
       const participants: { id: number; }[] = channelInfo.participants.map(userId => ({ id: userId }));
-      participants.push({ id: channelInfo.ownerId });
+      participants.push({ id: ownerId });
 
       const hashPassword = await argon.hash(channelInfo.password);
       const newChannel: Channel = await this.prisma.channel.create({
         data: {
           name: channelInfo.name,
           password: hashPassword,
-          ownerId: channelInfo.ownerId,
+          ownerId,
           // admins: channelInfo.ownerId,
           type: ChannelType[channelInfo.type as keyof typeof ChannelType],
           participants: {
             connect: participants,
           },
           admins: {
-            connect: [{ id: channelInfo.ownerId }]
+            connect: [{ id: ownerId }]
           }
         },
       });
@@ -807,11 +808,11 @@ export class ChatService {
     return { isMuted: false, isSet: false, rowId: -1 };
   }
 
-  async mute(dto: muteDto) {
+  async mute(callerId: number, dto: muteDto) {
 
     await this.getChannelById(dto.channelId);
 
-    await this.checkUsersCredentials(dto.mutedUserId, dto.callerUserId, dto.channelId, "mute");
+    await this.checkUsersCredentials(dto.mutedUserId, callerId, dto.channelId, "mute");
 
     const response: { isMuted: boolean, isSet: boolean, rowId: number } = await this.isMute({ channelId: dto.channelId, userId: dto.mutedUserId });
     if (response.isSet === true) {
