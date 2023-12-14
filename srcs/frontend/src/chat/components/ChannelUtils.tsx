@@ -227,7 +227,6 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
       headers: {
         "Content-Type": "application/json", // Add appropriate headers if needed
       },
-      body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
 
     if (!response.ok) {
