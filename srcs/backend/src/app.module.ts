@@ -24,7 +24,7 @@ import { StatsModule } from './stats/stats.module';
     ChatModule,
     PrismaModule,
     GameModule,
-    StatsModule
+    StatsModule,
   ],
   controllers: [AppController, ChatController],
   providers: [AppService, ChatService, PrismaService, SocketService, AuthService, JwtService],

@@ -7,7 +7,7 @@ interface Channel {
     isConnected: boolean;
 }
 
-interface Channel {
+/*interface Channel {
     id:               number;
   
     name:             string;
@@ -22,4 +22,4 @@ interface Channel {
     messages:         Message[];
     bannedUsers:     User[];
     mutedUsers:      User[];
-}
+}*/

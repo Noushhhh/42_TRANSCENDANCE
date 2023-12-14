@@ -35,6 +35,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   // Other state variables
   const [showLoader, setShowLoader] = useState(true);
   const [email, setEmail] = useState('');
+  const [newAvatar, setNewAvatar] = useState(false);
   const navigate = useNavigate();
 
   // Loading spinner timeout
@@ -103,24 +104,27 @@ const UserProfileSetup: React.FC = React.memo(() => {
       console.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
       toast.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
     }
-  }, [profileName, updatePublicName, navigate]);
+  }, [profileName, updatePublicName]);
 
   // Handle updating the avatar
   const handleUpdateAvatar = useCallback(async () => {
-    try {
-      console.log(`passing handleUpdateAvatar`);
-      await updateAvatar(profileImage);
-      toast.success('Avatar updated successfully!');
-    } catch (error) {
-      toast.error(hasMessage(error) ? error.message : 'Failed to update avatar');
+    if (newAvatar) {
       try {
-        const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
-        setProfileImage(defaultProfileImage);
-      } catch (fetchError) {
-        console.error('Failed to fetch the default profile image:', hasMessage(fetchError) ? fetchError.message : '');
+        await updateAvatar(profileImage);
+        toast.success('Avatar updated successfully!');
+      } catch (error) {
+        toast.error(hasMessage(error) ? error.message : 'Failed to update avatar');
+        try {
+          const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
+          setProfileImage(defaultProfileImage);
+        } catch (fetchError) {
+          console.error('Failed to fetch the default profile image:', hasMessage(fetchError) ? fetchError.message : '');
+        }
       }
     }
-  }, [profileImage, updateAvatar, navigate]);
+    else
+      toast.error("You must provided a new avatar");
+  }, [newAvatar, profileImage, updateAvatar]);
 
   // Check if the client is registered, and navigate accordingly
   const checkAndNavigate = useCallback(async () => {
@@ -131,14 +135,14 @@ const UserProfileSetup: React.FC = React.memo(() => {
         if (!avatarFromBack) {
           await handleUpdateAvatar();
         }
-        navigate('/home');
+        navigate('/home/game');
       }
       toast.error("You need to provide a Public Name to access the game");
     } catch (error) {
       console.error('passing by catch checkAndNavigate');
       toast.error("You need to provide a Public Name to access the game");
     }
-  }, [profileImage,avatarFromBack, handleUpdateAvatar, isClientRegistered])
+  }, [avatarFromBack, handleUpdateAvatar, isClientRegistered, navigate])
 
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {
@@ -146,7 +150,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     checkUserAuth();
     fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
-  }, []);
+  }, [] );
 
   // Update image preview when profileImage changes
   useEffect(() => {
@@ -162,6 +166,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setNewAvatar(true);
       setProfileImage(file);
     }
   }, []);
@@ -177,7 +182,11 @@ const UserProfileSetup: React.FC = React.memo(() => {
     <div className="container">
       <ToastContainer />
       <h1>Pong game</h1>
-      <h2>Welcome {email}</h2>
+      <div style={{gap: '1%'}}>
+        <h2 style={{ color: `var(--purple-color)` }}>Welcome</h2>
+        <p style={{ color: `var(--white-color)` }}>{email}</p>
+      </div>
+
       <input
         type="text"
         placeholder="Choose a username"

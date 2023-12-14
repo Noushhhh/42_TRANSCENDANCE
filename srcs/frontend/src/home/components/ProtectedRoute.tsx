@@ -27,41 +27,48 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const checkToken = useTokenExpired();
     const checkIsClientRegistered = useIsClientRegistered();
 
-    // Function to update the token expiration status
-    const updateTokenStatus = async () => {
-        try {
-            const expired = await checkToken();
-            setTokenExpired(expired); // Update the token expiration state
-        } catch (error) {
-            console.error(`Error checking token in ProtectedRoute: ${hasMessage(error) ? error.message : ""}`);
-        }
-    };
-
-    // Function to update the client registration status
-    const updateFirstConnectionStatus = async () => {
-        try {
-            const registered = await checkIsClientRegistered();
-            setIsClientRegistered(registered); // Update the client registration state
-        } catch (error) {
-            console.error(`Error checking user registration in ProtectedRoute: ${hasMessage(error) ? error.message : ""}`);
-        }
-    };
+    // ─────────────────────────────────────────────────────────────────────────────
 
     // useEffect hook for checking token expiration
     useEffect(() => {
+        // Function to update the token expiration status
+        const updateTokenStatus = async () => {
+            try {
+                const expired = await checkToken();
+                setTokenExpired(expired); // Update the token expiration state
+            } catch (error) {
+                console.error(`Error checking token in ProtectedRoute: ${hasMessage(error) ? error.message : ""}`);
+            }
+        };
         updateTokenStatus();
     }, [checkToken, tokenExpired]); // Dependency array with checkToken to rerun if checkToken changes
 
+    // ─────────────────────────────────────────────────────────────────────────────
+
     // useEffect hook for checking client registration
     useEffect(() => {
+
+        // Function to update the client registration status
+        const updateFirstConnectionStatus = async () => {
+            try {
+                const registered = await checkIsClientRegistered();
+                setIsClientRegistered(registered); // Update the client registration state
+            } catch (error) {
+                console.error(`Error checking user registration in ProtectedRoute: ${hasMessage(error) ? error.message : ""}`);
+            }
+        };
         updateFirstConnectionStatus();
-    }, [updateFirstConnectionStatus, isClientRegistered]); // Dependency array with isClientRegistered to rerun if it changes
+    }, [isClientRegistered]); // Dependency array with isClientRegistered to rerun if it changes
+    // ─────────────────────────────────────────────────────────────────────────────
+
 
     // useEffect hook to handle the loading screen timeout
     useEffect(() => {
         const loadingTimeout = setTimeout(() => setShowLoader(false), MIN_LOADING_TIME);
         return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
     }, []);
+// ─────────────────────────────────────────────────────────────────────────────
+
 
     // Conditional rendering based on the token expiration state
     if (tokenExpired === true) {

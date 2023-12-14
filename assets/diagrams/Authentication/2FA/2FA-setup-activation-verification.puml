@@ -1,0 +1,46 @@
+@startuml
+
+' 2FA Setup Flow
+' resources showing the process 
+' https://www.youtube.com/watch?v=3eTify98puI
+partition "Setting and activating 2FA"{
+    start
+        :User Chooses to Enable 2FA;
+        :Backend Generates Secret\n(using speakeasy);
+        :Backend Creates QR Code\nfor the Secret;
+        note right: User scans this QR Code\nusing Google Authenticator
+
+        :User Scans QR Code\nwith Google Authenticator;
+        :User Enters Code from\nGoogle Authenticator\nto Verify 2FA Setup;
+        :Backend Verifies the Code\n(using speakeasy);
+        note right: If the code matches,\n2FA is successfully set up
+
+        if (Is Code Correct for Setup?) then (<b><color:green>yes</color></b>)
+        #LightGreen:2FA Setup Confirmed\nand Enabled for User;
+        else (<b><color:red>no</color></b>)
+        #LightPink:Inform User of Error\nand Prompt Retry for Setup;
+        endif
+    stop
+}
+
+' Login Flow with 2FA
+partition "login Flow with 2FA" {
+    start
+        :User Enters Username\nand Password;
+        :Backend Validates Credentials;
+        if (Is 2FA Enabled?) then (<b><color:green>yes</color></b>)
+            :Prompt User for 2FA Code;
+            :User Enters 2FA Code\nfrom Google Authenticator;
+            :Backend Verifies 2FA Code\n(using speakeasy);
+        if (Is Code Correct for Login?) then (<b><color:green>yes</color></b>)
+            #LightGreen:Grant Access;
+        else (<b><color:red>no</color></b>)
+            #Pink:Deny Access;
+        endif
+        else (<b><color:red>no</color></b>)
+            #LightGreen:Grant Access;
+        endif
+    stop
+}
+
+@enduml

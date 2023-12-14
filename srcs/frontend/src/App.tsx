@@ -1,5 +1,4 @@
 import GameContainer from "./game/components/GameContainer";
-import Navbar from "./navbar/navbar";
 import ChatBoxContainer from "./chat/components/ChatBoxContainer";
 import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
@@ -16,10 +15,9 @@ import {
   Friends,
   Stats,
   ErrorComponent,
-  Chat,
-  useActivityLogout,
   UserProfileSetup,
-  ActivityLogoutHandler
+  ActivityLogoutHandler,
+  OAuth42Callback,
 } from "./home/components/index";
 import SocketError from "./game/components/gameNetwork/SocketError";
 import IoConnection from "./socket/IoConnection";
@@ -27,12 +25,6 @@ import "./App.css";
 import { Socket } from "socket.io-client";
 import { useState, useRef } from "react";
 import GameInvitation from "./game/components/gameNetwork/GameInvitation";
-
-// Mock element while Paul finishes the chat, Theo finishes the game, and someone finished the friends
-// component
-const MockComponent: React.FC = () => {
-  return <div> Placeholder for unfinished component </div>;
-};
 
 // Interface for handling socket errors
 interface SocketErrorObj {
@@ -48,6 +40,7 @@ const App: React.FC = () => {
   const signOut = useSignOut();
   const navigate = useNavigate();
 
+// ─────────────────────────────────────────────────────────────────────────────
   // Effect to listen for changes in local storage, specifically for logout
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -57,13 +50,14 @@ const App: React.FC = () => {
         navigate('/signin');
       }
     };
-
     window.addEventListener('storage', handleStorageChange);
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+
     };
   }, [signOut, navigate]);
+
+  // ─────────────────────────────────────────────────────────────────────
 
   // Function to handle socket errors and display them
   const handleError = (error: SocketErrorObj) => {
@@ -73,6 +67,8 @@ const App: React.FC = () => {
       setError("");
     }, 1500);
   };
+  // ─────────────────────────────────────────────────────────────────────
+
 
   return (
     <Routes>
@@ -81,6 +77,8 @@ const App: React.FC = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/authchoice" element={<AuthChoice />} />
       <Route path="/userprofilesetup" element={<UserProfileSetup />} />
+      <Route path="/callback42" element={<OAuth42Callback />} />
+
       <Route
         path="/home"
         element={

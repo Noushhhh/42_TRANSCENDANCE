@@ -74,7 +74,7 @@ stop:
 	$(COMPOSE) stop
 
 # This rule removes the services, images, and volumes. It also removes the data directory.
-down:
+down: del_node_pack_front del_node_pack_backend del_uploads
 	@printf "Stopping the services and removing all resources...\n"
 	$(COMPOSE) down --rmi all --volumes 
 
@@ -120,6 +120,9 @@ del_node_pack_front:
 del_node_pack_backend:
 	@echo "Removing backend node_modules and package-lock.json"
 	@rm -rf ./srcs/backend/node_modules ./srcs/backend/package-lock.json
+del_uploads:
+	@echo "Romoving uploads"
+	@rm -rf ./srcs/backend/uploads/* 
 
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all
