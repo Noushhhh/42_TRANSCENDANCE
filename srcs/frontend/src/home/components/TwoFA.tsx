@@ -12,24 +12,33 @@ const TwoFaPopUpStyle: React.CSSProperties = {
   gap: "1rem",
 };
 
+const leaveButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "-1.8rem",
+  right: "-1.8rem",
+  color: "red",
+  padding: "0",
+};
+
 const TwoFA: FC = () => {
   const [userId, setUserId] = useState<number>(0);
   const [qrcode, setQrcode] = useState<string>("");
   const [token, setToken] = useState<string>("");
   const [is2FaActivated, setIs2FaActivated] = useState(false);
   const [error, setError] = useState("");
+  const [close2Fa, setClose2Fa] = useState(true);
 
   useEffect(() => {
     const getMyId = async () => {
       try {
         const id = await getMyUserId();
         setUserId(id);
-      } catch (error: any){
+      } catch (error: any) {
         console.log(error.message);
       }
     };
 
-    getMyId();
+    getMyId().catch((e) => console.error(e));
   }, []);
 
   useEffect(() => {
@@ -51,7 +60,7 @@ const TwoFA: FC = () => {
       setIs2FaActivated(formattedRes.res);
     };
 
-    is2FaActivated().catch((e) => console.log(e));
+    is2FaActivated().catch((e) => console.error(e));
   }, [userId]);
 
   const enable2FA = async () => {
@@ -67,6 +76,7 @@ const TwoFA: FC = () => {
 
     const formattedRes = await response.json();
     setQrcode(formattedRes.qrcode);
+    setClose2Fa(false);
   };
 
   const disable2FA = async () => {
@@ -104,6 +114,7 @@ const TwoFA: FC = () => {
       setQrcode("");
       setError("");
       setIs2FaActivated(true);
+      setClose2Fa(true);
     } else {
       setError("Wrong code, please try again...");
     }
@@ -114,7 +125,7 @@ const TwoFA: FC = () => {
   if (is2FaActivated === true)
     return (
       <div style={{ marginTop: "1rem" }}>
-        <button onClick={() => disable2FA().catch((e) => console.log(e))}>
+        <button onClick={() => disable2FA().catch((e) => console.error(e))}>
           Deactivate 2FA
         </button>
       </div>
@@ -124,12 +135,15 @@ const TwoFA: FC = () => {
     <div>
       <button
         style={{ marginTop: "1rem" }}
-        onClick={() => enable2FA().catch((e) => console.log(e))}
+        onClick={() => enable2FA().catch((e) => console.error(e))}
       >
         Enable 2FA
       </button>
-      {qrcode.length === 0 ? null : (
+      {qrcode.length === 0 || close2Fa ? null : (
         <div style={TwoFaPopUpStyle}>
+          <button style={leaveButtonStyle} onClick={() => setClose2Fa(true)}>
+            X
+          </button>
           <img src={qrcode} alt="qrcode" style={{ maxWidth: "100%" }} />
           <p style={{ fontSize: ".75rem" }}>
             Please, enter code to validate 2FA

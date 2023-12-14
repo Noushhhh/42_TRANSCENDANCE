@@ -51,14 +51,14 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-const argon = __importStar(require("argon2"));
+const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
+const constants_1 = require("../auth/constants/constants");
+const argon = __importStar(require("argon2"));
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
-const users_service_1 = require("../users/users.service");
-const constants_1 = require("../auth/constants/constants");
 const uuid_1 = require("uuid");
 const qrcode_1 = __importDefault(require("qrcode"));
 /**
@@ -76,6 +76,7 @@ let AuthService = class AuthService {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
+        this.currentUser = null;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -123,12 +124,17 @@ let AuthService = class AuthService {
      */
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.cookies['userSession']) {
-                throw new common_1.ForbiddenException('A user is already logged in. Please log out before logging in as a different user.');
-            }
             const user = yield this.usersService.findUserWithUsername(dto.username);
             if (!user)
                 throw new common_1.ForbiddenException('Username not found');
+            /*  At this point, if the user sends a signin request, that means whether his token is expired
+                or he is not logged in(there is no cookies trace session in the browser), as in the fronted
+                "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
+                before sending a request to backend */
+            if (req.cookies['userSession']) {
+                //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
+                yield this.signout(user.id, res);
+            }
             const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
             if (!passwordMatch)
                 throw new common_1.ForbiddenException('Incorrect password');
@@ -147,8 +153,11 @@ let AuthService = class AuthService {
             else {
                 res.status(200).send({ valid: true, message: "2FA", userId: user.id });
             }
+            // Check if 2FA (Two-Factor Authentication) is enabled for the user
+            yield this.handleTwoFactorAuthentication(user, res);
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     /**
      * @brief This function validates a user.
      * @param dto The data transfer object containing user information.
@@ -292,20 +301,6 @@ let AuthService = class AuthService {
             if (!refreshToken) {
                 throw new common_1.ConflictException("Problem creating refresh token for user");
             }
-            /*     const decodedToken = jwt.verify(newToken.token, this.JWT_SECRET);
-                if (typeof decodedToken === 'object' && 'exp' in decodedToken) {
-                  res.cookie('tokenExpires', new Date((decodedToken as { exp: number }).exp * 1000).toISOString(),
-                    { secure: true, sameSite: 'strict', maxAge: 1000 * 60 * 15 });
-                } else {
-                  return ({ statusCode: 409, valid: false, message: "Impossible to decode token to create expiration time for user" });
-                }
-            
-                const sessionId = this.generateSessionId();
-                await this.prisma.user.update({
-                  where: { id: userId },
-                  data: { sessionId },
-                });
-             */
             return ({ statusCode: 200, valid: true, message: "Authentication successful" });
         });
     }
@@ -381,13 +376,12 @@ let AuthService = class AuthService {
      * @param res The response object.
      * @return The result of the signout operation.
      */
-    signout(decodedPayload, res) {
+    signout(userId, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!decodedPayload)
-                throw new common_1.ForbiddenException("problem obtaining paylod when signing out");
             try {
+                console.log("passing by signout");
                 yield this.prisma.user.update({
-                    where: { id: decodedPayload.sub },
+                    where: { id: userId },
                     data: { sessionId: null, sessionExpiresAt: null },
                 });
                 // Clear the JWT cookie or session
@@ -411,46 +405,58 @@ let AuthService = class AuthService {
     signToken42(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Extract the 'code' from the query parameters
                 const code = req.query['code'];
+                console.log(`passing by singToken42 req.query['code']: ${code}`);
+                // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
+                // Check if the token was successfully retrieved
                 if (!token) {
                     console.error('Failed to fetch access token');
                     throw new Error('Failed to fetch access token');
                 }
+                // Retrieve user information using the token
                 const userInfo = yield this.getUserInfo(token);
+                // Create a new user or update existing user with the retrieved information
                 const user = yield this.createUser(userInfo, res);
-                if (user.TwoFA == true) {
+                // Check if the user session already exists
+                if (req.cookies['userSession']) {
+                    // If the session exists, it means the token is expired. 
+                    // Clear the session cookies and user session from the database.
+                    yield this.signout(user.id, res);
                 }
-                // Set both JWT token and refresh token as cookies
-                const payload = {
-                    sub: user.id,
-                    username: user.username,
-                };
-                const secret = this.JWT_SECRET;
-                const jwtToken = yield this.jwt.signAsync(payload, {
-                    expiresIn: '15m',
-                    secret: secret,
-                });
-                const refreshToken = yield this.createRefreshToken(user.id);
-                res.cookie('token', jwtToken, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'none',
-                    maxAge: 1000 * 60 * 15 // 15 minutes in milliseconds
-                });
-                res.cookie('refreshToken', refreshToken.token, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'none',
-                    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-                });
-                // Redirect the user to the desired URL after successful authentication
-                res.redirect('http://localhost:8081/home');
+                // Enhanced session check logic: check if the user is already logged in
+                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
+                    throw new common_1.ForbiddenException('User is already logged in');
+                }
+                // Check if 2FA (Two-Factor Authentication) is enabled for the user
+                yield this.handleTwoFactorAuthentication(user, res);
             }
             catch (error) {
+                // Log and handle any errors that occur during the process
                 console.error('Error in signToken42:', error);
-                // Handle errors here, e.g., return an error response
-                throw new common_1.InternalServerErrorException('Internal server error');
+                throw error;
+            }
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    handleTwoFactorAuthentication(user, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Check if 2FA (Two-Factor Authentication) is enabled for the user
+            if ((yield this.is2FaEnabled(user.id)) === false) {
+                console.log(`Passing by 2FA is not activated`);
+                // If 2FA is not enabled, proceed to sign the token
+                const result = yield this.signToken(user.id, user.username, res);
+                // Validate the result of token signing
+                if (!result.valid) {
+                    throw new common_1.ForbiddenException('Authentication failed');
+                }
+                // Send a successful response
+                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+            }
+            else {
+                // If 2FA is enabled, indicate that in the response
+                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
             }
         });
     }
@@ -464,6 +470,7 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendAuthorizationCodeRequest(code);
+                console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
                 return response.data.access_token;
             }
             catch (error) {
@@ -475,14 +482,19 @@ let AuthService = class AuthService {
     // ─────────────────────────────────────────────────────────────────────────────
     sendAuthorizationCodeRequest(code) {
         return __awaiter(this, void 0, void 0, function* () {
-            const requestBody = {
-                grant_type: 'authorization_code',
-                client_id: process.env.UID_42,
-                client_secret: process.env.SECRET_42,
-                code: code,
-                redirect_uri: 'http://localhost:4000/api/auth/callback42',
-            };
-            return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+            try {
+                const requestBody = {
+                    grant_type: 'authorization_code',
+                    client_id: process.env.UID_42,
+                    client_secret: process.env.SECRET_42,
+                    code: code,
+                    redirect_uri: 'http://localhost:8081/callback42',
+                };
+                return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -540,14 +552,16 @@ let AuthService = class AuthService {
                     // use the 42 profile picture if not null
                     avatarUrl = userInfo.image.link;
                 }
+                const avatarFile = yield this.usersService.downloadFile(avatarUrl);
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
                         username: userInfo.login,
-                        avatar: userInfo.image.link,
+                        avatar: null,
                     },
                 });
+                yield this.usersService.updateAvatar(user.id, avatarFile);
                 const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
                 user.twoFASecret = secret;
                 user.twoFAUrl = otpauthUrl;
@@ -588,32 +602,39 @@ let AuthService = class AuthService {
      */
     verifyTwoFACode(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-            });
-            if (!user) {
-                throw new common_1.NotFoundException('User not found');
-            }
-            if (!user.twoFASecret)
-                return false;
-            const verified = speakeasy.totp.verify({
-                secret: user.twoFASecret,
-                encoding: 'base32',
-                token: code,
-            });
-            if (verified === true) {
-                const result = yield this.signToken(user.id, user.username, res);
-                if (!result.valid) {
-                    // Consider providing more detailed feedback based on the error
-                    throw new common_1.ForbiddenException('Authentication failed');
+            try {
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!user) {
+                    throw new common_1.NotFoundException('User not found');
                 }
-                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                if (!user.twoFASecret)
+                    return false;
+                const verified = speakeasy.totp.verify({
+                    secret: user.twoFASecret,
+                    encoding: 'base32',
+                    token: code,
+                });
+                if (!verified) {
+                    console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
+                    throw new common_1.ForbiddenException('Provided code couldn\'d be verified');
+                }
+                if (verified === true) {
+                    const result = yield this.signToken(user.id, user.username, res);
+                    if (!result.valid) {
+                        // Consider providing more detailed feedback based on the error
+                        throw new common_1.ForbiddenException('Authentication failed');
+                    }
+                    res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                }
                 return verified;
             }
-            res.status(403).send({ valid: false, message: "wrong code, please try again...", userId: null });
-            return verified;
+            catch (error) {
+                throw error;
+            }
         });
     }
     validateTwoFA(userId, code) {

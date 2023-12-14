@@ -22,7 +22,7 @@ import 'react-toastify/dist/ReactToastify.css';
  * 
  * @returns JSX.Element
  */
-const InputField: React.FC<{ type: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+export const InputField: React.FC<{ type: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
     ({ type, value, onChange, placeholder }) => (
         <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
     );
@@ -74,7 +74,6 @@ const SignUp: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 

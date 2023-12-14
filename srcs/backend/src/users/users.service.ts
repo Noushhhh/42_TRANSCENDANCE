@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserProfileData } from '../interfaces/user.interface';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+import axios from 'axios';
+import { Readable } from 'stream'; // Import Readable from 'stream' module
 import * as fs from 'fs';
 import { use } from "passport";
 
@@ -61,7 +63,7 @@ export class UsersService {
     async isClientRegistered(payload: DecodedPayload | null): Promise<any> {
         try {
             const user = await this.prisma.user.findUnique({
-                where: { username: payload?.email },
+                where: { id: payload?.sub },
             });
             if (!user) throw new NotFoundException('User not found');
 
@@ -270,9 +272,10 @@ export class UsersService {
             // Retrieve the current user's details from the database
             const currentUser = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { avatar: true, fortyTwoStudent: true },
+                select: { avatar: true},
             });
 
+            console.log("current User", currentUser);
             // If the user is not found, throw a NotFoundException
             if (!currentUser) {
                 throw new NotFoundException('User not found');
@@ -282,7 +285,7 @@ export class UsersService {
             const oldAvatarPath = currentUser.avatar;
 
             // If there is an old avatar, attempt to delete it
-            if (oldAvatarPath && !currentUser.fortyTwoStudent) {
+            if (oldAvatarPath) {
                 try {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);
@@ -321,6 +324,67 @@ export class UsersService {
             throw error;
         }
     }
+
+    async downloadFile(url: string): Promise<Express.Multer.File> {
+        try {
+            const response = await axios.get(url, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(response.data, 'binary');
+
+            const fileName = this.extractFileName(url);
+            const mimeType = response.headers['content-type'] || this.getMimeType(fileName);
+            const size = response.headers['content-length'] || buffer.length;
+
+            const file: Express.Multer.File = {
+                buffer: buffer,
+                originalname: fileName,
+                mimetype: mimeType,
+                size: size,
+                fieldname: '', // Placeholder
+                encoding: '7bit', // Common default
+                stream: new Readable({
+                    read() {
+                        this.push(buffer);
+                        this.push(null); // Indicate the end of the stream
+                    }
+                }),
+                destination: '', // Placeholder
+                filename: fileName, // Use the same as originalname
+                path: '', // Placeholder
+            };
+
+            return file;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error('Failed to download file: ' + error.message);
+            } else {
+                throw new Error('Failed to download file: An unknown error occurred');
+            }
+        }
+    }
+
+    private extractFileName(url: string): string {
+        return url.split('/').pop() || 'downloadedFile';
+    }
+
+    private getMimeType(fileName: string): string {
+        const extension: string | undefined = fileName.split('.').pop()?.toLowerCase();
+
+        if (!extension)
+            return 'application/octet-stream'
+
+        const imageMimeTypes: { [key: string]: string } = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'bmp': 'image/bmp',
+            'tiff': 'image/tiff',
+            'webp': 'image/webp',
+            // Add more image MIME types if necessary
+        };
+        return imageMimeTypes[extension];
+    }
+
 
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
@@ -660,4 +724,5 @@ export class UsersService {
 
         return userProfile;
     }
+
 }

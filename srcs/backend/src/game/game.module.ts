@@ -11,8 +11,6 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 
-// GatewayIn
-// GatewayOut
 @Module({
   providers: [GameLogicService, GameLoopService, GameLobbyService, gameSockets, GatewayIn, GatewayOut, playerStatistics, UsersService, AuthService, JwtService],
   controllers: [GameController],

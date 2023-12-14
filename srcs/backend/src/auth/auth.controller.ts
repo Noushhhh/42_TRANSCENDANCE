@@ -68,7 +68,7 @@ export class AuthController {
       console.error("error decoding payload with decorator\n");
       return;
     }
-    return this.authService.signout(decodedPayload, res);
+    return this.authService.signout(decodedPayload.sub, res);
   }
 
   @Public()
@@ -86,8 +86,9 @@ export class AuthController {
       await this.authService.signToken42(req, res);
     } catch (error) {
       console.error(error);
-      // Handle errors here and redirect as needed
-      res.redirect('/error2');
+      // // Handle errors here and redirect as needed
+      // res.redirect('http://localhost:8081/error');
+      throw error;
     }
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
@@ -7,30 +7,8 @@ import "../styles/generalStyles.css";
 import GoBackButton from "../tools/GoBackButton";
 import { hasMessage , getErrorResponse} from "../tools/Api";
 import useTokenExpired from "../tools/hooks/useTokenExpired";
-/*************************************************************************** */
-/**
- * @function InputField
- * @description A reusable input field component.
- * @param {string} type - Type of the input field (e.g., text, email, password).
- * @param {string} value - Current value of the input field.
- * @param {function} onChange - Function to be called when the value changes.
- * @param {string} placeholder - Placeholder text for the input field.
- * @returns {JSX.Element} Rendered input field component.
- */
-/*************************************************************************** */
-const InputField: React.FC<{
-  type: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-}> = ({ type, value, onChange, placeholder }) => (
-  <input
-    type={type}
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-  />
-);
+import { verify2FA } from "../tools/Api";
+import { InputField } from "./SignUp";
 
 // ─────────────────────────────────────────────────────────────────────────────
 /*************************************************************************** */
@@ -105,19 +83,22 @@ const SignIn: React.FC = () => {
   const [userId, setUserId] = useState(0);
   const checkToken = useTokenExpired();
   // Hook for programmatic navigation.
-  const navigate = useNavigate();
   const isClientRegistered = useIsClientRegistered();
+  const navigate = useNavigate();
 
-  const checkIfAlreadyLoggedIn = async () => {
+  const checkIfAlreadyLoggedIn = useCallback(async () => {
     const tokenExpired = await checkToken();
     if (tokenExpired === false) {
-      navigate("/home");
+      navigate("/home/game");
     }
-  };
+  }, [checkToken, navigate]);
+
+  // ─────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
-  }, []);
+  }, [checkIfAlreadyLoggedIn]);
+// ─────────────────────────────────────────────────────────────────────────────
 
   const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -130,7 +111,7 @@ const SignIn: React.FC = () => {
         setDisplayTwoFa(true);
       } else {
         const userIsRegisterd = await isClientRegistered();
-        navigate(userIsRegisterd ? "/home" : "/userprofilesetup");
+        navigate(userIsRegisterd ? "/home/game" : "/userprofilesetup");
       }
     } catch (error) {
       const errorMessage = hasMessage(error)
@@ -141,28 +122,18 @@ const SignIn: React.FC = () => {
       setIsLoading(false);
     }
   };
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const verify2FA = async () => {
-    const response = await fetch(
-      "http://localhost:4000/api/auth/verifyTwoFACode",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: userId, token: twoFaCode }),
-      }
-    );
-
-    if (!response.ok) return Promise.reject(await response.json());
-
-    const formattedRes = await response.json();
-    if (formattedRes.valid === true) {
-      setTwoFaError("");
-      navigate("/home");
+  const handleVerify2FA = async () => {
+    try {
+      console.log(`Passing by handleVerify2FA`);
+      await verify2FA(userId, twoFaCode, navigate);
+    } catch (error) {
+      console.error(`Error when verifying 2FA : ${hasMessage(error) ? error.message : ""}`);
+      toast.error(hasMessage(error)? error.message : 'Unable to check 2FA');
     }
   };
+// ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="container">
@@ -172,13 +143,13 @@ const SignIn: React.FC = () => {
       <InputField
         type="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e: any) => setEmail(e.target.value)}
         placeholder="Email"
       />
       <InputField
         type="password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e: any) => setPassword(e.target.value)}
         placeholder="Password"
       />
       <button
@@ -195,14 +166,11 @@ const SignIn: React.FC = () => {
           <InputField
             type="text"
             value={twoFaCode}
-            onChange={(e) => setTwoFaCode(e.target.value)}
+            onChange={(e: any) => setTwoFaCode(e.target.value)}
             placeholder="2FA Code"
           />
-          <button
-            onClick={() => verify2FA().catch((e) => setTwoFaError(e.message))}
-          >
-            Submit
-          </button>
+
+          <button onClick={handleVerify2FA}>Submit</button>
         </div>
       ) : null}
     </div>

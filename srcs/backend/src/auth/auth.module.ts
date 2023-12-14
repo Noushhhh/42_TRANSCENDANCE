@@ -10,6 +10,7 @@ import { jwtConstants } from './constants/constants';
 import { ConfigService } from '@nestjs/config';
 import { SessionService } from './session.service';
 
+
 @Module({
   imports: [
       forwardRef(() => UsersModule),
@@ -17,7 +18,7 @@ import { SessionService } from './session.service';
       JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '15m'}
-  }), 
+  }),
   ],
   providers: [AuthService, JwtStrategy, SessionService],
   controllers: [AuthController],

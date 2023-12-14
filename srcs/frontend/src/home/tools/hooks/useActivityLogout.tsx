@@ -80,7 +80,7 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
       //console.log("Clearing token check interval");
       clearInterval(tokenCheckIntervalId);
     };
-  }, [navigate, handleSignOut, checkToken, refreshTokenIfNeeded]);
+  }, [navigate, handleSignOut, checkToken, refreshTokenIfNeeded, refreshCheckInterval]);
 
   return null;
 };

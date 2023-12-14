@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
 import { hasMessage } from "../Api";
 
 // Constants
@@ -6,7 +6,6 @@ const API_CHECK_TOKEN_VALIDITY = 'http://localhost:8081/api/auth/checkTokenValid
 const FETCH_TIMEOUT = 5000;  // Timeout for the fetch call set to 5 seconds
 
 export const useTokenExpired = ()  => {
-    const [tokenExpired, setTokenExpired] = useState<boolean | null>(null);
 
     const checkToken = async () => {
         const controller = new AbortController();
@@ -23,18 +22,15 @@ export const useTokenExpired = ()  => {
 //            console.log(`passing by useTokenExpired response.ok = ${response.ok}`)
             if (response.ok) {
 //                console.log(`passing by if condition true withing checkToken response.ok = ${response.ok}`);
-                setTokenExpired(false);
                 return false;  //
             }
             else {
 //                console.log(`passing by if condition false withing checkToken response.ok = ${response.ok}`);
-                setTokenExpired(true);
                 return true;   // Return the actual result
             }
 //            console.log(`after setting tokenExpired withing checkToken ${tokenExpired}`);
         } catch (error) {
             console.error("Token check error:", hasMessage(error) ? error.message : error);
-            setTokenExpired(null);
         }
     };
 
