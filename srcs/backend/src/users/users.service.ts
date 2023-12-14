@@ -1,7 +1,7 @@
 import {
     ForbiddenException, Injectable, NotFoundException, UnauthorizedException,
-    InternalServerErrorException,
-    Response as NestResponse
+    Response as NestResponse,
+    BadRequestException
 } from "@nestjs/common";
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
@@ -94,7 +94,6 @@ export class UsersService {
      * @param {DecodedPayload} decodedPayload - The JWT decoded payload.
      * @param {Response} res - The response object from NestJS.
      * @throws {NotFoundException} - Throws when the avatar or user is not found.
-     * @throws {InternalServerErrorException} - Throws for any other errors.
      */
     async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
         try {
@@ -125,7 +124,7 @@ export class UsersService {
                     throw new NotFoundException('Avatar not found');
                 } else {
                     // Other errors, throw NestJS InternalServerErrorException
-                    throw new InternalServerErrorException('Error fetching avatar');
+                    throw new BadRequestException('Error fetching avatar');
                 }
             });
         } catch (error) {
@@ -172,14 +171,14 @@ export class UsersService {
                 writeStream.on('error', (error: Error) => {
                     // Log the error and reject the promise if an error occurs during the write process
                     console.error('Error saving image to local folder:', error);
-                    reject(new InternalServerErrorException('Failed to save image to local folder'));
+                    reject(new ForbiddenException('Failed to save image to local folder'));
                 });
             });
         } catch (error) {
             // If an exception is thrown during the process, log the error
             console.error('Error in saveImageToLocalFolder service:', error);
-            // Throw a NestJS InternalServerErrorException for consistent error handling
-            throw new InternalServerErrorException('Error in saveImageToLocalFolder service');
+            // Throw a NestJS for consistent error handling
+            throw new ForbiddenException('Error in saveImageToLocalFolder service');
         }
     }
 
@@ -290,8 +289,8 @@ export class UsersService {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);
                 } catch (err) {
-                    // If deletion fails, throw an InternalServerErrorException
-                    throw new InternalServerErrorException('Error deleting old avatar');
+                    // If deletion fails, throw 
+                    throw new ForbiddenException('Error deleting old avatar');
                 }
             }
 
@@ -304,8 +303,8 @@ export class UsersService {
             try {
                 await this.saveImageToLocalFolder(avatar, newFilePath);
             } catch (error) {
-                // If saving fails, throw an InternalServerErrorException
-                throw new InternalServerErrorException('Failed to save image to local folder');
+                // If saving fails, throw
+                throw new ForbiddenException('Failed to save image to local folder');
             }
 
             // Update the user's avatar path in the database
@@ -315,12 +314,11 @@ export class UsersService {
                     data: { avatar: newFilePath },
                 });
             } catch (error) {
-                // If updating the database fails, throw an InternalServerErrorException
-                throw new InternalServerErrorException('Failed to update user avatar in database');
+                // If updating the database fails
+                throw new BadRequestException('Failed to update user avatar in database');
             }
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
-            // throw new InternalServerErrorException('Error in updateAvatar service');
             throw error;
         }
     }
