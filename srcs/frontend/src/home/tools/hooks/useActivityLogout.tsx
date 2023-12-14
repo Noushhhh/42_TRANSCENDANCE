@@ -34,10 +34,7 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
     };
 
     const updateLastActivity = () => {
-<<<<<<< HEAD
-=======
       //console.log("Updating last activity time");
->>>>>>> f42115fe4ac1e862a3fde3e8c735ec4739c8b2d8
       localStorage.setItem("lastActivity", Date.now().toString());
       resetTimer();
     };
