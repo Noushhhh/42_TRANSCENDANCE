@@ -89,17 +89,17 @@ export const getUserAvatar = async (): Promise<string | null> => {
       credentials: 'include'
     });
 
-      // Check if the response from the fetch request is not successful
-      if (!response.ok) {
-        // If the response is not successful, parse the response body as JSON.
-        // This assumes that the server provides a JSON response containing error details.
-        const errorDetails = await getErrorResponse(response);
+    // Check if the response from the fetch request is not successful
+    if (!response.ok) {
+      // If the response is not successful, parse the response body as JSON.
+      // This assumes that the server provides a JSON response containing error details.
+      const errorDetails = await getErrorResponse(response);
 
-        // Reject the promise with a new Error object. 
-        // This provides a more detailed error message than simply rejecting with the raw response.
-        // makes it easier to understand the nature of the error when handling it later.
-        return Promise.reject(errorDetails);
-      }
+      // Reject the promise with a new Error object. 
+      // This provides a more detailed error message than simply rejecting with the raw response.
+      // makes it easier to understand the nature of the error when handling it later.
+      return Promise.reject(errorDetails);
+    }
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -165,10 +165,10 @@ export const validatePassword = async (password: string): Promise<any> => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const validateEmail = async (email: string): Promise<any> => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        throw new Error ('Please enter a valid email address.');
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error('Please enter a valid email address.');
+  }
 };
 
 
@@ -319,30 +319,51 @@ export const fetchImageAsFile = async (imageUrl: string, imageName: string): Pro
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const verify2FA = async (userId: number, twoFaCode: string, navigate: NavigateFunction) => {
-  try {
-    console.log("USERID CODE = ", userId, twoFaCode);
-    const response = await fetch(
-      "http://localhost:4000/api/auth/verifyTwoFACode",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId, token: twoFaCode }),
-      }
-    );
+  // try {
+  //   console.log("USERID CODE = ", userId, twoFaCode);
+  //   const response = await fetch(
+  //     "http://localhost:4000/api/auth/verifyTwoFACode",
+  //     {
+  //       method: "POST",
+  //       credentials: "include",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ userId, token: twoFaCode }),
+  //     }
+  //   );
 
-    if (!response.ok) return Promise.reject(await response.json());
-    const formattedRes = await response.json();
-    console.log("RES = ", formattedRes);
-    if (formattedRes.valid === true) {
-      console.log("ICI TRUE");
-      // const userIsRegistered = await isClientRegistered();
-      // navigate(userIsRegistered ? "/home" : "/userprofilesetup");
-      navigate("/home/game");
+  //   if (!response.ok) return Promise.reject(await response.json());
+  //   const formattedRes = await response.json();
+
+  //   if (formattedRes.valid === true) {
+
+  //     // const userIsRegistered = await isClientRegistered();
+  //     // navigate(userIsRegistered ? "/home" : "/userprofilesetup");
+  //     navigate("/home/game");
+  //   }
+  // } catch (error) {
+  //   throw error;
+  // }
+
+  const response = await fetch(
+    "http://localhost:4000/api/auth/verifyTwoFACode",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: userId, token: twoFaCode }),
     }
-  } catch (error) {
-    throw error;
+  );
+
+  if (!response.ok) return Promise.reject(await response.json());
+
+  const formattedRes = await response.json();
+  if (formattedRes.valid === true) {
+    // setTwoFaError("");
+    navigate("/home");
   }
+
 };

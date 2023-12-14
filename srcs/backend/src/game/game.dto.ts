@@ -6,9 +6,3 @@ export class ConnectToLobbyDto {
     @IsNotEmpty()
     clientId!: string;
 }
-
-export class PlayerNameDto {
-    @IsString()
-    @IsNotEmpty()
-    clientId!: string;
-}

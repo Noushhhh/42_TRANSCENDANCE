@@ -1,38 +1,27 @@
-import { BadRequestException, Controller, Get, Req, UseGuards } from "@nestjs/common";
+import { BadRequestException, Controller, Get, NotFoundException, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards";
 import { Request } from "express";
 import { StatsService } from "./stats.service";
 
+@UseGuards(JwtAuthGuard)
 @Controller('stats')
 export class StatsController {
 
   constructor(private readonly statsService: StatsService) { }
 
-  @UseGuards(JwtAuthGuard)
   @Get('getGameStats')
   async getGamePlayed(@Req() req: Request) {
-
-    const userId = req.headers['x-user-id'];
-
-    if (typeof userId === 'string') {
-      const userIdInt = parseInt(userId);
-      const gameStats = await this.statsService.getGamePlayed(userIdInt);
-      return { gameStats: gameStats };
-    }
-    throw new BadRequestException("Error trying to parse userID");
+    if (!req.user?.id) throw new NotFoundException("User not found");
+    const gameStats = await this.statsService.getGamePlayed(req.user.id);
+    return { gameStats: gameStats };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('getMatchHistory')
   async getMatchHistory(@Req() req: Request) {
-    const userId = req.headers['x-user-id'];
+    if (!req.user?.id) throw new NotFoundException("User not found");
+    const matchHistory = await this.statsService.getMatchHistory(req.user.id);
+    return { matchHistory: matchHistory };
 
-    if (typeof userId === 'string') {
-      const userIdInt = parseInt(userId);
-      const matchHistory = await this.statsService.getMatchHistory(userIdInt);
-      return { matchHistory: matchHistory };
-    }
-    throw new BadRequestException("Error trying to parse userID");
   }
 }
 

@@ -104,17 +104,27 @@ let AuthController = class AuthController {
             }
         });
     }
-    enable2FA(userId) {
+    enable2FA(req) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-            const qrcodeUrl = yield this.authService.enable2FA(userId.userId);
-            return { qrcode: qrcodeUrl };
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const qrcodeUrl = yield this.authService.enable2FA(req.user.id);
+                return { qrcode: qrcodeUrl };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
-    disable2FA(userId) {
+    disable2FA(req) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
             try {
-                yield this.authService.disable2FA(userId.userId);
+                yield this.authService.disable2FA(req.user.id);
                 return { res: true };
             }
             catch (error) {
@@ -122,27 +132,43 @@ let AuthController = class AuthController {
             }
         });
     }
-    validating2FA(TwoFAData) {
+    validating2FA(req, TwoFAData) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.authService.validateTwoFA(TwoFAData.userId, TwoFAData.token);
-            return { res: res };
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const res = yield this.authService.validateTwoFA(req.user.id, TwoFAData.token);
+                return { res: res };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
-    verifyTwoFACode(TwoFAData, response) {
+    verifyTwoFACode(data, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.authService.verifyTwoFACode(TwoFAData.userId, TwoFAData.token, response);
-            return { res: res };
+            try {
+                const res = yield this.authService.verifyTwoFACode(data.userId, data.token, response);
+                return { res: res };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     is2FaActivated(req) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const userId = req.headers['x-user-id'];
-            if (typeof userId === 'string') {
-                const userIdInt = parseInt(userId);
-                const is2FaEnabled = yield this.authService.is2FaEnabled(userIdInt);
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const is2FaEnabled = yield this.authService.is2FaEnabled(req.user.id);
                 return { res: is2FaEnabled };
             }
-            throw new common_1.BadRequestException("Error trying to parse userID");
+            catch (error) {
+                throw error;
+            }
         });
     }
 };
@@ -217,24 +243,28 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "handle42Callback", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('enable2FA'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_2.UserIdDto]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('disable2FA'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_2.UserIdDto]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "disable2FA", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('validating2FA'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_2.TwoFADataDto]),
+    __metadata("design:paramtypes", [Object, dto_2.TwoFADataDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "validating2FA", null);
 __decorate([
@@ -246,6 +276,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyTwoFACode", null);
 __decorate([
+    (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Get)('is2FaActivated'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),

@@ -8,7 +8,7 @@ import GoBackButton from "../tools/GoBackButton";
 import { hasMessage , getErrorResponse} from "../tools/Api";
 import useTokenExpired from "../tools/hooks/useTokenExpired";
 import { verify2FA } from "../tools/Api";
-import InputField from "../tools/InputField";
+import { InputField } from "./SignUp";
 
 // ─────────────────────────────────────────────────────────────────────────────
 /*************************************************************************** */
@@ -78,6 +78,7 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [twoFaCode, setTwoFaCode] = useState("");
+  const [twoFaError, setTwoFaError] = useState("");
   const [displayTwoFa, setDisplayTwoFa] = useState(false);
   const [userId, setUserId] = useState(0);
   const checkToken = useTokenExpired();
@@ -104,11 +105,8 @@ const SignIn: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Faire en sorte que cette fonction nous renvoie un status
-      // pour savoir si le client est co ou si il faut qu'il passe par la 2FA
       const res = await signInAPI(email, password);
       if (res !== 0) {
-        console.log("USER ID 2FA = ", res);
         setUserId(res);
         setDisplayTwoFa(true);
       } else {
@@ -145,13 +143,13 @@ const SignIn: React.FC = () => {
       <InputField
         type="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e: any) => setEmail(e.target.value)}
         placeholder="Email"
       />
       <InputField
         type="password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e: any) => setPassword(e.target.value)}
         placeholder="Password"
       />
       <button
@@ -164,10 +162,11 @@ const SignIn: React.FC = () => {
 
       {displayTwoFa ? (
         <div>
+          <p style={{ color: "red", fontSize: "0.75rem" }}>{twoFaError}</p>
           <InputField
             type="text"
             value={twoFaCode}
-            onChange={(e) => setTwoFaCode(e.target.value)}
+            onChange={(e: any) => setTwoFaCode(e.target.value)}
             placeholder="2FA Code"
           />
 

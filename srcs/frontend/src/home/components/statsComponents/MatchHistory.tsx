@@ -32,9 +32,6 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
         {
           method: "GET",
           credentials: "include",
-          headers: {
-            "X-User-ID": userId.toString(),
-          },
         }
       );
 
