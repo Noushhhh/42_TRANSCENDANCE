@@ -112,13 +112,12 @@ export const fetchUser = async (
       };
 
       if (header.name === '') {
+        const name: string | null = await getChannelName(channelId, userId);
+        if (name)
+          header.name = name;
         channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
         if (!channelInfo)
           return null;
-        if (channelInfo.name)
-          header.name = channelInfo.name;
-        else 
-          header.name = "";
       }
       header.isConnected = channelInfo.isConnected;
       return header;
@@ -753,7 +752,6 @@ export const getChannelType = async (channelId: number) => {
 
 export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    console.log("is owner called");
     const response: Response = await fetch(`http://localhost:4000/api/chat/isOwner?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const isOwner = await response.json();

@@ -62,6 +62,9 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     scrollToBottom();
   }, [messages]);
 
+  console.log(messages);
+  console.log(conversationFetched);
+
 
   if (channelId === -1)
     return (<div className="ChatViewContainer"></div>)
@@ -81,8 +84,9 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
             />
           );
         })}
-        {messages.map((message, index) => {
-          return (
+        {messages
+          .filter(message => message.channelId === channelId)
+          .map((message, index) => (
             <MessageComponent
               key={index}
               contentMessage={message.content}
@@ -91,8 +95,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
               senderId={message.senderId}
               isChannelInfo={isChannelInfoDisplay}
             />
-          )
-        })}
+  ))}
       <div className="anchor-autoscroll" style={{height:'1px'}} ref={anchorRef}></div>
       </div>
     </div>
