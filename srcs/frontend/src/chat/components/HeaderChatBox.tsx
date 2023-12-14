@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/HeaderChatBox.css";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import IsConnected from "./isConnected";
@@ -7,6 +7,8 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useToggleMenu, useSetToggleMenu } from "../contexts/toggleMenuMobile";
+import { useUserIdContext } from "../contexts/userIdContext";
+import { getChannelName } from "./ChannelUtils";
 
 interface HeaderChatBoxProps {
   channelInfo: boolean;
@@ -16,10 +18,31 @@ interface HeaderChatBoxProps {
 
 function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderChatBoxProps) {
 
+  const [channelName, setChannelName] = useState<string | null>(null);
+
   const channelHeader = useChannelHeaderContext();
-  const channelId = useChannelIdContext();
   const toggleMenu = useToggleMenu();
   const setToggleMenu = useSetToggleMenu();
+
+
+  const channelId: number = useChannelIdContext();
+  const userId: number = useUserIdContext();
+
+  useEffect(() => {
+      const fetchChannelName = async () => {
+          try {
+            if (channelId === -1)
+              return;
+            const channelName: string | null = await getChannelName(channelId, userId);
+            console.log("channel name = ", channelName);
+            setChannelName(channelName);
+          } catch (errors: any) {
+              console.log(errors.message);
+          }
+      }
+
+      fetchChannelName();
+  }, [channelId]);
 
   const handleSettingsClick = () => {
     setChannelInfo(!channelInfo);
@@ -54,7 +77,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
             <ArrowBackIosIcon />
           </span>
           <IsConnected isConnected={channelHeader[i].isConnected} />
-          <p>{channelHeader[i].name}</p>
+          <p title={channelName ? channelName :  ""}>{channelName ? channelName :  null}</p>
         </div>
         <div className="HeaderChatBoxLogo">
           <button className="showSettingsMenu" onClick={handleSettingsClick}>

@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 // Styles and components
 import '../styles/generalStyles.css';
 import GoBackButton from "../tools/GoBackButton";
+import { getErrorResponse, hasMessage, validateEmail, validatePassword } from "../tools/Api";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -42,10 +45,16 @@ const signUpAPI = async (email: string, password: string) => {
         body: JSON.stringify({ username: email, password }),
     });
 
+    // Check if the response from the fetch request is not successful
     if (!response.ok) {
-        const data = await response.json();
-        console.log(data);
-        throw new Error(`Status Code: ${data?.statusCode} Message: ${data?.message}`);
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getErrorResponse(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
     }
     return response.json();
 };
@@ -53,39 +62,6 @@ const signUpAPI = async (email: string, password: string) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @brief Validates the given password against certain criteria
- * 
- * @param password User's password
- * 
- * @returns null if the password is valid, error message otherwise
- */
-const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-        return 'Password should be at least 8 characters long.';
-    }
-    if (!/[a-z]/.test(password)) {
-        return 'Password should contain at least one lowercase letter.';
-    }
-    if (!/[A-Z]/.test(password)) {
-        return 'Password should contain at least one uppercase letter.';
-    }
-    if (!/[0-9]/.test(password)) {
-        return 'Password should contain at least one digit.';
-    }
-    if (!/[@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(password)) {
-        return 'Password should contain at least one special character (e.g., @, #, $, etc.).';
-    }
-    return null;
-};
-
-const validateEmail = (email: string): string | null => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return 'Please enter a valid email address.';
-    }
-    return null;
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -98,7 +74,6 @@ const SignUp: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -109,37 +84,17 @@ const SignUp: React.FC = () => {
      */
     const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        if (password !== confirmPassword) {
-            setErrorMessage('Passwords do not match.');
-            return;
-        }
-        const passwordValidationError = validatePassword(password);
-        if (passwordValidationError) {
-            setErrorMessage(passwordValidationError);
-            return;
-        }
-
-        const emailValidationError = validateEmail(email);
-        if (emailValidationError) {
-            setErrorMessage(emailValidationError);
-            return;
-        }
-
         setIsLoading(true);
         try {
+            if (password !== confirmPassword)
+                throw new Error('Passwords do not match.');
+            await validateEmail(email);
+            await validatePassword(password);
             await signUpAPI(email, password);
             navigate('/signin', { state: { message: 'Your account has been created successfully. Please sign in.' } });
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.message.includes('403')) { // Check the status code of the error
-                    setErrorMessage('Email is already registered. Please sign in.');
-                } else {
-                    console.log(error.message);
-                    setErrorMessage('An unexpected error occurred. Please try again later.');
-                }
-            } else {
-                setErrorMessage('An unexpected error occurred. Please try again later.');
-            }
+            toast.error(`Error signing up: ${hasMessage(error) ? error.message : ""}`);
+            console.error(`Error signing up: ${hasMessage(error) ? error.message : ""}`);
         } finally {
             setIsLoading(false);
         }
@@ -150,7 +105,7 @@ const SignUp: React.FC = () => {
         <div className="container">
             <GoBackButton />
             <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
-            {errorMessage && <div style={{color: 'white'}}>{errorMessage}</div>}
+            <ToastContainer/>
             <InputField type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
             <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
             <InputField type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />

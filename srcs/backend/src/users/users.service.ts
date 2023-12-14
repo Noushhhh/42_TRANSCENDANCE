@@ -1,7 +1,7 @@
 import {
     ForbiddenException, Injectable, NotFoundException, UnauthorizedException,
-    InternalServerErrorException,
-    Response as NestResponse
+    Response as NestResponse,
+    BadRequestException
 } from "@nestjs/common";
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,15 +11,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserProfileData } from '../interfaces/user.interface';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
+import axios from 'axios';
+import { Readable } from 'stream'; // Import Readable from 'stream' module
 import * as fs from 'fs';
-
-
+import { use } from "passport";
 
 interface FriendRequestFromUser {
     id: number;
     publicName?: string | null;
     userName: string;
     avatar?: string | null;
+}
+
+interface UserProfile {
+    id: number;
+    publicName?: string | null;
+    userName: string;
+    avatar?: string | null;
+    gamePlayed: number;
+    gameWon: number;
 }
 
 @Injectable()
@@ -53,11 +63,17 @@ export class UsersService {
     async isClientRegistered(payload: DecodedPayload | null): Promise<any> {
         try {
             const user = await this.prisma.user.findUnique({
-                where: { username: payload?.email },
+                where: { id: payload?.sub },
             });
+            if (!user) throw new NotFoundException('User not found');
+
             const isNotRegistered = user?.firstConnexion;
             if (isNotRegistered) {
-                throw new NotFoundException('Client is not registered yet');
+                return {
+                    statusCode: 200,
+                    valid: false,
+                    message: 'Client not registered yet',
+                };
             } else {
                 return {
                     statusCode: 200,
@@ -78,30 +94,29 @@ export class UsersService {
      * @param {DecodedPayload} decodedPayload - The JWT decoded payload.
      * @param {Response} res - The response object from NestJS.
      * @throws {NotFoundException} - Throws when the avatar or user is not found.
-     * @throws {InternalServerErrorException} - Throws for any other errors.
      */
     async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
         try {
             // Get the user profile using the decoded payload's subject (usually the user ID)
             const user = await this.getUserData(decodedPayload.sub);
-            
+
             // Check if the user has an avatar set
             const path = user?.avatar;
             if (!path) {
                 throw new NotFoundException('Avatar not found');
             }
-    
+
             // Set the appropriate MIME type for the avatar image
             res.type('image/jpeg');
-    
+
             // Create a read stream for the avatar file
             const stream = fs.createReadStream(path);
-    
+
             stream.on('open', () => {
                 // Pipe the read stream to the response object to send the image data
                 stream.pipe(res);
             });
-    
+
             stream.on('error', (err: NodeJS.ErrnoException) => {
                 // Handle file read/stream errors
                 if (err.code === 'ENOENT') {
@@ -109,16 +124,16 @@ export class UsersService {
                     throw new NotFoundException('Avatar not found');
                 } else {
                     // Other errors, throw NestJS InternalServerErrorException
-                    throw new InternalServerErrorException('Error fetching avatar');
+                    throw new BadRequestException('Error fetching avatar');
                 }
             });
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
             console.error('Error in getUserAvatar service:', error);
-            throw new InternalServerErrorException('Error in getUserAvatar service');
+            throw error;
         }
     }
-    
+
 
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
@@ -156,14 +171,14 @@ export class UsersService {
                 writeStream.on('error', (error: Error) => {
                     // Log the error and reject the promise if an error occurs during the write process
                     console.error('Error saving image to local folder:', error);
-                    reject(new InternalServerErrorException('Failed to save image to local folder'));
+                    reject(new ForbiddenException('Failed to save image to local folder'));
                 });
             });
         } catch (error) {
             // If an exception is thrown during the process, log the error
             console.error('Error in saveImageToLocalFolder service:', error);
-            // Throw a NestJS InternalServerErrorException for consistent error handling
-            throw new InternalServerErrorException('Error in saveImageToLocalFolder service');
+            // Throw a NestJS for consistent error handling
+            throw new ForbiddenException('Error in saveImageToLocalFolder service');
         }
     }
 
@@ -178,7 +193,7 @@ export class UsersService {
                 publicName: true,
                 avatar: true,
                 firstConnexion: true,
-
+                username: true
             },
         });
         if (!user)
@@ -201,17 +216,23 @@ export class UsersService {
     async updatePublicName(userId: number, publicName: string) {
         try {
             // Check if the public name is already taken by another user
-            const user = await this.prisma.user.findUnique({
-                where: { publicName: publicName },
+            // This query uses a case-insensitive search to find a user with the given publicName
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    publicName: {
+                        mode: 'insensitive', // Enable case-insensitive filter
+                        equals: publicName // Compare with the provided publicName
+                    }
+                },
                 select: {
-                    id: true,
-                    username: true,
-                    publicName: true,
+                    id: true, // Select user id
+                    username: true, // Select username
+                    publicName: true, // Select publicName
                 },
             });
 
-            // If the public name is taken by another user, throw a ForbiddenException
-            if (user && user.id !== userId) {
+            // If a user with the same publicName is found, throw an exception
+            if (user) {
                 throw new ForbiddenException("Public name already taken, please choose another one");
             }
 
@@ -231,46 +252,10 @@ export class UsersService {
                 message: "Public name was updated successfully",
             });
         } catch (error) {
-            throw new NotFoundException("There was an error updating public name");
+            throw error;
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    // @ TO ALEX: This function was duplicated while I've merged, so I just commented it just in case
-
-    // async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
-    //     try {
-    //         const uniqueFilename = uuidv4() + extname(avatar.originalname);
-    //         const filePath = `${this.uploadFolder}/${uniqueFilename}`;
-
-    //         try {
-    //             await this.saveImageToLocalFolder(avatar, filePath);
-    //         } catch (error) {
-    //             console.error('Error saving image to local folder:', error);
-    //             throw new Error('Failed to save image to local folder');
-    //         }
-
-    //         try {
-    //             await this.prisma.user.update({
-    //                 where: { id: userId },
-    //                 data: { avatar: filePath },
-    //             });
-    //         } catch (error) {
-    //             console.error('Error updating user avatar in database:', error);
-    //             throw new Error('Failed to update user avatar in database');
-    //         }
-
-    //     } catch (error) {
-    //         console.error('Error in updateAvatar service:', error);
-    //         // Throw a NotFoundException for any errors during the update process
-    //         // throw new NotFoundException("There was an error updating the public name");
-    //         throw error;
-    //     }
-    // }
-
-    // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
@@ -286,9 +271,10 @@ export class UsersService {
             // Retrieve the current user's details from the database
             const currentUser = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { avatar: true, fortyTwoStudent: true },
+                select: { avatar: true},
             });
 
+            console.log("current User", currentUser);
             // If the user is not found, throw a NotFoundException
             if (!currentUser) {
                 throw new NotFoundException('User not found');
@@ -298,13 +284,13 @@ export class UsersService {
             const oldAvatarPath = currentUser.avatar;
 
             // If there is an old avatar, attempt to delete it
-            if (oldAvatarPath && !currentUser.fortyTwoStudent) {
+            if (oldAvatarPath) {
                 try {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);
                 } catch (err) {
-                    // If deletion fails, throw an InternalServerErrorException
-                    throw new InternalServerErrorException('Error deleting old avatar');
+                    // If deletion fails, throw 
+                    throw new ForbiddenException('Error deleting old avatar');
                 }
             }
 
@@ -317,8 +303,8 @@ export class UsersService {
             try {
                 await this.saveImageToLocalFolder(avatar, newFilePath);
             } catch (error) {
-                // If saving fails, throw an InternalServerErrorException
-                throw new InternalServerErrorException('Failed to save image to local folder');
+                // If saving fails, throw
+                throw new ForbiddenException('Failed to save image to local folder');
             }
 
             // Update the user's avatar path in the database
@@ -328,15 +314,75 @@ export class UsersService {
                     data: { avatar: newFilePath },
                 });
             } catch (error) {
-                // If updating the database fails, throw an InternalServerErrorException
-                throw new InternalServerErrorException('Failed to update user avatar in database');
+                // If updating the database fails
+                throw new BadRequestException('Failed to update user avatar in database');
             }
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException
-            // throw new InternalServerErrorException('Error in updateAvatar service');
             throw error;
         }
     }
+
+    async downloadFile(url: string): Promise<Express.Multer.File> {
+        try {
+            const response = await axios.get(url, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(response.data, 'binary');
+
+            const fileName = this.extractFileName(url);
+            const mimeType = response.headers['content-type'] || this.getMimeType(fileName);
+            const size = response.headers['content-length'] || buffer.length;
+
+            const file: Express.Multer.File = {
+                buffer: buffer,
+                originalname: fileName,
+                mimetype: mimeType,
+                size: size,
+                fieldname: '', // Placeholder
+                encoding: '7bit', // Common default
+                stream: new Readable({
+                    read() {
+                        this.push(buffer);
+                        this.push(null); // Indicate the end of the stream
+                    }
+                }),
+                destination: '', // Placeholder
+                filename: fileName, // Use the same as originalname
+                path: '', // Placeholder
+            };
+
+            return file;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error('Failed to download file: ' + error.message);
+            } else {
+                throw new Error('Failed to download file: An unknown error occurred');
+            }
+        }
+    }
+
+    private extractFileName(url: string): string {
+        return url.split('/').pop() || 'downloadedFile';
+    }
+
+    private getMimeType(fileName: string): string {
+        const extension: string | undefined = fileName.split('.').pop()?.toLowerCase();
+
+        if (!extension)
+            return 'application/octet-stream'
+
+        const imageMimeTypes: { [key: string]: string } = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'bmp': 'image/bmp',
+            'tiff': 'image/tiff',
+            'webp': 'image/webp',
+            // Add more image MIME types if necessary
+        };
+        return imageMimeTypes[extension];
+    }
+
 
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
@@ -354,6 +400,23 @@ export class UsersService {
             return user;
         }
         catch (error) {
+            console.error(`Error fetching user with id ${userId}`, error);
+            throw error;
+        }
+    }
+
+    async getPublicName(userId: number): Promise<string | null> {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new NotFoundException(`User not found with`);
+            }
+            return user.publicName;
+        } catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
             throw error;
         }
@@ -638,4 +701,26 @@ export class UsersService {
 
         return user1.friends.some((friend) => friend.id === userId2);
     }
+
+    async getUserProfile(userId: number): Promise<UserProfile> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new Error(`User with id ${userId} not found.`);
+        }
+
+        const userProfile: UserProfile = {
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+            avatar: user.avatar,
+            gamePlayed: user.gamesPlayed,
+            gameWon: user.gamesWon
+        }
+
+        return userProfile;
+    }
+
 }

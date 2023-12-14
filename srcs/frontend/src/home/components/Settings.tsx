@@ -1,172 +1,131 @@
+// Importing necessary React hooks, components, and styles
 import React, { useEffect, useState, useCallback } from 'react';
 import { getPublicName, getUserAvatar, useUpdatePublicName, useUpdateAvatar, hasMessage } from '../tools/Api';
 import SignOutLink from '../tools/SignoutLink';
 import { CSSTransition } from 'react-transition-group';
-import  '../styles/generalStyles.css'
-import LoadingSpinner from '../tools/LoadingSpinner'; // New import for a loading spinner component
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../styles/generalStyles.css';
+import LoadingSpinner from '../tools/LoadingSpinner';
+import TwoFA from './TwoFA';
 
-
-
-/*
-
-                                        |
-,---.,---.,-.-.,---.,---.,---.,---.,---.|---
-|    |   || | ||   ||   ||   ||---'|   ||
-`---'`---'` ' '|---'`---'`   '`---'`   '`---'
-               |
-*/
+// Settings component definition, wrapped with React.memo for performance optimization
 const Settings: React.FC = React.memo(() => {
-
+  // State hooks for various pieces of user data and UI states
   const [username, setPublicName] = useState<string | null>(null);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-  const [promptError, setError] = useState<string | null>(null);
   const [showLoading, setShowLoading] = useState(true);
   const [newUsername, setNewPublicName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
   const [isUpdatingProfileName, setIsUpdatingProfileName] = useState(false);
-  const { updateAvatar, isLoading: isAvatarUpdating, error: avatarUpdateError } = useUpdateAvatar();
-  const { updatePublicName, isLoading: isPublicNameLoading, error: publicNameError } = useUpdatePublicName();
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Custom hooks for updating avatar and public name
+  const updateAvatar = useUpdateAvatar();
+  const updatePublicName = useUpdatePublicName();
 
-  // We're creating a "ref" for our username and avatar elements.
-  // Think of a "ref" like a name tag that we're putting on these elements so we can find them easily later.
-  // Why is this important? Well, imagine if you're a magician and you have to perform a magic trick on someone in a crowd, but you don't know who that person is. It would be pretty hard, right?
-  // That's why we use "ref". It makes sure our magic trick (the transition) works on the right person (the element)!
+  // Refs for smooth transitions in UI elements
   const usernameRef = React.useRef(null);
   const avatarRef = React.useRef(null);
 
-  
-
+  // Fetches the user's public name from the backend
   const fetchPublicName = async (): Promise<void> => {
     try {
       const userNameResultFromBack = await getPublicName();
       setPublicName(userNameResultFromBack);
-
     } catch (error) {
-      if (hasMessage(error))
-        setError(error.message);
-      else
-        setError('Error getting publicName');
+      console.error(`Error fetching publicName in settings component : 
+      ${hasMessage(error) ? error.message : ""}`);
     }
   }
 
+  // Fetches the user's avatar from the backend
   const fetchUserAvatar = async (): Promise<void> => {
-    const userAvatarResultFromBack = await getUserAvatar();
-    if (userAvatarResultFromBack) {
-      setAvatarUrl(userAvatarResultFromBack);
-    } else {
-      setError('There was an error fetching the avatar, please contact the system administrator');
+    try {
+      const userAvatarResultFromBack = await getUserAvatar();
+      if (userAvatarResultFromBack) 
+        setAvatarUrl(userAvatarResultFromBack);
+    } catch (error) {
+      console.error(`Error fetching avatar in settings component : 
+      ${hasMessage(error) ? error.message : ""}`);
     }
   }
 
-/*
-
-             |                  |                       |    |        |              |                  |
-        . . .|---.,---.,---.    |--- ,---.    ,---.,---.|    |        |---.,---.,---.|__/ ,---.,---.,---|
-        | | ||   ||---'|   |    |    |   |    |    ,---||    |        |   |,---||    |  \ |---'|   ||   |
-        `-'-'`   '`---'`   '    `---'`---'    `---'`---^`---'`---'    `---'`---^`---'`   ``---'`   '`---'
-
-*/
+  // Initial effect for loading spinner
   useEffect(() => {
-    setShowLoading(true); // Set showLoading to true before fetching the data
-
-    Promise.all([fetchPublicName(), fetchUserAvatar()])
-      .then(() => setShowLoading(false)) // Set showLoading to false after the data has been fetched
-      .catch(() => setShowLoading(false)); // Also set showLoading to false if there's an error
-
-    return () => {
-      setError(null);
-    };
-
-  }, []);
-
-
-  const checkUsernameAndUpdate = useCallback(async (): Promise<void> => {
-
-    try {
-      setError(null);
-      setIsUpdatingProfileName(true);
-      await updatePublicName(newUsername);
-      // if pubicName updated successfully, set the publicName var to newUsername 
-      // before re-rendering the component so the user can see the update inmediatelly
-      setIsUpdatingProfileName(false);
-    } catch (error) {
-      console.error("Failed to update ProfileName:", error);
-      return;
-    }
-    setPublicName(newUsername);
-  }, [setIsUpdatingProfileName, updatePublicName, newUsername]);
-
-  const checkAndShowInputAvatar = useCallback(async (newFile: File): Promise<void> => {
-    setNewAvatar(newFile);
-  }, []);
-
-  const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
-    try {
-      await updateAvatar(newAvatar);
-      setIsUpdatingAvatar(false);
-    } catch (error) {
-      // Error handling is managed by avatarUpdateError from the useUpdateAvatar hook
-      console.error("Failed to update avatar:", error);
-      return;
-    }
-    if (newAvatar)
-      setAvatarUrl(URL.createObjectURL(newAvatar));
-  }, [newAvatar, updateAvatar]);
-
-/*
-
-                  o          o              |              o
-        ,---.,---..,---.,---..,---.,---.    |    ,---.,---..,---.
-        `---.|   |||   ||   |||   ||   |    |    |   ||   |||
-        `---'|---'``   '`   '``   '`---|    `---'`---'`---|``---'
-             |                     `---'              `---'
-*/
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setShowLoading(false);
     }, 1000); // Change the delay to 3000ms
 
     return () => {
       clearTimeout(timer);
-      setShowLoading(true);
-    };
-  }, [username, avatarUrl]);
+    }
+  }, []);
 
-  if (showLoading || isAvatarUpdating || isPublicNameLoading) {
+  // Effect for fetching user data on component mount
+  useEffect(() => {
+    fetchPublicName();
+    fetchUserAvatar();
+  }, []);
+
+  // Updates user's public name after validation
+  const checkUsernameAndUpdate = useCallback(async (): Promise<void> => {
+    try {
+      await updatePublicName(newUsername);
+      toast.success("Public Name updated successfullly");
+      if (newUsername) {
+        setPublicName(newUsername);
+        setNewPublicName(null);
+      }
+    } catch (error) {
+      console.error("Failed to update ProfileName:", error);
+      toast.error(`Error updading public Name: ${hasMessage(error)? error.message: ""}`);
+      setIsUpdatingProfileName(false);
+    }
+    if (newUsername)
+      setNewPublicName(null);
+  }, [newUsername, setNewPublicName, updatePublicName]);
+
+  // Prepares new avatar for uploading
+  const checkAndShowInputAvatar = useCallback(async (newFile: File): Promise<void> => {
+    setNewAvatar(newFile);
+  }, []);
+
+  // Uploads new avatar to the backend
+  const sendNewAvatarToBack = useCallback(async (): Promise<void> => {
+    try {
+      await updateAvatar(newAvatar);
+      toast.success("Avatar updated successfullly");
+      if (newAvatar)
+        setAvatarUrl(URL.createObjectURL(newAvatar));
+    } catch (error) {
+      console.error("Failed to update avatar:", error);
+      toast.error(`Failed to update avatar: ${hasMessage(error) ? error.message : ""}`);
+      setIsUpdatingAvatar(false);
+    }
+  }, [newAvatar, updateAvatar]);
+
+  // Conditionally renders the loading spinner
+  if (showLoading) {
     return (
       <div className='settings-container'>
         <LoadingSpinner />
       </div>
     );
   }
-/*
 
-    o
-    .,---..  ,
-    |`---. ><
-    |`---''  `
-`---'
-*/
-
-  // Now we're using our "CSSTransition" component. This is like a magic trick that makes our elements appear and disappear smoothly!
-  // But for the magic trick to work, it needs to know exactly which element it's working with.
-  // That's where our "ref" comes in. We give it to the "CSSTransition" component using the "nodeRef" prop.
-  // We also give it to our element using the "ref" prop. This way, the "CSSTransition" component can find our element easily, just like how we can find someone easily if they're wearing a name tag!
-
+  // Main return statement of the component, rendering the UI
   return (
     <div className='settings-container'>
-      {/* nodeRef for username */}
+      {/* Display username with transition effect */}
       <CSSTransition nodeRef={usernameRef} in={!isUpdatingProfileName} timeout={500} classNames="fade" appear>
-        <h3  className="h3" ref={usernameRef} >{username}</h3>
+        <h3 className="h3" ref={usernameRef} >{username}</h3>
       </CSSTransition>
 
-      {avatarUpdateError && <p>Error updating avatar: {avatarUpdateError.message}</p>}
-      {publicNameError && <p>Error updating Public Name: {publicNameError.message}</p>}
+      {/* Toast container for showing success/error messages */}
+      <ToastContainer />
 
+      {/* Input field and button for updating public name */}
       {isUpdatingProfileName && (
         <CSSTransition in={true} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingProfileName(false)}>
           <>
@@ -176,30 +135,34 @@ const Settings: React.FC = React.memo(() => {
         </CSSTransition>
       )}
 
+      {/* Button to toggle public name update UI */}
       <button className="button" onClick={() => setIsUpdatingProfileName(!isUpdatingProfileName)}> Update Public Name </button>
 
-      {/* nodeRef for avatar */}
+      {/* Display avatar with transition effect */}
       <CSSTransition nodeRef={avatarRef} in={!isUpdatingAvatar} timeout={500} classNames="fade" appear>
-        <img ref={avatarRef}  className='item' src={avatarUrl ?? ''} alt={`${username ?? 'User'} avatar`} />
+        <img ref={avatarRef} className='item' src={avatarUrl ?? ''} alt={`avatar`} />
       </CSSTransition>
 
-
+      {/* Input field and button for updating avatar */}
       {isUpdatingAvatar && (
         <CSSTransition in={isUpdatingAvatar} timeout={500} classNames="fade" unmountOnExit onExited={() => setIsUpdatingAvatar(false)}>
           <>
-            <input type="file"  style={{'margin' : "1%" , 'color' : 'white'}} onChange={e => e.target.files && checkAndShowInputAvatar(e.target.files[0])} />
+            <input type="file" style={{'margin' : "1%" , 'color' : 'white'}} onChange={e => e.target.files && checkAndShowInputAvatar(e.target.files[0])} />
             <button className="button" style={{'margin' : '2%'}} onClick={sendNewAvatarToBack}>Confirm</button>
           </>
         </CSSTransition>
       )}
 
+      {/* Button to toggle avatar update UI */}
       <button className="button" style={{'marginTop': '1%'}} onClick={() => setIsUpdatingAvatar(!isUpdatingAvatar)}> Update Avatar </button>
 
-      <div style={{'marginTop' : '3%'}}>
-        < SignOutLink />
-      </div>
+      {/* Two Factor Authentication component */}
+      <TwoFA />
 
-      {promptError && <p>{promptError}</p>}
+      {/* Sign out link */}
+      <div style={{'marginTop' : '3%'}}>
+        <SignOutLink />
+      </div>
     </div>
   );
 });

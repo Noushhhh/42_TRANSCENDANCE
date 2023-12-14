@@ -6,6 +6,7 @@ import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useUserIdContext } from "../contexts/userIdContext";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface Message {
   id: number;
@@ -31,11 +32,14 @@ function ContentMessage({
   const [messages, setMessages] = useState<Message[]>([]);
 
   const userId: number = useUserIdContext();
+  const channelId: number = useChannelIdContext();
 
   const contentMessageWidth: string = channelInfo ? "reduce" : "wide";
 
   const addMessage = async (newMessage: Message, messageType: string) => {
     newMessage.messageType = messageType;
+    console.log(channelId);
+    console.log(newMessage.channelId);
     setMessages((prevMessage) => [...prevMessage, newMessage]);
   };
 

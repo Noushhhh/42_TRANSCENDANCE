@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
@@ -24,6 +24,7 @@ import { create } from "@mui/material/styles/createTransitions";
 import { useNavigate } from "react-router-dom";
 import InvitationStatus from "./InvitationStatus";
 import { removeFriend, sendFriendRequest } from "../../user/FriendUtils";
+import UserProfil from "../../user/UserProfil";
 
 interface UserProfileMenuProps {
   user: User;
@@ -39,11 +40,21 @@ interface InvitationRes {
   client: number;
 }
 
+interface IsPlayerInLobbyType {
+  isInGame: boolean;
+  lobbyName: string | undefined;
+}
+
 export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [invitationStatus, setInvitationStatus] = useState<string>("");
   const [areUsersFriend, setAreUsersFriend] = useState<boolean>(false);
+  const [isUserProfilDisplayed, setIsUserProfilDisplayed] = useState(false);
+  const [isUserInGame, setIsUserInGame] = useState<{
+    isInLobby: boolean;
+    lobbyName: string | undefined;
+  }>();
 
   const setChannelHeader = useSetChannelHeaderContext();
   const setChannelId = useSetChannelIdContext();
@@ -60,6 +71,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     "Private message",
     areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
+    "Spectate",
     "Block",
   ];
   const menuIfBlock: string[] = [
@@ -67,8 +79,15 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     "Private message",
     areUsersFriend === false ? "Add Friend" : "Remove Friend",
     "Play",
+    "Spectate",
     "Unblock",
   ];
+
+  useEffect(() => {
+    socket.emit("isUserInGame", user.id, (data: IsPlayerInLobbyType) => {
+      setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
+    });
+  }, []);
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
@@ -87,10 +106,12 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
-    handleAreUsersFriend();
-    setAnchorEl(event.currentTarget);
-    const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
-    setIsBlocked(isBlocked);
+    try {
+      handleAreUsersFriend();
+      setAnchorEl(event.currentTarget);
+      const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
+      setIsBlocked(isBlocked);
+    } catch (errors: any) {}
   };
 
   const handleInvitationStatus = (status: string) => {
@@ -106,6 +127,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleProfilClick = () => {
     handleClose();
+    setIsUserProfilDisplayed(true);
   };
 
   const handleAddFriend = async () => {
@@ -191,7 +213,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
           console.log(res.message);
         }
       );
-      // navigate("/home/game");
     }
     if (invitationRes.res === false) {
       handleInvitationStatus("Invitation refused");
@@ -216,11 +237,17 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       await unblockUser(userId, user.id);
       socket.emit("unblock", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
-      // await fetchUser(setChannelHeader, userId, socket);
       console.log("Unblocked");
       handleClose();
     } catch (error) {
       console.log("error unblocking user");
+    }
+  };
+
+  const handleSpectateUser = () => {
+    if (isUserInGame?.isInLobby === true) {
+      socket.emit("setIntoLobby", isUserInGame.lobbyName);
+      handleLobbyCreation();
     }
   };
 
@@ -232,6 +259,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     [addOrRemove]:
       areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
+    Spectate: handleSpectateUser,
     Block: handleBlockClick,
   };
 
@@ -241,11 +269,19 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     [addOrRemove]:
       areUsersFriend === false ? handleAddFriend : handleRemoveFriend,
     Play: handlePlayClick,
+    Spectate: handleSpectateUser,
     Unblock: handleUnblockClick,
   };
 
   return (
     <div>
+      {isUserProfilDisplayed ? (
+        <UserProfil
+          isDisplay={isUserProfilDisplayed}
+          setIsDisplay={setIsUserProfilDisplayed}
+          userId={user.id}
+        />
+      ) : null}
       <InvitationStatus invitationStatus={invitationStatus} />
       <p onClick={handleClick} className="User">
         {user.publicName && user.publicName}

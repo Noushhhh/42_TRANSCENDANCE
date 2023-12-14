@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max } from 'class-validator';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Type } from 'class-transformer';
 
@@ -7,6 +7,7 @@ class CommonChannelNameDto {
     @IsString()
     @IsNotEmpty()
     @IsAlphanumeric()
+    @MaxLength(22)
     channelName!: string;
 }
 
@@ -55,8 +56,8 @@ export class ChannelIdPostDto extends CommonChannelIdPostDto {}
 export class SignUpChannelDto extends CommonChannelIdDto {
     @IsNotEmpty()
     @IsString()
-    @Min(6)
-    @Max(22)
+    @MinLength(6)
+    @MaxLength(22)
     password!: string;
 
     @IsInt()
@@ -102,17 +103,17 @@ export class ManagePasswordDto{
     @Max(2000000)
     channelId!: number;
 
-    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED']) // Remplacez ceci par les valeurs de type autorisées
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED'])
     channelType!: string;
 
     @IsString()
-    // @Min(6)
-    // @Max(22)
+    //@MinLength(6)
+    //@MaxLength(22)
     actualPassword!: string;
 
     @IsString()
-    // @Min(6)
-    // @Max(22)
+    //@MinLength(6)
+    //@MaxLength(22)
     newPassword!: string;
 }
 

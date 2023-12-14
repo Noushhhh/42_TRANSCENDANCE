@@ -12,7 +12,10 @@ import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 import { OwnerGuard } from "./guards/owner.guards";
+import { Req } from "@nestjs/common";
+import { Request } from "express";
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
+import { GetUser } from "../auth/decorator/get-user.decorator";
 
 export class ChannelDTO {
     @IsString()
@@ -71,16 +74,15 @@ export class ChatController {
     constructor(private chatService: ChatService) { };
     
     @Post('getAllConvFromId')
-    async getAllConvFromId(
-        @Body() userIdDto: UserIdDto): Promise<number[]> {
-        console.log("get all conv called with ", userIdDto);
-        return this.chatService.getAllConvFromId(userIdDto.userId);
+    async getAllConvFromId(@GetUser('id') userId: number): Promise<number[]> {
+        return this.chatService.getAllConvFromId(userId);
     }
-        
+
     @Get('getChannelName')
     async getChannelName(
-        @Query() dto: PairUserIdChannelId): Promise<string> {
-        return this.chatService.getChannelName(dto.channelId, dto.userId);
+        @GetUser('id') userId: number,
+        @Query() dto: ChannelIdDto): Promise<string | null> {
+        return this.chatService.getChannelName(dto.channelId, userId);
     }
 
     @Get('getChannelHeader')
@@ -188,6 +190,13 @@ export class ChatController {
     @Post('addUserToProtectedChannel')
     async addUserToProtectedChannel(
         @Body() data: SignUpChannelDto): Promise<void> {
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
         return this.chatService.addUserToProtectedChannel(data.channelId, data.password, data.userId);
     }
 

@@ -19,6 +19,7 @@ import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common
 
 
 @UseFilters(AllExceptionsFilter)
+@UseGuards(JwtAuthGuard) // Ensure the user is authenticated
 @Controller('users')
 export class UsersController {
     constructor(
@@ -27,19 +28,6 @@ export class UsersController {
 
     // ─────────────────────────────────────────────────────────────────────────────
 
-    checkDecodedPayload(decodedPayload: DecodedPayload | null, @NestResponse() res: Response, message: string): boolean {
-        // Check if the decoded payload is valid
-        if (!decodedPayload) {
-            console.error(
-                'Unable to decode token in  controller in user module\n'
-            );
-            res.status(401).json({ statusCode: 401, valid: false, message: message });
-            return false;
-        }
-        return true;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
 
     /**
     * ****************************************************************************
@@ -67,6 +55,11 @@ export class UsersController {
         }
     }
 
+    @Get('getUserInfo')
+    async getUserInfo(@ExtractJwt() decodedPayload: DecodedPayload) {
+        return await this.UsersService.getUserData(decodedPayload.sub);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
@@ -85,20 +78,17 @@ export class UsersController {
         try {
             return await this.UsersService.getUserAvatar(decodedPayload, res)
         } catch (error) {
-            throw error; 
+            console.error(error);
+            throw error;
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────
 
     @Get('getprofilename')
-    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload, 
+    async getProfileName(@ExtractJwt() decodedPayload: DecodedPayload,
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
-        const isPayloadDecoded: boolean = this.checkDecodedPayload(decodedPayload, res, "unable to decode token in user \
-      module getProfileName controller" );
-        if (!isPayloadDecoded)
-            return;
         try {
             const user = await this.FindWithId(decodedPayload.sub);
             return res.status(200).send({
@@ -114,7 +104,6 @@ export class UsersController {
 
     // ─────────────────────────────────────────────────────────────────────
     @Put('updatepublicname')
-    @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
     async updatePublicName(
         @ExtractJwt() decodedPayload: DecodedPayload,
         @Body() updatePublicNameDto: UpdatePublicNameDto
@@ -133,14 +122,14 @@ export class UsersController {
             return result; // Return the result directly
         } catch (error) {
             // If it's a known error, rethrow it
-            if (error instanceof HttpException) {
+            if (error instanceof Error) {
                 throw error;
             }
 
-            // For unknown errors, throw a generic internal server error
+            // For unknown errors, throw a generic
             throw new HttpException(
                 'An error occurred while updating the public name.',
-                HttpStatus.INTERNAL_SERVER_ERROR
+                HttpStatus.BAD_REQUEST
             );
         }
     }
@@ -157,7 +146,7 @@ export class UsersController {
             await this.UsersService.updateAvatar(decodedPayload?.sub, avatar);
             res.status(200).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
-            res.status(500).send({ statusCode: 500, valid: false, message: error });
+
             throw error;
         }
     }
@@ -168,7 +157,6 @@ export class UsersController {
     // ─────────────────────────────────────────────────────────────────────────────
 
 
-    @UseGuards(JwtAuthGuard)
     @Get('me')
     getMe(@Req() req: Request) {
         return req.user;
@@ -184,6 +172,13 @@ export class UsersController {
         @Query() dto: UserIdDto): Promise<string> {
         return this.UsersService.getUsernameWithId(dto.userId);
     }
+
+    @Get('getPublicName')
+    getPublicName(
+        @Query() dto: UserIdDto): Promise<string | null> {
+        return this.UsersService.getPublicName(dto.userId);
+    }
+
 
     @Get('UserWithUsername')
     FindWithUsername(username: string): Promise<User | undefined> {
@@ -258,5 +253,19 @@ export class UsersController {
             console.log(error);
             throw error;
         }
+    }
+
+    @Get('getUserProfil')
+    async getUserProfil(@Req() req: Request) {
+        const userId = req.headers['x-user-id'];
+
+        if (typeof userId === 'string') {
+            const userIdInt = parseInt(userId);
+
+            const userProfile = await this.UsersService.getUserProfile(userIdInt);
+            console.log("USER PROFILE = ", userProfile);
+            return { userProfile: userProfile };
+        }
+        throw new BadRequestException("Error trying to parse userID");
     }
 }

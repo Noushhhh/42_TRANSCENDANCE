@@ -62,6 +62,26 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
     setNewOwner(undefined);
   }
 
+
+  const updateChannelNumberMember = async (channelIdReceived: number) => {
+    console.log("updateChannelNumberMember");
+    if (channelIdReceived === channelId){
+      try {
+        const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
+        setnumberUsersInChannel(numberUsersInChannel);
+      } catch (errors){
+        console.log(errors);
+      }
+    }
+  }
+
+  useEffect(() => {
+    socket.on("channelNumberMembersChanged", updateChannelNumberMember);
+    return () => {
+      socket.off("channelNumberMembersChanged", updateChannelNumberMember);
+    };
+  });
+
   useEffect(() => {
     setError(null);
     setChannelInfo(false);
@@ -73,11 +93,11 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
           setIsChannelOwner(isItChannelOwner);
           const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
           setnumberUsersInChannel(numberUsersInChannel);
-          const channelName: string = await getChannelName(channelId, userId);
+          const channelName: string | null = await getChannelName(channelId, userId);
           setChannelName(channelName);
         }
       } catch (error) {
-        setError("fetching error");
+        setError("fetching  error");
       }
     }
     fetchChannelName();
@@ -178,7 +198,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
       <div className={`${'Container' + isContainerDisplay}`}>
         <HeaderChannelInfo handleClick={() => {handleClick()}} title={"Groups information"} />
         <div className="ChannelInfoCard ChannelName">
-          <h4>{channelName ? channelName : 'Loading...'}</h4>
+          <h4>{channelName ? channelName : 'no-name'}</h4>
           <h5>{numberUsersInChannel ? numberUsersInChannel : null} membres</h5>
         </div>
         <div className="ChannelInfoCard SettingsButton">

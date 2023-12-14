@@ -74,26 +74,6 @@ const GameContainer: FC<GameContainerProps> = ({
       start();
       setGameLaunchedRef();
       handlePlayPause();
-
-      // @to-do remove this code if not used
-      // fetch("http://localhost:4000/api/game/addGameToPlayer", {
-      //   method: "GET",
-      //   credentials: "include",
-      // })
-      //   .then((response) => {
-      //     if (!response.ok)
-      //       throw new Error("HTTP error, status: " + response.status);
-      //     return response.json();
-      //   })
-      //   .then((data) => {
-      //     console.log(data);
-      //   })
-      //   .catch((error) => {
-      //     handleError({
-      //       statusCode: 404,
-      //       message: "Adding game to history failed",
-      //     });
-      //   });
     }, 1500);
   };
 
@@ -137,18 +117,17 @@ const GameContainer: FC<GameContainerProps> = ({
     setIsPaused(true);
   };
 
-  const start = () => {
-    fetch("http://localhost:4000/api/game/play", {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.log(error);
+  const start = async () => {
+    try {
+      const response = await fetch("http://localhost:4000/api/game/play", {
+        method: "GET",
+        credentials: "include",
       });
+
+      if (!response.ok) return Promise.reject(await response.json());
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (isInLobby === true) {

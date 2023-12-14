@@ -72,6 +72,8 @@ export const getMyUserId = async (): Promise<number> => {
     credentials: 'include',
     method: 'GET',
   })
+  if (!response.ok)
+    return Promise.reject(await response.json());
   const user = await response.json();
   return user.id;
 }
@@ -93,6 +95,9 @@ export const fetchUser = async (
       body: JSON.stringify({ userId }),
     });
 
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
+
     const listChannelId = await response.json();
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
@@ -107,13 +112,12 @@ export const fetchUser = async (
       };
 
       if (header.name === '') {
+        const name: string | null = await getChannelName(channelId, userId);
+        if (name)
+          header.name = name;
         channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
         if (!channelInfo)
           return null;
-        if (channelInfo.name)
-          header.name = channelInfo.name;
-        else 
-          header.name = "";
       }
       header.isConnected = channelInfo.isConnected;
       return header;
@@ -136,7 +140,7 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   }
 }
 
-export const getChannelName = async (channelId: number, userId: number): Promise<string> => {
+export const getChannelName = async (channelId: number, userId: number): Promise<string | null> => {
   try {
     const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
@@ -165,8 +169,6 @@ export const createChannel = async (
   };
 
   try {
-
-    console.log("add channel called with: ", channelToAdd.name)
 
     const response = await fetch(`http://localhost:4000/api/chat/addChannelToUser`, {
       method: "POST",
@@ -225,11 +227,10 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
       headers: {
         "Content-Type": "application/json", // Add appropriate headers if needed
       },
-      body: JSON.stringify({ userId }), // Include the data you want to send in the request body
     });
 
     if (!response.ok) {
-      throw new Error('Erreur lors de la récupération des données');
+      Promise.reject(await response.json());
     }
 
     channelList = await response.json();
@@ -374,7 +375,6 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
       }
     }
   } catch (error) {
-    console.log("error handler banuserlist");
     throw error;
   }
 };
@@ -552,9 +552,17 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
 
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    // check if we need to include cookies with axios
-    const response = await axios.post("http://localhost:4000/api/chat/isUserIsBan", { channelId, userId });
-    return response.data;
+    const response = await fetch("http://localhost:4000/api/chat/isUserIsBan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ channelId, userId })
+    });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
+    return await response.json();
   } catch (error) {
     console.log(error);
   }
@@ -564,8 +572,16 @@ export const isUserIsBan = async (channelId: number, userId: number): Promise<bo
 export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<boolean> => {
   try {
     // same
-    const response = await axios.post('http://localhost:4000/api/chat/addUserToProtectedChannel', { password, userId, channelId });
-    console.log(response);
+    const response = await fetch('http://localhost:4000/api/chat/addUserToProtectedChannel', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ password, userId, channelId })
+    });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
     return true;
   } catch (error: any) {
     return false;
@@ -587,12 +603,11 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
     }
     return { channelType: channel.channelType, channelId: channelIdJoined };
   } catch (error) {
-    console.log("case of error join channel");
     throw error;
   }
 }
 
-export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<Response> => {
+export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
   try {
     const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
       method: 'POST',
@@ -684,8 +699,10 @@ export const manageChannelPassword = async (channelId: number, channelType: stri
       },
       body: JSON.stringify({ channelId, channelType, actualPassword, newPassword })
     });
+    if (!response.ok)
+      return (Promise.reject(await response.json()));
     const customErrorMessages: ErrorMessages = {
-      400: ": Bad input",
+      400: ": Password length is 6 to 22 characters",
       403: ": Wrong password",
     };
     handleHTTPErrors(response, customErrorMessages);
@@ -734,7 +751,6 @@ export const getChannelType = async (channelId: number) => {
 
 export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    console.log("is owner called");
     const response: Response = await fetch(`http://localhost:4000/api/chat/isOwner?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const isOwner = await response.json();
@@ -764,10 +780,10 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
 
 export const getUsername = async (userId: number): Promise<string> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/users/getUsernameWithId?userId=${userId}`, GetRequestOptions);
+    const response: Response = await fetch(`http://localhost:4000/api/users/getPublicName?userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
-    const username: string = await response.text();
-    return username;
+    const publicName: string = await response.text();
+    return publicName;
   } catch (errors){
     throw errors;
   }

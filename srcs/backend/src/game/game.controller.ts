@@ -48,20 +48,6 @@ export class GameController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('addGameToPlayer')
-  async addGameToPlayer(@Req() req: Request) {
-    if (req.user) {
-      try {
-        await this.playerStats.addGamePlayedToOneUser(req.user?.id);
-      } catch (error) {
-        throw error;
-      }
-      return { msg: 'player games incremented' };
-    }
-    return { msg: 'error trying to increment game played' };
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('play')
   play() {
     this.gameLoopService.startGameLoop();
