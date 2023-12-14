@@ -6,11 +6,11 @@ if [ ! -d "node_modules" ]; then
     echo "Installing latest version of npm"
     npm install -g npm@latest
     #install check for updates globally
-    echo "Installing npm-check-updates"
-    npm install -g npm-check-updates
+    # echo "Installing npm-check-updates"
+    # npm install -g npm-check-updates
     #update updates in the package.json file
-    echo "Updating packages version inside package.json"
-    ncu -u 
+    # echo "Updating packages version inside package.json"
+    # ncu -u 
     #install all dependencies from package.json
     echo "Installing all dependencies from package.json"
     npm install
