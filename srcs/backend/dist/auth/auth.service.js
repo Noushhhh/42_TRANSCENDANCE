@@ -280,9 +280,9 @@ let AuthService = class AuthService {
         const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
         // Set the session cookie in the response
         res.cookie('userSession', sessionValue, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            httpOnly: true, // Makes the cookie inaccessible to client-side scripts
+            secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
+            sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
             maxAge: tokenMaxAge // Sets the cookie to expire in 1 day (example)
         });
     }

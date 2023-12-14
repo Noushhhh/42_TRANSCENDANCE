@@ -126,10 +126,10 @@ export class UsersController {
                 throw error;
             }
 
-            // For unknown errors, throw a generic internal server error
+            // For unknown errors, throw a generic
             throw new HttpException(
                 'An error occurred while updating the public name.',
-                HttpStatus.INTERNAL_SERVER_ERROR
+                HttpStatus.BAD_REQUEST
             );
         }
     }
@@ -146,7 +146,7 @@ export class UsersController {
             await this.UsersService.updateAvatar(decodedPayload?.sub, avatar);
             res.status(200).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
-            res.status(500).send({ statusCode: 500, valid: false, message: error });
+
             throw error;
         }
     }
