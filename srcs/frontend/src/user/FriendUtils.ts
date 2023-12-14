@@ -7,14 +7,14 @@ interface FriendType {
   avatar?: string;
 }
 
-export const sendFriendRequest = async (senderId: number, targetId: number) => {
+export const sendFriendRequest = async (targetId: number) => {
   const response = await fetch("http://localhost:4000/api/users/sendFriendRequest", {
     method: 'POST',
     credentials: "include",
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ senderId, targetId })
+    body: JSON.stringify({ id: targetId })
   });
 
   if (!response.ok)
@@ -22,7 +22,7 @@ export const sendFriendRequest = async (senderId: number, targetId: number) => {
 }
 
 export const fetchPendingRequests = async (
-  userId: number, setPendingRequests: (value: React.SetStateAction<FriendType[]>) => void,
+  setPendingRequests: (value: React.SetStateAction<FriendType[]>) => void,
   setRequestsNumber: (value: React.SetStateAction<number>) => void): Promise<FriendType[]> => {
 
   const response = await fetch(
@@ -30,9 +30,6 @@ export const fetchPendingRequests = async (
     {
       method: "GET",
       credentials: "include",
-      headers: {
-        "X-User-ID": userId.toString(),
-      },
     }
   );
 
@@ -56,9 +53,6 @@ export const getFriendsList = async (
     {
       method: "GET",
       credentials: "include",
-      headers: {
-        "X-User-ID": userId.toString(),
-      },
     }
   );
 
@@ -72,7 +66,7 @@ export const getFriendsList = async (
   setFriendsList(friendsList);
 };
 
-export const removeFriend = async (senderId: number, targetId: number, socket: Socket) => {
+export const removeFriend = async (targetId: number, socket: Socket) => {
   const response = await fetch(
     "http://localhost:4000/api/users/removeFriend",
     {
@@ -81,16 +75,15 @@ export const removeFriend = async (senderId: number, targetId: number, socket: S
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ senderId, targetId }),
+      body: JSON.stringify({ id: targetId }),
     }
   );
 
   if (!response.ok) return Promise.reject(await response.json());
-
-  socket.emit('refreshFriendList', targetId);
+  else socket.emit('refreshFriendList', targetId);
 };
 
-export const acceptFriendRequest = async (senderId: number, targetId: number,
+export const acceptFriendRequest = async (targetId: number,
   socket: Socket) => {
   const response = await fetch(
     "http://localhost:4000/api/users/acceptFriendRequest",
@@ -100,18 +93,15 @@ export const acceptFriendRequest = async (senderId: number, targetId: number,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ senderId, targetId }),
+      body: JSON.stringify({ id: targetId }),
     }
   );
 
-  if (!response.ok) {
-    return Promise.reject(await response.json());
-  }
-
-  socket.emit('friendRequestAccepted', targetId);
+  if (!response.ok) return Promise.reject(await response.json());
+  else socket.emit('friendRequestAccepted', targetId);
 };
 
-export const refuseFriendRequest = async (senderId: number, targetId: number,
+export const refuseFriendRequest = async (targetId: number,
   socket: Socket) => {
   const response = await fetch(
     "http://localhost:4000/api/users/refuseFriendRequest",
@@ -121,13 +111,10 @@ export const refuseFriendRequest = async (senderId: number, targetId: number,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ senderId, targetId }),
+      body: JSON.stringify({ id: targetId }),
     }
   );
 
-  if (!response.ok) {
-    return Promise.reject(await response.json());
-  }
-
-  socket.emit('friendRequestRefused', targetId);
+  if (!response.ok) return Promise.reject(await response.json());
+  else socket.emit('friendRequestRefused', targetId);
 };

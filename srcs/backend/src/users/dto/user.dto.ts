@@ -37,6 +37,12 @@ export class friendRequestDto {
         targetId!: number;
 }
 
+export class friendDto {
+        @IsInt()
+        @Type(() => Number)
+        id!: number;
+}
+
 export class UpdatePublicNameDto {
         @IsString()
         @IsNotEmpty()
@@ -47,6 +53,12 @@ export class UpdatePublicNameDto {
 }
 
 export class TwoFADataDto {
+        @IsString()
+        @IsNotEmpty()
+        token!: string;
+}
+
+export class TwoFaUserIdDto {
         @IsInt()
         @Min(0)
         @Type(() => Number)
@@ -55,4 +67,4 @@ export class TwoFADataDto {
         @IsString()
         @IsNotEmpty()
         token!: string;
-} 
+}

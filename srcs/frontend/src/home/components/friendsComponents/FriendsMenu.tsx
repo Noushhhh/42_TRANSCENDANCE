@@ -36,7 +36,7 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
     >
       <button
         onClick={() => {
-          removeFriend(myId, friend.id, socket).catch((e) => {
+          removeFriend(friend.id, socket).catch((e) => {
             console.log(e);
           });
           closeFriendMenu();

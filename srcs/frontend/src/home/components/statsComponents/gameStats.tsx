@@ -20,9 +20,6 @@ const GamePlayed: FC<GamePlayedProps> = ({ userId }) => {
         {
           method: "GET",
           credentials: "include",
-          headers: {
-            "X-User-ID": userId.toString(),
-          },
         }
       );
 

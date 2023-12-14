@@ -22,7 +22,7 @@ import 'react-toastify/dist/ReactToastify.css';
  * 
  * @returns JSX.Element
  */
-const InputField: React.FC<{ type: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
+export const InputField: React.FC<{ type: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder: string }> = 
     ({ type, value, onChange, placeholder }) => (
         <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
     );

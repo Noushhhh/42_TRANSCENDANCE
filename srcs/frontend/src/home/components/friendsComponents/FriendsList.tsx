@@ -126,9 +126,9 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
           {friend.publicName
             ? formatPlayerName(friend.publicName)
             : formatPlayerName(friend.userName)}{" "}
-          <p style={{ fontSize: "70%", color: "grey", margin: "0" }}>
+          <span style={{ fontSize: "70%", color: "grey", margin: "0" }}>
             {friendsStatusMap?.get(friend.id)}
-          </p>
+          </span>
         </p>
       ))}
       {friendsMenu.visible && (

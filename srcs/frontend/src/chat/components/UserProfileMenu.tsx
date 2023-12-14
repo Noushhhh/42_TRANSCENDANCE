@@ -132,7 +132,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleAddFriend = async () => {
     try {
-      await sendFriendRequest(userId, user.id);
+      await sendFriendRequest(user.id);
       socket.emit("pendingRequestSent", user.id);
     } catch (error) {
       console.error("Error trying to send friend request");
@@ -141,7 +141,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handleRemoveFriend = async () => {
     try {
-      await removeFriend(userId, user.id, socket);
+      await removeFriend(user.id, socket);
     } catch (error) {
       console.log("Error trying to remove friend");
     }

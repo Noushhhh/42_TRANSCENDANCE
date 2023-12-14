@@ -27,7 +27,7 @@ const RequestCard: FC<RequestCardProps> = ({
       {publicName ? formatPlayerName(publicName) : formatPlayerName(userName)}{" "}
       <button
         onClick={() =>
-          acceptFriendRequest(senderId, targetId, socket).catch((e) => {
+          acceptFriendRequest(targetId, socket).catch((e) => {
             setError(e);
           })
         }
@@ -37,7 +37,7 @@ const RequestCard: FC<RequestCardProps> = ({
       </button>{" "}
       <button
         onClick={() =>
-          refuseFriendRequest(senderId, targetId, socket).catch((e) => {
+          refuseFriendRequest(targetId, socket).catch((e) => {
             setError(e);
           })
         }

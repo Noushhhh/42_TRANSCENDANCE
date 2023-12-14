@@ -1,7 +1,7 @@
 import { AllExceptionsFilter } from './exception/all-exception.filter';
 import {
   InternalServerErrorException, BadRequestException, Controller, Post,
-  Body, Res, Get, Req, Delete, UseFilters, ForbiddenException
+  Body, Res, Get, Req, Delete, UseFilters, ForbiddenException, NotFoundException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
@@ -9,7 +9,7 @@ import { Public } from '../decorators/public.decorators';
 import { Response, Request } from 'express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-import { TwoFADataDto, UserIdDto } from '../users/dto';
+import { TwoFADataDto, TwoFaUserIdDto, UserIdDto } from '../users/dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './guards';
 
@@ -92,46 +92,64 @@ export class AuthController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('enable2FA')
-  async enable2FA(@Body() userId: UserIdDto) {
-    // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-    const qrcodeUrl = await this.authService.enable2FA(userId.userId);
-    return { qrcode: qrcodeUrl }
+  async enable2FA(@Req() req: Request) {
+    if (!req.user?.id) throw new NotFoundException("User not found");
+
+    try {
+      const qrcodeUrl = await this.authService.enable2FA(req.user.id);
+      return { qrcode: qrcodeUrl }
+    } catch (error) {
+      throw error;
+    }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('disable2FA')
-  async disable2FA(@Body() userId: UserIdDto) {
+  async disable2FA(@Req() req: Request) {
+    if (!req.user?.id) throw new NotFoundException("User not found");
+
     try {
-      await this.authService.disable2FA(userId.userId);
+      await this.authService.disable2FA(req.user.id);
       return { res: true }
     } catch (error) {
       throw error;
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('validating2FA')
-  async validating2FA(@Body() TwoFAData: TwoFADataDto) {
-    const res = await this.authService.validateTwoFA(TwoFAData.userId, TwoFAData.token);
-    return { res: res };
+  async validating2FA(@Req() req: Request, @Body() TwoFAData: TwoFADataDto) {
+    if (!req.user?.id) throw new NotFoundException("User not found");
+    try {
+      const res = await this.authService.validateTwoFA(req.user.id, TwoFAData.token);
+      return { res: res };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Post('verifyTwoFACode')
-  async verifyTwoFACode(@Body() TwoFAData: TwoFADataDto, @Res() response: Response) {
-
-    const res = await this.authService.verifyTwoFACode(TwoFAData.userId, TwoFAData.token, response)
-
-    return { res: res };
+  async verifyTwoFACode(@Body() data: TwoFaUserIdDto, @Res() response: Response) {
+    try {
+      const res = await this.authService.verifyTwoFACode(data.userId, data.token, response)
+      return { res: res };
+    } catch (error) {
+      throw error
+    }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('is2FaActivated')
   async is2FaActivated(@Req() req: Request) {
-    const userId = req.headers['x-user-id'];
+    if (!req.user?.id) throw new NotFoundException("User not found");
 
-    if (typeof userId === 'string') {
-      const userIdInt = parseInt(userId);
-      const is2FaEnabled = await this.authService.is2FaEnabled(userIdInt);
+    try {
+      const is2FaEnabled = await this.authService.is2FaEnabled(req.user.id);
       return { res: is2FaEnabled };
+    } catch (error) {
+      throw error;
     }
-    throw new BadRequestException("Error trying to parse userID");
   }
 }

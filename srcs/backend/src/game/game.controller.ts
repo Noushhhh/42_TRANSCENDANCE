@@ -1,11 +1,12 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Req, UseGuards } from '@nestjs/common';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { Request } from 'express';
 import { playerStatistics } from './playerStatistics.service';
-import { ConnectToLobbyDto, PlayerNameDto } from './game.dto';
+import { ConnectToLobbyDto } from './game.dto';
+import { GatewayIn } from './gatewayIn';
 
 interface User {
   id: number;
@@ -31,12 +32,21 @@ export class GameController {
     private readonly gameLoopService: GameLoopService,
     private readonly gameLobby: GameLobbyService,
     private readonly playerStats: playerStatistics,
+    private readonly gateway: GatewayIn
   ) { }
 
   @UseGuards(JwtAuthGuard)
   @Get('lobby')
   async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
     if (req.user) {
+      const sockets = Array.from(this.gateway.server.sockets.sockets).map(socket => socket);
+      for (const socket of sockets) {
+        if (socket[1].data.userId == req.user.id) {
+          if (socket[0] != dto.clientId) {
+            throw new ForbiddenException("Wrong socket id provided");
+          }
+        }
+      }
       try {
         await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
       } catch (error) {

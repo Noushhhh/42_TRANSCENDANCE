@@ -135,19 +135,7 @@ export class GameLoopService {
           lobby.gameState.gameState.isGameFinished = true;
           const winnerId = score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Id : lobby.gameState.gameState.p2Id;
           const winnerSocket = this.getSocketIdWithId(winnerId);
-          // if (await this.playerStats.addWinToPlayer(winnerId) === -1) {
-          //   if (winnerSocket)
-          //     this.gatewayOut.emitToUser(winnerSocket, "error", { statusCode: 404, message: "player not found" });
-          // }
-          // if (await this.playerStats.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, false, false) === -1 ||
-          //   await this.playerStats.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, false, false) === -1) {
-          //   const p1SocketId = this.getSocketIdWithId(gameState.p1Id);
-          //   const p2SocketId = this.getSocketIdWithId(gameState.p2Id);
-          //   if (p1SocketId && p2SocketId) {
-          //     this.gatewayOut.emitToUser(p1SocketId, "error", { statusCode: 404, message: "Error trying to add game in match history" });
-          //     this.gatewayOut.emitToUser(p2SocketId, "error", { statusCode: 404, message: "Error trying to add game in match history" });
-          //   }
-          // }
+
           await this.playerStats.addGameStatsToPlayers(lobby, winnerId, false, false);
           this.gatewayOut.emitToRoom(key, "printWinner", score.p1Score === SCORE_TO_WIN ? `${lobby.gameState.gameState.p1Name} WON!` : `${lobby.gameState.gameState.p2Name} WON!`)
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
@@ -167,8 +155,6 @@ export class GameLoopService {
             this.gatewayOut.emitToUser(p1SocketId, "playAgain", null);
             this.gatewayOut.emitToUser(p2SocketId, "playAgain", null);
           }
-          // @to-do Here I commented newGame event emit
-          // this.gatewayOut.emitToRoom(key, 'newGame', true);
         }
       }
     }

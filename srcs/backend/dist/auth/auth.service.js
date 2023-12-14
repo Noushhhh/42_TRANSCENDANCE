@@ -142,6 +142,17 @@ let AuthService = class AuthService {
             if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
                 throw new common_1.ForbiddenException('User is already logged in');
             }
+            if ((yield this.is2FaEnabled(user.id)) === false) {
+                const result = yield this.signToken(user.id, user.username, res);
+                if (!result.valid) {
+                    // Consider providing more detailed feedback based on the error
+                    throw new common_1.ForbiddenException('Authentication failed');
+                }
+                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+            }
+            else {
+                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+            }
             // Check if 2FA (Two-Factor Authentication) is enabled for the user
             yield this.handleTwoFactorAuthentication(user, res);
         });
@@ -663,7 +674,14 @@ let AuthService = class AuthService {
     enable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
-            // @to-do CHECK SI LE USER EXIST 
+            const user = yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
             yield this.prisma.user.update({
                 where: { id: userId },
                 data: {
