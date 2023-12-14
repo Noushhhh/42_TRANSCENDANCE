@@ -50,6 +50,7 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
       }
       await leaveChannel(userId, channelId, setChannelHeader, socket);
       socket.emit("leaveChannel", channelId);
+      console.log("set to -1");
       setChannelId(-1);
     } catch (error: any){
       console.log(error.message);

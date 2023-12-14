@@ -7,10 +7,11 @@ import { getChannelName } from "./ChannelUtils";
 import { useUserIdContext } from "../contexts/userIdContext";
 
 interface Channel {
-    name: string,
-    lastMsg : string,
-    dateLastMsg: Date | null,
+    name: string;
+    lastMsg: string;
+    dateLastMsg: Date;
     channelId: number;
+    isConnected: boolean;
 }
 
 interface MessageToClickProps{
@@ -21,7 +22,7 @@ interface MessageToClickProps{
 
 function MessageToClick({channel, isConnected, setChannelClicked }: MessageToClickProps) {
 
-    const [channelName, setChannelName] = useState<string | null>(null);
+    // const [channelName, setChannelName] = useState<string | null>(null);
     
     const setChannelId = useSetChannelIdContext();
     const userId: number = useUserIdContext();
@@ -33,20 +34,23 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
     else
         dateObject = null;
 
-    useEffect(() => {
-        const fetchChannelName = async () => {
-            try {
-                let channelName: string | null = await getChannelName(channel.channelId, userId);
-                setChannelName(channelName);
-            } catch (errors: any) {
-                console.log(errors.message);
-            }
-        }
+    // useEffect(() => {
+    //     const fetchChannelName = async () => {
+    //         try {
+    //             console.log(channel.channelId);
+    //             let channelName: string | null = await getChannelName(channel.channelId, userId);
+    //             console.log(channelName);
+    //             setChannelName(channelName);
+    //         } catch (errors: any) {
+    //             console.log(errors.message);
+    //         }
+    //     }
 
-        fetchChannelName();
-    }, []);
+    //     fetchChannelName();
+    // }, []);
 
     const handleClick = () => {
+        console.log(channel.channelId);
         setChannelId(channel.channelId);
         setChannelClicked(true);
     }
@@ -59,7 +63,7 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
             <IsConnected isConnected={isConnected} />
             <div className="ContainerPreview">
                 <div className="MessageToClickTitle">
-                    <p title={channelName ? channelName :  ""} className="senderName">{channelName ? channelName : null}</p>
+                    <p title={channel.name ? channel.name :  ""} className="senderName">{channel.name ? channel.name : null}</p>
                     <p className="dateMessage">{<TimeElapsed date={dateObject} />}</p>
                 </div>
                 <div className="ContentMessageTitle">

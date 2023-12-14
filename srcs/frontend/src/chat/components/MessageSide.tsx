@@ -51,7 +51,8 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
       console.log(error);
     }
     if (bannedFromChannelId === channelId)
-      setChannelId(-1);
+      console.log("set to -1");
+    setChannelId(-1);
   }
 
   useEffect(() => {
@@ -63,26 +64,26 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     };
   });
 
- const channelDeletedEvent = async (channelId: number) => {
-  // check if need to uncomment this part, I think no
-  try {
-    console.log("in channelDeletedEvent");
-    await fetchUser(setChannelHeader, channelId, socket);
-  } catch (errors) {
-  }
- };
+  const channelDeletedEvent = async (channelId: number) => {
+    // check if need to uncomment this part, I think no
+    try {
+      console.log("in channelDeletedEvent");
+      await fetchUser(setChannelHeader, channelId, socket);
+    } catch (errors) {
+    }
+  };
 
- useEffect(() => {
+  useEffect(() => {
     if (stateMessageToClick[0] === true) {
       setHeaderTitle("Create a channel");
     } else if (stateMessageToClick[1] === true)
       setHeaderTitle("Join a channel");
   }, [stateMessageToClick]);
-  
+
   function findChannelById(channelId: number): Channel | undefined {
     return channelHeader.find((channel) => channel.channelId === channelId);
   }
-  
+
   useEffect(() => {
     socket.on("messageBack", messageEvent);
     socket.on("changeConnexionState", changeConnexionStateEvent);
@@ -93,17 +94,17 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
   });
 
   useEffect(() => {
-    socket.on("addedToChannel", addedToChannelEvent);    
+    socket.on("addedToChannel", addedToChannelEvent);
 
     return () => {
       socket.off("addedToChannel", addedToChannelEvent);
     };
   }, [])
-  
+
   const addedToChannelEvent = async () => {
     try {
       await fetchUser(setChannelHeader, userId, socket);
-    } catch (error: any){
+    } catch (error: any) {
       console.log(error);
     }
   }
@@ -121,7 +122,7 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
     needReload === false ? setNeedReload(true) : setNeedReload(false);
   };
 
-  useEffect( () => {
+  useEffect(() => {
     const callFetchUser = async () => {
       try {
         await fetchUser(setChannelHeader, userId, socket);
@@ -133,6 +134,8 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
       fetchBoolean.current = true;
     };
   }, [needReload]);
+
+  console.log(channelHeader);
 
   return (
     <div className="MessageSide">
@@ -158,7 +161,7 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
         inputValue={inputValue}
         displayResults={displayResults}
         showUserMenu={true}
-        addUserToList={() => {}}
+        addUserToList={() => { }}
         onlySearchInChannel={false}
         listUsersSearched={listUsersSearched}
         setListUsersSearched={setListUsersSearched}
@@ -177,10 +180,7 @@ function MessageSide({ setChannelClicked }: MessageSideProps) {
             return dateB.getTime() - dateA.getTime();
           })
           .map((channel, index) => {
-            if (
-              previewLastMessage &&
-              channel.channelId === previewLastMessage?.channelId
-            )
+            if (previewLastMessage && channel.channelId === previewLastMessage?.channelId)
               channel.lastMsg = previewLastMessage.content;
             return (
               <MessageToClick
