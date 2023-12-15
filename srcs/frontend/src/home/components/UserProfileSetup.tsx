@@ -131,18 +131,18 @@ const UserProfileSetup: React.FC = React.memo(() => {
     try {
       const result = await isClientRegistered();
       if (result) {
-        console.log(`passing by checkAndNavigate avatarFromBack: ${avatarFromBack}`);
-        if (!avatarFromBack) {
-          await handleUpdateAvatar();
+        console.log(`passing by checkAndNavigate avatarFromBack: ${avatarFromBack} ${profileImage}`);
+        if (!avatarFromBack && profileImage) {
+          await updateAvatar(profileImage);
         }
         navigate('/home/game');
       }
       toast.error("You need to provide a Public Name to access the game");
     } catch (error) {
       console.error('passing by catch checkAndNavigate');
-      toast.error("You need to provide a Public Name to access the game");
+      toast.error(hasMessage(error)? error.message: "Something went wrong please try again.");
     }
-  }, [avatarFromBack, handleUpdateAvatar, isClientRegistered, navigate])
+  }, [avatarFromBack, profileImage, isClientRegistered, navigate, updateAvatar])
 
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {

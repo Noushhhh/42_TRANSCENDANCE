@@ -49,10 +49,19 @@ export const getPublicName = async () => {
       method: 'GET',
       credentials: 'include'
     });
-    const data = await response.json();
+
+    // Check if the response from the fetch request is not successful
     if (!response.ok) {
-      throw new Error(`${data.statusCode} ${data.message}`);
+      // If the response is not successful, parse the response body as JSON.
+      // This assumes that the server provides a JSON response containing error details.
+      const errorDetails = await getErrorResponse(response);
+
+      // Reject the promise with a new Error object. 
+      // This provides a more detailed error message than simply rejecting with the raw response.
+      // makes it easier to understand the nature of the error when handling it later.
+      return Promise.reject(errorDetails);
     }
+    const data = await response.json();
     return data.profileName;
   } catch (error) {
     throw error;
@@ -302,9 +311,16 @@ export const fetchImageAsFile = async (imageUrl: string, imageName: string): Pro
   try {
     const response = await fetch(imageUrl);
 
-    // Check if the fetch was successful
+    // Check if the response from the fetch request is not successful
     if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+      // If the response is not successful, parse the response body as JSON.
+      // This assumes that the server provides a JSON response containing error details.
+      const errorDetails = await getErrorResponse(response);
+
+      // Reject the promise with a new Error object. 
+      // This provides a more detailed error message than simply rejecting with the raw response.
+      // makes it easier to understand the nature of the error when handling it later.
+      return Promise.reject(errorDetails);
     }
 
     const data = await response.blob();
