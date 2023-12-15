@@ -152,8 +152,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async handlenotifySomeoneLeaveChannel(@MessageBody() data: { channelId: number, userId: number }) {
         const { channelId, userId } = data;
         const socket = await this.getSocketByUserId(userId);
-        if (!socket)
+        if (!socket){
+            console.log("shoulndt return here");
             return
+        }
+        console.log(`${userId} is kicked of ${channelId}`);
         socket.emit("kickedOrBanned", channelId);
         this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         socket.leave(String(channelId));

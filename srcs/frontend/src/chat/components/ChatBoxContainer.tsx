@@ -6,10 +6,11 @@ import ContentMessage from "./ContentMessage";
 import ChannelInfo from "./ChannelInfo";
 import { ChannelIdContext } from "../contexts/channelIdContext";
 import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
-import { SocketContext } from "../contexts/socketContext";
+import { SocketContext, useSocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
 import { toggleMenuMobile } from "../contexts/toggleMenuMobile";
+import { fetchUser } from "./ChannelUtils";
 
 interface ChatProps {
   socket: Socket | undefined;
@@ -69,6 +70,35 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     setChannelClicked(false);
     setDisplayMessageSide(true);
   };
+  
+  useEffect(() => {
+    if (socket){
+      console.log("render");
+      socket.on("kickedOrBanned", kickedOrBannedEvent);
+    }
+    return () => {
+      if (socket){
+        console.log("return useffect");
+        socket.off("kickedOrBanned", kickedOrBannedEvent);
+      }
+    };
+  }, [socket]);
+
+  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
+    console.log("is kicked of");
+    console.log(channelId);
+    console.log(bannedFromChannelId);
+    if (bannedFromChannelId === channelId){
+      console.log("should trigger here");
+      setChannelId(-1);
+    }
+    try {
+      if (socket)
+        await fetchUser(setChannelHeader, userId, socket);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   if (userId === -1 || socket === undefined) return <p>loader</p>;
 

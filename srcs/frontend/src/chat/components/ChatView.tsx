@@ -20,6 +20,8 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   const channelId = useChannelIdContext();
 
   let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
+
+  console.log(channelId);
   
   const addMsgToFetchedConversation = (message: Message) => {
     setConversationFetched(prevState => [...prevState, message]);
@@ -48,7 +50,6 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     }
     callFetchConversation();
   }, ([channelId]));
-
 
   useEffect(() => {
     scrollToBottom();

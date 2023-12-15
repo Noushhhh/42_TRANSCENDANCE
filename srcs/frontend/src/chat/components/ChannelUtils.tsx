@@ -348,7 +348,6 @@ export const getUsernamesInChannelFromSubstring = async (
     const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
-    console.log(users);
     return users;
   } catch (errors) {
     throw errors;
@@ -398,6 +397,7 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
           body: JSON.stringify({ targetId, channelId })
         });
         if (response.status === 201) {
+          console.log("notify someone is kicking from channel");
           const data = {
             channelId,
             userId: user.id
