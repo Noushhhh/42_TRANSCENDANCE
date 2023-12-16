@@ -46,7 +46,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a, _b;
+var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
@@ -56,13 +56,13 @@ const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
 const constants_1 = require("../auth/constants/constants");
 const argon = __importStar(require("argon2"));
-const express_1 = require("express");
 const crypto_1 = require("crypto");
 const jwt = __importStar(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 const speakeasy = __importStar(require("speakeasy"));
 const uuid_1 = require("uuid");
 const qrcode_1 = __importDefault(require("qrcode"));
+const has_message_tools_1 = require("../tools/has-message.tools");
 /**
  * @file auth.service.ts
  * @author Your Name
@@ -73,11 +73,12 @@ const qrcode_1 = __importDefault(require("qrcode"));
  * @class AuthService
  * @brief This class provides authentication-related services.
  */
-let AuthService = class AuthService {
+let AuthService = AuthService_1 = class AuthService {
     constructor(usersService, prisma, jwt) {
         this.usersService = usersService;
         this.prisma = prisma;
         this.jwt = jwt;
+        this.logger = new common_1.Logger(AuthService_1.name);
         this.currentUser = null;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
@@ -114,7 +115,7 @@ let AuthService = class AuthService {
                 }
                 throw error;
             }
-            return res.status(201).json({ valid: true, message: "user was create successfully" });
+            return res.status(201).send({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -126,26 +127,30 @@ let AuthService = class AuthService {
      */
     signin(dto, res, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.usersService.findUserWithUsername(dto.username);
-            if (!user)
-                throw new common_1.ForbiddenException('Username not found');
-            /*  At this point, if the user sends a signin request, that means whether his token is expired
-                or he is not logged in(there is no cookies trace session in the browser), as in the fronted
-                "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-                before sending a request to backend */
-            if (req.cookies['userSession']) {
-                //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-                yield this.signout(user.id, res);
+            try {
+                const user = yield this.usersService.findUserWithUsername(dto.username);
+                if (!user)
+                    return res.status(common_1.HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+                /*  At this point, if the user sends a signin request, that means whether his token is expired
+                    or he is not logged in(there is no cookies trace session in the browser), as in the fronted
+                    "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
+                    before sending a request to backend */
+                if (req.cookies['userSession']) {
+                    //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
+                    yield this.signout(user.id, res);
+                }
+                const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
+                if (!passwordMatch)
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).send({ message: 'Incorrect password' });
+                // Enhanced session check logic
+                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
+                    return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'User is already logged in' });
+                // Check if 2FA (Two-Factor Authentication) is enabled for the user
+                yield this.handleTwoFactorAuthentication(user, res);
             }
-            const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
-            if (!passwordMatch)
-                throw new common_1.ForbiddenException('Incorrect password');
-            // Enhanced session check logic
-            if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-                throw new common_1.ForbiddenException('User is already logged in');
+            catch (error) {
+                console.error(error);
             }
-            // Check if 2FA (Two-Factor Authentication) is enabled for the user
-            yield this.handleTwoFactorAuthentication(user, res);
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -186,7 +191,7 @@ let AuthService = class AuthService {
                 }
             }
             catch (error) {
-                throw new common_1.InternalServerErrorException('Failed to find or create refresh token for user');
+                throw new common_1.HttpException('Failed to find or create refresh token for user' + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
     }
@@ -201,30 +206,24 @@ let AuthService = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = { sub: userId, email };
             const secret = this.JWT_SECRET;
-            const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
+            const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
             let token, tokenExpiresAt;
             try {
                 token = yield this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
                 tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
             }
             catch (error) {
-                if (error instanceof Error)
-                    throw new Error("Error generating JWT token: " + error.message);
-                else
-                    throw new Error("Error generating JWT token");
+                throw new common_1.HttpException("Error generating JWT token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
             }
             let refreshToken;
             try {
                 refreshToken = yield this.refreshTokenIfNeeded(userId);
             }
             catch (error) {
-                if (error instanceof Error)
-                    throw new Error("Error generating refresh token: " + error.message);
-                else
-                    throw new Error("Error generating refresh token");
+                throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
             }
             const sessionId = this.generateSessionId();
-            const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
+            const sessionExpiresAt = tokenExpiresAt;
             try {
                 yield this.prisma.user.update({
                     where: { id: userId },
@@ -232,12 +231,9 @@ let AuthService = class AuthService {
                 });
             }
             catch (error) {
-                if (error instanceof Error)
-                    throw new Error("Error updating user session in database: " + error.message);
-                else
-                    throw new Error("Error updating user session in database");
+                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            let newToken = { token: token, expiresAt: tokenExpiresAt };
+            let newToken = { token, expiresAt: tokenExpiresAt };
             return { newToken, refreshToken };
         });
     }
@@ -250,7 +246,7 @@ let AuthService = class AuthService {
     setTokens(tokens, res) {
         // Error handling for undefined tokens
         if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-            throw new Error("Invalid or missing tokens provided.");
+            return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
         }
         // Set refresh token cookie
         const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
@@ -287,12 +283,18 @@ let AuthService = class AuthService {
      */
     signToken(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { newToken, refreshToken } = yield this.generateTokens(userId, email);
-            this.setTokens({ newToken, refreshToken }, res);
-            if (!refreshToken) {
-                throw new common_1.ConflictException("Problem creating refresh token for user");
+            try {
+                const { newToken, refreshToken } = yield this.generateTokens(userId, email);
+                this.setTokens({ newToken, refreshToken }, res);
+                if (!refreshToken) {
+                    return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+                }
+                return ({ statusCode: 200, valid: true, message: "Authentication successful" });
             }
-            return ({ statusCode: 200, valid: true, message: "Authentication successful" });
+            catch (error) {
+                this.logger.error(`Fail to signToken ${(0, has_message_tools_1.hasMessage)(error) ? error.message : ""}`);
+                return null;
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -317,7 +319,8 @@ let AuthService = class AuthService {
                 return { token: refreshToken, ExpirationDate: expiration };
             }
             catch (error) {
-                throw new common_1.InternalServerErrorException('Failed to create refresh token');
+                this.logger.error(`Failed to create refresh token for user ${userId}`, error);
+                throw new common_1.ConflictException('Failed to create refresh token');
             }
         });
     }
@@ -353,10 +356,10 @@ let AuthService = class AuthService {
                 throw new common_1.UnauthorizedException('Token Missing');
             try {
                 jwt.verify(token, this.JWT_SECRET);
-                return res.status(200).json({ valid: true, message: "Token is valid" });
+                return res.status(200).send({ valid: true, message: "Token is valid" });
             }
             catch (error) {
-                return res.status(401).json({ valid: false, message: "Invalid Token" });
+                return res.status(401).send({ valid: false, message: "Invalid Token" });
             }
         });
     }
@@ -440,14 +443,14 @@ let AuthService = class AuthService {
                 const result = yield this.signToken(user.id, user.username, res);
                 // Validate the result of token signing
                 if (!result.valid) {
-                    throw new common_1.ForbiddenException('Authentication failed');
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).send({ message: 'Invalid credentials' });
                 }
                 // Send a successful response
-                res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                res.status(common_1.HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
             }
             else {
                 // If 2FA is enabled, indicate that in the response
-                res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+                res.status(common_1.HttpStatus.OK).send({ valid: true, message: "2FA", userId: user.id });
             }
         });
     }
@@ -745,11 +748,12 @@ exports.AuthService = AuthService;
 __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signToken42", null);
-exports.AuthService = AuthService = __decorate([
+exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
-        prisma_service_1.PrismaService, typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object])
+        prisma_service_1.PrismaService,
+        jwt_1.JwtService])
 ], AuthService);

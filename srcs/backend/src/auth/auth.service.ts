@@ -1,7 +1,7 @@
 import {
-  InternalServerErrorException, ForbiddenException, Res,
+  ForbiddenException, Res,
   Req, Injectable, UnauthorizedException, NotFoundException,
-  ConflictException
+  HttpStatus, Logger, ConflictException,InternalServerErrorException, HttpException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
@@ -16,11 +16,9 @@ import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import * as speakeasy from 'speakeasy';
-import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { v4 as uuidv4 } from 'uuid';
-import cron from 'node-cron'; // Importing node-cron for scheduling tasksd
-import { StrictEventEmitter } from 'socket.io/dist/typed-events';
 import QRCode from 'qrcode'
+import { hasMessage } from '../tools/has-message.tools';
 
 
 
@@ -38,6 +36,7 @@ import QRCode from 'qrcode'
 @Injectable()
 export class AuthService {
   private readonly JWT_SECRET: string | any;
+  private readonly logger = new Logger(AuthService.name);
   private currentUser: User | null = null;
 
   constructor(
@@ -80,7 +79,7 @@ export class AuthService {
       }
       throw error;
     }
-    return res.status(201).json({ valid: true, message: "user was create successfully" });
+    return res.status(201).send({ valid: true, message: "user was create successfully" });
   }
 
 
@@ -94,27 +93,36 @@ export class AuthService {
    */
   async signin(dto: AuthDto, res: Response, req: Request) {
 
-    const user = await this.usersService.findUserWithUsername(dto.username);
-    if (!user) throw new ForbiddenException('Username not found');
+    try {
+      const user = await this.usersService.findUserWithUsername(dto.username);
 
-    /*  At this point, if the user sends a signin request, that means whether his token is expired
-        or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
-        "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-        before sending a request to backend */
-    if (req.cookies['userSession']) {
-      //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-      await this.signout(user.id, res);
+      if (!user)
+        return res.status(HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+
+      /*  At this point, if the user sends a signin request, that means whether his token is expired
+          or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
+          "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
+          before sending a request to backend */
+      if (req.cookies['userSession']) {
+        //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
+        await this.signout(user.id, res);
+      }
+
+      const passwordMatch = await argon.verify(user.hashPassword, dto.password);
+      if (!passwordMatch)
+        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Incorrect password' });
+
+
+      // Enhanced session check logic
+      if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
+        return res.status(HttpStatus.CONFLICT).send({ message: 'User is already logged in' });
+
+      // Check if 2FA (Two-Factor Authentication) is enabled for the user
+      await this.handleTwoFactorAuthentication(user, res);
+
+    } catch (error) {
+      console.error(error);
     }
-
-    const passwordMatch = await argon.verify(user.hashPassword, dto.password);
-    if (!passwordMatch) throw new ForbiddenException('Incorrect password');
-
-    // Enhanced session check logic
-    if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-      throw new ForbiddenException('User is already logged in');
-    }
-    // Check if 2FA (Two-Factor Authentication) is enabled for the user
-    await this.handleTwoFactorAuthentication(user, res);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -154,7 +162,7 @@ export class AuthService {
         return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
       }
     } catch (error) {
-      throw new InternalServerErrorException('Failed to find or create refresh token for user');
+      throw new HttpException('Failed to find or create refresh token for user' + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -170,32 +178,25 @@ export class AuthService {
   async generateTokens(userId: number, email: string): Promise<{ newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }> {
     const payload = { sub: userId, email };
     const secret = this.JWT_SECRET;
-    const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
+    const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
 
     let token, tokenExpiresAt;
     try {
       token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
       tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
-
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error generating JWT token: " + error.message);
-      else
-        throw new Error("Error generating JWT token");
+      throw new HttpException("Error generating JWT token: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     let refreshToken;
     try {
       refreshToken = await this.refreshTokenIfNeeded(userId);
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error generating refresh token: " + error.message);
-      else
-        throw new Error("Error generating refresh token");
+      throw new HttpException("Error generating refresh token: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     const sessionId = this.generateSessionId();
-    const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
+    const sessionExpiresAt = tokenExpiresAt;
 
     try {
       await this.prisma.user.update({
@@ -203,15 +204,12 @@ export class AuthService {
         data: { sessionId, sessionExpiresAt },
       });
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error updating user session in database: " + error.message);
-      else
-        throw new Error("Error updating user session in database");
+      throw new HttpException("Error updating user session in database: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    let newToken = { token: token, expiresAt: tokenExpiresAt }
+
+    let newToken = { token, expiresAt: tokenExpiresAt }
     return { newToken, refreshToken };
   }
-
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -223,7 +221,7 @@ export class AuthService {
   setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
     // Error handling for undefined tokens
     if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-      throw new Error("Invalid or missing tokens provided.");
+      return res.status(HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
     }
 
     // Set refresh token cookie
@@ -266,13 +264,19 @@ export class AuthService {
    * @return A promise that resolves to void.
    */
   async signToken(userId: number, email: string, res: Response): Promise<any> {
-    const { newToken, refreshToken } = await this.generateTokens(userId, email);
-    this.setTokens({ newToken, refreshToken }, res);
+    try {
+      const { newToken, refreshToken } = await this.generateTokens(userId, email);
+      this.setTokens({ newToken, refreshToken }, res);
 
-    if (!refreshToken) {
-      throw new ConflictException("Problem creating refresh token for user")
+      if (!refreshToken) {
+        return res.status(HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+      }
+      return ({ statusCode: 200, valid: true, message: "Authentication successful" });
+
+    } catch (error) {
+      this.logger.error(`Fail to signToken ${hasMessage(error) ? error.message : ""}`);
+      return null;
     }
-    return ({ statusCode: 200, valid: true, message: "Authentication successful" });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -298,7 +302,8 @@ export class AuthService {
 
       return { token: refreshToken, ExpirationDate: expiration };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to create refresh token');
+      this.logger.error(`Failed to create refresh token for user ${userId}`, error);
+      throw new ConflictException('Failed to create refresh token');
     }
   }
 
@@ -338,9 +343,9 @@ export class AuthService {
 
     try {
       jwt.verify(token, this.JWT_SECRET);
-      return res.status(200).json({ valid: true, message: "Token is valid" });
+      return res.status(200).send({ valid: true, message: "Token is valid" });
     } catch (error) {
-      return res.status(401).json({ valid: false, message: "Invalid Token" });
+      return res.status(401).send({ valid: false, message: "Invalid Token" });
     }
   }
 
@@ -427,13 +432,13 @@ export class AuthService {
       const result = await this.signToken(user.id, user.username, res);
       // Validate the result of token signing
       if (!result.valid) {
-        throw new ForbiddenException('Authentication failed');
+        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Invalid credentials' });
       }
       // Send a successful response
-      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+      res.status(HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
     } else {
       // If 2FA is enabled, indicate that in the response
-      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+      res.status(HttpStatus.OK).send({ valid: true, message: "2FA", userId: user.id });
     }
   }
 

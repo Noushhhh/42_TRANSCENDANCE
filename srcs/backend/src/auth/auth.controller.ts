@@ -1,6 +1,5 @@
-import { AllExceptionsFilter } from './exception/all-exception.filter';
 import {
-  InternalServerErrorException, BadRequestException, Controller, Post,
+  BadRequestException, Controller, Post,
   Body, Res, Get, Req, Delete, UseFilters, ForbiddenException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -15,7 +14,6 @@ import { JwtAuthGuard } from './guards';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
-@UseFilters(AllExceptionsFilter)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) { }
