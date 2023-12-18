@@ -66,7 +66,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     console.log(channelId);
     console.log(bannedFromChannelId);
     if (bannedFromChannelId === channelId){
-      console.log("should trigger here");
+      console.log("set channelId to -1 !!!!");
       setChannelId(-1);
     }
   }
