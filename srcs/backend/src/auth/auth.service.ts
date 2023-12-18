@@ -8,7 +8,6 @@ import { Prisma, User } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/constants/constants';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { Request, Response } from 'express';
@@ -600,7 +599,8 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new NotFoundException('User not found');
+        res.status(HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+        return false;
       }
 
       if (!user.twoFASecret) return false;
@@ -612,23 +612,27 @@ export class AuthService {
       });
 
       if (!verified) {
-        console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
-        throw new ForbiddenException('Provided code couldn\'d be verified');
+        this.logger.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
+        res.status(HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'d be verified' });
+        return false;
       }
 
       if (verified === true) {
         const result = await this.signToken(user.id, user.username, res);
         if (!result.valid) {
           // Consider providing more detailed feedback based on the error
-          throw new ForbiddenException('Authentication failed');
+          res.status(HttpStatus.FORBIDDEN).send({ message: 'Authentication failed' });
+          return false;
         }
-        res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+        res.status(HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
       }
 
       return verified;
 
     } catch (error) {
-      throw error;
+      this.logger.error(hasMessage(error)? `Error occured in verifyTowFACode ${error.message}`: 
+      `Unexpected error occured in verifyTwoFACode service`);
+      return false;
     }
   }
 

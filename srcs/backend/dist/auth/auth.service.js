@@ -603,7 +603,8 @@ let AuthService = AuthService_1 = class AuthService {
                     },
                 });
                 if (!user) {
-                    throw new common_1.NotFoundException('User not found');
+                    res.status(common_1.HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+                    return false;
                 }
                 if (!user.twoFASecret)
                     return false;
@@ -613,21 +614,25 @@ let AuthService = AuthService_1 = class AuthService {
                     token: code,
                 });
                 if (!verified) {
-                    console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
-                    throw new common_1.ForbiddenException('Provided code couldn\'d be verified');
+                    this.logger.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
+                    res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'d be verified' });
+                    return false;
                 }
                 if (verified === true) {
                     const result = yield this.signToken(user.id, user.username, res);
                     if (!result.valid) {
                         // Consider providing more detailed feedback based on the error
-                        throw new common_1.ForbiddenException('Authentication failed');
+                        res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Authentication failed' });
+                        return false;
                     }
-                    res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+                    res.status(common_1.HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
                 }
                 return verified;
             }
             catch (error) {
-                throw error;
+                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? `Error occured in verifyTowFACode ${error.message}` :
+                    `Unexpected error occured in verifyTwoFACode service`);
+                return false;
             }
         });
     }
