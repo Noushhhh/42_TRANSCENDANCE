@@ -592,50 +592,60 @@ let AuthService = AuthService_1 = class AuthService {
      * @brief This function verifies a 2FA code.
      * @param userId The user's ID.
      * @param code The 2FA code.
-     * @return Whether the 2FA code is verified.
+     * @param res The HTTP response object for sending responses.
+     * @returns Whether the 2FA code is verified.
      */
     verifyTwoFACode(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Find the user in the database based on the provided userId
                 const user = yield this.prisma.user.findUnique({
                     where: {
                         id: userId,
                     },
                 });
                 if (!user) {
+                    // If the user is not found, send a 'Not Found' response
                     res.status(common_1.HttpStatus.NOT_FOUND).send({ message: 'User not found' });
                     return false;
                 }
+                // Check if the user has a 2FA secret set up
                 if (!user.twoFASecret)
                     return false;
+                // Verify the provided 2FA code using the user's 2FA secret
                 const verified = speakeasy.totp.verify({
                     secret: user.twoFASecret,
                     encoding: 'base32',
                     token: code,
                 });
                 if (!verified) {
-                    this.logger.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
-                    res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'d be verified' });
+                    // If the code couldn't be verified, log the error and send a 'Forbidden' response
+                    this.logger.error(`Passing by verifyTwoFAcode verified: ${verified}`);
+                    res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'t be verified' });
                     return false;
                 }
                 if (verified === true) {
+                    // If the code is verified successfully, proceed with user authentication
                     const result = yield this.signToken(user.id, user.username, res);
                     if (!result.valid) {
-                        // Consider providing more detailed feedback based on the error
+                        // If authentication fails, send a 'Forbidden' response with details
                         res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Authentication failed' });
                         return false;
                     }
+                    // Send an 'OK' response with authentication details
                     res.status(common_1.HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
                 }
                 return verified;
             }
             catch (error) {
-                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? `Error occured in verifyTowFACode ${error.message}` :
-                    `Unexpected error occured in verifyTwoFACode service`);
+                // Handle any errors that may occur during the verification process and log them
+                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? `Error occurred in verifyTwoFACode: ${error.message}` :
+                    `Unexpected error occurred in verifyTwoFACode service`);
                 return false;
             }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
     validateTwoFA(userId, code) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.prisma.user.findUnique({
@@ -667,35 +677,70 @@ let AuthService = AuthService_1 = class AuthService {
     }
     // ─────────────────────────────────────────────────────────────────────────────
     /**
-     * @brief This function enables 2FA.
+     * @brief This function enables Two-Factor Authentication (2FA) for a user.
      * @param userId The user's ID.
+     * @param res The HTTP response object for sending responses.
      */
-    enable2FA(userId) {
+    enable2FA(userId, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
-            // @to-do CHECK SI LE USER EXIST 
-            yield this.prisma.user.update({
-                where: { id: userId },
-                data: {
-                    TwoFA: false,
-                    twoFASecret: secret,
-                },
-            });
-            const generateQR = (otpauthUrl) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const url = yield qrcode_1.default.toDataURL(otpauthUrl);
-                    return url;
+            try {
+                // Check if the user with the given ID exists in the database
+                const userExists = yield this.prisma.user.findUnique({
+                    where: { id: userId }
+                });
+                if (!userExists) {
+                    // If the user is not found, send a 'Not Found' response
+                    res.status(common_1.HttpStatus.NOT_FOUND).send('User not found');
+                    return;
                 }
-                catch (err) {
-                    console.error(err);
+                // Generate a secret key and OTP (One-Time Password) URL for 2FA
+                const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
+                // Update the user's information in the database to enable 2FA
+                yield this.prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        TwoFA: true, // Set TwoFA to 'true' to enable 2FA for the user
+                        twoFASecret: secret, // Store the 2FA secret key in the user's record
+                    },
+                });
+                // Generate a QR code URL based on the OTP URL
+                const QRUrl = yield this.generateQR(otpauthUrl);
+                if (QRUrl) {
+                    // If the QR code is generated successfully, send it as a response
+                    res.status(common_1.HttpStatus.OK).send({ qrcode: QRUrl });
                 }
-            });
-            const QRUrl = yield generateQR(otpauthUrl);
-            if (QRUrl)
-                return QRUrl;
-            return "";
+                else {
+                    // If there's an issue generating the QR code, send a 'Conflict' response
+                    res.status(common_1.HttpStatus.CONFLICT).send('Unable to generate QR code');
+                }
+            }
+            catch (error) {
+                // Handle any internal server errors and log them
+                this.logger.error('Internal Server Error occurred in enable2FA: ', error);
+            }
         });
     }
+    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+     * Generate a QR code image from an OTP URL.
+     * @param otpauthUrl The OTP URL to generate the QR code for.
+     * @returns A Promise that resolves to the QR code URL or null if there's an error.
+     */
+    generateQR(otpauthUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Generate a QR code image URL using the otpauthUrl
+                const url = yield qrcode_1.default.toDataURL(otpauthUrl);
+                return url;
+            }
+            catch (err) {
+                // Handle any errors that occur during QR code generation
+                console.error('Error generating QR Code: ', err);
+                return null;
+            }
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
     disable2FA(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.prisma.user.findUnique({

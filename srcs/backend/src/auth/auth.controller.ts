@@ -5,7 +5,7 @@ import {
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
-import { Response, Request } from 'express';
+import { Response, Request, response } from 'express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { TwoFADataDto, UserIdDto } from '../users/dto';
@@ -91,10 +91,9 @@ export class AuthController {
   }
 
   @Post('enable2FA')
-  async enable2FA(@Body() userId: UserIdDto) {
+  async enable2FA(@Body() userId: UserIdDto, @Res() res: Response) {
     // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-    const qrcodeUrl = await this.authService.enable2FA(userId.userId);
-    return { qrcode: qrcodeUrl }
+    await this.authService.enable2FA(userId.userId, res);
   }
 
   @Post('disable2FA')
