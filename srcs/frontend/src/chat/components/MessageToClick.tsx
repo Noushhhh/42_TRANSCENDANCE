@@ -41,7 +41,6 @@ function MessageToClick({channel, isConnected, setChannelClicked }: MessageToCli
 
     return (
         <div onClick={handleClick} className="MessageToClick">
-            <IsConnected isConnected={isConnected} />
             <div className="ContainerPreview">
                 <div className="MessageToClickTitle">
                     <p title={channel.name ? channel.name :  ""} className="senderName">{channel.name ? channel.name : null}</p>

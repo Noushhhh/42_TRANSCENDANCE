@@ -255,9 +255,13 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
   return -1;
 };
 
-export function isUserConnected(userId: number, socket: Socket): Promise<boolean> {
+export function isChannelIsLive(channelId: number, userId: number, socket: Socket): Promise<boolean> {
+  const data = {
+    channelId,
+    userId
+  }
   return new Promise((resolve) => {
-    socket.emit('isUserConnected', userId, (response: boolean) => {
+    socket.emit('isChannelLive', data, (response: boolean) => {
       resolve(response);
     });
   });
@@ -281,16 +285,10 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     
     userId === users[0].id ? userIndex = 1 : userIndex = 0;
 
-    await isUserConnected(users[userIndex].id, socket)
-    .then((response: boolean) => {
-        channelInfo.isConnected = response;
-      })
-      .catch((error) => {
-        throw error;
-      });
-      if (users[userIndex].publicName)
-        channelInfo.name = users[userIndex].publicName;
-      return channelInfo;
+    if (users[userIndex].publicName){
+      channelInfo.name = users[userIndex].publicName;
+    }
+    return channelInfo;
   } catch (errors){
     throw errors;
   }

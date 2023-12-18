@@ -75,7 +75,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
           <span className="ArrowBackPhone" onClick={backToChannels}>
             <ArrowBackIosIcon />
           </span>
-          <IsConnected isConnected={channelHeader[i].isConnected} />
+          <IsConnected />
           <p title={channelName ? channelName :  ""}>{channelName ? channelName :  null}</p>
         </div>
         <div className="HeaderChatBoxLogo">

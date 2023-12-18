@@ -179,11 +179,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         this.server.emit("changeConnexionState");
     }
 
-    @SubscribeMessage('isUserConnected')
-    async handleIsUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket): Promise<boolean> {
-        const socket = await this.getSocketByUserId(userId);
-        if (socket)
-            return true;
+    @SubscribeMessage('isChannelLive')
+    async handleIsUserConnected(@MessageBody() data: {channelId: number, userId: number}, @ConnectedSocket() client: Socket): Promise<boolean> {
+        const { channelId, userId } = data;
+        console.log(`isChannelLive called from userId:${userId} and channelId:${channelId}`);
+        const connectedClients = await this.server.in(String(channelId)).fetchSockets();
+        for (const client of connectedClients){
+            console.log("id fetched = ");
+            console.log(client.data.userId);
+            if (client.data.userId && client.data.userId != userId)
+                return true;
+        }
         return false;
     }
 

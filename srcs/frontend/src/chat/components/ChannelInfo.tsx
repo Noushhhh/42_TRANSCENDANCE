@@ -226,5 +226,5 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
       <ChannelSettings settingsChannel={settingsChannel} setSettingsChannel={setSettingsChannel} setdisplayMenu={setdisplayMenu} setChannelInfo={setChannelInfo} setSettingsClicked={setSettingsClicked} />
     </div>
   )
-    : <div>channelId === -1</div>;
+    : null;
 } export default ChannelInfo;
