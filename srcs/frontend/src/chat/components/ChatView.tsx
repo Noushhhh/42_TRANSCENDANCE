@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../styles/ChatView.css";
 import MessageComponent from "./Message";
-import { useChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
 import { fetchConversation } from "./ChannelUtils";
-import { dividerClasses } from "@mui/material";
 import "../types/type.Message";
+import { useSocketContext } from "../contexts/socketContext";
+import { Socket } from "socket.io-client";
+import { fetchUser } from "./ChannelUtils";
+import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 
 interface ChatViewProps {
   isChannelInfoDisplay: boolean;
@@ -17,9 +20,13 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
 
   const [conversationFetched, setConversationFetched] = useState<Message[]>([]);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const channelId = useChannelIdContext();
 
   let widthChatView: string | null = isChannelInfoDisplay ? 'isDisplay' : 'isReduce';
+
+  const socket: Socket = useSocketContext();
+  const setChannelHeader: React.Dispatch<React.SetStateAction<Channel[]>> = useSetChannelHeaderContext();
+  const setChannelId = useSetChannelIdContext();
+  const channelId: number = useChannelIdContext();
 
   console.log(channelId);
   
@@ -55,15 +62,41 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     scrollToBottom();
   }, [messages]);
 
+  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
+    console.log("here before");
+    console.log(channelId);
+    console.log(bannedFromChannelId);
+    try {
+      await fetchUser(setChannelHeader, userId, socket);
+      console.log("after fetch");
+    } catch (error) {
+      console.log(error);
+    }
+    console.log(channelId);
+    console.log(bannedFromChannelId);
+    if (bannedFromChannelId === channelId){
+      console.log("should trigger here");
+      setChannelId(-1);
+    }
+  }
+
+  useEffect(() => {
+    socket.on("kickedOrBanned", kickedOrBannedEvent);
+    return () => {
+      socket.off("kickedOrBanned", kickedOrBannedEvent);
+    };
+  });
+
   useEffect(() => {
     console.log(`channelId changed to ${channelId}`);
   }, [channelId]);
 
   if (channelId === -1)
-    return (<div className="ChatViewContainer"></div>)
+    return (<div className="ChatViewContainer">channelId === -1</div>)
 
   return (
     <div className="ChatViewContainer">
+      channelId !!= -1
       <div className={`ChatView ${widthChatView}`}>
         {conversationFetched.map((message: Message, index: number) => {
           return (
