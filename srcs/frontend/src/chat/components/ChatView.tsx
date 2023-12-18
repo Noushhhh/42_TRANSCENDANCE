@@ -92,11 +92,10 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   }, [channelId]);
 
   if (channelId === -1)
-    return (<div className="ChatViewContainer">channelId === -1</div>)
+    return (<div className="ChatViewContainer"></div>)
 
   return (
     <div className="ChatViewContainer">
-      channelId !!= -1
       <div className={`ChatView ${widthChatView}`}>
         {conversationFetched.map((message: Message, index: number) => {
           return (
