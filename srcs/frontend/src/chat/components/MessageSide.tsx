@@ -53,7 +53,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     setStateMessageToClick([false, false]);
   };
 
-  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
+  /*const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     console.log("here before");
     console.log(channelId);
     console.log(bannedFromChannelId);
@@ -69,14 +69,14 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       console.log("should trigger here");
       setChannelId(-1);
     }
-  }
+  }*/
 
   useEffect(() => {
     socket.on("channelDeleted", channelDeletedEvent);
-    socket.on("kickedOrBanned", kickedOrBannedEvent);
+    //socket.on("kickedOrBanned", kickedOrBannedEvent);
     return () => {
       socket.off("channelDeleted", channelDeletedEvent);
-      socket.off("kickedOrBanned", kickedOrBannedEvent);
+      //socket.off("kickedOrBanned", kickedOrBannedEvent);
     };
   });
 

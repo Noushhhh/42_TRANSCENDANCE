@@ -84,17 +84,16 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     };
   }, [socket]);
 
-  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
-    console.log("is kicked of");
+  useEffect(() => {
     console.log(channelId);
-    console.log(bannedFromChannelId);
-    if (bannedFromChannelId === channelId){
-      console.log("should trigger here");
-      setChannelId(-1);
-    }
+  }, [channelId]);
+
+  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     try {
-      if (socket)
+      if (socket){
         await fetchUser(setChannelHeader, userId, socket);
+        backToChannels();
+      }
     } catch (error) {
       console.log(error);
     }

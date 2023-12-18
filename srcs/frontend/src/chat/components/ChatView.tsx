@@ -55,6 +55,10 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    console.log(`channelId changed to ${channelId}`);
+  }, [channelId]);
+
   if (channelId === -1)
     return (<div className="ChatViewContainer"></div>)
 

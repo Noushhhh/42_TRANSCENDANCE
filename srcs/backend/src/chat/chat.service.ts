@@ -201,9 +201,8 @@ export class ChatService {
         }
       }
     })
-
     if (!users) {
-      throw new ForbiddenException("No user found");
+      throw new NotFoundException("No user found");
     }
     return users;
   }
