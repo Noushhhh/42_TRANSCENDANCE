@@ -387,7 +387,7 @@ export class UsersService {
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
-    async findUserWithId(userId: number): Promise<User> {
+    async findUserWithId(userId: number): Promise<User | undefined> {
         try {
             const user = await this.prisma.user.findUnique({
                 where: {
@@ -395,13 +395,12 @@ export class UsersService {
                 },
             });
             if (!user) {
-                throw new NotFoundException(`User not found with id ${userId}`);
+                return undefined;
             }
             return user;
         }
         catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
-            throw error;
         }
     }
 
@@ -449,15 +448,13 @@ export class UsersService {
                 },
             });
             if (!user) {
-                throw new NotFoundException(`User not found with username: ${usernameinput}`);
+                return undefined;
             }
-            console.log("user found is:");
-            console.log(user);
             return user;
         } catch (error) {
             console.error(`Error fetching user with username: ${usernameinput}`, error);
-            throw error;
         }
+
     }
 
     async sendFriendRequest(senderId: number, targetId: number) {

@@ -1,12 +1,11 @@
-import { AllExceptionsFilter } from './exception/all-exception.filter';
 import {
-  InternalServerErrorException, BadRequestException, Controller, Post,
+ InternalServerErrorException, BadRequestException, Controller, Post,
   Body, Res, Get, Req, Delete, UseFilters, ForbiddenException, NotFoundException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Public } from '../decorators/public.decorators';
-import { Response, Request } from 'express';
+import { Response, Request, response } from 'express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { TwoFADataDto, TwoFaUserIdDto, UserIdDto } from '../users/dto';
@@ -15,7 +14,6 @@ import { JwtAuthGuard } from './guards';
 
 const browserError: string = "This browser session is already taken by someone," + " please open a new browser or incognito window";
 
-@UseFilters(AllExceptionsFilter)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) { }
@@ -94,15 +92,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('enable2FA')
-  async enable2FA(@Req() req: Request) {
-    if (!req.user?.id) throw new NotFoundException("User not found");
-
-    try {
-      const qrcodeUrl = await this.authService.enable2FA(req.user.id);
-      return { qrcode: qrcodeUrl }
-    } catch (error) {
-      throw error;
-    }
+  async enable2FA(@ExtractJwt() decodedPayload: DecodedPayload, @Res() res: Response) {
+    // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
+    const userId: number = decodedPayload.sub; 
+    await this.authService.enable2FA(userId, res);
   }
 
   @UseGuards(JwtAuthGuard)

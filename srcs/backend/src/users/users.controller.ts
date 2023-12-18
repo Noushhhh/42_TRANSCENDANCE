@@ -13,12 +13,10 @@ import { UserIdDto, friendRequestDto, UpdatePublicNameDto, friendDto } from './d
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
-import { AllExceptionsFilter } from '../auth/exception/all-exception.filter';
 import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 
 
 
-@UseFilters(AllExceptionsFilter)
 @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
 @Controller('users')
 export class UsersController {

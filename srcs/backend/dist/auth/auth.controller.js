@@ -22,7 +22,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const all_exception_filter_1 = require("./exception/all-exception.filter");
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
@@ -104,18 +103,11 @@ let AuthController = class AuthController {
             }
         });
     }
-    enable2FA(req) {
-        var _a;
+    enable2FA(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
-                throw new common_1.NotFoundException("User not found");
-            try {
-                const qrcodeUrl = yield this.authService.enable2FA(req.user.id);
-                return { qrcode: qrcodeUrl };
-            }
-            catch (error) {
-                throw error;
-            }
+            // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
+            const userId = decodedPayload.sub;
+            yield this.authService.enable2FA(userId, res);
         });
     }
     disable2FA(req) {
@@ -245,9 +237,10 @@ __decorate([
 __decorate([
     (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('enable2FA'),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 __decorate([
@@ -284,7 +277,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "is2FaActivated", null);
 exports.AuthController = AuthController = __decorate([
-    (0, common_1.UseFilters)(all_exception_filter_1.AllExceptionsFilter),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

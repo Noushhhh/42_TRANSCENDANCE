@@ -124,6 +124,8 @@ del_uploads:
 	@echo "Romoving uploads"
 	@rm -rf ./srcs/backend/uploads/* 
 
+fclean: down
+
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all
 
