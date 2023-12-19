@@ -3,6 +3,7 @@ import { NavigateFunction } from "react-router-dom";
 
 // Assuming API_BASE_URL is defined in a configuration file or environment variable
 const API_BASE_URL = "http://localhost:4000";
+const FETCH_TIMEOUT = 5000;  // Timeout for the fetch call set to 5 seconds
 
 /**
  * @brief Checks if a given object has a property named 'message' and if the value of that property is a string.
@@ -363,7 +364,7 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
   // }
 
   const response = await fetch(
-    "http://localhost:4000/api/auth/verifyTwoFACode",
+    `${API_BASE_URL}/api/auth/verifyTwoFACode`,
     {
       method: "POST",
       credentials: "include",
@@ -382,4 +383,33 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
     navigate("/home");
   }
 
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+ export const checkToken = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/checkTokenValidity`, {
+      method: 'GET',
+      credentials: 'include',
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    //            console.log(`passing by useTokenExpired response.ok = ${response.ok}`)
+    if (response.ok) {
+      //                console.log(`passing by if condition true withing checkToken response.ok = ${response.ok}`);
+      return false;  //
+    }
+    else {
+      //                console.log(`passing by if condition false withing checkToken response.ok = ${response.ok}`);
+      return true;   // Return the actual result
+    }
+    //            console.log(`after setting tokenExpired withing checkToken ${tokenExpired}`);
+  } catch (error) {
+    console.error("Token check error:", hasMessage(error) ? error.message : error);
+  }
 };

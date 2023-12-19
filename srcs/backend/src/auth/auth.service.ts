@@ -338,13 +338,16 @@ export class AuthService {
     const token = req.cookies.token;
 
     if (!token)
-      throw new UnauthorizedException('Token Missing');
-
+      return res.status(HttpStatus.NOT_FOUND).json({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Token missing',
+        error: 'NOT_FOUND'
+      });
     try {
       jwt.verify(token, this.JWT_SECRET);
-      return res.status(200).send({ valid: true, message: "Token is valid" });
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, message: "Token valid"});
     } catch (error) {
-      return res.status(401).send({ valid: false, message: "Invalid Token" });
+      return res.status(HttpStatus.BAD_REQUEST).send({ statusCode: HttpStatus.BAD_REQUEST, message: "Invalid Token" });
     }
   }
 

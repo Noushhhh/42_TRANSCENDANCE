@@ -353,13 +353,17 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const token = req.cookies.token;
             if (!token)
-                throw new common_1.UnauthorizedException('Token Missing');
+                return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                    statusCode: common_1.HttpStatus.NOT_FOUND,
+                    message: 'Token missing',
+                    error: 'NOT_FOUND'
+                });
             try {
                 jwt.verify(token, this.JWT_SECRET);
-                return res.status(200).send({ valid: true, message: "Token is valid" });
+                return res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, message: "Token valid" });
             }
             catch (error) {
-                return res.status(401).send({ valid: false, message: "Invalid Token" });
+                return res.status(common_1.HttpStatus.BAD_REQUEST).send({ statusCode: common_1.HttpStatus.BAD_REQUEST, message: "Invalid Token" });
             }
         });
     }

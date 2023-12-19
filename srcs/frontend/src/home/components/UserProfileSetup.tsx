@@ -8,12 +8,12 @@ import {
   useUpdatePublicName,
   getUserData,
   hasMessage,
-  getUserAvatar
+  getUserAvatar,
+  checkToken
 } from '../tools/Api';
 import LoadingSpinner from '../tools/LoadingSpinner';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import useTokenExpired from '../tools/hooks/useTokenExpired';
 
 
 const defaultImage = 'defaultProfileImage.jpg';
@@ -30,7 +30,6 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const  updateAvatar = useUpdateAvatar();
   const updatePublicName = useUpdatePublicName();
   const isClientRegistered = useIsClientRegistered();
-  const tokenExpired = useTokenExpired();
 
   // Other state variables
   const [showLoader, setShowLoader] = useState(true);
@@ -76,7 +75,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   // Check if the user is authenticated
   const checkUserAuth = async () => {
     try {
-      if (await tokenExpired()) {
+      if (await checkToken()) {
         navigate('/signin');
         toast.error("You are not authenticated, please sign in");
         return;
@@ -150,7 +149,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     checkUserAuth();
     fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
-  }, [] );
+  }, [setLoaderSpinner, checkUserAuth, fetchUserInfo] );
 
   // Update image preview when profileImage changes
   useEffect(() => {

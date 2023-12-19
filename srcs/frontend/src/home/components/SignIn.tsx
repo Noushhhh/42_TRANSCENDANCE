@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback} from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
@@ -6,9 +6,9 @@ import useIsClientRegistered from "../tools/hooks/useIsClientRegistered";
 import "../styles/generalStyles.css";
 import GoBackButton from "../tools/GoBackButton";
 import { hasMessage , getErrorResponse} from "../tools/Api";
-import useTokenExpired from "../tools/hooks/useTokenExpired";
 import { verify2FA } from "../tools/Api";
 import { InputField } from "./SignUp";
+import { checkToken } from "../tools/Api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 /*************************************************************************** */
@@ -81,23 +81,22 @@ const SignIn: React.FC = () => {
   const [twoFaError, setTwoFaError] = useState("");
   const [displayTwoFa, setDisplayTwoFa] = useState(false);
   const [userId, setUserId] = useState(0);
-  const checkToken = useTokenExpired();
   // Hook for programmatic navigation.
   const isClientRegistered = useIsClientRegistered();
   const navigate = useNavigate();
 
   const checkIfAlreadyLoggedIn = useCallback(async () => {
-    const tokenExpired = await checkToken();
-    if (tokenExpired === false) {
+    if (await checkToken() === false) {
       navigate("/home/game");
     }
-  }, [checkToken, navigate]);
+  }, [navigate]);
 
   // ─────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
   }, [checkIfAlreadyLoggedIn]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 
   const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
