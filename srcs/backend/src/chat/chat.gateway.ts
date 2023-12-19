@@ -151,27 +151,27 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     @SubscribeMessage("notifySomeoneLeaveChannel")
     async handlenotifySomeoneLeaveChannel(@MessageBody() data: { channelId: number, userId: number }) {
         const { channelId, userId } = data;
+        console.log(`${userId} is kicked of ${channelId}`);
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         const socket = await this.getSocketByUserId(userId);
         if (!socket){
             console.log("shoulndt return here");
             return
         }
-        console.log(`${userId} is kicked of ${channelId}`);
         socket.emit("kickedOrBanned", channelId);
-        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         socket.leave(String(channelId));
     }
 
     @SubscribeMessage("notifySomeoneJoinChannel")
     async handlenotifySomeoneJoinChannel(@MessageBody() data: { channelId: number, userId: number }) {
         const { channelId, userId } = data;
+        console.log(`userId: ${userId} is joining of ${channelId}`);
+        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         const socket = await this.getSocketByUserId(userId);
         if (!socket)
             return
         socket.join(String(channelId));
         socket.emit("addedToChannel");
-        this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
-        console.log(`userId: ${userId} is joining of ${channelId}`);
     }
 
     @SubscribeMessage('setNewUserConnected')
@@ -179,11 +179,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         this.server.emit("changeConnexionState");
     }
 
-    @SubscribeMessage('isUserConnected')
-    async handleIsUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket): Promise<boolean> {
-        const socket = await this.getSocketByUserId(userId);
-        if (socket)
-            return true;
+    @SubscribeMessage('isChannelLive')
+    async handleIsUserConnected(@MessageBody() data: {channelId: number, userId: number}, @ConnectedSocket() client: Socket): Promise<boolean> {
+        const { channelId, userId } = data;
+        console.log(`isChannelLive called from userId:${userId} and channelId:${channelId}`);
+        const connectedClients = await this.server.in(String(channelId)).fetchSockets();
+        for (const client of connectedClients){
+            console.log("id fetched = ");
+            console.log(client.data.userId);
+            if (client.data.userId && client.data.userId != userId)
+                return true;
+        }
         return false;
     }
 

@@ -108,7 +108,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     try {
       handleAreUsersFriend();
       setAnchorEl(event.currentTarget);
-      const isBlocked: boolean = await isUserIsBlockedBy(userId, user.id);
+      const isBlocked: boolean = await isUserIsBlockedBy(user.id);
       setIsBlocked(isBlocked);
     } catch (errors: any) {}
   };
@@ -187,7 +187,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handlePlayClick = async () => {
     try {
-      if ((await isUserIsBlockedBy(user.id, userId)) === true) return;
+      if ((await isUserIsBlockedBy(user.id)) === true) return;
     } catch (error) {
       console.log("error fetching isUserIsBlockedBy route");
     }

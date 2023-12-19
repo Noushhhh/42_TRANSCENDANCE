@@ -211,8 +211,6 @@ export class ChatService {
     try {
       await this.getUserById(ownerId);
       const channels = await this.prisma.channel.findMany();
-      console.log("channel output ==");
-      console.log(channels);
       if (!channels)
         throw new NotFoundException("Error getting channels");
       const existingChannelNames = channels.map(channel => channel.name);

@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 
 interface toggleMenuMobileProps {
   toggleMenu: boolean;
-  setToggleMenu: (val: boolean) => void;
+  setToggleMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const toggleMenuMobile = createContext<
