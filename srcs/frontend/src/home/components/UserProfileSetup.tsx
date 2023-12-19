@@ -149,7 +149,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     checkUserAuth();
     fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
-  }, [setLoaderSpinner, checkUserAuth, fetchUserInfo] );
+  }, [] );
 
   // Update image preview when profileImage changes
   useEffect(() => {

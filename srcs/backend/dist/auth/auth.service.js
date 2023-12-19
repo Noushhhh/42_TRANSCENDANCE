@@ -115,7 +115,7 @@ let AuthService = AuthService_1 = class AuthService {
                 }
                 throw error;
             }
-            return res.status(201).send({ valid: true, message: "user was create successfully" });
+            return res.status(201).json({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -129,8 +129,13 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.usersService.findUserWithUsername(dto.username);
-                if (!user)
-                    return res.status(common_1.HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+                if (!user) {
+                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'User not found',
+                        error: 'NOT_FOUND'
+                    });
+                }
                 /*  At this point, if the user sends a signin request, that means whether his token is expired
                     or he is not logged in(there is no cookies trace session in the browser), as in the fronted
                     "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
@@ -141,15 +146,23 @@ let AuthService = AuthService_1 = class AuthService {
                 }
                 const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
                 if (!passwordMatch)
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).send({ message: 'Incorrect password' });
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                        message: 'Incorrect password',
+                        error: 'UNAUTHORIZED'
+                    });
                 // Enhanced session check logic
                 if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-                    return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'User is already logged in' });
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                        message: 'User is already logged in',
+                        error: 'UNAUTHORIZED'
+                    });
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
             catch (error) {
-                console.error(error);
+                this.logger.error(error);
             }
         });
     }
@@ -191,7 +204,7 @@ let AuthService = AuthService_1 = class AuthService {
                 }
             }
             catch (error) {
-                throw new common_1.HttpException('Failed to find or create refresh token for user' + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new common_1.HttpException('Failed to find or create refresh token for user' + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
     }
@@ -246,7 +259,11 @@ let AuthService = AuthService_1 = class AuthService {
     setTokens(tokens, res) {
         // Error handling for undefined tokens
         if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-            return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+            return res.status(common_1.HttpStatus.CONFLICT).json({
+                statusCode: common_1.HttpStatus.CONFLICT,
+                message: 'Problem creating refresh token for user',
+                error: 'CONFLICT'
+            });
         }
         // Set refresh token cookie
         const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
@@ -287,7 +304,11 @@ let AuthService = AuthService_1 = class AuthService {
                 const { newToken, refreshToken } = yield this.generateTokens(userId, email);
                 this.setTokens({ newToken, refreshToken }, res);
                 if (!refreshToken) {
-                    return res.status(common_1.HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+                    return res.status(common_1.HttpStatus.CONFLICT).json({
+                        statusCode: common_1.HttpStatus.CONFLICT,
+                        message: 'Problem creating refresh token for user',
+                        error: 'CONFLICT'
+                    });
                 }
                 return ({ statusCode: 200, valid: true, message: "Authentication successful" });
             }
@@ -363,7 +384,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, message: "Token valid" });
             }
             catch (error) {
-                return res.status(common_1.HttpStatus.BAD_REQUEST).send({ statusCode: common_1.HttpStatus.BAD_REQUEST, message: "Invalid Token" });
+                return res.status(common_1.HttpStatus.BAD_REQUEST).json({ statusCode: common_1.HttpStatus.BAD_REQUEST, message: "Invalid Token" });
             }
         });
     }
@@ -386,10 +407,10 @@ let AuthService = AuthService_1 = class AuthService {
                 res.clearCookie('token');
                 res.clearCookie('refreshToken');
                 res.clearCookie('userSession');
-                return res.status(200).send({ message: 'Signed out successfully' });
+                return res.status(200).json({ message: 'Signed out successfully' });
             }
             catch (error) {
-                console.error(error);
+                this.logger.error(error);
                 throw error;
             }
         });
@@ -410,7 +431,7 @@ let AuthService = AuthService_1 = class AuthService {
                 const token = yield this.exchangeCodeForToken(code);
                 // Check if the token was successfully retrieved
                 if (!token) {
-                    console.error('Failed to fetch access token');
+                    this.logger.error('Failed to fetch access token');
                     throw new Error('Failed to fetch access token');
                 }
                 // Retrieve user information using the token
@@ -432,7 +453,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 // Log and handle any errors that occur during the process
-                console.error('Error in signToken42:', error);
+                this.logger.error('Error in signToken42:', error);
                 throw error;
             }
         });
@@ -447,14 +468,14 @@ let AuthService = AuthService_1 = class AuthService {
                 const result = yield this.signToken(user.id, user.username, res);
                 // Validate the result of token signing
                 if (!result.valid) {
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).send({ message: 'Invalid credentials' });
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({ message: 'Invalid credentials' });
                 }
                 // Send a successful response
-                res.status(common_1.HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
+                res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
             }
             else {
                 // If 2FA is enabled, indicate that in the response
-                res.status(common_1.HttpStatus.OK).send({ valid: true, message: "2FA", userId: user.id });
+                res.status(common_1.HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
             }
         });
     }
@@ -472,7 +493,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return response.data.access_token;
             }
             catch (error) {
-                console.error('Error fetching access token:', error);
+                this.logger.error('Error fetching access token:', error);
                 return null;
             }
         });
@@ -509,7 +530,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return response.data;
             }
             catch (error) {
-                console.error('Error fetching user info:', error);
+                this.logger.error('Error fetching user info:', error);
                 throw error;
             }
         });
@@ -566,7 +587,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return user;
             }
             catch (error) {
-                console.error('Error saving user information to database:', error);
+                this.logger.error('Error saving user information to database:', error);
                 throw error;
             }
         });
@@ -610,7 +631,11 @@ let AuthService = AuthService_1 = class AuthService {
                 });
                 if (!user) {
                     // If the user is not found, send a 'Not Found' response
-                    res.status(common_1.HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+                    res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'User not found',
+                        error: 'NOT_FOUND'
+                    });
                     return false;
                 }
                 // Check if the user has a 2FA secret set up
@@ -625,7 +650,7 @@ let AuthService = AuthService_1 = class AuthService {
                 if (!verified) {
                     // If the code couldn't be verified, log the error and send a 'Forbidden' response
                     this.logger.error(`Passing by verifyTwoFAcode verified: ${verified}`);
-                    res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'t be verified' });
+                    res.status(common_1.HttpStatus.FORBIDDEN).json({ message: 'Provided code couldn\'t be verified' });
                     return false;
                 }
                 if (verified === true) {
@@ -633,11 +658,11 @@ let AuthService = AuthService_1 = class AuthService {
                     const result = yield this.signToken(user.id, user.username, res);
                     if (!result.valid) {
                         // If authentication fails, send a 'Forbidden' response with details
-                        res.status(common_1.HttpStatus.FORBIDDEN).send({ message: 'Authentication failed' });
+                        res.status(common_1.HttpStatus.FORBIDDEN).json({ message: 'Authentication failed' });
                         return false;
                     }
                     // Send an 'OK' response with authentication details
-                    res.status(common_1.HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
+                    res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
                 }
                 return verified;
             }
@@ -694,7 +719,11 @@ let AuthService = AuthService_1 = class AuthService {
                 });
                 if (!userExists) {
                     // If the user is not found, send a 'Not Found' response
-                    res.status(common_1.HttpStatus.NOT_FOUND).send('User not found');
+                    res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'User not found',
+                        error: 'NOT_FOUND'
+                    });
                     return;
                 }
                 // Generate a secret key and OTP (One-Time Password) URL for 2FA
@@ -711,11 +740,15 @@ let AuthService = AuthService_1 = class AuthService {
                 const QRUrl = yield this.generateQR(otpauthUrl);
                 if (QRUrl) {
                     // If the QR code is generated successfully, send it as a response
-                    res.status(common_1.HttpStatus.OK).send({ qrcode: QRUrl });
+                    res.status(common_1.HttpStatus.OK).json({ qrcode: QRUrl });
                 }
                 else {
                     // If there's an issue generating the QR code, send a 'Conflict' response
-                    res.status(common_1.HttpStatus.CONFLICT).send('Unable to generate QR code');
+                    res.status(common_1.HttpStatus.CONFLICT).json({
+                        statusCode: common_1.HttpStatus.CONFLICT,
+                        message: 'Unable to generate QR code',
+                        error: 'CONFLICT'
+                    });
                 }
             }
             catch (error) {
@@ -739,7 +772,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (err) {
                 // Handle any errors that occur during QR code generation
-                console.error('Error generating QR Code: ', err);
+                this.logger.error('Error generating QR Code: ', err);
                 return null;
             }
         });

@@ -1,7 +1,7 @@
 import {
   ForbiddenException, Res,
   Req, Injectable, UnauthorizedException, NotFoundException,
-  HttpStatus, Logger, ConflictException,InternalServerErrorException, HttpException
+  HttpStatus, Logger, ConflictException, InternalServerErrorException, HttpException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
@@ -78,7 +78,7 @@ export class AuthService {
       }
       throw error;
     }
-    return res.status(201).send({ valid: true, message: "user was create successfully" });
+    return res.status(201).json({ valid: true, message: "user was create successfully" });
   }
 
 
@@ -95,8 +95,13 @@ export class AuthService {
     try {
       const user = await this.usersService.findUserWithUsername(dto.username);
 
-      if (!user)
-        return res.status(HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+      if (!user) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND'
+        });
+      }
 
       /*  At this point, if the user sends a signin request, that means whether his token is expired
           or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
@@ -109,18 +114,25 @@ export class AuthService {
 
       const passwordMatch = await argon.verify(user.hashPassword, dto.password);
       if (!passwordMatch)
-        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Incorrect password' });
-
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Incorrect password',
+          error: 'UNAUTHORIZED'
+        });
 
       // Enhanced session check logic
       if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-        return res.status(HttpStatus.CONFLICT).send({ message: 'User is already logged in' });
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'User is already logged in',
+          error: 'UNAUTHORIZED'
+        });
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
 
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     }
   }
 
@@ -161,7 +173,7 @@ export class AuthService {
         return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
       }
     } catch (error) {
-      throw new HttpException('Failed to find or create refresh token for user' + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Failed to find or create refresh token for user' + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
 
@@ -184,14 +196,14 @@ export class AuthService {
       token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
       tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
     } catch (error) {
-      throw new HttpException("Error generating JWT token: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException("Error generating JWT token: " + (hasMessage(error) ? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     let refreshToken;
     try {
       refreshToken = await this.refreshTokenIfNeeded(userId);
     } catch (error) {
-      throw new HttpException("Error generating refresh token: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException("Error generating refresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     const sessionId = this.generateSessionId();
@@ -203,7 +215,7 @@ export class AuthService {
         data: { sessionId, sessionExpiresAt },
       });
     } catch (error) {
-      throw new HttpException("Error updating user session in database: " + (hasMessage(error)? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     let newToken = { token, expiresAt: tokenExpiresAt }
@@ -220,7 +232,11 @@ export class AuthService {
   setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
     // Error handling for undefined tokens
     if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-      return res.status(HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+      return res.status(HttpStatus.CONFLICT).json({
+        statusCode: HttpStatus.CONFLICT,
+        message: 'Problem creating refresh token for user',
+        error: 'CONFLICT'
+      });
     }
 
     // Set refresh token cookie
@@ -268,7 +284,11 @@ export class AuthService {
       this.setTokens({ newToken, refreshToken }, res);
 
       if (!refreshToken) {
-        return res.status(HttpStatus.CONFLICT).send({ message: 'Problem creating refresh token for user' });
+        return res.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Problem creating refresh token for user',
+          error: 'CONFLICT'
+        });
       }
       return ({ statusCode: 200, valid: true, message: "Authentication successful" });
 
@@ -345,9 +365,9 @@ export class AuthService {
       });
     try {
       jwt.verify(token, this.JWT_SECRET);
-      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, message: "Token valid"});
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, message: "Token valid" });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).send({ statusCode: HttpStatus.BAD_REQUEST, message: "Invalid Token" });
+      return res.status(HttpStatus.BAD_REQUEST).json({ statusCode: HttpStatus.BAD_REQUEST, message: "Invalid Token" });
     }
   }
 
@@ -371,9 +391,9 @@ export class AuthService {
       res.clearCookie('token');
       res.clearCookie('refreshToken');
       res.clearCookie('userSession');
-      return res.status(200).send({ message: 'Signed out successfully' });
+      return res.status(200).json({ message: 'Signed out successfully' });
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -394,7 +414,7 @@ export class AuthService {
       const token = await this.exchangeCodeForToken(code);
       // Check if the token was successfully retrieved
       if (!token) {
-        console.error('Failed to fetch access token');
+        this.logger.error('Failed to fetch access token');
         throw new Error('Failed to fetch access token');
       }
 
@@ -420,11 +440,11 @@ export class AuthService {
 
     } catch (error) {
       // Log and handle any errors that occur during the process
-      console.error('Error in signToken42:', error);
+      this.logger.error('Error in signToken42:', error);
       throw error;
     }
   }
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   private async handleTwoFactorAuthentication(user: User, res: Response) {
     // Check if 2FA (Two-Factor Authentication) is enabled for the user
@@ -434,13 +454,13 @@ export class AuthService {
       const result = await this.signToken(user.id, user.username, res);
       // Validate the result of token signing
       if (!result.valid) {
-        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Invalid credentials' });
+        return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Invalid credentials' });
       }
       // Send a successful response
-      res.status(HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
+      res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
     } else {
       // If 2FA is enabled, indicate that in the response
-      res.status(HttpStatus.OK).send({ valid: true, message: "2FA", userId: user.id });
+      res.status(HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
     }
   }
 
@@ -457,7 +477,7 @@ export class AuthService {
       console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
       return response.data.access_token;
     } catch (error) {
-      console.error('Error fetching access token:', error);
+      this.logger.error('Error fetching access token:', error);
       return null;
     }
   }
@@ -492,7 +512,7 @@ export class AuthService {
       const response = await this.sendUserInfoRequest(token);
       return response.data;
     } catch (error) {
-      console.error('Error fetching user info:', error);
+      this.logger.error('Error fetching user info:', error);
       throw error;
     }
   }
@@ -553,7 +573,7 @@ export class AuthService {
       user.twoFAUrl = otpauthUrl;
       return user;
     } catch (error) {
-      console.error('Error saving user information to database:', error);
+      this.logger.error('Error saving user information to database:', error);
       throw error;
     }
   }
@@ -605,7 +625,11 @@ export class AuthService {
 
       if (!user) {
         // If the user is not found, send a 'Not Found' response
-        res.status(HttpStatus.NOT_FOUND).send({ message: 'User not found' });
+        res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND'
+        });
         return false;
       }
 
@@ -622,7 +646,7 @@ export class AuthService {
       if (!verified) {
         // If the code couldn't be verified, log the error and send a 'Forbidden' response
         this.logger.error(`Passing by verifyTwoFAcode verified: ${verified}`);
-        res.status(HttpStatus.FORBIDDEN).send({ message: 'Provided code couldn\'t be verified' });
+        res.status(HttpStatus.FORBIDDEN).json({ message: 'Provided code couldn\'t be verified' });
         return false;
       }
 
@@ -631,11 +655,11 @@ export class AuthService {
         const result = await this.signToken(user.id, user.username, res);
         if (!result.valid) {
           // If authentication fails, send a 'Forbidden' response with details
-          res.status(HttpStatus.FORBIDDEN).send({ message: 'Authentication failed' });
+          res.status(HttpStatus.FORBIDDEN).json({ message: 'Authentication failed' });
           return false;
         }
         // Send an 'OK' response with authentication details
-        res.status(HttpStatus.OK).send({ valid: result.valid, message: result.message, userId: null });
+        res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
       }
 
       return verified;
@@ -701,7 +725,11 @@ export class AuthService {
 
       if (!userExists) {
         // If the user is not found, send a 'Not Found' response
-        res.status(HttpStatus.NOT_FOUND).send('User not found');
+        res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND'
+        });
         return;
       }
 
@@ -721,10 +749,14 @@ export class AuthService {
       const QRUrl = await this.generateQR(otpauthUrl);
       if (QRUrl) {
         // If the QR code is generated successfully, send it as a response
-        res.status(HttpStatus.OK).send({ qrcode: QRUrl });
+        res.status(HttpStatus.OK).json({ qrcode: QRUrl });
       } else {
         // If there's an issue generating the QR code, send a 'Conflict' response
-        res.status(HttpStatus.CONFLICT).send('Unable to generate QR code');
+        res.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Unable to generate QR code',
+          error: 'CONFLICT'
+        });
       }
     } catch (error) {
       // Handle any internal server errors and log them
@@ -732,7 +764,7 @@ export class AuthService {
     }
   }
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * Generate a QR code image from an OTP URL.
@@ -746,7 +778,7 @@ export class AuthService {
       return url;
     } catch (err) {
       // Handle any errors that occur during QR code generation
-      console.error('Error generating QR Code: ', err);
+      this.logger.error('Error generating QR Code: ', err);
       return null;
     }
   }
