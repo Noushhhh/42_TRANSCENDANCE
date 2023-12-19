@@ -63,14 +63,9 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
   }
 
   const updateChannelNumberMember = async (channelIdReceived: number) => {
-    console.log("updateChannelNumberMember");
-    console.log(channelIdReceived);
-    console.log(channelId);
     if (channelIdReceived === channelId){
       try {
-        console.log("fetching channel info here");
         const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
-        console.log(`new user number is ${numberUsersInChannel}`);
         setnumberUsersInChannel(numberUsersInChannel);
       } catch (errors){
         console.log(errors);
@@ -80,8 +75,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
 
   useEffect(() => {
     socket.on("channelNumberMembersChanged", updateChannelNumberMember);
+    socket.on("kickedOrBanned", goBackToChannelList);
     return () => {
       socket.off("channelNumberMembersChanged", updateChannelNumberMember);
+      socket.on("kickedOrBanned", goBackToChannelList);
     };
   });
 
@@ -113,7 +110,6 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
     setdisplayMenu(false); // Turn ChannelInfo Components to display: none
     setDisplayMessageSide(true); // Set the list of conversation to display: true
     setToggleMenu(false);
-
   }
 
   const setNewOwnerAndLeaveChannel = async () => {
@@ -175,9 +171,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
   };
 
   const handleClick = () => {
+    setChannelInfo(!ChannelInfo);
     if (window.innerWidth < 800) {
       setToggleMenu(!toggleMenu);
-      setChannelInfo(!toggleMenu);
+      //setChannelInfo(!toggleMenu);
     }
   };
 

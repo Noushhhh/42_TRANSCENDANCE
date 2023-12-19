@@ -24,7 +24,6 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
   const toggleMenu = useToggleMenu();
   const setToggleMenu = useSetToggleMenu();
 
-
   const channelId: number = useChannelIdContext();
   const userId: number = useUserIdContext();
 

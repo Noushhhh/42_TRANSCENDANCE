@@ -61,19 +61,12 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
   }, [messages]);
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
-    console.log("here before");
-    console.log(channelId);
-    console.log(bannedFromChannelId);
     try {
       await fetchUser(setChannelHeader, userId, socket);
-      console.log("after fetch");
     } catch (error) {
       console.log(error);
     }
-    console.log(channelId);
-    console.log(bannedFromChannelId);
     if (bannedFromChannelId === channelId){
-      console.log("set channelId to -1 !!!!");
       setChannelId(-1);
     }
   }
