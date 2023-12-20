@@ -21,9 +21,11 @@ import { useToggleMenu, useSetToggleMenu } from "../contexts/toggleMenuMobile";
 interface ChannelInfoProps {
   isChannelInfoDisplay: boolean;
   setChannelInfo: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMessageSide: React.Dispatch<React.SetStateAction<boolean>>;
+  setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps): JSX.Element | null {
+function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSide, setChannelClicked }: ChannelInfoProps): JSX.Element | null {
 
   const [settingsChannel, setSettingsChannel] = useState<boolean>(false);
   const [displayMenu, setdisplayMenu] = useState<boolean>(true);
@@ -45,14 +47,12 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
   const setChannelId = useSetChannelIdContext();
 
   const toggleMenu = useToggleMenu();
-  const setToggleMenu = useSetToggleMenu();
+  const setToggleMenu: React.Dispatch<React.SetStateAction<boolean>> = useSetToggleMenu();
 
-  let widthChatView: string | null = isChannelInfoDisplay
-    ? "isDisplay"
-    : "isReduce";
-  let isContainerDisplay: string | null = displayMenu
-    ? "IsDisplay"
-    : "IsReduce";
+  // when channelInfo is display, chatView is reduce (to have space for info's component)
+  let widthChatView: string | null = isChannelInfoDisplay ? "isDisplay" : "isReduce";
+  // display or no channelInfo's container
+  let isContainerDisplay: string | null = displayMenu ? "IsDisplay" : "IsReduce";
 
   const addUserToList = (user: User) => {
     setNewOwner(user);
@@ -62,9 +62,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
     setNewOwner(undefined);
   }
 
-
   const updateChannelNumberMember = async (channelIdReceived: number) => {
-    console.log("updateChannelNumberMember");
     if (channelIdReceived === channelId){
       try {
         const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
@@ -77,8 +75,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
 
   useEffect(() => {
     socket.on("channelNumberMembersChanged", updateChannelNumberMember);
+    socket.on("kickedOrBanned", goBackToChannelList);
     return () => {
       socket.off("channelNumberMembersChanged", updateChannelNumberMember);
+      socket.on("kickedOrBanned", goBackToChannelList);
     };
   });
 
@@ -104,17 +104,27 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
     setDisplayNewOwner(false);
   }, [channelId]);
 
+  const goBackToChannelList = (): void => {
+    setChannelInfo(false); // ChannelInfo set to false (to make the chatview container's wider)
+    setChannelClicked(false);
+    setdisplayMenu(false); // Turn ChannelInfo Components to display: none
+    setDisplayMessageSide(true); // Set the list of conversation to display: true
+    setToggleMenu(false);
+  }
+
   const setNewOwnerAndLeaveChannel = async () => {
     try {
       if (!newOwner)
         setError("Provide a new owner");
       if (newOwner) {
         const isUserLeaved = await leaveChannel(userId, channelId, setChannelHeader, socket, newOwner.id);
-        if (isUserLeaved)
+        if (isUserLeaved){
+          console.log("set channelId to -1 !!!!");
           setChannelId(-1);
+        }
         setNewOwner(undefined);
         setDisplayNewOwner(false);
-        setChannelInfo(true);
+        goBackToChannelList();
       }
     } catch (error: any) {
       setError(error.message);
@@ -161,9 +171,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
   };
 
   const handleClick = () => {
+    setChannelInfo(!ChannelInfo);
     if (window.innerWidth < 800) {
       setToggleMenu(!toggleMenu);
-      setChannelInfo(!toggleMenu);
+      //setChannelInfo(!toggleMenu);
     }
   };
 
@@ -205,7 +216,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo }: ChannelInfoProps)
           <h4 className="clickable" onClick={handleSettings}>Parametres du groupe <ArrowForwardIosIcon className="icon" /></h4>
         </div>
         <div className="ChannelInfoCard SettingsButton leaveChannel">
-          <LeaveChannel setParentError={setError} isOwner={isChannelOwner} setDisplayNewOwner={setDisplayNewOwner} setDisplayMenu={setdisplayMenu} />
+          <LeaveChannel setParentError={setError} isOwner={isChannelOwner} setDisplayNewOwner={setDisplayNewOwner} setDisplayMenu={setdisplayMenu} goBack={goBackToChannelList}/>
         </div>
 
       </div>

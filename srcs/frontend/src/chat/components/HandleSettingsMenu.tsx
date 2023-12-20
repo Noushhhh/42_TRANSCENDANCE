@@ -82,9 +82,9 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                 // lorsque le channel fait 2 users et qu'on ban l'un des 2
                 // le client essaie de ban les 2 users mais le channel a deja
                 // ete detruit car il ne comportait plus que 1 user a la fin du 1er ban
-                await banUserList(userList, channelId, userId, socket);
+                await banUserList(userList, channelId, socket);
             } else if (action === "kick") {
-                await kickUserList(userList, channelId, userId, socket);
+                await kickUserList(userList, channelId, socket);
             } else if (action === "admin") {
                 await manageAdminsToChannel(listUserAdmin.filter(user => user.updated === true), channelId, userId);
             } else if (action === "add") {

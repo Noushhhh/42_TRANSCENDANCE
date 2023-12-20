@@ -24,7 +24,6 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
   const toggleMenu = useToggleMenu();
   const setToggleMenu = useSetToggleMenu();
 
-
   const channelId: number = useChannelIdContext();
   const userId: number = useUserIdContext();
 
@@ -75,7 +74,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
           <span className="ArrowBackPhone" onClick={backToChannels}>
             <ArrowBackIosIcon />
           </span>
-          <IsConnected isConnected={channelHeader[i].isConnected} />
+          <IsConnected />
           <p title={channelName ? channelName :  ""}>{channelName ? channelName :  null}</p>
         </div>
         <div className="HeaderChatBoxLogo">

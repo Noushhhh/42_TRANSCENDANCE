@@ -21,7 +21,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   const [channelId, setChannelId] = useState<number>(-1);
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [channelInfo, setChannelInfo] = useState<boolean>(false);
-  const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true);
+  const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true); // state to make visible/not visible the MessageSide component
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
   const [displayContentMessage, setDisplayContentMessage] = useState<boolean>(false);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
@@ -51,6 +51,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
       window.removeEventListener("resize", handleWindowResize);
     };
   }, [channelClicked, displayMessageSide]);
+
 
   const handleWindowResize = () => {
     if (window.innerWidth < 800) setDisplayMessageSide(false);
@@ -85,8 +86,8 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   }, [socket]);
 
   useEffect(() => {
-    console.log(channelId);
-  }, [channelId]);
+    console.log(displayContentMessage);
+  }, [displayContentMessage]);
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     try {
@@ -98,6 +99,10 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
       console.log(error);
     }
   }
+
+  useEffect(() => {
+    console.log(channelClicked);
+  }, [channelClicked])
 
   if (userId === -1 || socket === undefined) return <p>loader</p>;
 
@@ -133,6 +138,8 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
                   <ChannelInfo
                     isChannelInfoDisplay={channelInfo}
                     setChannelInfo={setChannelInfo}
+                    setDisplayMessageSide={setDisplayMessageSide}
+                    setChannelClicked={setChannelClicked}
                   />
                 </toggleMenuMobile.Provider>
               </UserIdContext.Provider>
