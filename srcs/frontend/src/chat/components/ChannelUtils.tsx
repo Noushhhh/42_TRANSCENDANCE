@@ -22,7 +22,7 @@ enum ChannelType {
   PASSWORD_PROTECTED,
 }
 
-interface isChannelExist {
+interface IisChannelExist {
   isExist: boolean,
   channelType: ChannelType,
   id: number,
@@ -255,9 +255,13 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
   return -1;
 };
 
-export function isUserConnected(userId: number, socket: Socket): Promise<boolean> {
+export function isChannelIsLive(channelId: number, userId: number, socket: Socket): Promise<boolean> {
+  const data = {
+    channelId,
+    userId
+  }
   return new Promise((resolve) => {
-    socket.emit('isUserConnected', userId, (response: boolean) => {
+    socket.emit('isChannelLive', data, (response: boolean) => {
       resolve(response);
     });
   });
@@ -281,16 +285,10 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     
     userId === users[0].id ? userIndex = 1 : userIndex = 0;
 
-    await isUserConnected(users[userIndex].id, socket)
-    .then((response: boolean) => {
-        channelInfo.isConnected = response;
-      })
-      .catch((error) => {
-        throw error;
-      });
-      if (users[userIndex].publicName)
-        channelInfo.name = users[userIndex].publicName;
-      return channelInfo;
+    if (users[userIndex].publicName){
+      channelInfo.name = users[userIndex].publicName;
+    }
+    return channelInfo;
   } catch (errors){
     throw errors;
   }
@@ -348,14 +346,13 @@ export const getUsernamesInChannelFromSubstring = async (
     const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
-    console.log(users);
     return users;
   } catch (errors) {
     throw errors;
   }
 }
 
-export const banUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket): Promise<void> => {
+export const banUserList = async (userList: User[], channelId: number, socket: Socket): Promise<void> => {
   try {
     for (const user of userList) {
       const targetId: number = user.id;
@@ -385,7 +382,7 @@ export const banUserList = async (userList: User[], channelId: number, callerId:
   }
 };
 
-export const kickUserList = async (userList: User[], channelId: number, callerId: number, socket: Socket) => {
+export const kickUserList = async (userList: User[], channelId: number, socket: Socket) => {
     for (const user of userList) {
       try {
         const targetId: number = user.id;
@@ -398,6 +395,7 @@ export const kickUserList = async (userList: User[], channelId: number, callerId
           body: JSON.stringify({ targetId, channelId })
         });
         if (response.status === 201) {
+          console.log(`notify that ${user.id} is kicked out of channel`);
           const data = {
             channelId,
             userId: user.id
@@ -595,7 +593,7 @@ export const joinProtectedChannel = async (channelId: number, userId: number, pa
   }
 }
 
-export const joinChannel = async (channel: isChannelExist, userId: number): Promise<{ channelType: ChannelType, channelId: number }> => {
+export const joinChannel = async (channel: IisChannelExist, userId: number): Promise<{ channelType: ChannelType, channelId: number }> => {
   try {
     let channelIdJoined: number = -1;
     switch (channel.channelType.toString()) {
@@ -614,7 +612,7 @@ export const joinChannel = async (channel: isChannelExist, userId: number): Prom
   }
 }
 
-export const isUserIsBlockedBy = async (callerId: number, targetId: number): Promise<boolean> => {
+export const isUserIsBlockedBy = async (targetId: number): Promise<boolean> => {
   try {
     const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
       method: 'POST',

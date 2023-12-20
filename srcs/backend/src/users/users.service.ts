@@ -385,7 +385,6 @@ export class UsersService {
 
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
 
     async findUserWithId(userId: number): Promise<User> {
         try {
@@ -404,6 +403,8 @@ export class UsersService {
             throw error;
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async getPublicName(userId: number): Promise<string | null> {
         try {
@@ -449,15 +450,13 @@ export class UsersService {
                 },
             });
             if (!user) {
-                throw new NotFoundException(`User not found with username: ${usernameinput}`);
+                return undefined;
             }
-            console.log("user found is:");
-            console.log(user);
             return user;
         } catch (error) {
             console.error(`Error fetching user with username: ${usernameinput}`, error);
-            throw error;
         }
+
     }
 
     async sendFriendRequest(senderId: number, targetId: number) {

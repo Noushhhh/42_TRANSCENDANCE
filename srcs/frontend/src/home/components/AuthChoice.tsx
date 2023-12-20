@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import '../styles/generalStyles.css';
 import { hasMessage } from "../tools/Api";
-import useTokenExpired from "../tools/hooks/useTokenExpired";
+import { checkToken } from "../tools/Api";
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {
@@ -15,7 +15,6 @@ const AuthChoice: React.FC = () => {
     // Using the useNavigate and useLocation hooks from react-router.
     const navigate = useNavigate();
     const location = useLocation();
-    const checkToken = useTokenExpired();
 
 
     // ─────────────────────────────────────────────────────────────────────
@@ -40,7 +39,7 @@ const AuthChoice: React.FC = () => {
             }
         };
         updateTokenStatus();
-    }, [checkToken, tokenExpired]); // Dependency array with checkToken to rerun if checkToken changes
+    }, []); // Dependency array with checkToken to rerun if checkToken changes
 
     // ─────────────────────────────────────────────────────────────────────
 

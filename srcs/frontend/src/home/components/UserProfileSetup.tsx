@@ -8,12 +8,12 @@ import {
   useUpdatePublicName,
   getUserData,
   hasMessage,
-  getUserAvatar
+  getUserAvatar,
+  checkToken
 } from '../tools/Api';
 import LoadingSpinner from '../tools/LoadingSpinner';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import useTokenExpired from '../tools/hooks/useTokenExpired';
 
 
 const defaultImage = 'defaultProfileImage.jpg';
@@ -30,7 +30,6 @@ const UserProfileSetup: React.FC = React.memo(() => {
   const  updateAvatar = useUpdateAvatar();
   const updatePublicName = useUpdatePublicName();
   const isClientRegistered = useIsClientRegistered();
-  const tokenExpired = useTokenExpired();
 
   // Other state variables
   const [showLoader, setShowLoader] = useState(true);
@@ -76,7 +75,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
   // Check if the user is authenticated
   const checkUserAuth = async () => {
     try {
-      if (await tokenExpired()) {
+      if (await checkToken()) {
         navigate('/signin');
         toast.error("You are not authenticated, please sign in");
         return;
@@ -131,18 +130,18 @@ const UserProfileSetup: React.FC = React.memo(() => {
     try {
       const result = await isClientRegistered();
       if (result) {
-        console.log(`passing by checkAndNavigate avatarFromBack: ${avatarFromBack}`);
-        if (!avatarFromBack) {
-          await handleUpdateAvatar();
+        console.log(`passing by checkAndNavigate avatarFromBack: ${avatarFromBack} ${profileImage}`);
+        if (!avatarFromBack && profileImage) {
+          await updateAvatar(profileImage);
         }
         navigate('/home/game');
       }
       toast.error("You need to provide a Public Name to access the game");
     } catch (error) {
       console.error('passing by catch checkAndNavigate');
-      toast.error("You need to provide a Public Name to access the game");
+      toast.error(hasMessage(error)? error.message: "Something went wrong please try again.");
     }
-  }, [avatarFromBack, handleUpdateAvatar, isClientRegistered, navigate])
+  }, [avatarFromBack, profileImage, isClientRegistered, navigate, updateAvatar])
 
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {

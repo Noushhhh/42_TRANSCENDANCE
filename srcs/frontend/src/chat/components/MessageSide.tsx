@@ -59,8 +59,9 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     } catch (error) {
       console.log(error);
     }
-    if (bannedFromChannelId === channelId)
+    if (bannedFromChannelId === channelId){
       setChannelId(-1);
+    }
   }
 
   useEffect(() => {

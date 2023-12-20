@@ -1,5 +1,4 @@
 // Import necessary modules and classes
-import { AllExceptionsFilter } from './auth/exception/all-exception.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -56,10 +55,6 @@ export default async function App() {
   
   // Set a global route prefix for the application
   app.setGlobalPrefix('api');
-
-  // Use the AllExceptionsFilter to handle exceptions globally
-  app.useGlobalFilters(app.get(AllExceptionsFilter));
-
   // Serve static files from the 'uploads' folder
   app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

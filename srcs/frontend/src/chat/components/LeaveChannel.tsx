@@ -19,9 +19,10 @@ interface ConfirmationPopup{
   isOwner: boolean | undefined;
   setDisplayNewOwner: React.Dispatch<React.SetStateAction<boolean>>;
   setDisplayMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  goBack: () => void;
 }
 
-export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu }: ConfirmationPopup ) {
+export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu, goBack }: ConfirmationPopup ) {
 
   const [open, setOpen] = useState<boolean>(false);
 
@@ -50,7 +51,7 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
       }
       await leaveChannel(userId, channelId, setChannelHeader, socket);
       socket.emit("leaveChannel", channelId);
-      console.log("set to -1");
+      goBack();
       setChannelId(-1);
     } catch (error: any){
       console.log(error.message);
@@ -62,7 +63,7 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
   return (
     <div>
       <Button sx={{color:"red"}} onClick={handleClickOpen}>
-        <h4 className="clickable"><LogoutIcon style={{ fill: 'red' }} className="icon leaveChannel" />Quitter la discussion</h4>
+        <h4 className="clickable"><LogoutIcon style={{ fill: 'red' }} className="icon leaveChannel" />Leave channel</h4>
       </Button>
       <Dialog
         open={open}

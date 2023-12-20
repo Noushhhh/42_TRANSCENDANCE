@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import useTokenExpired from "../tools/hooks/useTokenExpired";
 import SkeletonLoader from "../tools/SkeletonLoader";
 import useIsClientRegistered from "../tools/hooks/useIsClientRegistered";
-import { hasMessage } from "../tools/Api";
+import { hasMessage, checkToken } from "../tools/Api";
 
 // Interface for the component props
 interface ProtectedRouteProps {
@@ -24,7 +23,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const [isClientRegistered, setIsClientRegistered] = useState<boolean | null>(null);
 
     // Custom hooks for checking token expiration and client registration status
-    const checkToken = useTokenExpired();
     const checkIsClientRegistered = useIsClientRegistered();
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -41,7 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             }
         };
         updateTokenStatus();
-    }, [checkToken, tokenExpired]); // Dependency array with checkToken to rerun if checkToken changes
+    }, []); // Dependency array with checkToken to rerun if checkToken changes
 
     // ─────────────────────────────────────────────────────────────────────────────
 

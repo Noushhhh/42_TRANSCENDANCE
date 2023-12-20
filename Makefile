@@ -122,7 +122,11 @@ del_node_pack_backend:
 	@rm -rf ./srcs/backend/node_modules ./srcs/backend/package-lock.json
 del_uploads:
 	@echo "Romoving uploads"
-	@rm -rf ./srcs/backend/uploads/* 
+	@find ./srcs/backend/uploads/ ! -name '.gitkeep' -type f -exec rm -f {} +
+
+
+
+fclean: down
 
 # This rule is equivalent to running `make fclean` and then `make all`
 re: fclean all

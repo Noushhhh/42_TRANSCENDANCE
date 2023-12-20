@@ -6,10 +6,11 @@ import ContentMessage from "./ContentMessage";
 import ChannelInfo from "./ChannelInfo";
 import { ChannelIdContext } from "../contexts/channelIdContext";
 import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
-import { SocketContext } from "../contexts/socketContext";
+import { SocketContext, useSocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
 import { toggleMenuMobile } from "../contexts/toggleMenuMobile";
+import { fetchUser } from "./ChannelUtils";
 
 interface ChatProps {
   socket: Socket | undefined;
@@ -20,7 +21,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   const [channelId, setChannelId] = useState<number>(-1);
   const [channelHeader, setChannelHeader] = useState<Channel[]>([]);
   const [channelInfo, setChannelInfo] = useState<boolean>(false);
-  const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true);
+  const [displayMessageSide, setDisplayMessageSide] = useState<boolean>(true); // state to make visible/not visible the MessageSide component
   const [channelClicked, setChannelClicked] = useState<boolean>(false);
   const [displayContentMessage, setDisplayContentMessage] = useState<boolean>(false);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
@@ -51,6 +52,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     };
   }, [channelClicked, displayMessageSide]);
 
+
   const handleWindowResize = () => {
     if (window.innerWidth < 800) setDisplayMessageSide(false);
     if (window.innerWidth >= 800) setDisplayMessageSide(true);
@@ -69,6 +71,38 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     setChannelClicked(false);
     setDisplayMessageSide(true);
   };
+  
+  useEffect(() => {
+    if (socket){
+      console.log("render");
+      socket.on("kickedOrBanned", kickedOrBannedEvent);
+    }
+    return () => {
+      if (socket){
+        console.log("return useffect");
+        socket.off("kickedOrBanned", kickedOrBannedEvent);
+      }
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    console.log(displayContentMessage);
+  }, [displayContentMessage]);
+
+  const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
+    try {
+      if (socket){
+        await fetchUser(setChannelHeader, userId, socket);
+        backToChannels();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    console.log(channelClicked);
+  }, [channelClicked])
 
   if (userId === -1 || socket === undefined) return <p>loader</p>;
 
@@ -104,6 +138,8 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
                   <ChannelInfo
                     isChannelInfoDisplay={channelInfo}
                     setChannelInfo={setChannelInfo}
+                    setDisplayMessageSide={setDisplayMessageSide}
+                    setChannelClicked={setChannelClicked}
                   />
                 </toggleMenuMobile.Provider>
               </UserIdContext.Provider>

@@ -1,14 +1,13 @@
 import {
-  InternalServerErrorException, ForbiddenException, Res,
+  ForbiddenException, Res,
   Req, Injectable, UnauthorizedException, NotFoundException,
-  ConflictException
+  HttpStatus, Logger,  HttpException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/constants/constants';
-import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { Request, Response } from 'express';
@@ -16,11 +15,9 @@ import { randomBytes } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import * as speakeasy from 'speakeasy';
-import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { v4 as uuidv4 } from 'uuid';
-import cron from 'node-cron'; // Importing node-cron for scheduling tasksd
-import { StrictEventEmitter } from 'socket.io/dist/typed-events';
 import QRCode from 'qrcode'
+import { hasMessage } from '../tools/has-message.tools';
 
 
 
@@ -38,6 +35,7 @@ import QRCode from 'qrcode'
 @Injectable()
 export class AuthService {
   private readonly JWT_SECRET: string | any;
+  private readonly logger = new Logger(AuthService.name);
   private currentUser: User | null = null;
 
   constructor(
@@ -61,7 +59,9 @@ export class AuthService {
   async signup(dto: AuthDto, res: Response) {
     const hashPassword = await argon.hash(dto.password);
     console.log(`passing by signup service username: ${dto.username} password ${dto.password}`);
+
     try {
+
       const user = await this.prisma.user.create({
         data: {
           username: dto.username,
@@ -70,19 +70,29 @@ export class AuthService {
           avatar: null
         },
       });
-      console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
-      // return this.signToken(user.id, user.username, res);
+
+      // console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
+      return res.status(HttpStatus.CREATED).json({
+        statusCode: HttpStatus.CREATED,
+        message: "user was create successfully"
+      });
+
     } catch (error) {
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ForbiddenException('This username is already taken. Please choose another one.');
+          return res.status(HttpStatus.FORBIDDEN).json({
+            statusCode: HttpStatus.FORBIDDEN,
+            message: 'This username is already taken. Please choose another one.',
+            error: 'FORBIDDEN'
+          });
         }
       }
-      throw error;
-    }
-    return res.status(201).json({ valid: true, message: "user was create successfully" });
-  }
 
+      this.logger.error(hasMessage(error) ? error.message : "");
+
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -94,39 +104,48 @@ export class AuthService {
    */
   async signin(dto: AuthDto, res: Response, req: Request) {
 
-    const user = await this.usersService.findUserWithUsername(dto.username);
-    if (!user) throw new ForbiddenException('Username not found');
+    try {
+      const user = await this.usersService.findUserWithUsername(dto.username);
 
-    /*  At this point, if the user sends a signin request, that means whether his token is expired
-        or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
-        "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-        before sending a request to backend */
-    if (req.cookies['userSession']) {
-      //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-      await this.signout(user.id, res);
-    }
-
-    const passwordMatch = await argon.verify(user.hashPassword, dto.password);
-    if (!passwordMatch) throw new ForbiddenException('Incorrect password');
-
-    // Enhanced session check logic
-    if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-      throw new ForbiddenException('User is already logged in');
-    }
-
-    if (await this.is2FaEnabled(user.id) === false) {
-      const result = await this.signToken(user.id, user.username, res);
-      if (!result.valid) {
-        // Consider providing more detailed feedback based on the error
-        throw new ForbiddenException('Authentication failed');
+      if (!user) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND'
+        });
       }
 
-      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
-    } else {
-      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+      /*  At this point, if the user sends a signin request, that means whether his token is expired
+          or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
+          "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
+          before sending a request to backend */
+      if (req.cookies['userSession']) {
+        //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
+        await this.signout(user.id, res);
+      }
+
+      const passwordMatch = await argon.verify(user.hashPassword, dto.password);
+      if (!passwordMatch)
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Incorrect password',
+          error: 'UNAUTHORIZED'
+        });
+
+      // Enhanced session check logic
+      if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'User is already logged in',
+          error: 'UNAUTHORIZED'
+        });
+
+      // Check if 2FA (Two-Factor Authentication) is enabled for the user
+      await this.handleTwoFactorAuthentication(user, res);
+
+    } catch (error) {
+      this.logger.error(error);
     }
-    // Check if 2FA (Two-Factor Authentication) is enabled for the user
-    await this.handleTwoFactorAuthentication(user, res);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -166,7 +185,7 @@ export class AuthService {
         return { token: newRefreshToken.token, expiresAt: newRefreshToken.ExpirationDate };
       }
     } catch (error) {
-      throw new InternalServerErrorException('Failed to find or create refresh token for user');
+      throw new HttpException('Failed to find or create refresh token for user' + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
 
@@ -182,32 +201,25 @@ export class AuthService {
   async generateTokens(userId: number, email: string): Promise<{ newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }> {
     const payload = { sub: userId, email };
     const secret = this.JWT_SECRET;
-    const tokenExpiration = process.env.JWT_EXPIRATION || '15m'; // Example of using an environment variable
+    const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
 
     let token, tokenExpiresAt;
     try {
       token = await this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
       tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
-
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error generating JWT token: " + error.message);
-      else
-        throw new Error("Error generating JWT token");
+      throw new HttpException("Error generating JWT token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
     let refreshToken;
     try {
       refreshToken = await this.refreshTokenIfNeeded(userId);
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error generating refresh token: " + error.message);
-      else
-        throw new Error("Error generating refresh token");
+      throw new HttpException("Error generating refresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
     const sessionId = this.generateSessionId();
-    const sessionExpiresAt = tokenExpiresAt; // Aligning session expiration with JWT expiration
+    const sessionExpiresAt = tokenExpiresAt;
 
     try {
       await this.prisma.user.update({
@@ -215,15 +227,12 @@ export class AuthService {
         data: { sessionId, sessionExpiresAt },
       });
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error("Error updating user session in database: " + error.message);
-      else
-        throw new Error("Error updating user session in database");
+      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
-    let newToken = { token: token, expiresAt: tokenExpiresAt }
+
+    let newToken = { token, expiresAt: tokenExpiresAt }
     return { newToken, refreshToken };
   }
-
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -235,7 +244,11 @@ export class AuthService {
   setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
     // Error handling for undefined tokens
     if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-      throw new Error("Invalid or missing tokens provided.");
+      return res.status(HttpStatus.CONFLICT).json({
+        statusCode: HttpStatus.CONFLICT,
+        message: 'Problem creating refresh token for user',
+        error: 'CONFLICT'
+      });
     }
 
     // Set refresh token cookie
@@ -278,13 +291,23 @@ export class AuthService {
    * @return A promise that resolves to void.
    */
   async signToken(userId: number, email: string, res: Response): Promise<any> {
-    const { newToken, refreshToken } = await this.generateTokens(userId, email);
-    this.setTokens({ newToken, refreshToken }, res);
+    try {
+      const { newToken, refreshToken } = await this.generateTokens(userId, email);
+      this.setTokens({ newToken, refreshToken }, res);
 
-    if (!refreshToken) {
-      throw new ConflictException("Problem creating refresh token for user")
+      if (!refreshToken) {
+        return res.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Problem creating refresh token for user',
+          error: 'CONFLICT'
+        });
+      }
+      return ({ statusCode: 200, valid: true, message: "Authentication successful" });
+
+    } catch (error) {
+      this.logger.error(`Fail to signToken ${hasMessage(error) ? error.message : ""}`);
+      return null;
     }
-    return ({ statusCode: 200, valid: true, message: "Authentication successful" });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -310,12 +333,14 @@ export class AuthService {
 
       return { token: refreshToken, ExpirationDate: expiration };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to create refresh token');
+      this.logger.error(`Failed to create refresh token for user ${userId}`, error);
+      throw new HttpException("Error creating fresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
 
 
   // ─────────────────────────────────────────────────────────────────────────────
+  //???????????????????????????????????????????????
   async checkOnlyTokenValidity(token: string): Promise<number | null> {
 
     if (!token)
@@ -346,13 +371,25 @@ export class AuthService {
     const token = req.cookies.token;
 
     if (!token)
-      throw new UnauthorizedException('Token Missing');
+      return res.status(HttpStatus.NOT_FOUND).json({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Token missing',
+        error: 'NOT_FOUND'
+      });
 
     try {
+
       jwt.verify(token, this.JWT_SECRET);
-      return res.status(200).json({ valid: true, message: "Token is valid" });
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, message: "Token valid" });
+
     } catch (error) {
-      return res.status(401).json({ valid: false, message: "Invalid Token" });
+
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Invalid Token',
+        error: 'UNAUTHORIZED'
+      });
+
     }
   }
 
@@ -366,7 +403,7 @@ export class AuthService {
    */
   async signout(userId: number, res: Response) {
     try {
-      console.log("passing by signout");
+      // this.logger.debug("passing by signout");
       await this.prisma.user.update({
         where: { id: userId },
         data: { sessionId: null, sessionExpiresAt: null },
@@ -376,10 +413,18 @@ export class AuthService {
       res.clearCookie('token');
       res.clearCookie('refreshToken');
       res.clearCookie('userSession');
-      return res.status(200).send({ message: 'Signed out successfully' });
+
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, message: 'Signed out successfully' });
+
     } catch (error) {
-      console.error(error);
-      throw error;
+
+      this.logger.error(error);
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Unable to signout',
+        error: 'UNAUTHORIZED'
+      });
+
     }
   }
 
@@ -391,22 +436,42 @@ export class AuthService {
    */
   async signToken42(@Req() req: any, res: Response) {
     try {
+
       // Extract the 'code' from the query parameters
       const code = req.query['code'];
-      console.log(`passing by singToken42 req.query['code']: ${code}`);
+      this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
 
       // Exchange the code for a token
       const token = await this.exchangeCodeForToken(code);
       // Check if the token was successfully retrieved
       if (!token) {
-        console.error('Failed to fetch access token');
-        throw new Error('Failed to fetch access token');
+        this.logger.error('Failed to fetch access token');
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Failed to fetch access token',
+          error: 'UNAUTHORIZED'
+        });
       }
 
       // Retrieve user information using the token
       const userInfo = await this.getUserInfo(token);
+      if (!userInfo) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Failed to fetch information from 42api',
+          error: 'UNAUTHORIZED'
+        });
+      }
+
       // Create a new user or update existing user with the retrieved information
       const user = await this.createUser(userInfo, res);
+      if (!user) {
+        return res.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Unable to register in the game with 42 API',
+          error: 'CONFLICT'
+        });
+      }
 
       // Check if the user session already exists
       if (req.cookies['userSession']) {
@@ -417,7 +482,12 @@ export class AuthService {
 
       // Enhanced session check logic: check if the user is already logged in
       if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-        throw new ForbiddenException('User is already logged in');
+        return res.status(HttpStatus.FORBIDDEN).json({
+          statusCode: HttpStatus.FORBIDDEN,
+          message: 'User is already logged in',
+          error: 'FORBIDDEN'
+        });
+
       }
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
@@ -425,27 +495,31 @@ export class AuthService {
 
     } catch (error) {
       // Log and handle any errors that occur during the process
-      console.error('Error in signToken42:', error);
-      throw error;
+      this.logger.error('Error in signToken42:', error);
     }
   }
-// ─────────────────────────────────────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   private async handleTwoFactorAuthentication(user: User, res: Response) {
     // Check if 2FA (Two-Factor Authentication) is enabled for the user
     if (await this.is2FaEnabled(user.id) === false) {
-      console.log(`Passing by 2FA is not activated`);
+      // console.log(`Passing by 2FA is not activated`);
       // If 2FA is not enabled, proceed to sign the token
       const result = await this.signToken(user.id, user.username, res);
       // Validate the result of token signing
       if (!result.valid) {
-        throw new ForbiddenException('Authentication failed');
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Invalid credentials',
+          error: 'UNAUTHORIZED'
+        });
       }
       // Send a successful response
-      res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+      res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
     } else {
       // If 2FA is enabled, indicate that in the response
-      res.status(200).send({ valid: true, message: "2FA", userId: user.id });
+      res.status(HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
     }
   }
 
@@ -459,10 +533,10 @@ export class AuthService {
   async exchangeCodeForToken(code: string): Promise<string | null> {
     try {
       const response = await this.sendAuthorizationCodeRequest(code);
-      console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
+      //console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
       return response.data.access_token;
     } catch (error) {
-      console.error('Error fetching access token:', error);
+      this.logger.error('Error fetching access token:', error);
       return null;
     }
   }
@@ -480,7 +554,7 @@ export class AuthService {
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 
     } catch (error) {
-      throw error;
+      throw new HttpException("Error creating fresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -494,11 +568,15 @@ export class AuthService {
    */
   private async getUserInfo(token: string): Promise<any> {
     try {
+
       const response = await this.sendUserInfoRequest(token);
       return response.data;
+
     } catch (error) {
-      console.error('Error fetching user info:', error);
-      throw error;
+
+      this.logger.error('Error fetching user info in service getUserInfo:', error);
+      return null;
+
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -521,7 +599,8 @@ export class AuthService {
    * @param res The response object.
    * @return The user.
    */
-  async createUser(userInfo: any, res: Response): Promise<User> {
+  async createUser(userInfo: any, res: Response): Promise<User | null> {
+    // Check if the user already exists in the database based on their ID.
     const existingUser = await this.prisma.user.findUnique({
       where: {
         id: userInfo.id,
@@ -529,8 +608,8 @@ export class AuthService {
     });
 
     if (existingUser) {
-      console.log('User already exists:', existingUser);
-      //   return "User already exists";
+      // If the user already exists, log a message and update their 'firstConnexion' status.
+      //console.log('User already exists:', existingUser);
       existingUser.firstConnexion = false;
       return existingUser;
     }
@@ -538,28 +617,36 @@ export class AuthService {
     try {
       let avatarUrl;
       if (userInfo.image.link !== null) {
-        // use the 42 profile picture if not null
+        // Use the user's profile picture link if it's not null.
         avatarUrl = userInfo.image.link;
       }
+      // Download the user's avatar image.
       const avatarFile: Express.Multer.File = await this.usersService.downloadFile(avatarUrl);
 
+      // Create a new user in the database with the provided user information.
       const user = await this.prisma.user.create({
         data: {
           id: userInfo.id,
           hashPassword: this.generateRandomPassword(),
           username: userInfo.login,
-          avatar: null,
+          avatar: null, // Initialize the avatar field with null for now.
         },
       });
 
+      // Update the user's avatar using the downloaded image.
       await this.usersService.updateAvatar(user.id, avatarFile);
+
+      // Generate and store a two-factor authentication secret for the user.
       const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
       user.twoFASecret = secret;
       user.twoFAUrl = otpauthUrl;
+
+      // Return the newly created user.
       return user;
     } catch (error) {
-      console.error('Error saving user information to database:', error);
-      throw error;
+      // Handle any errors that occur during user creation or avatar update.
+      this.logger.error('Error saving user information to database:', error);
+      return null;
     }
   }
 
@@ -596,10 +683,12 @@ export class AuthService {
    * @brief This function verifies a 2FA code.
    * @param userId The user's ID.
    * @param code The 2FA code.
-   * @return Whether the 2FA code is verified.
+   * @param res The HTTP response object for sending responses.
+   * @returns Whether the 2FA code is verified.
    */
-  async verifyTwoFACode(userId: number, code: string, res: Response): Promise<boolean> {
+  async verifyTwoFACode(userId: number, code: string, res: Response): Promise<any> {
     try {
+      // Find the user in the database based on the provided userId
       const user: User | null = await this.prisma.user.findUnique({
         where: {
           id: userId,
@@ -607,39 +696,81 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new NotFoundException('User not found');
+        // If the user is not found, send a 'Not Found' response
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND',
+          res: false
+        });
       }
 
-      if (!user.twoFASecret) return false;
+      // Check if the user has a 2FA secret set up
+      if (!user.twoFASecret) {
+        // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Secret code not found',
+          error: 'NOT_FOUND',
+          res: false
+        });
+      }
 
+      // Verify the provided 2FA code using the user's 2FA secret
       const verified = speakeasy.totp.verify({
         secret: user.twoFASecret,
         encoding: 'base32',
         token: code,
       });
 
-      if (!verified) {
-        console.error(`Passing by verifyTwoFAcode vefied: ${verified}`);
-        throw new ForbiddenException('Provided code couldn\'d be verified');
-      }
 
       if (verified === true) {
+        // If the code is verified successfully, proceed with user authentication
         const result = await this.signToken(user.id, user.username, res);
         if (!result.valid) {
-          // Consider providing more detailed feedback based on the error
-          throw new ForbiddenException('Authentication failed');
+          // If authentication fails, send a 'Forbidden' response with details
+          return res.status(HttpStatus.FORBIDDEN).json({
+            statusCode: HttpStatus.FORBIDDEN,
+            message: 'User is already logged in',
+            error: 'FORBIDDEN',
+            res: false
+          });
         }
-        res.status(200).send({ valid: result.valid, message: result.message, userId: null });
+        // Send an 'OK' response with authentication details
+        return res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null, res: true });
       }
 
       return verified;
 
     } catch (error) {
-      throw error;
+      // Handle any errors that may occur during the verification process and log them
+      this.logger.error(
+        hasMessage(error) ? `Error occurred in verifyTwoFACode: ${error.message}` :
+          `Unexpected error occurred in verifyTwoFACode service`
+      );
+      return false;
     }
   }
 
-  async validateTwoFA(userId: number, code: string): Promise<boolean> {
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * @brief Validates two-factor authentication (2FA) for a user.
+   *
+   * This function checks if the provided 2FA code is valid for the user identified by the given userId.
+   *
+   * @param userId - The ID of the user to validate 2FA for.
+   * @param code - The 2FA code to be verified.
+   * @param res - The HTTP response object used for sending responses.
+   *
+   * @returns A JSON response indicating the result of 2FA validation.
+   *   - If the user is not found, it returns a 404 Not Found response.
+   *   - If the user's 2FA secret is not found, it returns a 404 Not Found response.
+   *   - If the provided 2FA code is correct, it updates the user's TwoFA status to true and returns a 202 Accepted response.
+   *   - If the provided 2FA code is incorrect, it returns a 401 Unauthorized response.
+   */
+  async validateTwoFA(userId: number, code: string, res: Response) {
+    // Find the user in the database based on the provided user ID.
     const user: User | null = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -647,13 +778,28 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      // If the user is not found, return a 404 Not Found response.
+      return res.status(HttpStatus.NOT_FOUND).json({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+        error: 'NOT_FOUND',
+        res: false
+      });
     }
 
     const secret = user.twoFASecret;
 
-    if (!secret) return false;
+    if (!secret) {
+      // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+      return res.status(HttpStatus.NOT_FOUND).json({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Secret code not found',
+        error: 'NOT_FOUND',
+        res: false
+      });
+    }
 
+    // Verify the provided two-factor authentication code using the user's secret.
     const verified = speakeasy.totp.verify({
       secret,
       encoding: 'base32',
@@ -661,58 +807,107 @@ export class AuthService {
     });
 
     if (verified === true) {
+      // If the code is verified successfully, update the user's TwoFA status to true.
       await this.prisma.user.update({
         where: { id: userId },
         data: {
           TwoFA: true,
         },
       });
+
+      // Return a 202 Accepted response with a success message.
+      return res.status(HttpStatus.ACCEPTED).json({
+        statusCode: HttpStatus.ACCEPTED,
+        message: 'The provided code was accepted',
+        res: verified
+      });
     }
 
-    return verified;
+    // If the code verification fails, return a 401 Unauthorized response.
+    return res.status(HttpStatus.UNAUTHORIZED).json({
+      statusCode: HttpStatus.UNAUTHORIZED,
+      message: 'Incorrect code',
+      error: 'UNAUTHORIZED',
+      res: false
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+
   /**
-   * @brief This function enables 2FA.
+   * @brief This function enables Two-Factor Authentication (2FA) for a user.
    * @param userId The user's ID.
+   * @param res The HTTP response object for sending responses.
    */
-  async enable2FA(userId: number): Promise<string> {
-    const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
+  async enable2FA(userId: number, res: Response): Promise<void> {
+    try {
+      // Check if the user with the given ID exists in the database
+      const userExists = await this.prisma.user.findUnique({
+        where: { id: userId }
+      });
 
-    const user: User | null = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
- 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        TwoFA: false,
-        twoFASecret: secret,
-      },
-    });
-
-    const generateQR = async (otpauthUrl: string) => {
-      try {
-        const url = await QRCode.toDataURL(otpauthUrl);
-        return url;
-      } catch (err) {
-        console.error(err)
+      if (!userExists) {
+        // If the user is not found, send a 'Not Found' response
+        res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND'
+        });
+        return;
       }
+
+      // Generate a secret key and OTP (One-Time Password) URL for 2FA
+      const { secret, otpauthUrl } = this.generateTwoFASecret(userId);
+
+      // Update the user's information in the database to enable 2FA
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          TwoFA: true, // Set TwoFA to 'true' to enable 2FA for the user
+          twoFASecret: secret, // Store the 2FA secret key in the user's record
+        },
+      });
+
+      // Generate a QR code URL based on the OTP URL
+      const QRUrl = await this.generateQR(otpauthUrl);
+      if (QRUrl) {
+        // If the QR code is generated successfully, send it as a response
+        res.status(HttpStatus.OK).json({ qrcode: QRUrl });
+      } else {
+        // If there's an issue generating the QR code, send a 'Conflict' response
+        res.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Unable to generate QR code',
+          error: 'CONFLICT'
+        });
+      }
+    } catch (error) {
+      // Handle any internal server errors and log them
+      this.logger.error('Internal Server Error occurred in enable2FA: ', error);
     }
-
-    const QRUrl = await generateQR(otpauthUrl);
-    if (QRUrl)
-      return QRUrl;
-
-    return "";
   }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Generate a QR code image from an OTP URL.
+   * @param otpauthUrl The OTP URL to generate the QR code for.
+   * @returns A Promise that resolves to the QR code URL or null if there's an error.
+   */
+  private async generateQR(otpauthUrl: string): Promise<string | null> {
+    try {
+      // Generate a QR code image URL using the otpauthUrl
+      const url = await QRCode.toDataURL(otpauthUrl);
+      return url;
+    } catch (err) {
+      // Handle any errors that occur during QR code generation
+      this.logger.error('Error generating QR Code: ', err);
+      return null;
+    }
+  }
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   async disable2FA(userId: number) {
     const user: User | null = await this.prisma.user.findUnique({
@@ -734,16 +929,16 @@ export class AuthService {
     });
   }
 
-  async is2FaEnabled(userId: number): Promise<Boolean> {
+  async is2FaEnabled(userid: number): Promise<boolean> {
+
     const user: User | null = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id: userid,
       },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user)
+      return false;
 
     return user.TwoFA;
   }
