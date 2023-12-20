@@ -387,7 +387,7 @@ export class UsersService {
     // ─────────────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────────────
 
-    async findUserWithId(userId: number): Promise<User | undefined> {
+    async findUserWithId(userId: number): Promise<User> {
         try {
             const user = await this.prisma.user.findUnique({
                 where: {
@@ -395,12 +395,13 @@ export class UsersService {
                 },
             });
             if (!user) {
-                return undefined;
+                throw new NotFoundException("User not found");
             }
             return user;
         }
         catch (error) {
             console.error(`Error fetching user with id ${userId}`, error);
+            throw error;
         }
     }
 
