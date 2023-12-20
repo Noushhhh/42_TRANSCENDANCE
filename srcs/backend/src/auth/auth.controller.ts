@@ -1,6 +1,6 @@
 import {
- InternalServerErrorException, BadRequestException, Controller, Post,
-  Body, Res, Get, Req, Delete, UseFilters, ForbiddenException, NotFoundException
+ BadRequestException, Controller, Post,
+  Body, Res, Get, Req, Delete, UseFilters, NotFoundException, Logger, HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
@@ -16,6 +16,8 @@ const browserError: string = "This browser session is already taken by someone,"
 
 @Controller('auth')
 export class AuthController {
+
+  private readonly logger = new Logger(AuthController.name);
   constructor(private authService: AuthService) { }
 
   @Get('token')
@@ -47,17 +49,19 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
   @Post('refreshToken')
-  async refreshToken(@ExtractJwt() decodedPayload: DecodedPayload | null, @Res() res: Response): Promise<Response> {
-    try {
-      if (!decodedPayload) {
-        throw new BadRequestException('Access token not found in cookies');
-      }
-      const result: any = await this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
-      return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
-    } catch (error) {
-      console.error();
-      throw new Error(`Error in refreshToken controller: ${error}`);
+  async refreshToken(@ExtractJwt() decodedPayload: DecodedPayload, @Res() res: Response): Promise<Response> {
+
+    const result: any = await this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
+
+    if (!result) {
+      return res.status(HttpStatus.FORBIDDEN).json({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'Not able to refresh token',
+        error: 'FORBIDDEN'
+      });
     }
+
+    return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
   }
 
   @Delete('signout')
@@ -79,23 +83,14 @@ export class AuthController {
   // @Public()
   @Get('callback42')
   async handle42Callback(@Req() req: Request, @Res() res: Response) {
-    try {
-      // Call the authService to handle 42 authentication
       await this.authService.signToken42(req, res);
-    } catch (error) {
-      console.error(error);
-      // // Handle errors here and redirect as needed
-      // res.redirect('http://localhost:8081/error');
-      throw error;
-    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('enable2FA')
-  async enable2FA(@ExtractJwt() decodedPayload: DecodedPayload, @Res() res: Response) {
+  async enable2FA(@ExtractJwt() decodedPayload: DecodedPayload, @Res() response: Response) {
     // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-    const userId: number = decodedPayload.sub; 
-    await this.authService.enable2FA(userId, res);
+      await this.authService.enable2FA(decodedPayload.sub, response);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -113,36 +108,25 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('validating2FA')
-  async validating2FA(@Req() req: Request, @Body() TwoFAData: TwoFADataDto) {
-    if (!req.user?.id) throw new NotFoundException("User not found");
-    try {
-      const res = await this.authService.validateTwoFA(req.user.id, TwoFAData.token);
-      return { res: res };
-    } catch (error) {
-      throw error;
-    }
+  async validating2FA(@ExtractJwt() decodedPayload: DecodedPayload, @Body() TwoFAData: TwoFADataDto, @Res() response: Response) {
+    await this.authService.validateTwoFA(decodedPayload.sub, TwoFAData.token, response);
   }
 
   @Post('verifyTwoFACode')
   async verifyTwoFACode(@Body() data: TwoFaUserIdDto, @Res() response: Response) {
-    try {
-      const res = await this.authService.verifyTwoFACode(data.userId, data.token, response)
-      return { res: res };
-    } catch (error) {
-      throw error
-    }
+    const res = await this.authService.verifyTwoFACode(data.userId, data.token, response)
+    return { res: res };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('is2FaActivated')
-  async is2FaActivated(@Req() req: Request) {
-    if (!req.user?.id) throw new NotFoundException("User not found");
-
+  async is2FaActivated(@ExtractJwt() decodedPayload: DecodedPayload, @Res() response: Response) {
     try {
-      const is2FaEnabled = await this.authService.is2FaEnabled(req.user.id);
-      return { res: is2FaEnabled };
+      const res = await this.authService.is2FaEnabled(decodedPayload.sub);
+      response.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, res: res });
+
     } catch (error) {
-      throw error;
+      this.logger.error(error);
     }
   }
 }

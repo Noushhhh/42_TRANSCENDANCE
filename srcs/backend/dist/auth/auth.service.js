@@ -104,18 +104,24 @@ let AuthService = AuthService_1 = class AuthService {
                         avatar: null
                     },
                 });
-                console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
-                // return this.signToken(user.id, user.username, res);
+                // console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
+                return res.status(common_1.HttpStatus.CREATED).json({
+                    statusCode: common_1.HttpStatus.CREATED,
+                    message: "user was create successfully"
+                });
             }
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
                     if (error.code === 'P2002') {
-                        throw new common_1.ForbiddenException('This username is already taken. Please choose another one.');
+                        return res.status(common_1.HttpStatus.FORBIDDEN).json({
+                            statusCode: common_1.HttpStatus.FORBIDDEN,
+                            message: 'This username is already taken. Please choose another one.',
+                            error: 'FORBIDDEN'
+                        });
                     }
                 }
-                throw error;
+                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? error.message : "");
             }
-            return res.status(201).json({ valid: true, message: "user was create successfully" });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -226,14 +232,14 @@ let AuthService = AuthService_1 = class AuthService {
                 tokenExpiresAt = new Date(Date.now() + this.convertToMilliseconds(tokenExpiration));
             }
             catch (error) {
-                throw new common_1.HttpException("Error generating JWT token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new common_1.HttpException("Error generating JWT token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
             let refreshToken;
             try {
                 refreshToken = yield this.refreshTokenIfNeeded(userId);
             }
             catch (error) {
-                throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
             const sessionId = this.generateSessionId();
             const sessionExpiresAt = tokenExpiresAt;
@@ -244,7 +250,7 @@ let AuthService = AuthService_1 = class AuthService {
                 });
             }
             catch (error) {
-                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
             let newToken = { token, expiresAt: tokenExpiresAt };
             return { newToken, refreshToken };
@@ -341,11 +347,12 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 this.logger.error(`Failed to create refresh token for user ${userId}`, error);
-                throw new common_1.ConflictException('Failed to create refresh token');
+                throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
+    //???????????????????????????????????????????????
     checkOnlyTokenValidity(token) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!token)
@@ -384,7 +391,11 @@ let AuthService = AuthService_1 = class AuthService {
                 return res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, message: "Token valid" });
             }
             catch (error) {
-                return res.status(common_1.HttpStatus.BAD_REQUEST).json({ statusCode: common_1.HttpStatus.BAD_REQUEST, message: "Invalid Token" });
+                return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                    statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                    message: 'Invalid Token',
+                    error: 'UNAUTHORIZED'
+                });
             }
         });
     }
@@ -398,7 +409,7 @@ let AuthService = AuthService_1 = class AuthService {
     signout(userId, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("passing by signout");
+                // this.logger.debug("passing by signout");
                 yield this.prisma.user.update({
                     where: { id: userId },
                     data: { sessionId: null, sessionExpiresAt: null },
@@ -407,11 +418,15 @@ let AuthService = AuthService_1 = class AuthService {
                 res.clearCookie('token');
                 res.clearCookie('refreshToken');
                 res.clearCookie('userSession');
-                return res.status(200).json({ message: 'Signed out successfully' });
+                return res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, message: 'Signed out successfully' });
             }
             catch (error) {
                 this.logger.error(error);
-                throw error;
+                return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                    statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                    message: 'Unable to signout',
+                    error: 'UNAUTHORIZED'
+                });
             }
         });
     }
@@ -426,18 +441,36 @@ let AuthService = AuthService_1 = class AuthService {
             try {
                 // Extract the 'code' from the query parameters
                 const code = req.query['code'];
-                console.log(`passing by singToken42 req.query['code']: ${code}`);
+                this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
                 // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
                 // Check if the token was successfully retrieved
                 if (!token) {
                     this.logger.error('Failed to fetch access token');
-                    throw new Error('Failed to fetch access token');
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                        message: 'Failed to fetch access token',
+                        error: 'UNAUTHORIZED'
+                    });
                 }
                 // Retrieve user information using the token
                 const userInfo = yield this.getUserInfo(token);
+                if (!userInfo) {
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                        message: 'Failed to fetch information from 42api',
+                        error: 'UNAUTHORIZED'
+                    });
+                }
                 // Create a new user or update existing user with the retrieved information
                 const user = yield this.createUser(userInfo, res);
+                if (!user) {
+                    return res.status(common_1.HttpStatus.CONFLICT).json({
+                        statusCode: common_1.HttpStatus.CONFLICT,
+                        message: 'Unable to register in the game with 42 API',
+                        error: 'CONFLICT'
+                    });
+                }
                 // Check if the user session already exists
                 if (req.cookies['userSession']) {
                     // If the session exists, it means the token is expired. 
@@ -446,7 +479,11 @@ let AuthService = AuthService_1 = class AuthService {
                 }
                 // Enhanced session check logic: check if the user is already logged in
                 if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-                    throw new common_1.ForbiddenException('User is already logged in');
+                    return res.status(common_1.HttpStatus.FORBIDDEN).json({
+                        statusCode: common_1.HttpStatus.FORBIDDEN,
+                        message: 'User is already logged in',
+                        error: 'FORBIDDEN'
+                    });
                 }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
@@ -454,7 +491,6 @@ let AuthService = AuthService_1 = class AuthService {
             catch (error) {
                 // Log and handle any errors that occur during the process
                 this.logger.error('Error in signToken42:', error);
-                throw error;
             }
         });
     }
@@ -463,12 +499,16 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             // Check if 2FA (Two-Factor Authentication) is enabled for the user
             if ((yield this.is2FaEnabled(user.id)) === false) {
-                console.log(`Passing by 2FA is not activated`);
+                // console.log(`Passing by 2FA is not activated`);
                 // If 2FA is not enabled, proceed to sign the token
                 const result = yield this.signToken(user.id, user.username, res);
                 // Validate the result of token signing
                 if (!result.valid) {
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({ message: 'Invalid credentials' });
+                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                        message: 'Invalid credentials',
+                        error: 'UNAUTHORIZED'
+                    });
                 }
                 // Send a successful response
                 res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
@@ -489,7 +529,7 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendAuthorizationCodeRequest(code);
-                console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
+                //console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
                 return response.data.access_token;
             }
             catch (error) {
@@ -512,7 +552,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
             }
             catch (error) {
-                throw error;
+                throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
     }
@@ -530,8 +570,8 @@ let AuthService = AuthService_1 = class AuthService {
                 return response.data;
             }
             catch (error) {
-                this.logger.error('Error fetching user info:', error);
-                throw error;
+                this.logger.error('Error fetching user info in service getUserInfo:', error);
+                return null;
             }
         });
     }
@@ -554,41 +594,48 @@ let AuthService = AuthService_1 = class AuthService {
      */
     createUser(userInfo, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Check if the user already exists in the database based on their ID.
             const existingUser = yield this.prisma.user.findUnique({
                 where: {
                     id: userInfo.id,
                 },
             });
             if (existingUser) {
-                console.log('User already exists:', existingUser);
-                //   return "User already exists";
+                // If the user already exists, log a message and update their 'firstConnexion' status.
+                //console.log('User already exists:', existingUser);
                 existingUser.firstConnexion = false;
                 return existingUser;
             }
             try {
                 let avatarUrl;
                 if (userInfo.image.link !== null) {
-                    // use the 42 profile picture if not null
+                    // Use the user's profile picture link if it's not null.
                     avatarUrl = userInfo.image.link;
                 }
+                // Download the user's avatar image.
                 const avatarFile = yield this.usersService.downloadFile(avatarUrl);
+                // Create a new user in the database with the provided user information.
                 const user = yield this.prisma.user.create({
                     data: {
                         id: userInfo.id,
                         hashPassword: this.generateRandomPassword(),
                         username: userInfo.login,
-                        avatar: null,
+                        avatar: null, // Initialize the avatar field with null for now.
                     },
                 });
+                // Update the user's avatar using the downloaded image.
                 yield this.usersService.updateAvatar(user.id, avatarFile);
+                // Generate and store a two-factor authentication secret for the user.
                 const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
                 user.twoFASecret = secret;
                 user.twoFAUrl = otpauthUrl;
+                // Return the newly created user.
                 return user;
             }
             catch (error) {
+                // Handle any errors that occur during user creation or avatar update.
                 this.logger.error('Error saving user information to database:', error);
-                throw error;
+                return null;
             }
         });
     }
@@ -631,38 +678,43 @@ let AuthService = AuthService_1 = class AuthService {
                 });
                 if (!user) {
                     // If the user is not found, send a 'Not Found' response
-                    res.status(common_1.HttpStatus.NOT_FOUND).json({
+                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
                         statusCode: common_1.HttpStatus.NOT_FOUND,
                         message: 'User not found',
-                        error: 'NOT_FOUND'
+                        error: 'NOT_FOUND',
+                        res: false
                     });
-                    return false;
                 }
                 // Check if the user has a 2FA secret set up
-                if (!user.twoFASecret)
-                    return false;
+                if (!user.twoFASecret) {
+                    // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'Secret code not found',
+                        error: 'NOT_FOUND',
+                        res: false
+                    });
+                }
                 // Verify the provided 2FA code using the user's 2FA secret
                 const verified = speakeasy.totp.verify({
                     secret: user.twoFASecret,
                     encoding: 'base32',
                     token: code,
                 });
-                if (!verified) {
-                    // If the code couldn't be verified, log the error and send a 'Forbidden' response
-                    this.logger.error(`Passing by verifyTwoFAcode verified: ${verified}`);
-                    res.status(common_1.HttpStatus.FORBIDDEN).json({ message: 'Provided code couldn\'t be verified' });
-                    return false;
-                }
                 if (verified === true) {
                     // If the code is verified successfully, proceed with user authentication
                     const result = yield this.signToken(user.id, user.username, res);
                     if (!result.valid) {
                         // If authentication fails, send a 'Forbidden' response with details
-                        res.status(common_1.HttpStatus.FORBIDDEN).json({ message: 'Authentication failed' });
-                        return false;
+                        return res.status(common_1.HttpStatus.FORBIDDEN).json({
+                            statusCode: common_1.HttpStatus.FORBIDDEN,
+                            message: 'User is already logged in',
+                            error: 'FORBIDDEN',
+                            res: false
+                        });
                     }
                     // Send an 'OK' response with authentication details
-                    res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
+                    return res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null, res: true });
                 }
                 return verified;
             }
@@ -675,33 +727,76 @@ let AuthService = AuthService_1 = class AuthService {
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
-    validateTwoFA(userId, code) {
+    /**
+     * @brief Validates two-factor authentication (2FA) for a user.
+     *
+     * This function checks if the provided 2FA code is valid for the user identified by the given userId.
+     *
+     * @param userId - The ID of the user to validate 2FA for.
+     * @param code - The 2FA code to be verified.
+     * @param res - The HTTP response object used for sending responses.
+     *
+     * @returns A JSON response indicating the result of 2FA validation.
+     *   - If the user is not found, it returns a 404 Not Found response.
+     *   - If the user's 2FA secret is not found, it returns a 404 Not Found response.
+     *   - If the provided 2FA code is correct, it updates the user's TwoFA status to true and returns a 202 Accepted response.
+     *   - If the provided 2FA code is incorrect, it returns a 401 Unauthorized response.
+     */
+    validateTwoFA(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Find the user in the database based on the provided user ID.
             const user = yield this.prisma.user.findUnique({
                 where: {
                     id: userId,
                 },
             });
             if (!user) {
-                throw new common_1.NotFoundException('User not found');
+                // If the user is not found, return a 404 Not Found response.
+                return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                    statusCode: common_1.HttpStatus.NOT_FOUND,
+                    message: 'User not found',
+                    error: 'NOT_FOUND',
+                    res: false
+                });
             }
             const secret = user.twoFASecret;
-            if (!secret)
-                return false;
+            if (!secret) {
+                // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+                return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                    statusCode: common_1.HttpStatus.NOT_FOUND,
+                    message: 'Secret code not found',
+                    error: 'NOT_FOUND',
+                    res: false
+                });
+            }
+            // Verify the provided two-factor authentication code using the user's secret.
             const verified = speakeasy.totp.verify({
                 secret,
                 encoding: 'base32',
                 token: code
             });
             if (verified === true) {
+                // If the code is verified successfully, update the user's TwoFA status to true.
                 yield this.prisma.user.update({
                     where: { id: userId },
                     data: {
                         TwoFA: true,
                     },
                 });
+                // Return a 202 Accepted response with a success message.
+                return res.status(common_1.HttpStatus.ACCEPTED).json({
+                    statusCode: common_1.HttpStatus.ACCEPTED,
+                    message: 'The provided code was accepted',
+                    res: verified
+                });
             }
-            return verified;
+            // If the code verification fails, return a 401 Unauthorized response.
+            return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                message: 'Incorrect code',
+                error: 'UNAUTHORIZED',
+                res: false
+            });
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -797,16 +892,15 @@ let AuthService = AuthService_1 = class AuthService {
             });
         });
     }
-    is2FaEnabled(userId) {
+    is2FaEnabled(userid) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.prisma.user.findUnique({
                 where: {
-                    id: userId,
+                    id: userid,
                 },
             });
-            if (!user) {
-                throw new common_1.NotFoundException('User not found');
-            }
+            if (!user)
+                return false;
             return user.TwoFA;
         });
     }
