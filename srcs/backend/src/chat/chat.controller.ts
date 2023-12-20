@@ -1,4 +1,4 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query } from "@nestjs/common";
+import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query, NotFoundException } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
     pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
@@ -257,12 +257,6 @@ export class ChatController {
         @Body() data: ChannelIdDto) {
         return this.chatService.getChannelType(data.channelId);
     }
-
-    /*@Post('isMute')
-    async isMute(
-        @Body() dto: PairUserIdChannelId): Promise<{isMuted: boolean, rowId: number}>{
-        return this.chatService.isMute(dto);
-    }*/
 
     @UseGuards(AdminGuard)
     @Post('mute')
