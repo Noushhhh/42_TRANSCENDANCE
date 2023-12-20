@@ -86,12 +86,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
         for (const channelId of channelIds) {
             socket.join(String(channelId));
+            socket.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         }
     }
 
     async leaveRoomsForClient(userId: number, socket: Socket) {
         const channelIds: number[] = await this.chatService.getAllConvFromId(userId);
         for (const channelId of channelIds) {
+            socket.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
             socket.leave(String(channelId));
         }
     }

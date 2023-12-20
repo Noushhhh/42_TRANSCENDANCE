@@ -93,7 +93,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
           setIsChannelOwner(isItChannelOwner);
           const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
           setnumberUsersInChannel(numberUsersInChannel);
-          const channelName: string | null = await getChannelName(channelId, userId);
+          const channelName: string | null = await getChannelName(channelId);
           setChannelName(channelName);
         }
       } catch (error) {
@@ -119,7 +119,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
       if (newOwner) {
         const isUserLeaved = await leaveChannel(userId, channelId, setChannelHeader, socket, newOwner.id);
         if (isUserLeaved){
-          console.log("set channelId to -1 !!!!");
+          console.log("set channelId to -1");
           setChannelId(-1);
         }
         setNewOwner(undefined);

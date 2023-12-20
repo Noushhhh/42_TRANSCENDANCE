@@ -9,6 +9,8 @@ import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useToggleMenu, useSetToggleMenu } from "../contexts/toggleMenuMobile";
 import { useUserIdContext } from "../contexts/userIdContext";
 import { getChannelName } from "./ChannelUtils";
+import { useSocketContext } from "../contexts/socketContext";
+import { Socket } from "socket.io-client";
 
 interface HeaderChatBoxProps {
   channelInfo: boolean;
@@ -25,22 +27,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
   const setToggleMenu = useSetToggleMenu();
 
   const channelId: number = useChannelIdContext();
-  const userId: number = useUserIdContext();
-
-  useEffect(() => {
-      const fetchChannelName = async () => {
-          try {
-            if (channelId === -1)
-              return;
-            const channelName: string | null = await getChannelName(channelId, userId);
-            setChannelName(channelName);
-          } catch (errors: any) {
-              console.log(errors.message);
-          }
-      }
-
-      fetchChannelName();
-  }, [channelId]);
+  const socket: Socket = useSocketContext();
 
   const handleSettingsClick = () => {
     setChannelInfo(!channelInfo);
@@ -75,7 +62,7 @@ function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderCh
             <ArrowBackIosIcon />
           </span>
           <IsConnected />
-          <p title={channelName ? channelName :  ""}>{channelName ? channelName :  null}</p>
+          <p title={channelHeader[i].name ? channelHeader[i].name  :  ""}>{channelHeader[i].name  ? channelHeader[i].name  :  null}</p>
         </div>
         <div className="HeaderChatBoxLogo">
           <button className="showSettingsMenu" onClick={handleSettingsClick}>
