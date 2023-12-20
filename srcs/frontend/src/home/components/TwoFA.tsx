@@ -156,7 +156,7 @@ const TwoFA: FC = () => {
             type="text"
             value={token}
           />
-          <button onClick={() => validateTwoFA().catch((e) => console.log(e))}>
+          <button onClick={() => validateTwoFA().catch((e) => { console.log(e); setError("Wrong code, please try again..."); })}>
             Submit!
           </button>
         </div>
