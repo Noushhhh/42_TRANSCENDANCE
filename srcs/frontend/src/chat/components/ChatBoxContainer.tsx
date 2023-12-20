@@ -85,10 +85,6 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     };
   }, [socket]);
 
-  useEffect(() => {
-    console.log(displayContentMessage);
-  }, [displayContentMessage]);
-
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     try {
       if (socket){
