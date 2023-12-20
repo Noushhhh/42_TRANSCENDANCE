@@ -12,7 +12,6 @@ type KonvaSize = [konvaWidth: number, konvaHeight: number];
 const GameConfigController = new data.GameConfig();
 
 const GamePhysics: FC<data.GamePhysicsProps> = ({
-  isPaused = true,
   socket,
 }) => {
   const [konvaSize, setKonvaSize] = useState<KonvaSize>([1200, 800]);
@@ -53,7 +52,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
       height={gameConfig.konvaHeight}
     >
       <Layer>
-        <Paddles socket={socket} isPaused={isPaused} />
+        <Paddles socket={socket} />
         <Ball socket={socket} ballPosRef={ballPosRef} />
         <Ray socket={socket} />
       </Layer>

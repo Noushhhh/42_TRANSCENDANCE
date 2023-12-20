@@ -5,12 +5,7 @@ import * as data from "../../assets/data";
 import { Vector2d } from "konva/lib/types";
 import { gameConfig } from "../../assets/gameConfig";
 
-interface PlayerPos {
-  x: number;
-  y: number;
-}
-
-const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
+const Paddles: FC<data.PaddleProps> = ({ socket }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
   const rect2Ref = useRef<Konva.Rect>(null);
   const keyState = useRef<{ [key: string]: boolean }>({});
@@ -124,8 +119,6 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
     let animRequest: number;
 
     const updateRect = () => {
-      if (isPaused) return;
-
       if (keyState.current["w"]) {
         socket.emit("getPlayerPos", "up");
       }
@@ -151,7 +144,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket, isPaused = false }) => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isPaused, socket]);
+  }, [socket]);
 
   return (
     <>

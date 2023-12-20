@@ -46,6 +46,7 @@ const PlayAgain: FC<PlayAgainProps> = ({ socket }) => {
         onClick={() => {
           socket.emit("refuseReplay");
           setIsDisplay(false);
+          socket.emit("setFalseIsLobbyFull");
         }}
       >
         X

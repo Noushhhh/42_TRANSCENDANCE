@@ -32,10 +32,9 @@ const friendLignStyle: React.CSSProperties = {
 };
 
 export const isUrlContainsHttps = (url: string) => {
-  console.log("URL = ", url);
   if (!url) return;
   const firstChars = url.substring(0, 23);
-  console.log("first chars= ", firstChars);
+
   if (firstChars === "https://cdn.intra.42.fr") return true;
   return false;
 };

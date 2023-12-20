@@ -83,7 +83,7 @@ export class GameLoopService {
   updatePlayerPos(direction: string, player: Socket) {
     const lobbyId = this.findPlayerLobby(player);
     const lobby = lobbies.get(lobbyId);
-    if (lobby?.gameState.gameState.isPaused === true) return;
+
     if (!lobby)
       return;
     if (player.id === lobby.player1?.id) {
@@ -110,8 +110,12 @@ export class GameLoopService {
   }
 
   private updateBall = async () => {
+    // @to-do remove the pause system
     for (const [key, lobby] of lobbies) {
-      if (lobby.gameState.gameState.isPaused === true) continue;
+      if (lobby.gameState.gameState.isLobbyFull === false
+        || lobby.gameState.gameState.isGameFinished === true
+        || lobby.gameState.gameState.newGameTimer === true) continue;
+
       const ballState = this.gameLogicService.ballMove(
         lobby.gameState.gameState.ballState.ballDirection,
         lobby.gameState.gameState.ballState.ballPos,
@@ -148,7 +152,7 @@ export class GameLoopService {
             y: (0.5) - lobby.gameState.gameState.p2Size / 2,
           }
           lobby.gameState.gameState.ballState.ballDY = 0;
-          lobby.gameState.gameState.isPaused = true;
+          lobby.gameState.gameState.isGameFinished = true;
           const p1SocketId = this.getSocketIdWithId(gameState.p1Id);
           const p2SocketId = this.getSocketIdWithId(gameState.p2Id);
           if (p1SocketId && p2SocketId) {

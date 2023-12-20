@@ -37,11 +37,12 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // check token validity return the userId if correspond to associated token
       // return null if token is invalid
-      const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
 
-      if (response) {
+      try {
+        await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         next();
-      } else {
+      } catch (error) {
+        // console.log('invalid token - id')
         next(new WsException('invalid token'));
       }
     })

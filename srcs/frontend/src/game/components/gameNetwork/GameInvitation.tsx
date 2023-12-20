@@ -50,7 +50,7 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
 
   const handleGetUsersId = async (usersId: UsersId) => {
     if (toBlock === true) {
-      blockUserUtil(usersId.callerId, usersId.targetId);
+      blockUserUtil(usersId.targetId);
     }
   };
 

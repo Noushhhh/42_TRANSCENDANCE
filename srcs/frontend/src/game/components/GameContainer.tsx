@@ -30,7 +30,6 @@ const GameContainer: FC<GameContainerProps> = ({
   error,
   handleError,
 }) => {
-  const [isPaused, setIsPaused] = useState<boolean>(true);
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
   const clientId = useRef<string>("");
@@ -43,19 +42,15 @@ const GameContainer: FC<GameContainerProps> = ({
 
   useEffect(() => {
     socket?.on("connect", connectListener);
-    socket?.on("updateGameState", updateGameStateListener);
     socket?.on("isOnLobby", isInLobbyListener);
     socket?.on("isLobbyFull", isLobbyFullListener);
-    socket?.on("gameEnd", handleGameEnd);
     socket?.on("newGame", handleNewGame);
     socket?.on("lobbyState", handleLobbyState);
 
     return () => {
       socket?.off("connect", connectListener);
-      socket?.off("updateGameState", updateGameStateListener);
       socket?.off("isOnLobby", isInLobbyListener);
       socket?.off("isLobbyFull", isLobbyFullListener);
-      socket?.off("gameEnd", handleGameEnd);
       socket?.off("newGame", handleNewGame);
       socket?.off("lobbyState", handleLobbyState);
     };
@@ -70,10 +65,10 @@ const GameContainer: FC<GameContainerProps> = ({
   }, [location.pathname, isInLobby]);
 
   const handleNewGame = () => {
+    if (!isInLobby) return;
     setTimeout(() => {
       start();
       setGameLaunchedRef();
-      handlePlayPause();
     }, 1500);
   };
 
@@ -83,10 +78,6 @@ const GameContainer: FC<GameContainerProps> = ({
 
   const connectListener = () => {
     if (socket?.id) clientId.current = socket.id;
-  };
-
-  const updateGameStateListener = (gameState: GameState) => {
-    setIsPaused(gameState.isPaused);
   };
 
   const handleLobbyState = (gameState: GameState) => {
@@ -104,17 +95,6 @@ const GameContainer: FC<GameContainerProps> = ({
 
   const isLobbyFullListener = (isLobbyFull: boolean) => {
     setIsLobbyFull(isLobbyFull);
-  };
-
-  const handlePlayPause = () => {
-    socket?.emit("getIsPaused", !isPaused);
-    setIsPaused(!isPaused);
-    if (isPaused === true) start().catch((e) => console.log(e));
-    // else stop();
-  };
-
-  const handleGameEnd = () => {
-    setIsPaused(true);
   };
 
   const start = async () => {
@@ -136,20 +116,15 @@ const GameContainer: FC<GameContainerProps> = ({
     } else if (isLobbyFull === true && socket) {
       return (
         <div className="GameContainer">
-          <GameButtonsBar
-            socket={socket}
-            isPaused={isPaused}
-            handlePlayPause={handlePlayPause}
-          />
+          <GameButtonsBar socket={socket} />
           <MiddleLine />
           <ScoreBoard socket={socket} />
-          <GamePhysics socket={socket} isPaused={isPaused} />
+          <GamePhysics socket={socket} />
           <PrintWinner socket={socket} />
           <PlayAgain socket={socket} />
           <AutoLaunch
             start={start}
             setGameLaunchedRef={setGameLaunchedRef}
-            handlePlayPause={handlePlayPause}
             socket={socket}
           />
         </div>
@@ -158,7 +133,7 @@ const GameContainer: FC<GameContainerProps> = ({
   } else if (isInLobby === false && socket) {
     return <GameMenu socket={socket} handleError={handleError} />;
   }
-  return <></>
+  return <></>;
 };
 
 export default GameContainer;

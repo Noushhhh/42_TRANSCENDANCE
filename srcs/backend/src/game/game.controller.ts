@@ -1,9 +1,9 @@
-import { Controller, ForbiddenException, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { playerStatistics } from './playerStatistics.service';
 import { ConnectToLobbyDto } from './game.dto';
 import { GatewayIn } from './gatewayIn';
@@ -37,30 +37,29 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('lobby')
-  async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request) {
+  async connectToLobby(@Query() dto: ConnectToLobbyDto, @Req() req: Request, @Res() res: Response) {
     if (req.user) {
-      const sockets = Array.from(this.gateway.server.sockets.sockets).map(socket => socket);
-      for (const socket of sockets) {
-        if (socket[1].data.userId == req.user.id) {
-          if (socket[0] != dto.clientId) {
-            throw new ForbiddenException("Wrong socket id provided");
+      try {
+        const sockets = Array.from(this.gateway.server.sockets.sockets).map(socket => socket);
+        for (const socket of sockets) {
+          if (socket[1].data.userId == req.user.id) {
+            if (socket[0] != dto.clientId) {
+              throw new ForbiddenException("Wrong socket id provided");
+            }
           }
         }
-      }
-      try {
         await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
+        res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
       } catch (error) {
-        throw error;
+        res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
       }
-      return { status: 'player connected to lobby' };
     }
-    return { status: 'player not connected to lobby' };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('play')
-  play() {
+  play(@Res() res: Response) {
     this.gameLoopService.startGameLoop();
-    return { msg: 'started' };
+    res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
   }
 }

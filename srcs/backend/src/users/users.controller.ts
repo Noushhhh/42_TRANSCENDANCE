@@ -3,7 +3,7 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException
+    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -14,7 +14,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
-
 
 
 @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
@@ -185,89 +184,94 @@ export class UsersController {
     }
 
     @Post('sendFriendRequest')
-    async sendFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
-
+    async sendFriendRequest(@Req() req: Request, @Res() res: Response, @Body() friend: friendDto) {
         try {
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
+
             await this.UsersService.sendFriendRequest(req.user.id, friend.id);
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
         } catch (error) {
-            console.error(error);
-            throw error;
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
-        return { status: "Friend request sent" };
     }
 
     @Get('getPendingRequests')
-    async getPendingRequests(@Req() req: Request) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
-        const pendingRequests = await this.UsersService.getPendingRequests(req.user.id);
+    async getPendingRequests(@Req() req: Request, @Res() res: Response) {
+        try {
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
 
-        return { pendingRequests: pendingRequests };
-
+            const pendingRequests = await this.UsersService.getPendingRequests(req.user.id);
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, pendingRequests: pendingRequests })
+        } catch (error) {
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        }
     }
 
     @Post('acceptFriendRequest')
-    async acceptFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
+    async acceptFriendRequest(@Req() req: Request, @Res() res: Response, @Body() friend: friendDto) {
         try {
-            await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
 
-        return { status: "Friend request accepted" }
+            await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
+        } catch (error) {
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        }
     }
 
     @Post('refuseFriendRequest')
-    async refuseFriendRequest(@Req() req: Request, @Body() friend: friendDto) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
+    async refuseFriendRequest(@Req() req: Request, @Res() res: Response, @Body() friend: friendDto) {
         try {
-            await this.UsersService.refuseFriendRequest(req.user.id, friend.id)
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
 
-        return { status: "Friend request refused" }
+            await this.UsersService.refuseFriendRequest(req.user.id, friend.id)
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
+        } catch (error) {
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        }
     }
 
     @Get('getFriendsList')
-    async getFriendsList(@Req() req: Request) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
+    async getFriendsList(@Req() req: Request, @Res() res: Response) {
+        try {
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
 
-        const friendsList = await this.UsersService.getFriendsList(req.user.id);
-        return { friendsList: friendsList };
+            const friendsList = await this.UsersService.getFriendsList(req.user.id);
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, friendsList: friendsList })
+        } catch (error) {
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        }
     }
 
     @Post('removeFriend')
-    async removeFriend(@Req() req: Request, @Body() friend: friendDto) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
+    async removeFriend(@Req() req: Request, @Res() res: Response, @Body() friend: friendDto) {
 
         try {
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
             await this.UsersService.removeFriend(req.user.id, friend.id);
+            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
         } catch (error) {
-            console.error(error);
-            throw error;
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
     }
 
     @Get('getUserProfil')
-    async getUserProfil(@Req() req: Request) {
-        if (!req.user?.id)
-            throw new NotFoundException("User not found");
+    async getUserProfil(@Req() req: Request, @Res() res: Response) {
         try {
-            const userProfile = await this.UsersService.getUserProfile(req.user.id);
-            return { userProfile: userProfile };
+            const userId = req.headers['x-user-id'];
+            if (typeof userId === "string") {
+                const intUserId = Number(userId);
+                const userProfile = await this.UsersService.getUserProfile(intUserId);
+                res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, userProfile: userProfile });
+            }
         } catch (error) {
-            console.error(error)
-            throw error;
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
     }
 }
