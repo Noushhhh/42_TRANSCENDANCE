@@ -67,6 +67,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
       console.log(error);
     }
     if (bannedFromChannelId === channelId){
+      console.log("channelId set to -1");
       setChannelId(-1);
     }
   }

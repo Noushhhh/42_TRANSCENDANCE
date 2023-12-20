@@ -6,7 +6,7 @@ import ContentMessage from "./ContentMessage";
 import ChannelInfo from "./ChannelInfo";
 import { ChannelIdContext } from "../contexts/channelIdContext";
 import { ChannelHeaderContext } from "../contexts/channelHeaderContext";
-import { SocketContext, useSocketContext } from "../contexts/socketContext";
+import { SocketContext } from "../contexts/socketContext";
 import { UserIdContext } from "../contexts/userIdContext";
 import { getMyUserId } from "./ChannelUtils";
 import { toggleMenuMobile } from "../contexts/toggleMenuMobile";
@@ -84,10 +84,6 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
       }
     };
   }, [socket]);
-
-  useEffect(() => {
-    console.log(displayContentMessage);
-  }, [displayContentMessage]);
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {
     try {
