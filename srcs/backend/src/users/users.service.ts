@@ -440,24 +440,27 @@ export class UsersService {
         }
     }
 
+// ─────────────────────────────────────────────────────────────────────────────
 
     async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
-        console.log("username INPUT ====", usernameinput);
         try {
+            console.log("username INPUT ====", usernameinput);
             const user = await this.prisma.user.findUnique({
                 where: {
                     username: usernameinput,
                 },
             });
             if (!user) {
-                return undefined;
+                throw new NotFoundException(`User not found with user name ${usernameinput}`);
             }
             return user;
         } catch (error) {
-            console.error(`Error fetching user with username: ${usernameinput}`, error);
+            console.error(error);
+            throw error;
         }
-
     }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
     async sendFriendRequest(senderId: number, targetId: number) {
         const sender = await this.prisma.user.findUnique({
