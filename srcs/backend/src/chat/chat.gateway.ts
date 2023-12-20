@@ -27,13 +27,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
             // check token validity return the userId if correspond to associated token
             // return null if token is invalid
-            const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
-
-            if (response) {
+            try {
+                const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
                 socket.data.userId = response;
                 // next allow us to accept the incoming socket as the token is valid
                 next();
-            } else {
+            } catch (error) {
                 next(new WsException('invalid token'));
             }
         })
@@ -113,9 +112,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         }
     }
 
-    async notifyChannelDeleted(channelId: number, participantsIds: number[]){
+    async notifyChannelDeleted(channelId: number, participantsIds: number[]) {
         console.log("notifyChannelDeleted called server-side");
-        for (const id of participantsIds){
+        for (const id of participantsIds) {
             const socket = await this.getSocketByUserId(id);
             if (socket)
                 socket.emit("channelDeleted", channelId);
@@ -194,8 +193,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     isInRoom(client: Socket, channelId: number): boolean {
-        const rooms = [...client.rooms].slice(1, );
-        for (const room of rooms){
+        const rooms = [...client.rooms].slice(1,);
+        for (const room of rooms) {
             if (room == String(channelId))
                 return true;
         }
@@ -204,15 +203,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     @SubscribeMessage('message')
     async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
-        if (data.content.length > 5000){
+        if (data.content.length > 5000) {
             data.content = "Message too long. Maximum length: 5000";
             return false;
         }
         if (this.isInRoom(client, data.channelId) === false)
             return false;
-        let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number  };
-        isSenderMuted = await this.chatService.isMute({channelId: data.channelId, userId: data.senderId});
-        if (isSenderMuted.isMuted === true){
+        let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
+        isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
+        if (isSenderMuted.isMuted === true) {
             data.content = "you are mute from this channel";
             return true;
         }

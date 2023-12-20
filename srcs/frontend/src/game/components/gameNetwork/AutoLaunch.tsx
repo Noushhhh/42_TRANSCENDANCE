@@ -4,14 +4,12 @@ import { Socket } from "socket.io-client";
 interface AutoLaunchProps {
   start: () => Promise<undefined>;
   setGameLaunchedRef: () => void;
-  handlePlayPause: () => void;
   socket: Socket;
 }
 
 const AutoLaunch: FC<AutoLaunchProps> = ({
   start,
   setGameLaunchedRef,
-  handlePlayPause,
   socket,
 }) => {
   const [player1Replay, setPlayer1Replay] = useState(false);
@@ -34,7 +32,7 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
       setTimeout(() => {
         start().catch((e) => console.log(e));
         setGameLaunchedRef();
-        handlePlayPause();
+        socket.emit("playAgain");
       }, 1500);
       setPlayer1Replay(false);
       setPlayer2Replay(false);
@@ -45,7 +43,6 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
     setTimeout(() => {
       start().catch((e) => console.log(e));
       setGameLaunchedRef();
-      handlePlayPause();
     }, 1500);
   }, []);
 

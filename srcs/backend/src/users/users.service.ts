@@ -271,7 +271,7 @@ export class UsersService {
             // Retrieve the current user's details from the database
             const currentUser = await this.prisma.user.findUnique({
                 where: { id: userId },
-                select: { avatar: true},
+                select: { avatar: true },
             });
 
             console.log("current User", currentUser);
@@ -385,7 +385,6 @@ export class UsersService {
 
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────────────────────────
 
     async findUserWithId(userId: number): Promise<User> {
         try {
@@ -395,7 +394,7 @@ export class UsersService {
                 },
             });
             if (!user) {
-                throw new NotFoundException("User not found");
+                throw new NotFoundException(`User not found with id ${userId}`);
             }
             return user;
         }
@@ -404,6 +403,8 @@ export class UsersService {
             throw error;
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async getPublicName(userId: number): Promise<string | null> {
         try {
@@ -498,6 +499,14 @@ export class UsersService {
     }
 
     async getPendingRequests(userId: number): Promise<FriendRequestFromUser[]> {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        })
+
+        if (!user) throw new NotFoundException("User not found");
+
         const pendingRequests = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -614,6 +623,14 @@ export class UsersService {
     }
 
     async getFriendsList(userId: number): Promise<FriendRequestFromUser[]> {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        })
+
+        if (!user) throw new NotFoundException("User not found");
+
         const friendsList = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -706,7 +723,7 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new Error(`User with id ${userId} not found.`);
+            throw new NotFoundException(`User with id ${userId} not found.`);
         }
 
         const userProfile: UserProfile = {
