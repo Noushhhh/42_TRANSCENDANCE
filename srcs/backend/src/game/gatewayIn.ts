@@ -66,18 +66,16 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
       // check token validity return the userId if correspond to associated token
       // return null if token is invalid
-      const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
-
-      if (response) {
+      try {
+        const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         this.gameSockets.server = this.server;
         socket.data.userId = response;
         const clientId = socket.id;
         this.gameSockets.setSocket(clientId, socket);
         socket.setMaxListeners(15);
         this.gameSockets.printSocketMap();
-        // next allow us to accept the incoming socket as the token is valid
         next();
-      } else {
+      } catch (error) {
         next(new WsException('invalid token'));
       }
     })
@@ -96,11 +94,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   @SubscribeMessage('getPlayerPos')
   getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {
     this.gameLoop.updatePlayerPos(direction, client);
-  }
-
-  @SubscribeMessage('getIsPaused')
-  setPause(@MessageBody() isPaused: boolean, @ConnectedSocket() client: Socket) {
-    this.gameLobby.isPaused(client, isPaused);
   }
 
   @SubscribeMessage('requestLobbies')
@@ -225,7 +218,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       };
       return response;
     }
-  
+
     this.gatewayOut.emitToUser(p2SocketId, "invitation", { playerName: p1Name, playerSocketId: client.id });
     const response: WebSocketResponse = {
       success: true,
@@ -317,8 +310,17 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('isUserInGame')
   isUserInGame(@MessageBody() userId: number) {
-    console.log("ICI =", this.gameLobby.isPlayerInGame(userId));
     return this.gameLobby.isPlayerInGame(userId);
+  }
+
+  @SubscribeMessage('playAgain')
+  playAgain(@ConnectedSocket() client: Socket) {
+    this.gameLobby.playAgain(client.id);
+  }
+
+  @SubscribeMessage('setFalseIsLobbyFull')
+  setFalseIsLobbyFull(@ConnectedSocket() client: Socket) {
+    this.gatewayOut.emitToUser(client.id, "isLobbyFull", false);
   }
 
   private sendError(message: string, statusCode: number, client: Socket) {
