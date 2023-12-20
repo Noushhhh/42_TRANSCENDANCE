@@ -1,7 +1,7 @@
 import {
   ForbiddenException, Res,
   Req, Injectable, UnauthorizedException, NotFoundException,
-  HttpStatus, Logger,  HttpException
+  HttpStatus, Logger,  HttpException, ConflictException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
@@ -81,16 +81,12 @@ export class AuthService {
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          return res.status(HttpStatus.FORBIDDEN).json({
-            statusCode: HttpStatus.FORBIDDEN,
-            message: 'This username is already taken. Please choose another one.',
-            error: 'FORBIDDEN'
-          });
+          throw new ForbiddenException('This username is already taken. Please choose another one.');
         }
       }
 
-      this.logger.error(hasMessage(error) ? error.message : "");
-
+      this.logger.debug(hasMessage(error) ? error.message : "");
+      throw error;
     }
   }
 
@@ -107,14 +103,6 @@ export class AuthService {
     try {
       const user = await this.usersService.findUserWithUsername(dto.username);
 
-      if (!user) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'User not found',
-          error: 'NOT_FOUND'
-        });
-      }
-
       /*  At this point, if the user sends a signin request, that means whether his token is expired
           or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
           "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
@@ -126,25 +114,18 @@ export class AuthService {
 
       const passwordMatch = await argon.verify(user.hashPassword, dto.password);
       if (!passwordMatch)
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'Incorrect password',
-          error: 'UNAUTHORIZED'
-        });
+        throw new UnauthorizedException('Incorrect password');
 
       // Enhanced session check logic
       if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'User is already logged in',
-          error: 'UNAUTHORIZED'
-        });
+        throw new UnauthorizedException('User is already logged in');
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
 
     } catch (error) {
-      this.logger.error(error);
+      this.logger.debug(error);
+      throw error;
     }
   }
 
@@ -242,42 +223,42 @@ export class AuthService {
    * @param res - HTTP response object to set cookies on.
    */
   setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
-    // Error handling for undefined tokens
-    if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-      return res.status(HttpStatus.CONFLICT).json({
-        statusCode: HttpStatus.CONFLICT,
-        message: 'Problem creating refresh token for user',
-        error: 'CONFLICT'
+    try {
+      // Error handling for undefined tokens
+      if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
+        throw new ConflictException('Problem creating refresh token for user');
+      }
+
+      // Set refresh token cookie
+      const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
+      res.cookie('refreshToken', tokens.refreshToken.token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: refreshTokenMaxAge
       });
+
+      // Assuming the JWT token also has an expiresAt property to calculate its maxAge
+      const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
+      res.cookie('token', tokens.newToken.token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: tokenMaxAge
+      });
+
+      const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
+// Set the session cookie in the response
+      res.cookie('userSession', sessionValue, {
+        httpOnly: true, // Makes the cookie inaccessible to client-side scripts
+        secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
+        sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
+        maxAge: tokenMaxAge  // Sets the cookie to expire in 1 day (example)
+      });
+
+    } catch (error) {
+      throw error;
     }
-
-    // Set refresh token cookie
-    const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
-    res.cookie('refreshToken', tokens.refreshToken.token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: refreshTokenMaxAge
-    });
-
-    // Assuming the JWT token also has an expiresAt property to calculate its maxAge
-    const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
-    res.cookie('token', tokens.newToken.token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: tokenMaxAge
-    });
-
-    const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-
-    // Set the session cookie in the response
-    res.cookie('userSession', sessionValue, {
-      httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
-      sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
-      maxAge: tokenMaxAge  // Sets the cookie to expire in 1 day (example)
-    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -295,18 +276,11 @@ export class AuthService {
       const { newToken, refreshToken } = await this.generateTokens(userId, email);
       this.setTokens({ newToken, refreshToken }, res);
 
-      if (!refreshToken) {
-        return res.status(HttpStatus.CONFLICT).json({
-          statusCode: HttpStatus.CONFLICT,
-          message: 'Problem creating refresh token for user',
-          error: 'CONFLICT'
-        });
-      }
       return ({ statusCode: 200, valid: true, message: "Authentication successful" });
 
     } catch (error) {
-      this.logger.error(`Fail to signToken ${hasMessage(error) ? error.message : ""}`);
-      return null;
+      this.logger.debug(`Fail to signToken ${hasMessage(error) ? error.message : ""}`);
+      throw error;
     }
   }
 
@@ -333,7 +307,7 @@ export class AuthService {
 
       return { token: refreshToken, ExpirationDate: expiration };
     } catch (error) {
-      this.logger.error(`Failed to create refresh token for user ${userId}`, error);
+      this.logger.debug(`Failed to create refresh token for user ${userId}`, error);
       throw new HttpException("Error creating fresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
@@ -418,7 +392,7 @@ export class AuthService {
 
     } catch (error) {
 
-      this.logger.error(error);
+      this.logger.debug(error);
       return res.status(HttpStatus.UNAUTHORIZED).json({
         statusCode: HttpStatus.UNAUTHORIZED,
         message: 'Unable to signout',
@@ -445,7 +419,7 @@ export class AuthService {
       const token = await this.exchangeCodeForToken(code);
       // Check if the token was successfully retrieved
       if (!token) {
-        this.logger.error('Failed to fetch access token');
+        this.logger.debug('Failed to fetch access token');
         return res.status(HttpStatus.UNAUTHORIZED).json({
           statusCode: HttpStatus.UNAUTHORIZED,
           message: 'Failed to fetch access token',
@@ -495,31 +469,31 @@ export class AuthService {
 
     } catch (error) {
       // Log and handle any errors that occur during the process
-      this.logger.error('Error in signToken42:', error);
+      this.logger.debug('Error in signToken42:', error);
+      throw error;
     }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
 
   private async handleTwoFactorAuthentication(user: User, res: Response) {
-    // Check if 2FA (Two-Factor Authentication) is enabled for the user
-    if (await this.is2FaEnabled(user.id) === false) {
-      // console.log(`Passing by 2FA is not activated`);
-      // If 2FA is not enabled, proceed to sign the token
-      const result = await this.signToken(user.id, user.username, res);
-      // Validate the result of token signing
-      if (!result.valid) {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'Invalid credentials',
-          error: 'UNAUTHORIZED'
-        });
+    try {
+      // Check if 2FA (Two-Factor Authentication) is enabled for the user
+      if (await this.is2FaEnabled(user.id) === false) {
+        // console.log(`Passing by 2FA is not activated`);
+        // If 2FA is not enabled, proceed to sign the token
+        const result = await this.signToken(user.id, user.username, res);
+        // Validate the result of token signing
+        if (!result.valid)
+          throw new UnauthorizedException('Invalid credentials');
+        // Send a successful response
+        res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
+      } else {
+        // If 2FA is enabled, indicate that in the response
+        res.status(HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
       }
-      // Send a successful response
-      res.status(HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
-    } else {
-      // If 2FA is enabled, indicate that in the response
-      res.status(HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -536,7 +510,7 @@ export class AuthService {
       //console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
       return response.data.access_token;
     } catch (error) {
-      this.logger.error('Error fetching access token:', error);
+      this.logger.debug('Error fetching access token:', error);
       return null;
     }
   }
@@ -574,7 +548,7 @@ export class AuthService {
 
     } catch (error) {
 
-      this.logger.error('Error fetching user info in service getUserInfo:', error);
+      this.logger.debug('Error fetching user info in service getUserInfo:', error);
       return null;
 
     }
@@ -645,7 +619,7 @@ export class AuthService {
       return user;
     } catch (error) {
       // Handle any errors that occur during user creation or avatar update.
-      this.logger.error('Error saving user information to database:', error);
+      this.logger.debug('Error saving user information to database:', error);
       return null;
     }
   }
@@ -744,10 +718,7 @@ export class AuthService {
 
     } catch (error) {
       // Handle any errors that may occur during the verification process and log them
-      this.logger.error(
-        hasMessage(error) ? `Error occurred in verifyTwoFACode: ${error.message}` :
-          `Unexpected error occurred in verifyTwoFACode service`
-      );
+      this.logger.debug(error);
       return false;
     }
   }
@@ -770,66 +741,71 @@ export class AuthService {
    *   - If the provided 2FA code is incorrect, it returns a 401 Unauthorized response.
    */
   async validateTwoFA(userId: number, code: string, res: Response) {
-    // Find the user in the database based on the provided user ID.
-    const user: User | null = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      // If the user is not found, return a 404 Not Found response.
-      return res.status(HttpStatus.NOT_FOUND).json({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'User not found',
-        error: 'NOT_FOUND',
-        res: false
-      });
-    }
-
-    const secret = user.twoFASecret;
-
-    if (!secret) {
-      // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
-      return res.status(HttpStatus.NOT_FOUND).json({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Secret code not found',
-        error: 'NOT_FOUND',
-        res: false
-      });
-    }
-
-    // Verify the provided two-factor authentication code using the user's secret.
-    const verified = speakeasy.totp.verify({
-      secret,
-      encoding: 'base32',
-      token: code
-    });
-
-    if (verified === true) {
-      // If the code is verified successfully, update the user's TwoFA status to true.
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          TwoFA: true,
+    try {
+      // Find the user in the database based on the provided user ID.
+      const user: User | null = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
         },
       });
 
-      // Return a 202 Accepted response with a success message.
-      return res.status(HttpStatus.ACCEPTED).json({
-        statusCode: HttpStatus.ACCEPTED,
-        message: 'The provided code was accepted',
-        res: verified
-      });
-    }
+      if (!user) {
+        // If the user is not found, return a 404 Not Found response.
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          error: 'NOT_FOUND',
+          res: false
+        });
+      }
 
-    // If the code verification fails, return a 401 Unauthorized response.
-    return res.status(HttpStatus.UNAUTHORIZED).json({
-      statusCode: HttpStatus.UNAUTHORIZED,
-      message: 'Incorrect code',
-      error: 'UNAUTHORIZED',
-      res: false
-    });
+      const secret = user.twoFASecret;
+
+      if (!secret) {
+        // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+        return res.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Secret code not found',
+          error: 'NOT_FOUND',
+          res: false
+        });
+      }
+
+      // Verify the provided two-factor authentication code using the user's secret.
+      const verified = speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token: code
+      });
+
+      if (verified === true) {
+        // If the code is verified successfully, update the user's TwoFA status to true.
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: {
+            TwoFA: true,
+          },
+        });
+
+        // Return a 202 Accepted response with a success message.
+        return res.status(HttpStatus.ACCEPTED).json({
+          statusCode: HttpStatus.ACCEPTED,
+          message: 'The provided code was accepted',
+          res: verified
+        });
+      }
+
+      // If the code verification fails, return a 401 Unauthorized response.
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Incorrect code',
+        error: 'UNAUTHORIZED',
+        res: false
+      });
+
+    } catch (error) {
+      throw error;
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -883,7 +859,7 @@ export class AuthService {
       }
     } catch (error) {
       // Handle any internal server errors and log them
-      this.logger.error('Internal Server Error occurred in enable2FA: ', error);
+      this.logger.debug('Internal Server Error occurred in enable2FA: ', error);
     }
   }
 
@@ -901,7 +877,7 @@ export class AuthService {
       return url;
     } catch (err) {
       // Handle any errors that occur during QR code generation
-      this.logger.error('Error generating QR Code: ', err);
+      this.logger.debug('Error generating QR Code: ', err);
       return null;
     }
   }

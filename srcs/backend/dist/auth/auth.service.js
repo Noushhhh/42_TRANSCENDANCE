@@ -113,14 +113,11 @@ let AuthService = AuthService_1 = class AuthService {
             catch (error) {
                 if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
                     if (error.code === 'P2002') {
-                        return res.status(common_1.HttpStatus.FORBIDDEN).json({
-                            statusCode: common_1.HttpStatus.FORBIDDEN,
-                            message: 'This username is already taken. Please choose another one.',
-                            error: 'FORBIDDEN'
-                        });
+                        throw new common_1.ForbiddenException('This username is already taken. Please choose another one.');
                     }
                 }
-                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? error.message : "");
+                this.logger.debug((0, has_message_tools_1.hasMessage)(error) ? error.message : "");
+                throw error;
             }
         });
     }
@@ -135,13 +132,6 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.usersService.findUserWithUsername(dto.username);
-                if (!user) {
-                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
-                        statusCode: common_1.HttpStatus.NOT_FOUND,
-                        message: 'User not found',
-                        error: 'NOT_FOUND'
-                    });
-                }
                 /*  At this point, if the user sends a signin request, that means whether his token is expired
                     or he is not logged in(there is no cookies trace session in the browser), as in the fronted
                     "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
@@ -152,23 +142,16 @@ let AuthService = AuthService_1 = class AuthService {
                 }
                 const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
                 if (!passwordMatch)
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
-                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
-                        message: 'Incorrect password',
-                        error: 'UNAUTHORIZED'
-                    });
+                    throw new common_1.UnauthorizedException('Incorrect password');
                 // Enhanced session check logic
                 if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
-                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
-                        message: 'User is already logged in',
-                        error: 'UNAUTHORIZED'
-                    });
+                    throw new common_1.UnauthorizedException('User is already logged in');
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
             catch (error) {
-                this.logger.error(error);
+                this.logger.debug(error);
+                throw error;
             }
         });
     }
@@ -263,38 +246,39 @@ let AuthService = AuthService_1 = class AuthService {
      * @param res - HTTP response object to set cookies on.
      */
     setTokens(tokens, res) {
-        // Error handling for undefined tokens
-        if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
-            return res.status(common_1.HttpStatus.CONFLICT).json({
-                statusCode: common_1.HttpStatus.CONFLICT,
-                message: 'Problem creating refresh token for user',
-                error: 'CONFLICT'
+        try {
+            // Error handling for undefined tokens
+            if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
+                throw new common_1.ConflictException('Problem creating refresh token for user');
+            }
+            // Set refresh token cookie
+            const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
+            res.cookie('refreshToken', tokens.refreshToken.token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: refreshTokenMaxAge
+            });
+            // Assuming the JWT token also has an expiresAt property to calculate its maxAge
+            const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
+            res.cookie('token', tokens.newToken.token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: tokenMaxAge
+            });
+            const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
+            // Set the session cookie in the response
+            res.cookie('userSession', sessionValue, {
+                httpOnly: true, // Makes the cookie inaccessible to client-side scripts
+                secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
+                sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
+                maxAge: tokenMaxAge // Sets the cookie to expire in 1 day (example)
             });
         }
-        // Set refresh token cookie
-        const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
-        res.cookie('refreshToken', tokens.refreshToken.token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            maxAge: refreshTokenMaxAge
-        });
-        // Assuming the JWT token also has an expiresAt property to calculate its maxAge
-        const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
-        res.cookie('token', tokens.newToken.token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            maxAge: tokenMaxAge
-        });
-        const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-        // Set the session cookie in the response
-        res.cookie('userSession', sessionValue, {
-            httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-            secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
-            sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
-            maxAge: tokenMaxAge // Sets the cookie to expire in 1 day (example)
-        });
+        catch (error) {
+            throw error;
+        }
     }
     // ─────────────────────────────────────────────────────────────────────────────
     /**
@@ -309,18 +293,11 @@ let AuthService = AuthService_1 = class AuthService {
             try {
                 const { newToken, refreshToken } = yield this.generateTokens(userId, email);
                 this.setTokens({ newToken, refreshToken }, res);
-                if (!refreshToken) {
-                    return res.status(common_1.HttpStatus.CONFLICT).json({
-                        statusCode: common_1.HttpStatus.CONFLICT,
-                        message: 'Problem creating refresh token for user',
-                        error: 'CONFLICT'
-                    });
-                }
                 return ({ statusCode: 200, valid: true, message: "Authentication successful" });
             }
             catch (error) {
-                this.logger.error(`Fail to signToken ${(0, has_message_tools_1.hasMessage)(error) ? error.message : ""}`);
-                return null;
+                this.logger.debug(`Fail to signToken ${(0, has_message_tools_1.hasMessage)(error) ? error.message : ""}`);
+                throw error;
             }
         });
     }
@@ -346,7 +323,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return { token: refreshToken, ExpirationDate: expiration };
             }
             catch (error) {
-                this.logger.error(`Failed to create refresh token for user ${userId}`, error);
+                this.logger.debug(`Failed to create refresh token for user ${userId}`, error);
                 throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
@@ -421,7 +398,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, message: 'Signed out successfully' });
             }
             catch (error) {
-                this.logger.error(error);
+                this.logger.debug(error);
                 return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
                     statusCode: common_1.HttpStatus.UNAUTHORIZED,
                     message: 'Unable to signout',
@@ -446,7 +423,7 @@ let AuthService = AuthService_1 = class AuthService {
                 const token = yield this.exchangeCodeForToken(code);
                 // Check if the token was successfully retrieved
                 if (!token) {
-                    this.logger.error('Failed to fetch access token');
+                    this.logger.debug('Failed to fetch access token');
                     return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
                         statusCode: common_1.HttpStatus.UNAUTHORIZED,
                         message: 'Failed to fetch access token',
@@ -490,32 +467,33 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 // Log and handle any errors that occur during the process
-                this.logger.error('Error in signToken42:', error);
+                this.logger.debug('Error in signToken42:', error);
+                throw error;
             }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
     handleTwoFactorAuthentication(user, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Check if 2FA (Two-Factor Authentication) is enabled for the user
-            if ((yield this.is2FaEnabled(user.id)) === false) {
-                // console.log(`Passing by 2FA is not activated`);
-                // If 2FA is not enabled, proceed to sign the token
-                const result = yield this.signToken(user.id, user.username, res);
-                // Validate the result of token signing
-                if (!result.valid) {
-                    return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
-                        statusCode: common_1.HttpStatus.UNAUTHORIZED,
-                        message: 'Invalid credentials',
-                        error: 'UNAUTHORIZED'
-                    });
+            try {
+                // Check if 2FA (Two-Factor Authentication) is enabled for the user
+                if ((yield this.is2FaEnabled(user.id)) === false) {
+                    // console.log(`Passing by 2FA is not activated`);
+                    // If 2FA is not enabled, proceed to sign the token
+                    const result = yield this.signToken(user.id, user.username, res);
+                    // Validate the result of token signing
+                    if (!result.valid)
+                        throw new common_1.UnauthorizedException('Invalid credentials');
+                    // Send a successful response
+                    res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
                 }
-                // Send a successful response
-                res.status(common_1.HttpStatus.OK).json({ valid: result.valid, message: result.message, userId: null });
+                else {
+                    // If 2FA is enabled, indicate that in the response
+                    res.status(common_1.HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
+                }
             }
-            else {
-                // If 2FA is enabled, indicate that in the response
-                res.status(common_1.HttpStatus.OK).json({ valid: true, message: "2FA", userId: user.id });
+            catch (error) {
+                throw error;
             }
         });
     }
@@ -533,7 +511,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return response.data.access_token;
             }
             catch (error) {
-                this.logger.error('Error fetching access token:', error);
+                this.logger.debug('Error fetching access token:', error);
                 return null;
             }
         });
@@ -570,7 +548,7 @@ let AuthService = AuthService_1 = class AuthService {
                 return response.data;
             }
             catch (error) {
-                this.logger.error('Error fetching user info in service getUserInfo:', error);
+                this.logger.debug('Error fetching user info in service getUserInfo:', error);
                 return null;
             }
         });
@@ -634,7 +612,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 // Handle any errors that occur during user creation or avatar update.
-                this.logger.error('Error saving user information to database:', error);
+                this.logger.debug('Error saving user information to database:', error);
                 return null;
             }
         });
@@ -720,8 +698,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 // Handle any errors that may occur during the verification process and log them
-                this.logger.error((0, has_message_tools_1.hasMessage)(error) ? `Error occurred in verifyTwoFACode: ${error.message}` :
-                    `Unexpected error occurred in verifyTwoFACode service`);
+                this.logger.debug(error);
                 return false;
             }
         });
@@ -744,59 +721,64 @@ let AuthService = AuthService_1 = class AuthService {
      */
     validateTwoFA(userId, code, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Find the user in the database based on the provided user ID.
-            const user = yield this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-            });
-            if (!user) {
-                // If the user is not found, return a 404 Not Found response.
-                return res.status(common_1.HttpStatus.NOT_FOUND).json({
-                    statusCode: common_1.HttpStatus.NOT_FOUND,
-                    message: 'User not found',
-                    error: 'NOT_FOUND',
-                    res: false
-                });
-            }
-            const secret = user.twoFASecret;
-            if (!secret) {
-                // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
-                return res.status(common_1.HttpStatus.NOT_FOUND).json({
-                    statusCode: common_1.HttpStatus.NOT_FOUND,
-                    message: 'Secret code not found',
-                    error: 'NOT_FOUND',
-                    res: false
-                });
-            }
-            // Verify the provided two-factor authentication code using the user's secret.
-            const verified = speakeasy.totp.verify({
-                secret,
-                encoding: 'base32',
-                token: code
-            });
-            if (verified === true) {
-                // If the code is verified successfully, update the user's TwoFA status to true.
-                yield this.prisma.user.update({
-                    where: { id: userId },
-                    data: {
-                        TwoFA: true,
+            try {
+                // Find the user in the database based on the provided user ID.
+                const user = yield this.prisma.user.findUnique({
+                    where: {
+                        id: userId,
                     },
                 });
-                // Return a 202 Accepted response with a success message.
-                return res.status(common_1.HttpStatus.ACCEPTED).json({
-                    statusCode: common_1.HttpStatus.ACCEPTED,
-                    message: 'The provided code was accepted',
-                    res: verified
+                if (!user) {
+                    // If the user is not found, return a 404 Not Found response.
+                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'User not found',
+                        error: 'NOT_FOUND',
+                        res: false
+                    });
+                }
+                const secret = user.twoFASecret;
+                if (!secret) {
+                    // If the user's two-factor authentication secret is not found, return a 404 Not Found response.
+                    return res.status(common_1.HttpStatus.NOT_FOUND).json({
+                        statusCode: common_1.HttpStatus.NOT_FOUND,
+                        message: 'Secret code not found',
+                        error: 'NOT_FOUND',
+                        res: false
+                    });
+                }
+                // Verify the provided two-factor authentication code using the user's secret.
+                const verified = speakeasy.totp.verify({
+                    secret,
+                    encoding: 'base32',
+                    token: code
+                });
+                if (verified === true) {
+                    // If the code is verified successfully, update the user's TwoFA status to true.
+                    yield this.prisma.user.update({
+                        where: { id: userId },
+                        data: {
+                            TwoFA: true,
+                        },
+                    });
+                    // Return a 202 Accepted response with a success message.
+                    return res.status(common_1.HttpStatus.ACCEPTED).json({
+                        statusCode: common_1.HttpStatus.ACCEPTED,
+                        message: 'The provided code was accepted',
+                        res: verified
+                    });
+                }
+                // If the code verification fails, return a 401 Unauthorized response.
+                return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
+                    statusCode: common_1.HttpStatus.UNAUTHORIZED,
+                    message: 'Incorrect code',
+                    error: 'UNAUTHORIZED',
+                    res: false
                 });
             }
-            // If the code verification fails, return a 401 Unauthorized response.
-            return res.status(common_1.HttpStatus.UNAUTHORIZED).json({
-                statusCode: common_1.HttpStatus.UNAUTHORIZED,
-                message: 'Incorrect code',
-                error: 'UNAUTHORIZED',
-                res: false
-            });
+            catch (error) {
+                throw error;
+            }
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -848,7 +830,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 // Handle any internal server errors and log them
-                this.logger.error('Internal Server Error occurred in enable2FA: ', error);
+                this.logger.debug('Internal Server Error occurred in enable2FA: ', error);
             }
         });
     }
@@ -867,7 +849,7 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (err) {
                 // Handle any errors that occur during QR code generation
-                this.logger.error('Error generating QR Code: ', err);
+                this.logger.debug('Error generating QR Code: ', err);
                 return null;
             }
         });

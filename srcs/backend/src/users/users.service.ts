@@ -1,7 +1,6 @@
 import {
     ForbiddenException, Injectable, NotFoundException, UnauthorizedException,
-    Response as NestResponse,
-    BadRequestException
+    Response as NestResponse, BadRequestException, Logger
 } from "@nestjs/common";
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
@@ -37,6 +36,7 @@ export class UsersService {
     // Declare private variables for JWT secret and upload folder path
     private JWT_SECRET: string | any;
     private readonly uploadFolder = 'uploads';
+    private readonly logger = new Logger(UsersService.name);
 
     constructor(private readonly prisma: PrismaService) {
         this.JWT_SECRET = process.env.JWT_SECRET;
@@ -442,7 +442,7 @@ export class UsersService {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-    async findUserWithUsername(usernameinput: string): Promise<User | undefined> {
+    async findUserWithUsername(usernameinput: string): Promise<User> {
         try {
             console.log("username INPUT ====", usernameinput);
             const user = await this.prisma.user.findUnique({
@@ -455,7 +455,6 @@ export class UsersService {
             }
             return user;
         } catch (error) {
-            console.error(error);
             throw error;
         }
     }
