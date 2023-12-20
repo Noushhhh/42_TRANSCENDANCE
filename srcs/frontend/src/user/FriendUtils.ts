@@ -60,6 +60,7 @@ export const getFriendsList = async (
     return Promise.reject(await response.json());
   }
 
+
   const formattedRes = await response.json();
   const friendsList: FriendType[] = formattedRes.friendsList;
 

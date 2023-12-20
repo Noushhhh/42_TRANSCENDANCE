@@ -89,6 +89,10 @@ let GameLobbyService = class GameLobbyService {
                     if (value.player1 != null && value.player2 != null) {
                         this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
                         value.gameState.gameState.isLobbyFull = true;
+                        value.gameState.gameState.newGameTimer = true;
+                        setTimeout(() => {
+                            value.gameState.gameState.newGameTimer = false;
+                        }, 1500);
                     }
                     // @to-do using a debug function here
                     this.printLobbies();
@@ -226,21 +230,13 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p1Id = p1Id;
                     value.gameState.gameState.p1Name = p1Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
+                    this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
                     // @to-do using a debug function here
                     this.printLobbies();
                     return;
                 }
             }
         });
-    }
-    isPaused(player, isPaused) {
-        var _a, _b;
-        for (const [key, value] of lobbies_1.lobbies) {
-            if ((player === null || player === void 0 ? void 0 : player.id) === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || (player === null || player === void 0 ? void 0 : player.id) === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id)) {
-                value.gameState.gameState.isPaused = isPaused;
-                return;
-            }
-        }
     }
     getAllClientsInARoom(roomName) {
         const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
@@ -361,6 +357,15 @@ let GameLobbyService = class GameLobbyService {
             }
         }
         return false;
+    }
+    playAgain(playerId) {
+        var _a, _b;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === playerId || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === playerId) {
+                console.log("Je suis icifeagfaegea");
+                value.gameState.gameState.isGameFinished = false;
+            }
+        }
     }
 };
 exports.GameLobbyService = GameLobbyService;

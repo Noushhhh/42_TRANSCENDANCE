@@ -42,13 +42,11 @@ export class GameConfig {
 }
 
 export interface GamePhysicsProps {
-  isPaused: boolean;
   socket: Socket;
 }
 
 export interface PaddleProps {
   socket: Socket;
-  isPaused: boolean;
 }
 
 export interface BallProps {
@@ -82,7 +80,6 @@ export interface GameState {
       y: number;
     },
   },
-  isPaused: boolean;
   score: {
     p1Score: number;
     p2Score: number;

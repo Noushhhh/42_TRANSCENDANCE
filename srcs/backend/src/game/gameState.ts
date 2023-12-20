@@ -64,8 +64,8 @@ export class GameState {
       },
       ballSpeed: 12.5 / 1200.0,
     },
-    isPaused: true,
     isGameFinished: false,
+    newGameTimer: false,
     score: {
       p1Score: 0,
       p2Score: 0,

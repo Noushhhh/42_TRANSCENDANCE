@@ -86,13 +86,12 @@ const UserProfil: FC<UserProfilProps> = ({
           gameWon: winPercentage_,
         });
 
-        console.log("USER PROFILE = ", userProfile);
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchUser();
+    fetchUser().catch(e => console.error(e));
   }, []);
 
   if (!isDisplay) return <></>;

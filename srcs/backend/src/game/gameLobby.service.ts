@@ -74,6 +74,10 @@ export class GameLobbyService {
         if (value.player1 != null && value.player2 != null) {
           this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
           value.gameState.gameState.isLobbyFull = true;
+          value.gameState.gameState.newGameTimer = true;
+          setTimeout(() => {
+            value.gameState.gameState.newGameTimer = false;
+          }, 1500);
         }
         // @to-do using a debug function here
         this.printLobbies();
@@ -220,17 +224,9 @@ export class GameLobbyService {
         value.gameState.gameState.p1Id = p1Id;
         value.gameState.gameState.p1Name = p1Name;
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
+        this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
         // @to-do using a debug function here
         this.printLobbies();
-        return;
-      }
-    }
-  }
-
-  isPaused(player: Socket | undefined, isPaused: boolean) {
-    for (const [key, value] of lobbies) {
-      if (player?.id === value.player1?.id || player?.id === value.player2?.id) {
-        value.gameState.gameState.isPaused = isPaused;
         return;
       }
     }
@@ -357,5 +353,14 @@ export class GameLobbyService {
       }
     }
     return false;
+  }
+
+  playAgain(playerId: string) {
+    for (const [key, value] of lobbies) {
+      if (value.player1?.id === playerId || value.player2?.id === playerId) {
+        console.log("Je suis icifeagfaegea");
+        value.gameState.gameState.isGameFinished = false;
+      }
+    }
   }
 }

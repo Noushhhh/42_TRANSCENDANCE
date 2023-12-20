@@ -31,12 +31,10 @@ export class GatewayOut implements OnGatewayInit {
 
       // check token validity return the userId if correspond to associated token
       // return null if token is invalid
-      const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
-
-      if (response) {
-        // next allow us to accept the incoming socket as the token is valid
+      try {
+        await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         next();
-      } else {
+      } catch (error) {
         next(new WsException('invalid token'));
       }
     })

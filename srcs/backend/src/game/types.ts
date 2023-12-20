@@ -22,7 +22,6 @@ export interface GameState {
     x2: number;
     y2: number;
   },
-  isPaused: boolean;
   score: {
     p1Score: number;
     p2Score: number;
