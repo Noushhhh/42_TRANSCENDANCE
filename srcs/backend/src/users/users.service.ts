@@ -14,6 +14,10 @@ import axios from 'axios';
 import { Readable } from 'stream'; // Import Readable from 'stream' module
 import * as fs from 'fs';
 import { use } from "passport";
+import { DEFAULT_AVATAR_PATH } from '../auth/constants/constants'; // Path to the default avatar image
+
+
+//defaul avatar path
 
 interface FriendRequestFromUser {
     id: number;
@@ -275,7 +279,7 @@ export class UsersService {
             const oldAvatarPath = currentUser.avatar;
 
             // If there is an old avatar, attempt to delete it
-            if (oldAvatarPath) {
+            if (oldAvatarPath && oldAvatarPath !== DEFAULT_AVATAR_PATH) {
                 try {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);

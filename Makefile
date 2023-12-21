@@ -122,7 +122,7 @@ del_node_pack_backend:
 	@rm -rf ./srcs/backend/node_modules ./srcs/backend/package-lock.json
 del_uploads:
 	@echo "Romoving uploads"
-	@find ./srcs/backend/uploads/ ! -name '.gitkeep' -type f -exec rm -f {} +
+	@find ./srcs/backend/uploads/ ! -name '.gitkeep'  ! -name 'defaultProfileImage.jpg' -type f -exec rm -f {} +
 
 
 
