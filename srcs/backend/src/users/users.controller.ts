@@ -137,10 +137,10 @@ export class UsersController {
     @Put('updateavatar')
     @UseInterceptors(FileInterceptor('avatar'))
     async updateAvatar(
-        @ExtractJwt() decodedPayload: DecodedPayload | null,
+        @ExtractJwt() decodedPayload: DecodedPayload,
         @UploadedFile() avatar: Express.Multer.File, @NestResponse() res: Response) {
         try {
-            await this.UsersService.updateAvatar(decodedPayload?.sub, avatar);
+            await this.UsersService.updateAvatar(decodedPayload.sub, avatar);
             res.status(200).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
 
