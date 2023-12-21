@@ -3,7 +3,7 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res
+    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res, Logger,
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -19,6 +19,7 @@ import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common
 @UseGuards(JwtAuthGuard) // Ensure the user is authenticated
 @Controller('users')
 export class UsersController {
+    private readonly logger = new Logger(UsersController.name);
     constructor(
         private UsersService: UsersService
     ) { };
@@ -75,7 +76,7 @@ export class UsersController {
         try {
             return await this.UsersService.getUserAvatar(decodedPayload, res)
         } catch (error) {
-            console.error(error);
+            this.logger.debug(error);
             throw error;
         }
     }
@@ -113,21 +114,12 @@ export class UsersController {
             const result = await this.UsersService.updatePublicName(decodedPayload.sub, publicName);
 
             if (!result.valid) {
-                throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
+                throw new HttpException(result.message, HttpStatus.CONFLICT);
             }
 
             return result; // Return the result directly
         } catch (error) {
-            // If it's a known error, rethrow it
-            if (error instanceof Error) {
-                throw error;
-            }
-
-            // For unknown errors, throw a generic
-            throw new HttpException(
-                'An error occurred while updating the public name.',
-                HttpStatus.BAD_REQUEST
-            );
+            throw error;
         }
     }
 
@@ -137,11 +129,11 @@ export class UsersController {
     @Put('updateavatar')
     @UseInterceptors(FileInterceptor('avatar'))
     async updateAvatar(
-        @ExtractJwt() decodedPayload: DecodedPayload | null,
+        @ExtractJwt() decodedPayload: DecodedPayload,
         @UploadedFile() avatar: Express.Multer.File, @NestResponse() res: Response) {
         try {
-            await this.UsersService.updateAvatar(decodedPayload?.sub, avatar);
-            res.status(200).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
+            await this.UsersService.updateAvatar(decodedPayload.sub, avatar);
+            res.status(HttpStatus.OK).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
 
             throw error;
