@@ -111,7 +111,7 @@ export const fetchUser = async (
       };
 
       if (header.name === '') {
-        const name: string | null = await getChannelName(channelId, userId);
+        const name: string | null = await getChannelName(channelId);
         if (name)
           header.name = name;
         channelInfo = await setHeaderNameWhenTwoUsers(id, userId, socket);
@@ -139,9 +139,9 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
   }
 }
 
-export const getChannelName = async (channelId: number, userId: number): Promise<string | null> => {
+export const getChannelName = async (channelId: number): Promise<string | null> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+    const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const channelName = await response.text();
     return channelName;

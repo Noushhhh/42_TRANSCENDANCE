@@ -18,6 +18,7 @@ import * as speakeasy from 'speakeasy';
 import { v4 as uuidv4 } from 'uuid';
 import QRCode from 'qrcode'
 import { hasMessage } from '../tools/has-message.tools';
+import { DEFAULT_AVATAR_PATH } from './constants/constants'; //import defaul avatar
 
 
 
@@ -67,7 +68,7 @@ export class AuthService {
           username: dto.username,
           hashPassword,
           fortyTwoStudent: false,
-          avatar: null
+          avatar: DEFAULT_AVATAR_PATH, //define default avatar upon creation
         },
       });
 

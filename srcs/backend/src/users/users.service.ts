@@ -1,6 +1,6 @@
 import {
     ForbiddenException, Injectable, NotFoundException, UnauthorizedException,
-    Response as NestResponse, BadRequestException, Logger
+    Response as NestResponse, BadRequestException, Logger, ConflictException
 } from "@nestjs/common";
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,6 +14,10 @@ import axios from 'axios';
 import { Readable } from 'stream'; // Import Readable from 'stream' module
 import * as fs from 'fs';
 import { use } from "passport";
+import { DEFAULT_AVATAR_PATH } from '../auth/constants/constants'; // Path to the default avatar image
+
+
+//defaul avatar path
 
 interface FriendRequestFromUser {
     id: number;
@@ -266,25 +270,16 @@ export class UsersService {
          *
     ***/
 
-    async updateAvatar(userId: number | undefined, avatar: Express.Multer.File) {
+    async updateAvatar(userId: number, avatar: Express.Multer.File) {
         try {
             // Retrieve the current user's details from the database
-            const currentUser = await this.prisma.user.findUnique({
-                where: { id: userId },
-                select: { avatar: true },
-            });
-
-            console.log("current User", currentUser);
-            // If the user is not found, throw a NotFoundException
-            if (!currentUser) {
-                throw new NotFoundException('User not found');
-            }
+            const currentUser = await this.findUserWithId(userId);
 
             // Extract the path of the old avatar
             const oldAvatarPath = currentUser.avatar;
 
             // If there is an old avatar, attempt to delete it
-            if (oldAvatarPath) {
+            if (oldAvatarPath && oldAvatarPath !== DEFAULT_AVATAR_PATH) {
                 try {
                     // Use fs.unlinkSync for synchronous file deletion
                     fs.unlinkSync(oldAvatarPath);
@@ -315,7 +310,7 @@ export class UsersService {
                 });
             } catch (error) {
                 // If updating the database fails
-                throw new BadRequestException('Failed to update user avatar in database');
+                throw new ConflictException('Failed to update user avatar in database');
             }
         } catch (error) {
             // Catch any other errors that might occur and throw an InternalServerErrorException

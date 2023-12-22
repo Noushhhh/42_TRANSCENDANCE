@@ -40,6 +40,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
   // Loading spinner timeout
   let loadingTimeout: NodeJS.Timeout;
 
+// ─────────────────────────────────────────────────────────────────────────────
+
   // Set loading spinner to false after MIN_LOADING_TIME passed
   const setLoaderSpinner = () => {
     loadingTimeout = setTimeout(() => {
@@ -47,6 +49,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       clearTimeout(loadingTimeout);
     }, MIN_LOADING_TIME);
   }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
   // Fetch user information from an API
   const fetchUserInfo = async () => {
@@ -72,6 +76,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   };
 
+// ─────────────────────────────────────────────────────────────────────────────
+
   // Check if the user is authenticated
   const checkUserAuth = async () => {
     try {
@@ -87,6 +93,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       navigate('/signin');
     }
   }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
   // Handle updating the public name
   const handleUpdatePublicName = useCallback(async () => {
@@ -104,6 +112,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       toast.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
     }
   }, [profileName, updatePublicName]);
+
+// ─────────────────────────────────────────────────────────────────────────────
 
   // Handle updating the avatar
   const handleUpdateAvatar = useCallback(async () => {
@@ -125,6 +135,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       toast.error("You must provided a new avatar");
   }, [newAvatar, profileImage, updateAvatar]);
 
+// ─────────────────────────────────────────────────────────────────────────────
+
   // Check if the client is registered, and navigate accordingly
   const checkAndNavigate = useCallback(async () => {
     try {
@@ -143,6 +155,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, [avatarFromBack, profileImage, isClientRegistered, navigate, updateAvatar])
 
+// ─────────────────────────────────────────────────────────────────────────────
+
   // useEffect hook to handle the loading screen timeout
   useEffect(() => {
     setLoaderSpinner();
@@ -150,6 +164,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
   }, [] );
+
+// ─────────────────────────────────────────────────────────────────────────────
 
   // Update image preview when profileImage changes
   useEffect(() => {
@@ -161,6 +177,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, [profileImage, avatarFromBack]);
 
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Handle file input change to update profileImage
   const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -170,11 +188,14 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
   }, []);
 
+  // ─────────────────────────────────────────────────────────────────────────────
 
   // Render loading spinner or user profile setup form
   if (showLoader) {
     return <LoadingSpinner />;
   }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
   // Render the user profile setup form
   return (

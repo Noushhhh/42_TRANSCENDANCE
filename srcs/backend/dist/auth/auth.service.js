@@ -63,6 +63,7 @@ const speakeasy = __importStar(require("speakeasy"));
 const uuid_1 = require("uuid");
 const qrcode_1 = __importDefault(require("qrcode"));
 const has_message_tools_1 = require("../tools/has-message.tools");
+const constants_2 = require("./constants/constants"); //import defaul avatar
 /**
  * @file auth.service.ts
  * @author Your Name
@@ -101,7 +102,7 @@ let AuthService = AuthService_1 = class AuthService {
                         username: dto.username,
                         hashPassword,
                         fortyTwoStudent: false,
-                        avatar: null
+                        avatar: constants_2.DEFAULT_AVATAR_PATH, //define default avatar upon creation
                     },
                 });
                 // console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
