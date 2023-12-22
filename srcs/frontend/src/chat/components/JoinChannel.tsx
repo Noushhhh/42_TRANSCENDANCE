@@ -1,7 +1,5 @@
 import React, { useState, useRef, ChangeEvent } from "react";
-import axios from "axios";
 import ValidationButton from "./ValidationButton";
-import { ChannelNameDto } from "../../../../backend/src/chat/dto/chat.dto";
 import "../styles/JoinChannel.css";
 import { fetchUser, joinChannel, isUserIsBan } from "./ChannelUtils";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -13,11 +11,6 @@ enum ChannelType {
     PUBLIC,
     PRIVATE,
     PASSWORD_PROTECTED,
-}
-
-interface joinChannelInterface{
-    type: ChannelType,
-    channelId: number,
 }
 
 interface isChannelExist {
@@ -35,7 +28,7 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
     const [error, setError] = useState<string | null>(null);
     const [apiResponse, setApiResponse] = useState<isChannelExist | null>(null);
     const [displayPasswordInput, setDisplayPasswordInput] = useState<boolean>(false);
-    const [channelNameDto, setChannelNameDto] = useState<ChannelNameDto>({ channelName: '' });
+    const [channelNameDto, setChannelNameDto] = useState<{channelName: string}>({ channelName: '' });
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const userId: number = useUserIdContext();

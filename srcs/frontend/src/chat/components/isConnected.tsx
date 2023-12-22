@@ -7,12 +7,6 @@ import { isChannelIsLive } from "./ChannelUtils";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 
-// logique des lives status :
-
-// frontend : créer une fonction qui prend en paramètres un channelId
-// et return true ou false (oui ou non si channel est live)
-// puis appeller cette fonction des que qqun se connecte/deconnecte/est kick/ajoute d'un channel
-
 function IsConnected(): JSX.Element{
 
     const [isConnected, setIsConnected] = useState<boolean>(false);

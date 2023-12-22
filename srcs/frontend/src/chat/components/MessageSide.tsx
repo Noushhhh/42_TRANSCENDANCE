@@ -6,7 +6,7 @@ import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
 import "../types/channel.type";
 import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
-import { fetchUser, leaveChannel } from "./ChannelUtils";
+import { fetchUser } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import ChannelManagerMenu from "./ChannelManagerMenu";
@@ -192,9 +192,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
               channel.lastMsg = previewLastMessage.content;
             return (
               <MessageToClick
-                channel={channel}
                 key={index}
-                isConnected={channel.isConnected}
+                channel={channel}
                 setChannelClicked={setChannelClicked}
               />
             );

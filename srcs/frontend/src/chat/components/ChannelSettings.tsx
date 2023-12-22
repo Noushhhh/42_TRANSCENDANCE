@@ -5,7 +5,7 @@ import HandleSettingsMenu from "./HandleSettingsMenu";
 import HeaderChannelInfo from "./HeaderChannelInfo";
 import { useSocketContext } from "../contexts/socketContext";
 import { Socket } from "socket.io-client";
-import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
+import { useChannelIdContext } from "../contexts/channelIdContext";
 
 interface ChannelSettingsProps {
   settingsChannel: boolean;

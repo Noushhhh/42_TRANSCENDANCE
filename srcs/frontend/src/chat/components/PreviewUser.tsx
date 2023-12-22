@@ -1,8 +1,6 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { ChangeEvent } from "react";
 import "../styles/PreviewUser.css";
-import avatar from "./avatar_tdeville.jpeg"
 import CloseIcon from '@mui/icons-material/Close';
-import ValidationButton from "./ValidationButton";
 
 interface PreviewUserProps {
     user: User;

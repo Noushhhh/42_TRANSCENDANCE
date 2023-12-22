@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import "../styles/CreateChannelPopup.css";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";

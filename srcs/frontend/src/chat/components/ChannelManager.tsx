@@ -1,6 +1,5 @@
 import React from "react";
 import JoinChannel from "./JoinChannel";
-// import "../styles/ChannelManager.css";
 import CreateChannelPopup from "./CreateChannelPopup";
 
 interface ChannelManagerProps {

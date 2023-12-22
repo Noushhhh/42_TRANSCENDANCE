@@ -1,16 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import { useState } from "react";
-import axios from "axios";
 import {
   isChannelExist,
   fetchUser,
   blockUser,
   unblockUser,
   isUserIsBlockedBy,
-  fetchConversation,
 } from "./ChannelUtils";
 import {
   useChannelIdContext,

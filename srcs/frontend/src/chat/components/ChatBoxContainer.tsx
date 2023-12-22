@@ -1,5 +1,5 @@
-import React, { FC, useEffect, useState, useRef } from "react";
-import { Socket, io } from "socket.io-client";
+import React, { FC, useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
 import "../styles/ChatBoxContainer.css";
 import MessageSide from "./MessageSide";
 import ContentMessage from "./ContentMessage";

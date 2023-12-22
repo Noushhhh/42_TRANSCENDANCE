@@ -1,7 +1,6 @@
 import React, { useState, useRef, ChangeEvent } from "react";
 import ValidationButton from "./ValidationButton";
 import { useUserIdContext } from "../contexts/userIdContext";
-import { useChannelIdContext } from "../contexts/channelIdContext";
 import { fetchUser, joinProtectedChannel } from "./ChannelUtils";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";

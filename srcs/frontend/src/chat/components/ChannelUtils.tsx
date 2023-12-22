@@ -1,6 +1,4 @@
 import { Socket } from 'socket.io-client';
-import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
-import { ErrorSharp } from '@mui/icons-material';
 
 interface Message {
   id: number // id: 0

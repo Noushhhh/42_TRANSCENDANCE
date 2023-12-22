@@ -1,4 +1,4 @@
-import React, { SetStateAction, Dispatch, useEffect } from "react";
+import React, { SetStateAction, Dispatch } from "react";
 
 interface SearchBarProps{
     setDisplayResults: Dispatch<SetStateAction<boolean>>;
