@@ -3,7 +3,6 @@ import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-// import { SocketService } from './socket.service';
 import { ChatService } from './chat.service';
 
 @Injectable()
