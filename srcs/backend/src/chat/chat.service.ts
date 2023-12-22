@@ -8,7 +8,7 @@ import { UnauthorizedException } from "@nestjs/common";
 import { PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
-import { CreateChannelDto } from "./chat.controller";
+import { CreateChannelDto } from "./dto/chat.dto";
 
 interface MessageToStore {
   channelId: number;
@@ -211,8 +211,6 @@ export class ChatService {
     try {
       await this.getUserById(ownerId);
       const channels = await this.prisma.channel.findMany();
-      console.log("channel output ==");
-      console.log(channels);
       if (!channels)
         throw new NotFoundException("Error getting channels");
       const existingChannelNames = channels.map(channel => channel.name);

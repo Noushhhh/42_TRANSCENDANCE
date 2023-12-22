@@ -157,10 +157,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handlePrivateMessageClick = async () => {
-    console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
     if (response !== -1) {{
-      console.log(`setChannelId to ${response}`);
       setChannelId(response);
     }
     } else {

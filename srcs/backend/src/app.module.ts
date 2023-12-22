@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 // import { PrismaModule } from './prisma/prisma.module';
@@ -26,7 +24,7 @@ import { StatsModule } from './stats/stats.module';
     GameModule,
     StatsModule,
   ],
-  controllers: [AppController, ChatController],
-  providers: [AppService, ChatService, PrismaService, SocketService, AuthService, JwtService],
+  controllers: [ChatController],
+  providers: [ChatService, PrismaService, SocketService, AuthService, JwtService],
 })
 export class AppModule {}

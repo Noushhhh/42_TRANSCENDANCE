@@ -1,59 +1,17 @@
-import { Get, Post, Body, Controller, Param, HttpException, HttpStatus, UseGuards, Query, NotFoundException } from "@nestjs/common";
+import { Get, Post, Body, Controller, UseGuards, Query } from "@nestjs/common";
 import {
     ChannelNameDto, PairUserIdChannelId, SignUpChannelDto, ManageChannelTypeDto,
-    pairUserId, UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
-    getUsernamesDto, KickOrBanChannelDto, ManageAdminDto
+    UserIdDto, ManagePasswordDto, ChannelIdDto, ChannelIdPostDto, LeaveChannelDto, muteDto, MessageToStoreDto, getChannelUsernamesDto,
+    getUsernamesDto, KickOrBanChannelDto, ManageAdminDto, CreateChannelDto
 } from "./dto/chat.dto";
-import { IsIn, IsNumber, IsString, IsInt, Min, IsDate, Max, maxLength, MaxLength } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ChatService } from "./chat.service";
 import { Message, User } from "@prisma/client";
 import { ChannelType } from "@prisma/client";
 import './interfaces/chat.interface';
 import { AdminGuard } from "./guards/admin.guards";
 import { OwnerGuard } from "./guards/owner.guards";
-import { Req } from "@nestjs/common";
-import { Request } from "express";
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { GetUser } from "../auth/decorator/get-user.decorator";
-
-export class ChannelDTO {
-    @IsString()
-    @MaxLength(35)
-    name!: string;
-
-    @IsString()
-    @MaxLength(35)
-    password!: string;
-
-    @IsNumber()
-    @Type(() => Number)
-    @Min(0)
-    @Max(2000000)
-    ownerId!: number;
-
-    @IsNumber({}, { each: true })
-    participants!: number[];
-
-    @IsString()
-    type!: string;
-}
-
-export class CreateChannelDto {
-    @IsString()
-    @MaxLength(35)
-    name!: string;
-
-    @IsString()
-    @MaxLength(35)
-    password!: string;
-
-    @IsNumber({}, { each: true })
-    participants!: number[];
-
-    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED'])
-    type!: string;
-}
 
 interface isChannelExist {
     isExist: boolean,
@@ -97,7 +55,7 @@ export class ChatController {
     async addMessageToChannelId(
         @GetUser('id') userId: number,
         @Body() message: MessageToStoreDto) {
-            return this.chatService.addMessageToChannelId(message, userId);
+        return this.chatService.addMessageToChannelId(message, userId);
     }
 
     @Get('getUsersFromChannelId')
