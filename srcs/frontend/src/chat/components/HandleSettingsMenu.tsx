@@ -161,7 +161,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             <div className={`${isItDisplay}`}>
                 {error}
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <SearchBar /*setDisplayResults={setSearchBarResults}*/ inputValue={inputValue} setInputValue={setInputValue} />
+                <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} />
                 <div className="ContainerPreviewUser">
                     {action === "admin" ? (
                         listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => (

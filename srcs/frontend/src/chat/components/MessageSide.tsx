@@ -32,7 +32,7 @@ interface MessageSideProps {
 
 function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMessage }: MessageSideProps) {
   const [needReload, setNeedReload] = useState<boolean>(false);
-  const [displayResults] = useState<boolean>(false);
+  const [displayResults, setDisplayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
   const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([
@@ -102,7 +102,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       socket.off("messageBack", messageEvent);
       socket.off("changeConnexionState", changeConnexionStateEvent);
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     socket.on("addedToChannel", addedToChannelEvent);
@@ -162,7 +163,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
             setStateMessageToClick={setStateMessageToClick}
           />
           <SearchBar
-            /*setDisplayResults={setDisplayResults}*/
+            setDisplayResults={setDisplayResults}
             setInputValue={setInputValue}
             inputValue={inputValue}
           />

@@ -197,7 +197,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
           <div>
             <p>Please provide a new owner/admin</p>
             <div style={{ color: "red" }}>{error}</div>
-            <SearchBar /*setDisplayResults={setdisplayOwnerResults}*/ inputValue={newOwnerInput} setInputValue={setnewOwnerInput} />
+            <SearchBar inputValue={newOwnerInput} setInputValue={setnewOwnerInput} />
             {newOwner ? <PreviewUser user={newOwner} removeUserFromList={removeUserFromList} /> : null}
             <SearchBarResults inputValue={newOwnerInput} displayResults={true} showUserMenu={false} addUserToList={addUserToList} onlySearchInChannel={true} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
             <ValidationButton action={setNewOwnerAndLeaveChannel}
