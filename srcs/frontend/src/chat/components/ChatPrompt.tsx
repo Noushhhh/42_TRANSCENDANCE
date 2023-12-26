@@ -90,7 +90,10 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
     console.log(data);
     if (!data) return;
     if (isWhitespace(data.content)) return;
-    addMessage(data, "MessageFrom");
+    if (data.senderId === userId)
+      addMessage(data, "MessageTo");
+    else 
+      addMessage(data, "MessageFrom")
     setMessage("");
   };
 

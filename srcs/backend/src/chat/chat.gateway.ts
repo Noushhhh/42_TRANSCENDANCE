@@ -35,17 +35,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
                 next(new WsException('invalid token'));
             }
         })
-
-        /*this.server.on('connection', async (socket) => {
-            console.log(`userId ${socket.data.userId} is connected from chat gateway`);
-            this.joinRoomsForClient(socket.data.userId, socket);
-            this.readMap();
-
-            socket.on('disconnect', async () => {
-                console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
-                this.leaveRoomsForClient(socket.data.userId, socket);
-            })
-        });*/
     }
 
     handleConnection(socket: Socket) {
@@ -63,7 +52,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async readMap() {
         const sockets = await this.server.fetchSockets();
         for (const socket of sockets) {
-            console.log(`userId:${socket.data.userId} is ${socket.id}`);
+            console.log(`userId:${socket.data.userId} is ${socket.id} (chat)`);
         }
     }
 
