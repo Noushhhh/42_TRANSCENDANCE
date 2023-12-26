@@ -29,7 +29,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
     const [userList, setUserList] = useState<User[]>([]);
     const [inputValue, setInputValue] = useState<string>("");
     const [listUserAdmin, setListUserAdmin] = useState<{ user: User, isAdmin: boolean, updated: boolean }[]>([]);
-    const [mutedUser, setMutedUser] = useState<User>();
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
     const [error, setError] = useState<string | null>(null);
     const [mutedUntil, setMutedUntil] = useState<string>("");
@@ -74,6 +73,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
 
     useEffect(() => {
         fetchDataAdmins();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const callAction = async () => {
@@ -161,7 +161,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             <div className={`${isItDisplay}`}>
                 {error}
                 <HeaderChannelInfo handleClick={backMenu} title={title} />
-                <SearchBar setDisplayResults={setSearchBarResults} inputValue={inputValue} setInputValue={setInputValue} action={action} />
+                <SearchBar /*setDisplayResults={setSearchBarResults}*/ inputValue={inputValue} setInputValue={setInputValue} />
                 <div className="ContainerPreviewUser">
                     {action === "admin" ? (
                         listUserAdmin.filter(user => user.isAdmin === true).map((user, index) => (
@@ -196,8 +196,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                     updateUserAdminList={updateUserAdminList}
                     fetchDataAdmins={fetchDataAdmins}
                     listUsersSearched={listUsersSearched}
-                    setListUsersSearched={setListUsersSearched}
-                    mutedUser={mutedUser} />}
+                    setListUsersSearched={setListUsersSearched}/>}
                 <div className="userList">
                 </div>
                 <div style={{ position: "absolute", top: "45%", left: "60%" }}>

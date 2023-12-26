@@ -84,18 +84,20 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     socket.emit("isUserInGame", user.id, (data: IsPlayerInLobbyType) => {
       setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
     socket.on("lobbyIsCreated", handleLobbyCreation);
     socket.on("invitationStatus", handleInvitationStatus);
-
+    
     return () => {
       socket.off("isInviteAccepted", handleInvitation);
       socket.off("lobbyIsCreated", handleLobbyCreation);
       socket.off("invitationStatus", handleInvitationStatus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLobbyCreation = () => {
@@ -156,9 +158,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
 
   const handlePrivateMessageClick = async () => {
     const response = await isChannelExist([userId, user.id]);
-    if (response !== -1) {{
+    if (response !== -1) {
       setChannelId(response);
-    }
     } else {
       try {
         const channelIdCreated: number = await createChannel(
@@ -234,7 +235,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       await unblockUser(user.id);
       socket.emit("unblock", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
-      console.log("Unblocked");
       handleClose();
     } catch (error) {
       console.log("error unblocking user");

@@ -20,7 +20,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
     const [channelName, setChannelName] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
-    const [displayResults, setDisplayResults] = useState<boolean>(false);
+    const [displayResults] = useState<boolean>(true);
     const [inputValue, setInputValue] = useState<string>("");
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
@@ -113,7 +113,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 </div>
             </div>
         ) : null}
-            <SearchBar setDisplayResults={setDisplayResults} setInputValue={setInputValue} inputValue={inputValue} />
+            <SearchBar /*setDisplayResults={setDisplayResults}*/ setInputValue={setInputValue} inputValue={inputValue} />
             <h3>User List</h3>
             <div className="userList">
                 {userListChannel.map((user, index) => {

@@ -28,7 +28,6 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
   }
 
   const storeMsgToDatabase = async (message: MessageToStore) => {
-    const { id, ...newMessage }: Partial<Message> = message;
     try {
       await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
         method: "POST",
@@ -83,6 +82,7 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
     return () => {
     socket.on("messageBack", messageEvent);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const messageEvent = (data: Message) => {

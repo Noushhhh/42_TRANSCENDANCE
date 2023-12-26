@@ -32,7 +32,7 @@ interface MessageSideProps {
 
 function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMessage }: MessageSideProps) {
   const [needReload, setNeedReload] = useState<boolean>(false);
-  const [displayResults, setDisplayResults] = useState<boolean>(false);
+  const [displayResults] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
   const [stateMessageToClick, setStateMessageToClick] = useState<boolean[]>([
@@ -72,7 +72,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       socket.off("channelDeleted", channelDeletedEvent);
       socket.off("kickedOrBanned", kickedOrBannedEvent);
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const channelDeletedEvent = async (channelId: number) => {
     // check if need to uncomment this part, I think no
@@ -109,6 +110,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     return () => {
       socket.off("addedToChannel", addedToChannelEvent);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const addedToChannelEvent = async () => {
@@ -143,6 +145,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     return () => {
       fetchBoolean.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needReload]);
 
   return (
@@ -159,7 +162,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
             setStateMessageToClick={setStateMessageToClick}
           />
           <SearchBar
-            setDisplayResults={setDisplayResults}
+            /*setDisplayResults={setDisplayResults}*/
             setInputValue={setInputValue}
             inputValue={inputValue}
           />
