@@ -66,7 +66,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
       // check token validity return the userId if correspond to associated token
       // return null if token is invalid
-      this.printSockets();
       try {
         const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         if (this.isUserAlreadyHasSocket(response!)) return;
