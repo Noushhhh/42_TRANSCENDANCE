@@ -46,7 +46,7 @@ const TwoFA: FC = () => {
 
     const is2FaActivated = async () => {
       const response = await fetch(
-        "http://localhost:4000/api/auth/is2FaActivated",
+        "${API_BASE_URL}/api/auth/is2FaActivated",
         {
           method: "GET",
           credentials: "include",
@@ -64,7 +64,7 @@ const TwoFA: FC = () => {
   }, [userId]);
 
   const enable2FA = async () => {
-    const response = await fetch("http://localhost:4000/api/auth/enable2FA", {
+    const response = await fetch("${API_BASE_URL}/api/auth/enable2FA", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -80,7 +80,7 @@ const TwoFA: FC = () => {
   };
 
   const disable2FA = async () => {
-    const response = await fetch("http://localhost:4000/api/auth/disable2FA", {
+    const response = await fetch("${API_BASE_URL}/api/auth/disable2FA", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -95,7 +95,7 @@ const TwoFA: FC = () => {
 
   const validateTwoFA = async () => {
     const response = await fetch(
-      "http://localhost:4000/api/auth/validating2FA",
+      "${API_BASE_URL}/api/auth/validating2FA",
       {
         method: "POST",
         credentials: "include",

@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import MatchHistory from "./MatchHistory";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface GamePlayedProps {
   userId: number;
@@ -16,7 +17,7 @@ const GamePlayed: FC<GamePlayedProps> = ({ userId }) => {
       setIsLoading(true);
 
       const response = await fetch(
-        "http://localhost:4000/api/stats/getGameStats",
+        `${API_BASE_URL}/api/stats/getGameStats`,
         {
           method: "GET",
           credentials: "include",

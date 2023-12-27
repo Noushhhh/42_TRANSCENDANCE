@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export const useSignOut = () => {
   const navigate = useNavigate();
 
   const handleSignOut = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/auth/signout', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signout`, {
         method: 'DELETE',
         credentials: 'include',
       });

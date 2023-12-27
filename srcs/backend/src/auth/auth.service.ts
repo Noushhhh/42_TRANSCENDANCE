@@ -38,6 +38,7 @@ export class AuthService {
   private readonly JWT_SECRET: string | any;
   private readonly logger = new Logger(AuthService.name);
   private currentUser: User | null = null;
+  private readonly API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   constructor(
     private usersService: UsersService,
@@ -234,8 +235,8 @@ export class AuthService {
       const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
       res.cookie('refreshToken', tokens.refreshToken.token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: false,
+        sameSite: 'none',
         maxAge: refreshTokenMaxAge
       });
 
@@ -243,18 +244,18 @@ export class AuthService {
       const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
       res.cookie('token', tokens.newToken.token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: false,
+        sameSite: 'none',
         maxAge: tokenMaxAge
       });
 
       const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
 // Set the session cookie in the response
       res.cookie('userSession', sessionValue, {
-        httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-        secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
-        sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
-        maxAge: tokenMaxAge  // Sets the cookie to expire in 1 day (example)
+        httpOnly: true,
+        secure: false,
+        sameSite: 'none',
+        maxAge: tokenMaxAge
       });
 
     } catch (error) {
@@ -418,6 +419,7 @@ export class AuthService {
 
       // Exchange the code for a token
       const token = await this.exchangeCodeForToken(code);
+      this.logger.debug(`signToken ${token}`);
       // Check if the token was successfully retrieved
       if (!token) {
         this.logger.debug('Failed to fetch access token');
@@ -508,7 +510,6 @@ export class AuthService {
   async exchangeCodeForToken(code: string): Promise<string | null> {
     try {
       const response = await this.sendAuthorizationCodeRequest(code);
-      //console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
       return response.data.access_token;
     } catch (error) {
       this.logger.debug('Error fetching access token:', error);
@@ -519,16 +520,19 @@ export class AuthService {
   // ─────────────────────────────────────────────────────────────────────────────
   private async sendAuthorizationCodeRequest(code: string) {
     try {
+      // console.log(`passing by sendAuthorizationCodeRequest code: ${code}`)
       const requestBody = {
         grant_type: 'authorization_code',
         client_id: process.env.UID_42,
         client_secret: process.env.SECRET_42,
         code: code,
-        redirect_uri: 'http://localhost:8081/callback42',
+        redirect_uri: process.env.CALLBACK_URL_42,
       };
+
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 
     } catch (error) {
+      this.logger.debug(`passing by sendAuthorizationCodeRequest erro: ${error}`);
       throw new HttpException("Error creating fresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }

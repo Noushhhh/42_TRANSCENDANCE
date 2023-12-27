@@ -2,7 +2,8 @@
 import { NavigateFunction } from "react-router-dom";
 
 // Assuming API_BASE_URL is defined in a configuration file or environment variable
-const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const FETCH_TIMEOUT = 5000;  // Timeout for the fetch call set to 5 seconds
 
 /**
@@ -336,32 +337,6 @@ export const fetchImageAsFile = async (imageUrl: string, imageName: string): Pro
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const verify2FA = async (userId: number, twoFaCode: string, navigate: NavigateFunction) => {
-  // try {
-  //   console.log("USERID CODE = ", userId, twoFaCode);
-  //   const response = await fetch(
-  //     "http://localhost:4000/api/auth/verifyTwoFACode",
-  //     {
-  //       method: "POST",
-  //       credentials: "include",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ userId, token: twoFaCode }),
-  //     }
-  //   );
-
-  //   if (!response.ok) return Promise.reject(await response.json());
-  //   const formattedRes = await response.json();
-
-  //   if (formattedRes.valid === true) {
-
-  //     // const userIsRegistered = await isClientRegistered();
-  //     // navigate(userIsRegistered ? "/home" : "/userprofilesetup");
-  //     navigate("/home/game");
-  //   }
-  // } catch (error) {
-  //   throw error;
-  // }
 
   const response = await fetch(
     `${API_BASE_URL}/api/auth/verifyTwoFACode`,

@@ -81,6 +81,7 @@ let AuthService = AuthService_1 = class AuthService {
         this.jwt = jwt;
         this.logger = new common_1.Logger(AuthService_1.name);
         this.currentUser = null;
+        this.API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
             throw new Error("JWT_SECRET environment variable not set!");
@@ -256,25 +257,25 @@ let AuthService = AuthService_1 = class AuthService {
             const refreshTokenMaxAge = tokens.refreshToken.expiresAt.getTime() - Date.now();
             res.cookie('refreshToken', tokens.refreshToken.token, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
+                secure: false,
+                sameSite: 'none',
                 maxAge: refreshTokenMaxAge
             });
             // Assuming the JWT token also has an expiresAt property to calculate its maxAge
             const tokenMaxAge = tokens.newToken.expiresAt.getTime() - Date.now(); // tokens.newToken.tokenExpiresAt needs to be provided
             res.cookie('token', tokens.newToken.token, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
+                secure: false,
+                sameSite: 'none',
                 maxAge: tokenMaxAge
             });
             const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
             // Set the session cookie in the response
             res.cookie('userSession', sessionValue, {
-                httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-                secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS
-                sameSite: 'strict', // Controls whether the cookie is sent with cross-origin requests
-                maxAge: tokenMaxAge // Sets the cookie to expire in 1 day (example)
+                httpOnly: true,
+                secure: false,
+                sameSite: 'none',
+                maxAge: tokenMaxAge
             });
         }
         catch (error) {
@@ -422,6 +423,7 @@ let AuthService = AuthService_1 = class AuthService {
                 this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
                 // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
+                this.logger.debug(`signToken ${token}`);
                 // Check if the token was successfully retrieved
                 if (!token) {
                     this.logger.debug('Failed to fetch access token');
@@ -508,7 +510,6 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield this.sendAuthorizationCodeRequest(code);
-                //console.log(`passing by exchangeCodeForToken:  ${response} = await this.sendAuthorizationCodeRequest(code)`);
                 return response.data.access_token;
             }
             catch (error) {
@@ -521,16 +522,18 @@ let AuthService = AuthService_1 = class AuthService {
     sendAuthorizationCodeRequest(code) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // console.log(`passing by sendAuthorizationCodeRequest code: ${code}`)
                 const requestBody = {
                     grant_type: 'authorization_code',
                     client_id: process.env.UID_42,
                     client_secret: process.env.SECRET_42,
                     code: code,
-                    redirect_uri: 'http://localhost:8081/callback42',
+                    redirect_uri: process.env.CALLBACK_URL_42,
                 };
                 return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
             }
             catch (error) {
+                this.logger.debug(`passing by sendAuthorizationCodeRequest erro: ${error}`);
                 throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });

@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import MatchCard from "./MatchCard";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface MatchHistoryProps {
   userId: number;
@@ -28,7 +29,7 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
       setIsLoading(true);
 
       const response = await fetch(
-        "http://localhost:4000/api/stats/getMatchHistory",
+        `${API_BASE_URL}/api/stats/getMatchHistory`,
         {
           method: "GET",
           credentials: "include",

@@ -1,7 +1,8 @@
 import { hasMessage, getErrorResponse } from "../Api";
 
 // Constants
-const API_IS_CLIENT_REGISTERED = "http://localhost:4000/api/users/isClientRegistered";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_IS_CLIENT_REGISTERED = `${API_BASE_URL}/api/users/isClientRegistered`;
 
 /**
  * Custom React hook to determine if the user has already had a first connection.
