@@ -56,6 +56,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             }
         };
         updateFirstConnectionStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isClientRegistered]); // Dependency array with isClientRegistered to rerun if it changes
     // ─────────────────────────────────────────────────────────────────────────────
 

@@ -88,7 +88,7 @@ export class UsersController {
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
         try {
-            const user = await this.FindWithId(decodedPayload.sub);
+            const user = await this.UsersService.findUserWithId(decodedPayload.sub);
             return res.status(200).send({
                 valid: true, message: "profileName found",
                 profileName: user?.publicName
@@ -112,7 +112,6 @@ export class UsersController {
         try {
             // Use decodedPayload.sub as the user identifier
             const result = await this.UsersService.updatePublicName(decodedPayload.sub, publicName);
-
             if (!result.valid) {
                 throw new HttpException(result.message, HttpStatus.CONFLICT);
             }
@@ -151,28 +150,10 @@ export class UsersController {
         return req.user;
     }
 
-    @Get('UserWithId')
-    FindWithId(userId: number): Promise<User> {
-        return this.UsersService.findUserWithId(userId);
-    }
-
-    @Get('getUsernameWithId')
-    getUsernameWithId(
-        @Query() dto: UserIdDto): Promise<string> {
-        return this.UsersService.getUsernameWithId(dto.userId);
-    }
-
     @Get('getPublicName')
     getPublicName(
         @Query() dto: UserIdDto): Promise<string | null> {
         return this.UsersService.getPublicName(dto.userId);
-    }
-
-
-    @Get('UserWithUsername')
-    FindWithUsername(username: string): Promise<User | undefined> {
-        console.log("controller: username is: ", username);
-        return this.UsersService.findUserWithUsername(username);
     }
 
     @Post('sendFriendRequest')
