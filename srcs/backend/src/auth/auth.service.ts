@@ -119,8 +119,8 @@ export class AuthService {
         throw new UnauthorizedException('Incorrect password');
 
       // Enhanced session check logic
-      if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-        throw new UnauthorizedException('User is already logged in');
+      // if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
+      //   throw new UnauthorizedException('User is already logged in');
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
@@ -236,7 +236,7 @@ export class AuthService {
       res.cookie('refreshToken', tokens.refreshToken.token, {
         httpOnly: true,
         secure: false,
-        sameSite: 'none',
+        sameSite: true,
         maxAge: refreshTokenMaxAge
       });
 
@@ -245,7 +245,7 @@ export class AuthService {
       res.cookie('token', tokens.newToken.token, {
         httpOnly: true,
         secure: false,
-        sameSite: 'none',
+        sameSite: true,
         maxAge: tokenMaxAge
       });
 
@@ -254,7 +254,7 @@ export class AuthService {
       res.cookie('userSession', sessionValue, {
         httpOnly: true,
         secure: false,
-        sameSite: 'none',
+        sameSite: true,
         maxAge: tokenMaxAge
       });
 
@@ -528,6 +528,7 @@ export class AuthService {
         code: code,
         redirect_uri: process.env.CALLBACK_URL_42,
       };
+      this.logger.debug(process.env.CALLBACK_URL_42)
 
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 
