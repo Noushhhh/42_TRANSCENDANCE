@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 // Styles and components
 import '../styles/generalStyles.css';
 import GoBackButton from "../tools/GoBackButton";
-import { getErrorResponse, hasMessage, validateEmail, validatePassword } from "../tools/Api";
+import { getResponseBody, formatErrorMessage } from "../tools/Api";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -47,18 +47,11 @@ const signUpAPI = async (email: string, password: string) => {
         body: JSON.stringify({ username: email, password }),
     });
 
-    // Check if the response from the fetch request is not successful
+    const data = await getResponseBody(response);
     if (!response.ok) {
-        // If the response is not successful, parse the response body as JSON.
-        // This assumes that the server provides a JSON response containing error details.
-        const errorDetails = await getErrorResponse(response);
-
-        // Reject the promise with a new Error object. 
-        // This provides a more detailed error message than simply rejecting with the raw response.
-        // makes it easier to understand the nature of the error when handling it later.
-        return Promise.reject(errorDetails);
+        throw new Error(data.message || 'Unknown error occurred');
     }
-    return response.json();
+    return data;
 };
 
 
@@ -88,26 +81,26 @@ const SignUp: React.FC = () => {
         event.preventDefault();
         setIsLoading(true);
         try {
-            if (password !== confirmPassword)
+            if (password !== confirmPassword) {
                 throw new Error('Passwords do not match.');
-            // await validateEmail(email);
-            // await validatePassword(password);
+            }
             await signUpAPI(email, password);
             navigate('/signin', { state: { message: 'Your account has been created successfully. Please sign in.' } });
         } catch (error) {
-            toast.error(`Error signing up: ${hasMessage(error) ? error.message : ""}`);
-            console.error(`Error signing up: ${hasMessage(error) ? error.message : ""}`);
+            const errorMessage = formatErrorMessage(error);
+            toast.error(`Error signing up: ${errorMessage}`);
+            console.error(`Error signing up: ${errorMessage}`);
         } finally {
             setIsLoading(false);
         }
     };
-
+    
     // JSX Render
     return (
         <div className="container">
             <GoBackButton />
             <h1 className="title" style={{ fontSize: 'xxx-large' }}>Pong Game</h1>
-            <ToastContainer/>
+            <ToastContainer />
             <InputField type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
             <InputField type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
             <InputField type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
