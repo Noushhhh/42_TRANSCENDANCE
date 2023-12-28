@@ -26,6 +26,9 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
   return (
     <div
       style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.5rem",
         position: "absolute",
         top: position.top,
         left: position.left,
@@ -34,6 +37,8 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
         padding: "0.5rem",
       }}
     >
+      <button>See profile</button>
+      <button>Play</button>
       <button
         onClick={() => {
           removeFriend(friend.id, socket).catch((e) => {

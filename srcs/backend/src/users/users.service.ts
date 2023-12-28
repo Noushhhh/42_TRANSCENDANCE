@@ -418,7 +418,7 @@ export class UsersService {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async findUserWithUsername(usernameinput: string): Promise<User> {
         try {
@@ -437,7 +437,7 @@ export class UsersService {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async sendFriendRequest(senderId: number, targetId: number) {
         const sender = await this.prisma.user.findUnique({
@@ -718,4 +718,43 @@ export class UsersService {
         return userProfile;
     }
 
+
+    async getUsersWithStr(userId: number, toFind: string): Promise<FriendRequestFromUser[]> {
+        const users = await this.prisma.user.findMany({
+            where: {
+                AND: [
+                    {
+                        publicName: {
+                            contains: toFind,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        id: {
+                            not: userId,
+                        },
+                    },
+                    {
+                        NOT: {
+                            friendOf: {
+                                some: {
+                                    id: userId,
+                                },
+                            },
+                        },
+                    },
+                ],
+            },
+        });
+
+
+        const usersWithSelectedInfo = users.map((user) => ({
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+            avatar: user.avatar,
+        }));
+
+        return usersWithSelectedInfo;
+    }
 }
