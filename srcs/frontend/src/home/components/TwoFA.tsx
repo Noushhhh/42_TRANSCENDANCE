@@ -1,5 +1,8 @@
 import React, { FC, useEffect, useState } from "react";
 import { getMyUserId } from "../../chat/components/ChannelUtils";
+// Assuming API_BASE_URL is defined in a configuration file or environment variable
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 
 const TwoFaPopUpStyle: React.CSSProperties = {
   position: "absolute",
@@ -46,7 +49,7 @@ const TwoFA: FC = () => {
 
     const is2FaActivated = async () => {
       const response = await fetch(
-        "${API_BASE_URL}/api/auth/is2FaActivated",
+        `${API_BASE_URL}/api/auth/is2FaActivated`,
         {
           method: "GET",
           credentials: "include",
@@ -64,7 +67,7 @@ const TwoFA: FC = () => {
   }, [userId]);
 
   const enable2FA = async () => {
-    const response = await fetch("${API_BASE_URL}/api/auth/enable2FA", {
+    const response = await fetch(`${API_BASE_URL}/api/auth/enable2FA`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -80,7 +83,7 @@ const TwoFA: FC = () => {
   };
 
   const disable2FA = async () => {
-    const response = await fetch("${API_BASE_URL}/api/auth/disable2FA", {
+    const response = await fetch(`${API_BASE_URL}/api/auth/disable2FA`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -95,7 +98,7 @@ const TwoFA: FC = () => {
 
   const validateTwoFA = async () => {
     const response = await fetch(
-      "${API_BASE_URL}/api/auth/validating2FA",
+      `${API_BASE_URL}/api/auth/validating2FA`,
       {
         method: "POST",
         credentials: "include",
