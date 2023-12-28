@@ -28,9 +28,33 @@ export default async function App() {
     })
   );
 
+  const allowedOrigins = [
+    'http://localhost:8081',
+    // Add a pattern to allow any IP from the local network
+    /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
+    /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
+    // ... other origins ...
+  ];
+
   // Configure CORS (Cross-Origin Resource Sharing) options
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:8081',
+
+    origin: (origin, callback) => {
+      const isAllowed = !origin || allowedOrigins.some((allowedOrigin) => {
+        if (typeof allowedOrigin === 'string') {
+          return origin === allowedOrigin;
+        } else if (allowedOrigin instanceof RegExp) {
+          return allowedOrigin.test(origin);
+        }
+        return false;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: [
       'Content-Type',

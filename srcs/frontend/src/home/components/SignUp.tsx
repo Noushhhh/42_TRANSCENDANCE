@@ -10,6 +10,8 @@ import { getErrorResponse, hasMessage, validateEmail, validatePassword } from ".
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -39,7 +41,7 @@ export const InputField: React.FC<{ type: string, value: string, onChange: (e: R
  * @throws Error if API call isn't successful
  */
 const signUpAPI = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:8081/api/auth/signup', {
+    const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),

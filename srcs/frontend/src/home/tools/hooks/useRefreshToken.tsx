@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const useRefreshToken = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);

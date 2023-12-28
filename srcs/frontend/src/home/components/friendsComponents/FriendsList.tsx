@@ -3,6 +3,7 @@ import { formatPlayerName } from "../../../game/components/gameNetwork/ScoreBoar
 import FriendsMenu from "./FriendsMenu";
 import { getFriendsList } from "../../../user/FriendUtils";
 import { Socket } from "socket.io-client";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface FriendsListProps {
   userId: number;
@@ -119,7 +120,7 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
             src={
               isUrlContainsHttps(friend.avatar!) === true
                 ? friend.avatar
-                : "http://localhost:4000/" + friend.avatar
+                : `${API_BASE_URL}/` + friend.avatar
             }
             alt=""
           />

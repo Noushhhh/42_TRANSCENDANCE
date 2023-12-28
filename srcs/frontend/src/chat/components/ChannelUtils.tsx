@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io-client';
 import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
 import { ErrorSharp } from '@mui/icons-material';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface Message {
   id: number // id: 0
@@ -67,7 +68,7 @@ export const handleHTTPErrors = (response: Response, customErrorMessages: ErrorM
 }
 
 export const getMyUserId = async (): Promise<number> => {
-  const response = await fetch('http://localhost:4000/api/users/me', {
+  const response = await fetch(`${API_BASE_URL}/api/users/me`, {
     credentials: 'include',
     method: 'GET',
   })

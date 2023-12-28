@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { verify2FA, hasMessage } from "../tools/Api";
 import InputField from '../tools/InputField';
 import LoadingSpinner from '../tools/LoadingSpinner';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 
 const MIN_LOADING_TIME = 1000;
@@ -35,7 +36,7 @@ const OAuth42Callback: React.FC = () => {
     const handle42Callback = useCallback(async (code: string) => {
         try {
             console.log(`passinb by habdle42Callback`);
-            const result = await axios.get(`http://localhost:4000/api/auth/callback42?code=${code}`,
+            const result = await axios.get(`${API_BASE_URL}/api/auth/callback42?code=${code}`,
                 { withCredentials: true });
             console.log(result);
             const userId = result.data.userId;

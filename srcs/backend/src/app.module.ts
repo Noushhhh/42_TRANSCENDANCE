@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
@@ -15,12 +15,13 @@ import { SocketService } from './chat/socket.service';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { StatsModule } from './stats/stats.module';
+import { LoggerMiddleware } from './middleWares/logger.middleware';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
-    ConfigModule.forRoot({}),
+    ConfigModule.forRoot({isGlobal: true}),
     ChatModule,
     PrismaModule,
     GameModule,
@@ -29,4 +30,10 @@ import { StatsModule } from './stats/stats.module';
   controllers: [AppController, ChatController],
   providers: [AppService, ChatService, PrismaService, SocketService, AuthService, JwtService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*'); // Apply for all routes
+  }
+}
