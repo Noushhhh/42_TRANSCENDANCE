@@ -77,6 +77,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb) {
+                            console.log("C'est ici que ca casse ?");
                             throw new common_1.NotFoundException("player not found");
                         }
                         const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;

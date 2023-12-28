@@ -61,6 +61,7 @@ export class GameLobbyService {
           value.gameState.gameState.p2Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
           if (!playerDb) {
+            console.log("C'est ici que ca casse ?")
             throw new NotFoundException("player not found");
           }
           const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;

@@ -3,6 +3,8 @@ import Button from "./common/Button";
 import SpectateGame from "./gameNetwork/SpectateGame";
 import { Socket } from "socket.io-client";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface GameMenuProps {
   socket: Socket;
   handleError: (error: SocketErrorObj) => void;
@@ -18,7 +20,7 @@ const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
   const lobby = async () => {
     const response = await fetch(
       // socket.id
-      `http://localhost:4000/api/game/lobby?clientId=${socket.id}`,
+      `${API_BASE_URL}/api/game/lobby?clientId=${socket.id}`,
       {
         method: "GET",
         credentials: "include",
