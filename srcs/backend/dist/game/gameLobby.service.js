@@ -330,8 +330,10 @@ let GameLobbyService = class GameLobbyService {
         var _a, _b;
         const playerSocketId = this.getSocketIdWithId(playerId);
         for (const [key, value] of lobbies_1.lobbies) {
-            if (playerSocketId === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || playerSocketId === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id))
-                return { isInGame: true, lobbyName: key };
+            if (playerSocketId === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || playerSocketId === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id)) {
+                if (value.gameState.gameState.isLobbyFull)
+                    return { isInGame: true, lobbyName: key };
+            }
         }
         return { isInGame: false, lobbyName: undefined };
     }

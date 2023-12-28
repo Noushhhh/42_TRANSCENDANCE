@@ -29,6 +29,21 @@ interface InvitationRes {
   client: number;
 }
 
+interface IsPlayerInLobbyType {
+  isInGame: boolean;
+  lobbyName: string | undefined;
+}
+
+const spectate: React.CSSProperties = {
+  cursor: "pointer",
+};
+
+const cantSpectate: React.CSSProperties = {
+  color: "grey",
+  background: "#8080808f",
+  cursor: "auto",
+};
+
 const FriendsMenu: FC<FriendsMenuProps> = ({
   myId,
   friend,
@@ -38,8 +53,18 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
 }) => {
   const [invitationStatus, setInvitationStatus] = useState<string>("");
   const [isUserProfilDisplayed, setIsUserProfilDisplayed] = useState(false);
+  const [isUserInGame, setIsUserInGame] = useState<{
+    isInLobby: boolean;
+    lobbyName: string | undefined;
+  }>();
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    socket.emit("isUserInGame", friend.id, (data: IsPlayerInLobbyType) => {
+      setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
+    });
+  }, [friend.id]);
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
@@ -102,6 +127,13 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
     setIsUserProfilDisplayed(true);
   };
 
+  const handleSpectateUser = () => {
+    if (isUserInGame?.isInLobby === true) {
+      socket.emit("setIntoLobby", isUserInGame.lobbyName);
+      handleLobbyCreation();
+    }
+  };
+
   return (
     <div
       style={{
@@ -128,6 +160,12 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
       ) : null}
       <button onClick={() => handleProfilClick()}>See profile</button>
       <button onClick={() => handlePlayClick()}>Play</button>
+      <button
+        onClick={() => handleSpectateUser()}
+        style={!isUserInGame?.isInLobby ? cantSpectate : spectate}
+      >
+        Spectate
+      </button>
       <button
         onClick={() => {
           removeFriend(friend.id, socket).catch((e) => {

@@ -327,8 +327,10 @@ export class GameLobbyService {
     const playerSocketId = this.getSocketIdWithId(playerId);
 
     for (const [key, value] of lobbies) {
-      if (playerSocketId === value.player1?.id || playerSocketId === value.player2?.id)
-        return { isInGame: true, lobbyName: key };
+      if (playerSocketId === value.player1?.id || playerSocketId === value.player2?.id) {
+        if (value.gameState.gameState.isLobbyFull)
+          return { isInGame: true, lobbyName: key };
+      }
     }
     return { isInGame: false, lobbyName: undefined };
   }
