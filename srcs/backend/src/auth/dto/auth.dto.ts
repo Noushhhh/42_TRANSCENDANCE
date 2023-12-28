@@ -70,9 +70,9 @@ export const validatePassword = async (password: string): Promise<any> => {
         throw new Error('Password should be at least 8 characters long.');
     }
 
-    // The password must not exceed 20 characters characters long.
-    if (password.length < 8) {
-        throw new Error('Password should be at least 8 characters long.');
+    // The password must not exceed 30 characters characters long.
+    if (password.length > 30) {
+        throw new Error('Password must not exceed 30 characters characters long.');
     }
     // The password must have at least one lowercase letter.
     if (!/[a-z]/.test(password)) {
@@ -109,12 +109,19 @@ export class AuthDto {
     // The username must be provided and it should be a string.
     @IsNotEmpty() @IsString()
     @IsEmailValid({ message: 'Invalid email address.' })
-    email!: string;
+    @IsNotEmpty() @IsString() username!: string;
 
     // The password must be provided, it should be a string, and it must be strong.
-    @IsNotEmpty() @IsString() username!: string;
     @IsNotEmpty() @IsString()
-    @IsStrongPassword({ message: 'Password is not strong enough.' })
+    @IsStrongPassword({
+      message: "\nPassword Requirements:\n\
+    1. Password should be at least 8 characters long.\n\
+    2. Password must not exceed 30 characters long.\n\
+    3. Password should contain at least one lowercase letter.\n\
+    4. Password should contain at least one uppercase letter.\n\
+    5. Password should contain at least one digit.\n\
+    6. Password should contain at least one special character (e.g., @, #, $, etc.).\n"
+    })
     password!: string;
 }
 
