@@ -90,8 +90,8 @@ const SignUp: React.FC = () => {
         try {
             if (password !== confirmPassword)
                 throw new Error('Passwords do not match.');
-            await validateEmail(email);
-            await validatePassword(password);
+            // await validateEmail(email);
+            // await validatePassword(password);
             await signUpAPI(email, password);
             navigate('/signin', { state: { message: 'Your account has been created successfully. Please sign in.' } });
         } catch (error) {
