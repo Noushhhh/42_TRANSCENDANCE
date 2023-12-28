@@ -6,7 +6,6 @@ import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { extname } from 'path';
-import imageType from 'image-type';
 import { imageSize } from 'image-size';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
