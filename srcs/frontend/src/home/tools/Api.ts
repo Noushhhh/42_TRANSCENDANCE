@@ -27,7 +27,7 @@ export const hasMessage = (x: unknown): x is { message: string } => {
  * @returns {Promise<JSON|string>} A promise that resolves to either parsed JSON data or plain text content.
  *                               In case of an error, it returns a generic error message.
  */
-export const getErrorResponse = async (response: Response) => {
+export const getResponseBody = async (response: Response) => {
   try {
     // Check if the 'Content-Type' header of the response includes 'application/json'
     if (response.headers.get('Content-Type')?.includes('application/json')) {
@@ -45,6 +45,33 @@ export const getErrorResponse = async (response: Response) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Utility function to format error messages, if an array in sent from the backend
+export const formatErrorMessage = (error: unknown): string => {
+  let errorMessage = 'Unknown error occurred';
+
+  if (error instanceof Error) {
+    // If error is an instance of Error, use its message
+    errorMessage = error.message;
+  } else if (typeof error === 'object' && error !== null) {
+    // If error is an object, try to extract the message array or string
+    const errorObj = error as { [key: string]: any }; // Typecasting to an object with any properties
+    if (errorObj.message) {
+      if (Array.isArray(errorObj.message)) {
+        // If the message is an array, join the messages
+        errorMessage = errorObj.message.join(', ');
+      } else if (typeof errorObj.message === 'string') {
+        // If the message is a string, use it directly
+        errorMessage = errorObj.message;
+      }
+    }
+  }
+
+  return errorMessage;
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const getPublicName = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/getprofilename`, {
@@ -56,7 +83,7 @@ export const getPublicName = async () => {
     if (!response.ok) {
       // If the response is not successful, parse the response body as JSON.
       // This assumes that the server provides a JSON response containing error details.
-      const errorDetails = await getErrorResponse(response);
+      const errorDetails = await getResponseBody(response);
 
       // Reject the promise with a new Error object. 
       // This provides a more detailed error message than simply rejecting with the raw response.
@@ -104,7 +131,7 @@ export const getUserAvatar = async (): Promise<string | null> => {
     if (!response.ok) {
       // If the response is not successful, parse the response body as JSON.
       // This assumes that the server provides a JSON response containing error details.
-      const errorDetails = await getErrorResponse(response);
+      const errorDetails = await getResponseBody(response);
 
       // Reject the promise with a new Error object. 
       // This provides a more detailed error message than simply rejecting with the raw response.
@@ -148,43 +175,6 @@ const validatePublicName = async (publicName: string | null) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * @brief Validates the given password against certain criteria
- * 
- * @param password User's password
- * 
- * @returns null if the password is valid, error message otherwise
- */
-export const validatePassword = async (password: string): Promise<any> => {
-  if (password.length < 8) {
-    throw new Error('Password should be at least 8 characters long.');
-  }
-  if (!/[a-z]/.test(password)) {
-    throw new Error('Password should contain at least one lowercase letter.');
-  }
-  if (!/[A-Z]/.test(password)) {
-    throw new Error('Password should contain at least one uppercase letter.');
-  }
-  if (!/[0-9]/.test(password)) {
-    throw new Error('Password should contain at least one digit.');
-  }
-  if (!/[@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(password)) {
-    throw new Error('Password should contain at least one special character (e.g., @, #, $, etc.).');
-  }
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const validateEmail = async (email: string): Promise<any> => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    throw new Error('Please enter a valid email address.');
-  }
-};
-
-
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @brief Custom hook for updating a user's public name.
@@ -224,7 +214,7 @@ export const useUpdatePublicName = () => {
       if (!response.ok) {
         // If the response is not successful, parse the response body as JSON.
         // This assumes that the server provides a JSON response containing error details.
-        const errorDetails = await getErrorResponse(response);
+        const errorDetails = await getResponseBody(response);
 
         // Reject the promise with a new Error object. 
         // This provides a more detailed error message than simply rejecting with the raw response.
@@ -283,7 +273,7 @@ export const useUpdateAvatar = () => {
       if (!response.ok) {
         // If the response is not successful, parse the response body as JSON.
         // This assumes that the server provides a JSON response containing error details.
-        const errorDetails = await getErrorResponse(response);
+        const errorDetails = await getResponseBody(response);
 
         // Reject the promise with a new Error object. 
         // This provides a more detailed error message than simply rejecting with the raw response.
@@ -317,7 +307,7 @@ export const fetchImageAsFile = async (imageUrl: string, imageName: string): Pro
     if (!response.ok) {
       // If the response is not successful, parse the response body as JSON.
       // This assumes that the server provides a JSON response containing error details.
-      const errorDetails = await getErrorResponse(response);
+      const errorDetails = await getResponseBody(response);
 
       // Reject the promise with a new Error object. 
       // This provides a more detailed error message than simply rejecting with the raw response.

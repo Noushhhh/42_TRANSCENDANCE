@@ -5,11 +5,8 @@ import { useNavigate } from "react-router-dom";
 import useIsClientRegistered from "../tools/hooks/useIsClientRegistered";
 import "../styles/generalStyles.css";
 import GoBackButton from "../tools/GoBackButton";
-import { hasMessage , getErrorResponse} from "../tools/Api";
-import { verify2FA } from "../tools/Api";
+import { hasMessage , getResponseBody, checkToken, verify2FA, formatErrorMessage} from "../tools/Api";
 import { InputField } from "./SignUp";
-import { checkToken } from "../tools/Api";
-
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,18 +33,16 @@ const signInAPI = async (email: string, password: string) => {
     });
 
     // Check if the response from the fetch request is not successful
+    const data = await getResponseBody(response);
     if (!response.ok) {
       // If the response is not successful, parse the response body as JSON.
       // This assumes that the server provides a JSON response containing error details.
-      const errorDetails = await getErrorResponse(response);
-
       // Reject the promise with a new Error object. 
       // This provides a more detailed error message than simply rejecting with the raw response.
       // makes it easier to understand the nature of the error when handling it later.
-      return Promise.reject(errorDetails);
+      return Promise.reject(data);
     }
 
-    const data = await response.json();
     if (!data.valid) {
       throw new Error(`SignIn Filed: ${data.message}`);
     }
@@ -115,9 +110,8 @@ const SignIn: React.FC = () => {
         navigate(userIsRegisterd ? "/home/game" : "/userprofilesetup");
       }
     } catch (error) {
-      const errorMessage = hasMessage(error)
-        ? error.message
-        : "An unexpected error occurred. Please try again later.";
+
+      const errorMessage: string = formatErrorMessage(error);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

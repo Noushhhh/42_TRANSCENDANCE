@@ -581,55 +581,70 @@ export class AuthService {
    */
   async createUser(userInfo: any, res: Response): Promise<User | null> {
     // Check if the user already exists in the database based on their ID.
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        id: userInfo.id,
-      },
-    });
-
-    if (existingUser) {
-      // If the user already exists, log a message and update their 'firstConnexion' status.
-      //console.log('User already exists:', existingUser);
-      existingUser.firstConnexion = false;
-      return existingUser;
-    }
-
     try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: {
+          id: userInfo.id,
+        },
+      });
+  
+      if (existingUser) {
+        // If the user already exists, log a message and update their 'firstConnexion' status.
+        //console.log('User already exists:', existingUser);
+        existingUser.firstConnexion = false;
+        return existingUser;
+      }
+  
       let avatarUrl;
       if (userInfo.image.link !== null) {
         // Use the user's profile picture link if it's not null.
         avatarUrl = userInfo.image.link;
       }
-      // Download the user's avatar image.
-      const avatarFile: Express.Multer.File = await this.usersService.downloadFile(avatarUrl);
-
-      // Create a new user in the database with the provided user information.
-      const user = await this.prisma.user.create({
-        data: {
-          id: userInfo.id,
-          hashPassword: this.generateRandomPassword(),
-          username: userInfo.login,
-          avatar: null, // Initialize the avatar field with null for now.
-        },
-      });
-
-      // Update the user's avatar using the downloaded image.
-      await this.usersService.updateAvatar(user.id, avatarFile);
-
-      // Generate and store a two-factor authentication secret for the user.
-      const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
-      user.twoFASecret = secret;
-      user.twoFAUrl = otpauthUrl;
-
-      // Return the newly created user.
-      return user;
+  
+      let avatarFile;
+      try {
+        // Download the user's avatar image.
+        avatarFile = await this.usersService.downloadFile(avatarUrl);
+      } catch (downloadError) {
+        this.logger.debug('Error downloading user avatar:', downloadError);
+        // Handle the error or assign a default avatar.
+      }
+  
+      try {
+        // Create a new user in the database with the provided user information.
+        const user = await this.prisma.user.create({
+          data: {
+            id: userInfo.id,
+            hashPassword: this.generateRandomPassword(),
+            username: userInfo.login,
+            avatar: null, // Initialize the avatar field with null for now.
+          },
+        });
+  
+        // Update the user's avatar using the downloaded image, if available.
+        if (avatarFile) {
+          await this.usersService.updateAvatar(user.id, avatarFile);
+        }
+  
+        // Generate and store a two-factor authentication secret for the user.
+        const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
+        user.twoFASecret = secret;
+        user.twoFAUrl = otpauthUrl;
+  
+        // Return the newly created user.
+        return user;
+      } catch (creationError) {
+        // Handle any errors that occur during user creation.
+        this.logger.debug('Error creating user:', creationError);
+        return null;
+      }
     } catch (error) {
-      // Handle any errors that occur during user creation or avatar update.
-      this.logger.debug('Error saving user information to database:', error);
+      // Handle any other errors that occur in the function.
+      this.logger.debug('Error in createUser function:', error);
       return null;
     }
   }
-
+  
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**

@@ -105,43 +105,52 @@ export class UsersService {
      * @throws {NotFoundException} - Throws when the avatar or user is not found.
      */
     async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
+        let user;
         try {
             // Get the user profile using the decoded payload's subject (usually the user ID)
-            const user = await this.getUserData(decodedPayload.sub);
-
+            user = await this.getUserData(decodedPayload.sub);
+        } catch (userDataError) {
+            // Handle errors related to fetching user data
+            console.error('Error fetching user data:', userDataError);
+            throw new BadRequestException('Error fetching user data');
+        }
+    
+        try {
             // Check if the user has an avatar set
             const path = user?.avatar;
             if (!path) {
                 throw new NotFoundException('Avatar not found');
             }
-
+    
             // Set the appropriate MIME type for the avatar image
             res.type('image/jpeg');
-
+    
             // Create a read stream for the avatar file
             const stream = fs.createReadStream(path);
-
+    
             stream.on('open', () => {
                 // Pipe the read stream to the response object to send the image data
                 stream.pipe(res);
             });
-
+    
             stream.on('error', (err: NodeJS.ErrnoException) => {
                 // Handle file read/stream errors
+                console.error('Error reading avatar file:', err);
                 if (err.code === 'ENOENT') {
                     // File not found, throw NestJS NotFoundException
                     throw new NotFoundException('Avatar not found');
                 } else {
                     // Other errors, throw NestJS InternalServerErrorException
-                    throw new BadRequestException('Error fetching avatar');
+                    throw new ConflictException('Error fetching avatar');
                 }
             });
-        } catch (error) {
-            // Catch any other errors that might occur and throw an InternalServerErrorException
-            console.error('Error in getUserAvatar service:', error);
-            throw error;
+        } catch (streamError) {
+            // Catch any other errors that might occur during file handling
+            console.error('Error in file handling for getUserAvatar:', streamError);
+            throw streamError;
         }
     }
+    
 
 
     // ─────────────────────────────────────────────────────────────────────

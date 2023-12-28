@@ -1,4 +1,4 @@
-import { hasMessage, getErrorResponse } from "../Api";
+import { hasMessage, getResponseBody } from "../Api";
 
 // Constants
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -25,7 +25,7 @@ const useIsClientRegistered = () => {
         if (!response.ok) {
           // If the response is not successful, parse the response body as JSON.
           // This assumes that the server provides a JSON response containing error details.
-          const errorDetails = await getErrorResponse(response);
+          const errorDetails = await getResponseBody(response);
 
           // Reject the promise with a new Error object. 
           // This provides a more detailed error message than simply rejecting with the raw response.
