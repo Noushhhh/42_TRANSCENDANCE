@@ -368,9 +368,18 @@ let GameLobbyService = class GameLobbyService {
         var _a, _b;
         for (const [key, value] of lobbies_1.lobbies) {
             if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === playerId || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === playerId) {
-                console.log("Je suis icifeagfaegea");
                 value.gameState.gameState.isGameFinished = false;
             }
+        }
+    }
+    isInSpectateMode(playerId) {
+        var _a;
+        for (const [key, value] of lobbies_1.lobbies) {
+            (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.forEach((spec) => {
+                console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
+                if (spec.id === playerId)
+                    this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+            });
         }
     }
 };

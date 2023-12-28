@@ -365,9 +365,18 @@ export class GameLobbyService {
   playAgain(playerId: string) {
     for (const [key, value] of lobbies) {
       if (value.player1?.id === playerId || value.player2?.id === playerId) {
-        console.log("Je suis icifeagfaegea");
         value.gameState.gameState.isGameFinished = false;
       }
+    }
+  }
+
+  isInSpectateMode(playerId: string) {
+    for (const [key, value] of lobbies) {
+      value.spectators?.forEach((spec) => {
+        console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
+        if (spec.id === playerId)
+          this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+      })
     }
   }
 }

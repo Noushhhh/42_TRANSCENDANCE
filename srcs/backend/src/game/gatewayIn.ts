@@ -341,11 +341,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     this.gatewayOut.emitToUser(client.id, "isLobbyFull", false);
   }
 
-  private sendError(message: string, statusCode: number, client: Socket) {
-    const errorObj = {
-      message: message,
-      statusCode: statusCode
-    }
-    this.gatewayOut.emitToUser(client.id, "error", errorObj);
+  @SubscribeMessage('isInSpectateMode')
+  isInSpectateMode(@ConnectedSocket() client: Socket) {
+    this.gameLobby.isInSpectateMode(client.id);
   }
 }
