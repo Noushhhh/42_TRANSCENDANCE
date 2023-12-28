@@ -6,13 +6,15 @@ import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { extname } from 'path';
+import imageType from 'image-type';
+import { imageSize } from 'image-size';
+import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { UserProfileData } from '../interfaces/user.interface';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
 import axios from 'axios';
 import { Readable } from 'stream'; // Import Readable from 'stream' module
-import * as fs from 'fs';
 import { use } from "passport";
 import { DEFAULT_AVATAR_PATH } from '../auth/constants/constants'; // Path to the default avatar image
 
@@ -33,6 +35,10 @@ interface UserProfile {
     avatar?: string | null;
     gamePlayed: number;
     gameWon: number;
+}
+
+interface ImageTypeResult {
+    mime: string;
 }
 
 @Injectable()
@@ -263,15 +269,51 @@ export class UsersService {
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-         * Updates the avatar for a given user.
-         * 
-         * @param userId - The ID of the user whose avatar is to be updated.
-         * @param avatar - The new avatar file.
-         *
-    ***/
+    * Updates the avatar for a given user.
+    * 
+    * This function performs several key tasks:
+    * 1. Validates the uploaded image file in terms of size and type.
+    *    - Checks if the file size exceeds a predefined maximum (5MB).
+    *    - Uses the 'image-size' library to determine if the uploaded file is a valid image.
+    *      If the file is not a valid image, 'image-size' will either return undefined dimensions
+    *      or throw an error, which is used to validate the file.
+    * 2. Deletes the old avatar if it exists and is not the default avatar.
+    *    - The path of the old avatar is retrieved from the user's details in the database.
+    *    - If an old avatar exists, it attempts to delete it from the filesystem.
+    * 3. Generates a unique filename for the new avatar and saves it to a local folder.
+    *    - A unique filename is generated using UUID and the file extension of the original file.
+    *    - This new file is saved to a specified upload folder.
+    * 4. Updates the user's avatar path in the database with the path of the new avatar.
+    *    - The avatar path in the user's record is updated to reflect the new file's location.
+    * 
+    * @param userId - The ID of the user whose avatar is to be updated.
+    * @param avatar - The new avatar file, received as an Express.Multer.File object.
+    * @throws ForbiddenException if the file size is too large or if the file is not a valid image.
+    * @throws ForbiddenException if there's an error deleting the old avatar.
+    * @throws ForbiddenException if saving the new avatar to the local folder fails.
+    * @throws ConflictException if updating the user's avatar in the database fails.
+    * @returns void
+    */
 
     async updateAvatar(userId: number, avatar: Express.Multer.File) {
         try {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            const maxFileSize = 5 * 1024 * 1024; // 5MB
+
+            // Check file size
+            if (avatar.size > maxFileSize) {
+                throw new ForbiddenException("File size too large. Please upload an image smaller than 5MB.");
+            }
+
+            // Use image-size to validate the image
+            try {
+                const dimensions = imageSize(avatar.buffer);
+                if (!dimensions) {
+                    throw new ForbiddenException("Invalid image file.");
+                }
+            } catch (err) {
+                throw new ForbiddenException("Invalid image file.");
+            }
             // Retrieve the current user's details from the database
             const currentUser = await this.findUserWithId(userId);
 
@@ -317,6 +359,9 @@ export class UsersService {
             throw error;
         }
     }
+
+
+    // ─────────────────────────────────────────────────────────────────────
 
     async downloadFile(url: string): Promise<Express.Multer.File> {
         try {
