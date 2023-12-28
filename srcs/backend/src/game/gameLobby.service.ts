@@ -151,6 +151,11 @@ export class GameLobbyService {
 
     this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
 
+    lobby.gameState.gameState.newGameTimer = true;
+    setTimeout(() => {
+      lobby.gameState.gameState.newGameTimer = false;
+    }, 1500);
+
     // @to-do using a debug function here
     this.printLobbies();
   }
