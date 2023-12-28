@@ -814,7 +814,7 @@ let AuthService = AuthService_1 = class AuthService {
                 yield this.prisma.user.update({
                     where: { id: userId },
                     data: {
-                        TwoFA: true, // Set TwoFA to 'true' to enable 2FA for the user
+                        TwoFA: false, // Set TwoFA to 'true' to enable 2FA for the user
                         twoFASecret: secret, // Store the 2FA secret key in the user's record
                     },
                 });

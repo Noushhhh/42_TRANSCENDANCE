@@ -463,24 +463,7 @@ export class UsersService {
         }
     }
 
-    async getUsernameWithId(userId: number): Promise<string> {
-        try {
-            const user = await this.prisma.user.findUnique({
-                where: {
-                    id: userId,
-                },
-            });
-            if (!user) {
-                throw new NotFoundException(`User not found with id ${userId}`);
-            }
-            return user.username;
-        } catch (error) {
-            console.error(`Error fetching user with id ${userId}`, error);
-            throw error;
-        }
-    }
-
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async findUserWithUsername(usernameinput: string): Promise<User> {
         try {
@@ -499,7 +482,7 @@ export class UsersService {
         }
     }
 
-// ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     async sendFriendRequest(senderId: number, targetId: number) {
         const sender = await this.prisma.user.findUnique({
@@ -780,4 +763,43 @@ export class UsersService {
         return userProfile;
     }
 
+
+    async getUsersWithStr(userId: number, toFind: string): Promise<FriendRequestFromUser[]> {
+        const users = await this.prisma.user.findMany({
+            where: {
+                AND: [
+                    {
+                        publicName: {
+                            contains: toFind,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        id: {
+                            not: userId,
+                        },
+                    },
+                    {
+                        NOT: {
+                            friendOf: {
+                                some: {
+                                    id: userId,
+                                },
+                            },
+                        },
+                    },
+                ],
+            },
+        });
+
+
+        const usersWithSelectedInfo = users.map((user) => ({
+            id: user.id,
+            publicName: user.publicName,
+            userName: user.username,
+            avatar: user.avatar,
+        }));
+
+        return usersWithSelectedInfo;
+    }
 }

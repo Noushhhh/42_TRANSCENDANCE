@@ -68,6 +68,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       // return null if token is invalid
       try {
         const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
+        if (this.isUserAlreadyHasSocket(response!)) return;
         this.gameSockets.server = this.server;
         socket.data.userId = response;
         const clientId = socket.id;
@@ -79,6 +80,23 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         next(new WsException('invalid token'));
       }
     })
+  }
+
+  isUserAlreadyHasSocket(userId: number) {
+    const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
+    for (const socket of sockets) {
+      if (socket[1].data.userId === userId)
+        return true;
+    }
+    return false;
+  }
+
+  printSockets() {
+    const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
+    console.log("Sockets: ");
+    for (const socket of sockets) {
+      console.log(socket[1].id);
+    }
   }
 
   handleConnection(socket: Socket) {

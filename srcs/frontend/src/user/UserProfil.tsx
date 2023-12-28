@@ -25,6 +25,7 @@ const userProfilStyle: React.CSSProperties = {
   zIndex: "1",
   textAlign: "left",
   width: "61%",
+  color: "white",
 };
 
 const crossButtonStyle: React.CSSProperties = {

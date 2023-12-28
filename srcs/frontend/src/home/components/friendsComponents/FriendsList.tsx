@@ -29,6 +29,7 @@ const friendLignStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "flex-end",
   justifyContent: "flex-start",
+  flexWrap: "wrap",
   gap: "1rem",
 };
 

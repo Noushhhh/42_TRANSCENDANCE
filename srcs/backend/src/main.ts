@@ -61,6 +61,7 @@ export default async function App() {
       'Access-Control-Request-Method',
       'Access-Control-Request-Headers',
       'x-user-id',
+      'X-Search-Header'
     ],
     optionsSuccessStatus: 200,
     credentials: true,

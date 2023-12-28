@@ -124,7 +124,7 @@ img {
   /* Maintain aspect ratio */
   display: block;
   /* Optional: Use block to enable margin auto */
-  margin: 0 auto;
+  /* margin: 0 auto; */
   /* Optional: Center the image horizontally */
   padding: 0.5rem 0;
   /* Optional: Add some padding around the image */
