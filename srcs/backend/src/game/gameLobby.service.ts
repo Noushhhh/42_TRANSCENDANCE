@@ -327,8 +327,10 @@ export class GameLobbyService {
     const playerSocketId = this.getSocketIdWithId(playerId);
 
     for (const [key, value] of lobbies) {
-      if (playerSocketId === value.player1?.id || playerSocketId === value.player2?.id)
-        return { isInGame: true, lobbyName: key };
+      if (playerSocketId === value.player1?.id || playerSocketId === value.player2?.id) {
+        if (value.gameState.gameState.isLobbyFull)
+          return { isInGame: true, lobbyName: key };
+      }
     }
     return { isInGame: false, lobbyName: undefined };
   }
@@ -363,9 +365,18 @@ export class GameLobbyService {
   playAgain(playerId: string) {
     for (const [key, value] of lobbies) {
       if (value.player1?.id === playerId || value.player2?.id === playerId) {
-        console.log("Je suis icifeagfaegea");
         value.gameState.gameState.isGameFinished = false;
       }
+    }
+  }
+
+  isInSpectateMode(playerId: string) {
+    for (const [key, value] of lobbies) {
+      value.spectators?.forEach((spec) => {
+        console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
+        if (spec.id === playerId)
+          this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+      })
     }
   }
 }

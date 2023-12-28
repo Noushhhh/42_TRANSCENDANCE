@@ -6,10 +6,12 @@ interface IoConnectionProps {
   socketRef: React.MutableRefObject<Socket | undefined>;
 }
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
   useEffect(() => {
     const fetchAccessToken = async () => {
-      const response = await fetch("http://localhost:4000/api/auth/token", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
         method: "GET",
         credentials: "include",
       });

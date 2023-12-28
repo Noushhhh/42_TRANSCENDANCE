@@ -1,5 +1,7 @@
 import { Socket } from "socket.io-client";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface FriendType {
   id: number;
   publicName?: string;
@@ -8,7 +10,7 @@ interface FriendType {
 }
 
 export const sendFriendRequest = async (targetId: number) => {
-  const response = await fetch("http://localhost:4000/api/users/sendFriendRequest", {
+  const response = await fetch(`${API_BASE_URL}/api/users/sendFriendRequest`, {
     method: 'POST',
     credentials: "include",
     headers: {
@@ -26,7 +28,7 @@ export const fetchPendingRequests = async (
   setRequestsNumber: (value: React.SetStateAction<number>) => void): Promise<FriendType[]> => {
 
   const response = await fetch(
-    "http://localhost:4000/api/users/getPendingRequests",
+    `${API_BASE_URL}/api/users/getPendingRequests`,
     {
       method: "GET",
       credentials: "include",
@@ -49,7 +51,7 @@ export const getFriendsList = async (
   userId: number,
   setFriendsList: (value: React.SetStateAction<FriendType[]>) => void) => {
   const response = await fetch(
-    "http://localhost:4000/api/users/getFriendsList",
+    `${API_BASE_URL}/api/users/getFriendsList`,
     {
       method: "GET",
       credentials: "include",
@@ -69,7 +71,7 @@ export const getFriendsList = async (
 
 export const removeFriend = async (targetId: number, socket: Socket) => {
   const response = await fetch(
-    "http://localhost:4000/api/users/removeFriend",
+    `${API_BASE_URL}/api/users/removeFriend`,
     {
       method: "POST",
       credentials: "include",
@@ -87,7 +89,7 @@ export const removeFriend = async (targetId: number, socket: Socket) => {
 export const acceptFriendRequest = async (targetId: number,
   socket: Socket) => {
   const response = await fetch(
-    "http://localhost:4000/api/users/acceptFriendRequest",
+    `${API_BASE_URL}/api/users/acceptFriendRequest`,
     {
       method: "POST",
       credentials: "include",
@@ -105,7 +107,7 @@ export const acceptFriendRequest = async (targetId: number,
 export const refuseFriendRequest = async (targetId: number,
   socket: Socket) => {
   const response = await fetch(
-    "http://localhost:4000/api/users/refuseFriendRequest",
+    `${API_BASE_URL}/api/users/refuseFriendRequest`,
     {
       method: "POST",
       credentials: "include",
