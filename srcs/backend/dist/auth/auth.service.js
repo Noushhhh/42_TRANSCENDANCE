@@ -146,8 +146,8 @@ let AuthService = AuthService_1 = class AuthService {
                 if (!passwordMatch)
                     throw new common_1.UnauthorizedException('Incorrect password');
                 // Enhanced session check logic
-                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-                    throw new common_1.UnauthorizedException('User is already logged in');
+                // if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
+                //   throw new UnauthorizedException('User is already logged in');
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
@@ -258,7 +258,7 @@ let AuthService = AuthService_1 = class AuthService {
             res.cookie('refreshToken', tokens.refreshToken.token, {
                 httpOnly: true,
                 secure: false,
-                sameSite: 'none',
+                sameSite: true,
                 maxAge: refreshTokenMaxAge
             });
             // Assuming the JWT token also has an expiresAt property to calculate its maxAge
@@ -266,7 +266,7 @@ let AuthService = AuthService_1 = class AuthService {
             res.cookie('token', tokens.newToken.token, {
                 httpOnly: true,
                 secure: false,
-                sameSite: 'none',
+                sameSite: true,
                 maxAge: tokenMaxAge
             });
             const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
@@ -274,7 +274,7 @@ let AuthService = AuthService_1 = class AuthService {
             res.cookie('userSession', sessionValue, {
                 httpOnly: true,
                 secure: false,
-                sameSite: 'none',
+                sameSite: true,
                 maxAge: tokenMaxAge
             });
         }
@@ -530,6 +530,7 @@ let AuthService = AuthService_1 = class AuthService {
                     code: code,
                     redirect_uri: process.env.CALLBACK_URL_42,
                 };
+                this.logger.debug(process.env.CALLBACK_URL_42);
                 return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
             }
             catch (error) {
