@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import "../styles/Message.css";
 import { getUsername } from "./ChannelUtils";
 
-
-
 interface MessageComponentProps {
     contentMessage: string;
     messageType: string;

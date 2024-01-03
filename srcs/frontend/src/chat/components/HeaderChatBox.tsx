@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../styles/HeaderChatBox.css";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import IsConnected from "./isConnected";
@@ -7,8 +7,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useToggleMenu, useSetToggleMenu } from "../contexts/toggleMenuMobile";
-import { useUserIdContext } from "../contexts/userIdContext";
-import { getChannelName } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { Socket } from "socket.io-client";
 

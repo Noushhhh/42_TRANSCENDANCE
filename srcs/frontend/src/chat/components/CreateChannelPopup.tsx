@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import "../styles/CreateChannelPopup.css";
 import SearchBar from "./SearchBar";
 import SearchBarResults from "./SearchBarResults";
@@ -20,7 +20,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
     const [channelName, setChannelName] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
-    const [displayResults, setDisplayResults] = useState<boolean>(false);
+    const [displayResults, setDisplayResults] = useState<boolean>(true);
     const [inputValue, setInputValue] = useState<string>("");
     const [channelType, setChannelType] = useState<string>("PUBLIC"); // État pour la valeur sélectionnée
     const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);

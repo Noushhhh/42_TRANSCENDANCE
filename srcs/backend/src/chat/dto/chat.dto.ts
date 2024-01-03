@@ -1,5 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max, MinLength } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, IsDate, MaxLength, Max, MinLength, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 
@@ -219,4 +218,20 @@ export class ManageAdminDto {
     @Min(0)
     @Max(2000000)
     channelId!: number;
+}
+
+export class CreateChannelDto {
+    @IsString()
+    @MaxLength(35)
+    name!: string;
+
+    @IsString()
+    @MaxLength(35)
+    password!: string;
+
+    @IsNumber({}, { each: true })
+    participants!: number[];
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED'])
+    type!: string;
 }

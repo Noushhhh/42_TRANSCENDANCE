@@ -1,6 +1,4 @@
 import { Socket } from 'socket.io-client';
-import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
-import { ErrorSharp } from '@mui/icons-material';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface Message {
@@ -227,7 +225,6 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
 
   try {
     // get all the conversation of a user
-    let userId: number = participants[0];
     const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
       method: "POST",
       credentials: 'include',
@@ -463,7 +460,6 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
   try {
     for (const user of userList) {
       const invitedId: number = user.user.id;
-      const response: Response = new Response();
       if (user.isAdmin === true) {
         const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel`, {
           method: "POST",
@@ -662,9 +658,9 @@ export const unblockUser = async (targetId: number) => {
     method: 'POST',
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ userId: targetId }) // Convertit l'objet JavaScript en JSON
+    body: JSON.stringify({ userId: targetId })
   })
     .then(response => {
       if (!response.ok) {
@@ -678,14 +674,15 @@ export const unblockUser = async (targetId: number) => {
 
 export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const messageList = await response.json();
     if (!messageList)
       return;
     messageList.map((message: Message) => {
       userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
-      addMsgToFetchedConversation(message)
+      addMsgToFetchedConversation(message);
+      return null;
     })
   } catch (error) {
     throw error;

@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "../styles/MessageToClick.css";
 import TimeElapsed from "./TimeElapsed";
-import IsConnected from "./isConnected";
-import { useChannelIdContext, useSetChannelIdContext } from "../contexts/channelIdContext";
-import { getChannelName } from "./ChannelUtils";
-import { useUserIdContext } from "../contexts/userIdContext";
+import { useSetChannelIdContext } from "../contexts/channelIdContext";
 
 interface Channel {
     name: string;
@@ -16,11 +13,10 @@ interface Channel {
 
 interface MessageToClickProps{
     channel: Channel;
-    isConnected: boolean;
     setChannelClicked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function MessageToClick({channel, isConnected, setChannelClicked }: MessageToClickProps) {
+function MessageToClick({channel, setChannelClicked }: MessageToClickProps) {
     
     const setChannelId = useSetChannelIdContext();
 

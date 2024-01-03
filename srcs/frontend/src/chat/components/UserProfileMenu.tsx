@@ -1,16 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import { useState } from "react";
-import axios from "axios";
 import {
   isChannelExist,
   fetchUser,
   blockUser,
   unblockUser,
   isUserIsBlockedBy,
-  fetchConversation,
 } from "./ChannelUtils";
 import {
   useChannelIdContext,
@@ -86,18 +84,20 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     socket.emit("isUserInGame", user.id, (data: IsPlayerInLobbyType) => {
       setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     socket.on("isInviteAccepted", handleInvitation);
     socket.on("lobbyIsCreated", handleLobbyCreation);
     socket.on("invitationStatus", handleInvitationStatus);
-
+    
     return () => {
       socket.off("isInviteAccepted", handleInvitation);
       socket.off("lobbyIsCreated", handleLobbyCreation);
       socket.off("invitationStatus", handleInvitationStatus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLobbyCreation = () => {
@@ -157,10 +157,8 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handlePrivateMessageClick = async () => {
-    console.log("handle privayte message");
     const response = await isChannelExist([userId, user.id]);
     if (response !== -1) {
-      console.log(`setChannelId to ${response}`);
       setChannelId(response);
     } else {
       try {
@@ -237,7 +235,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       await unblockUser(user.id);
       socket.emit("unblock", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
-      console.log("Unblocked");
       handleClose();
     } catch (error) {
       console.log("error unblocking user");

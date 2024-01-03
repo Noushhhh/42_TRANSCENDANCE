@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
@@ -16,12 +16,6 @@ interface UserProps {
 
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
 
-    const [error, setError] = useState<string | null>(null);
-
-    const handleDivClick = () => {
-        console.log("run here ?");
-    };
-
     const addUser = (user: User) => {
         if (updateUserAdminList && showAdmin){
             updateUserAdminList(user);
@@ -38,7 +32,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                 <div className="Container_avatar">
                     {showAdmin?.show ? ( 
                         <div>
-                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar" checked={showAdmin?.isAdmin} onChange={handleDivClick} />
+                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar" checked={showAdmin?.isAdmin} />
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
