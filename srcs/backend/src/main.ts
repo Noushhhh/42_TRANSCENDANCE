@@ -28,31 +28,56 @@ export default async function App() {
     })
   );
 
+  const allowedOrigins = [
+    'http://localhost:8081',
+    // Add a pattern to allow any IP from the local network
+    /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
+    /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
+    // ... other origins ...
+  ];
+
   // Configure CORS (Cross-Origin Resource Sharing) options
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:8081',
+
+    origin: (origin, callback) => {
+      const isAllowed = !origin || allowedOrigins.some((allowedOrigin) => {
+        if (typeof allowedOrigin === 'string') {
+          return origin === allowedOrigin;
+        } else if (allowedOrigin instanceof RegExp) {
+          return allowedOrigin.test(origin);
+        }
+        return false;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: [
       'Content-Type',
       'Access-Control-Request-Method',
       'Access-Control-Request-Headers',
       'x-user-id',
+      'X-Search-Header'
     ],
     optionsSuccessStatus: 200,
     credentials: true,
   };
-  
+
   // Enable CORS for all routes in the application
   app.enableCors(corsOptions);
-  
+
   // Use express.json middleware to parse incoming JSON payloads
   // set a large limit to avoid server crash for large body request
-  app.use(express.json({limit: '50mb'}));
-  app.use(express.urlencoded({limit: '50mb', extended: true, parameterLimit: 50000}));
-  
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }));
+
   // Use cookie-parser middleware to parse incoming cookies
   app.use(cookieParser());
-  
+
   // Set a global route prefix for the application
   app.setGlobalPrefix('api');
   // Serve static files from the 'uploads' folder
@@ -66,7 +91,7 @@ export default async function App() {
 
   // Start the application and listen on port 4000
   await app.listen(4000);
-  }
+}
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', promise, 'reason:', reason);

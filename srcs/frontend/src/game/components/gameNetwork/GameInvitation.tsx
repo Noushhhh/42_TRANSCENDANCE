@@ -3,7 +3,6 @@ import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { blockUser as blockUserUtil } from "../../../chat/components/ChannelUtils";
 
-
 interface GameInvitationProps {
   socket: Socket | undefined;
 }
@@ -85,7 +84,14 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
 
   if (invitation === true) {
     return (
-      <div style={{ position: "absolute" }}>
+      <div
+        style={{
+          position: "absolute",
+          background: "black",
+          padding: "1rem",
+          fontFamily: "PressStart2P",
+        }}
+      >
         <p>{invitedBy} wants to play!</p>
         <div>
           <button onClick={acceptInvitation}>Accept</button>

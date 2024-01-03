@@ -32,6 +32,7 @@ const GameContainer: FC<GameContainerProps> = ({
 }) => {
   const [isInLobby, setIsInLobby] = useState<boolean>(false);
   const [isLobbyFull, setIsLobbyFull] = useState<boolean>(false);
+  const [isInSpectate, setIsInSpectate] = useState<boolean>(false);
   const clientId = useRef<string>("");
   const gameLaunched = useRef<boolean>(false);
   const location = useLocation();
@@ -41,11 +42,16 @@ const GameContainer: FC<GameContainerProps> = ({
   }, []);
 
   useEffect(() => {
+    socket?.emit("isInSpectateMode");
+  }, [isLobbyFull]);
+
+  useEffect(() => {
     socket?.on("connect", connectListener);
     socket?.on("isOnLobby", isInLobbyListener);
     socket?.on("isLobbyFull", isLobbyFullListener);
     socket?.on("newGame", handleNewGame);
     socket?.on("lobbyState", handleLobbyState);
+    socket?.on("isInSpectateMode", handleIsInSpectateMode);
 
     return () => {
       socket?.off("connect", connectListener);
@@ -53,6 +59,7 @@ const GameContainer: FC<GameContainerProps> = ({
       socket?.off("isLobbyFull", isLobbyFullListener);
       socket?.off("newGame", handleNewGame);
       socket?.off("lobbyState", handleLobbyState);
+      socket?.off("isInSpectateMode", handleIsInSpectateMode);
     };
   }, [socket]);
 
@@ -95,6 +102,12 @@ const GameContainer: FC<GameContainerProps> = ({
 
   const isLobbyFullListener = (isLobbyFull: boolean) => {
     setIsLobbyFull(isLobbyFull);
+  };
+
+  const handleIsInSpectateMode = (res: boolean) => {
+    console.log("IS SPECTATOR = ", res);
+    console.log("ici");
+    setIsInSpectate(res);
   };
 
   const start = async () => {

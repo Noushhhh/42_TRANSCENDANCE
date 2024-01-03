@@ -88,7 +88,7 @@ export class UsersController {
         @NestResponse() res: Response) {
         // Check if the decoded payload is valid
         try {
-            const user = await this.FindWithId(decodedPayload.sub);
+            const user = await this.UsersService.findUserWithId(decodedPayload.sub);
             return res.status(200).send({
                 valid: true, message: "profileName found",
                 profileName: user?.publicName
@@ -112,7 +112,6 @@ export class UsersController {
         try {
             // Use decodedPayload.sub as the user identifier
             const result = await this.UsersService.updatePublicName(decodedPayload.sub, publicName);
-
             if (!result.valid) {
                 throw new HttpException(result.message, HttpStatus.CONFLICT);
             }
@@ -151,28 +150,10 @@ export class UsersController {
         return req.user;
     }
 
-    @Get('UserWithId')
-    FindWithId(userId: number): Promise<User> {
-        return this.UsersService.findUserWithId(userId);
-    }
-
-    @Get('getUsernameWithId')
-    getUsernameWithId(
-        @Query() dto: UserIdDto): Promise<string> {
-        return this.UsersService.getUsernameWithId(dto.userId);
-    }
-
     @Get('getPublicName')
     getPublicName(
         @Query() dto: UserIdDto): Promise<string | null> {
         return this.UsersService.getPublicName(dto.userId);
-    }
-
-
-    @Get('UserWithUsername')
-    FindWithUsername(username: string): Promise<User | undefined> {
-        console.log("controller: username is: ", username);
-        return this.UsersService.findUserWithUsername(username);
     }
 
     @Post('sendFriendRequest')
@@ -182,7 +163,7 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             await this.UsersService.sendFriendRequest(req.user.id, friend.id);
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -195,7 +176,7 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             const pendingRequests = await this.UsersService.getPendingRequests(req.user.id);
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, pendingRequests: pendingRequests })
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, pendingRequests: pendingRequests })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -208,7 +189,7 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -221,7 +202,7 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             await this.UsersService.refuseFriendRequest(req.user.id, friend.id)
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED })
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -234,7 +215,7 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             const friendsList = await this.UsersService.getFriendsList(req.user.id);
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, friendsList: friendsList })
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, friendsList: friendsList })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -247,7 +228,7 @@ export class UsersController {
             if (!req.user?.id)
                 throw new NotFoundException("User not found");
             await this.UsersService.removeFriend(req.user.id, friend.id);
-            res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
@@ -260,8 +241,22 @@ export class UsersController {
             if (typeof userId === "string") {
                 const intUserId = Number(userId);
                 const userProfile = await this.UsersService.getUserProfile(intUserId);
-                res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED, userProfile: userProfile });
+                res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, userProfile: userProfile });
             }
+        } catch (error) {
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        }
+    }
+
+    @Get('getUsersWithStr')
+    async getUsersWithStr(@Req() req: Request, @Res() res: Response) {
+        try {
+            if (!req.user?.id)
+                throw new NotFoundException("User not found");
+
+            const toSearch = req.headers['x-search-header']!.toString();
+            const users = await this.UsersService.getUsersWithStr(req.user.id, toSearch);
+            res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, usersFound: users })
         } catch (error) {
             res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }

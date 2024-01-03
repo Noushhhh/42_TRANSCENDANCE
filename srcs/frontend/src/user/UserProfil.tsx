@@ -1,6 +1,8 @@
 import React, { FC, useEffect, useState } from "react";
 import { isUrlContainsHttps } from "../home/components/friendsComponents/FriendsList";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface UserProfilProps {
   isDisplay: boolean;
   setIsDisplay: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,6 +27,7 @@ const userProfilStyle: React.CSSProperties = {
   zIndex: "1",
   textAlign: "left",
   width: "61%",
+  color: "white",
 };
 
 const crossButtonStyle: React.CSSProperties = {
@@ -51,7 +54,7 @@ const UserProfil: FC<UserProfilProps> = ({
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/users/getUserProfil",
+          `${API_BASE_URL}/api/users/getUserProfil`,
           {
             method: "GET",
             credentials: "include",
@@ -85,13 +88,12 @@ const UserProfil: FC<UserProfilProps> = ({
           gamePlayed: userProfile.gamePlayed,
           gameWon: winPercentage_,
         });
-
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchUser().catch(e => console.error(e));
+    fetchUser().catch((e) => console.error(e));
   }, []);
 
   if (!isDisplay) return <></>;

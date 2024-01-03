@@ -7,6 +7,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import '../styles/generalStyles.css';
 import { hasMessage } from "../tools/Api";
 import { checkToken } from "../tools/Api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // Create a functional component named AuthChoice.
 const AuthChoice: React.FC = () => {
@@ -55,7 +56,7 @@ const AuthChoice: React.FC = () => {
     };
 
     let url42 = () => {
-        return axios.get('http://localhost:4000/api/auth/42Url',
+        return axios.get(`${API_BASE_URL}/api/auth/42Url`,
             { withCredentials: true })
     }
 
