@@ -49,7 +49,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
   const toggleMenu = useToggleMenu();
   const setToggleMenu: React.Dispatch<React.SetStateAction<boolean>> = useSetToggleMenu();
 
-  // when channelInfo is display, chatView is reduce (to have space for info's component)
+  // when channelInfo is display, chatView is reduce (to have space for info's component).
   let widthChatView: string | null = isChannelInfoDisplay ? "isDisplay" : "isReduce";
   // display or no channelInfo's container
   let isContainerDisplay: string | null = displayMenu ? "IsDisplay" : "IsReduce";
