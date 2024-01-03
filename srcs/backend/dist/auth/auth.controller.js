@@ -20,9 +20,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var AuthController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
+const all_exception_filter_1 = require("./exception/all-exception.filter");
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const dto_1 = require("./dto");
@@ -32,10 +32,9 @@ const dto_2 = require("../users/dto");
 const common_2 = require("@nestjs/common");
 const guards_1 = require("./guards");
 const browserError = "This browser session is already taken by someone," + " please open a new browser or incognito window";
-let AuthController = AuthController_1 = class AuthController {
+let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
-        this.logger = new common_1.Logger(AuthController_1.name);
     }
     getToken(req) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -62,15 +61,17 @@ let AuthController = AuthController_1 = class AuthController {
     }
     refreshToken(decodedPayload, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
-            if (!result) {
-                return res.status(common_1.HttpStatus.FORBIDDEN).json({
-                    statusCode: common_1.HttpStatus.FORBIDDEN,
-                    message: 'Not able to refresh token',
-                    error: 'FORBIDDEN'
-                });
+            try {
+                if (!decodedPayload) {
+                    throw new common_1.BadRequestException('Access token not found in cookies');
+                }
+                const result = yield this.authService.signToken(decodedPayload.sub, decodedPayload.email, res);
+                return res.status(result.statusCode).send({ valid: result.valid, message: result.message });
             }
-            return res.status(result.statusCode).json({ valid: result.valid, message: result.message });
+            catch (error) {
+                console.error();
+                throw new Error(`Error in refreshToken controller: ${error}`);
+            }
         });
     }
     signout(decodedPayload, res) {
@@ -91,13 +92,30 @@ let AuthController = AuthController_1 = class AuthController {
     // @Public()
     handle42Callback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.authService.signToken42(req, res);
+            try {
+                // Call the authService to handle 42 authentication
+                yield this.authService.signToken42(req, res);
+            }
+            catch (error) {
+                console.error(error);
+                // // Handle errors here and redirect as needed
+                // res.redirect('http://localhost:8081/error');
+                throw error;
+            }
         });
     }
-    enable2FA(decodedPayload, response) {
+    enable2FA(req) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-            yield this.authService.enable2FA(decodedPayload.sub, response);
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const qrcodeUrl = yield this.authService.enable2FA(req.user.id);
+                return { qrcode: qrcodeUrl };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     disable2FA(req) {
@@ -114,25 +132,42 @@ let AuthController = AuthController_1 = class AuthController {
             }
         });
     }
-    validating2FA(decodedPayload, TwoFAData, response) {
+    validating2FA(req, TwoFAData) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.authService.validateTwoFA(decodedPayload.sub, TwoFAData.token, response);
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const res = yield this.authService.validateTwoFA(req.user.id, TwoFAData.token);
+                return { res: res };
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     verifyTwoFACode(data, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.authService.verifyTwoFACode(data.userId, data.token, response);
-            return { res: res };
-        });
-    }
-    is2FaActivated(decodedPayload, response) {
-        return __awaiter(this, void 0, void 0, function* () {
             try {
-                const res = yield this.authService.is2FaEnabled(decodedPayload.sub);
-                response.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK, res: res });
+                const res = yield this.authService.verifyTwoFACode(data.userId, data.token, response);
+                return { res: res };
             }
             catch (error) {
-                this.logger.error(error);
+                throw error;
+            }
+        });
+    }
+    is2FaActivated(req) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                throw new common_1.NotFoundException("User not found");
+            try {
+                const is2FaEnabled = yield this.authService.is2FaEnabled(req.user.id);
+                return { res: is2FaEnabled };
+            }
+            catch (error) {
+                throw error;
             }
         });
     }
@@ -210,10 +245,9 @@ __decorate([
 __decorate([
     (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('enable2FA'),
-    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_1.Res)()),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "enable2FA", null);
 __decorate([
@@ -227,11 +261,10 @@ __decorate([
 __decorate([
     (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('validating2FA'),
-    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
+    __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, dto_2.TwoFADataDto, Object]),
+    __metadata("design:paramtypes", [Object, dto_2.TwoFADataDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "validating2FA", null);
 __decorate([
@@ -245,13 +278,13 @@ __decorate([
 __decorate([
     (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Get)('is2FaActivated'),
-    __param(0, (0, extract_jwt_decorator_1.ExtractJwt)()),
-    __param(1, (0, common_1.Res)()),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "is2FaActivated", null);
-exports.AuthController = AuthController = AuthController_1 = __decorate([
+exports.AuthController = AuthController = __decorate([
+    (0, common_1.UseFilters)(all_exception_filter_1.AllExceptionsFilter),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
