@@ -32,14 +32,6 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
     
     const displayState = `${displayResults ? "DisplaySearchBarResults" : "HideSearchBarResults"}`;
 
-    console.log(displayResults);
-    console.log(displayResults);
-    console.log(displayResults);
-    console.log(displayResults);
-    console.log(displayResults);
-    console.log(displayResults);
-    console.log(displayResults);
-
     useEffect(() => {
         const fetchUsers = async () => {
             try {

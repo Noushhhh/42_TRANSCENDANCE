@@ -18,7 +18,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     constructor(
         private authService: AuthService,
-        private chatService: ChatService) { };
+        private chatService: ChatService) {};
 
     afterInit() {
         // middleware to check if client-socket can connect to our gateway

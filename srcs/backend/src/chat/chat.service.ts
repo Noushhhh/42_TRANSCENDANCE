@@ -162,9 +162,14 @@ export class ChatService {
     return messagesWithoutBlockedSender;
   }
 
+
+
   async addMessageToChannelId(message: MessageToStoreDto, senderId: number) {
 
     await this.getChannelById(message.channelId);
+
+    if (! await this.isUserIsInChannel(senderId , message.channelId))
+      throw new ForbiddenException("user is not in channel");
 
     let isUserMuted: { isMuted: boolean, isSet: boolean, rowId: number };
     isUserMuted = await this.isMute({ userId: senderId, channelId: message.channelId });

@@ -17,7 +17,8 @@ function SearchBar( { setDisplayResults, inputValue, setInputValue }: SearchBarP
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
-        event.target.value.length > 2 ? setDisplayResults(true) : setDisplayResults(false);
+        if (setDisplayResults)
+            event.target.value.length > 2 ? setDisplayResults(true) : setDisplayResults(false);
       };
 
     return (
