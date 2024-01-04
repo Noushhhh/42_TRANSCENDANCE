@@ -14,11 +14,10 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
   const [lobbiesState, setLobbiesState] = useState<LobbyData[]>([]);
 
   useEffect(() => {
-    if (isButtonClicked)
-      socket.emit("updateStatus", "Spectating game");
     return () => {
       socket.emit("updateStatus", "Online");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isButtonClicked]);
 
   useEffect(() => {

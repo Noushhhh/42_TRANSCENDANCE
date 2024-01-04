@@ -64,6 +64,7 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
     socket.emit("isUserInGame", friend.id, (data: IsPlayerInLobbyType) => {
       setIsUserInGame({ isInLobby: data.isInGame, lobbyName: data.lobbyName });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friend.id]);
 
   useEffect(() => {
@@ -76,6 +77,7 @@ const FriendsMenu: FC<FriendsMenuProps> = ({
       socket.off("lobbyIsCreated", handleLobbyCreation);
       socket.off("invitationStatus", handleInvitationStatus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePlayClick = async () => {

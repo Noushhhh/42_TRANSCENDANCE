@@ -370,12 +370,23 @@ export class GameLobbyService {
     }
   }
 
-  isInSpectateMode(playerId: string) {
+  isInSpectateMode(playerId: string): boolean {
     for (const [key, value] of lobbies) {
-      value.spectators?.forEach((spec) => {
-        console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
-        if (spec.id === playerId)
-          this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+      if (value.spectators?.some((spec) => spec.id === playerId)) {
+        this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  removeFromSpectate(playerId: string) {
+    for (const [key, value] of lobbies) {
+      value.spectators?.forEach((spec, i) => {
+        if (spec.id === playerId) {
+          value.spectators?.splice(i, 1);
+          this.gatewayOut.removeSpectate(false, playerId, key);
+        }
       })
     }
   }
