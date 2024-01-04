@@ -8,22 +8,15 @@ interface SearchBarProps{
 
 function SearchBar( { setDisplayResults, inputValue, setInputValue }: SearchBarProps ){
 
-    const handleInputValue = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter')
-        {
-            console.log(inputValue);
-        }
-    }
-
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
         if (setDisplayResults)
-            event.target.value.length > 2 ? setDisplayResults(true) : setDisplayResults(false);
+            event.target.value.length === 0 ? setDisplayResults(false) : setDisplayResults(true)
       };
 
     return (
          <div className="searchBar">
-            <input value={inputValue} onChange={handleChange} onKeyDown={handleInputValue} type="text" placeholder="Search a user"/>
+            <input value={inputValue} onChange={handleChange} type="text" placeholder="Search a user"/>
          </div>
     )
 }

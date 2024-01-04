@@ -39,7 +39,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                     {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
-                    {user.publicName && user.publicName}
+                    {user.publicName && user.publicName}ssss
                 </div>
             </div>
         )

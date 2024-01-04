@@ -271,7 +271,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   return (
-    <div>
+    <div style={{width:"100%"}}>
       {isUserProfilDisplayed ? (
         <UserProfil
           isDisplay={isUserProfilDisplayed}

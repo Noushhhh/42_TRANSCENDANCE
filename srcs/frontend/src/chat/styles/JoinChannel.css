@@ -8,3 +8,14 @@
 .fontColorWhite {
     color: white;
 }
+
+.joinChannelBox{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.joinChannelBox input {
+    margin-bottom: 15px;
+}

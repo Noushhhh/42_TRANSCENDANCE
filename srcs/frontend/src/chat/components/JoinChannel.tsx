@@ -124,8 +124,8 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
 
                     <JoinProtectedChannel setStateMessageToClick={setStateMessageToClick} channelId={apiResponse?.id} />
                     :
-                    <div>
-                        <p>Enter channel name:</p>
+                    <div className="joinChannelBox">
+                        <p>Channel name:</p>
                         <input ref={inputRef} onKeyDown={handleKeyDown} type="text" value={channelNameDto.channelName} onChange={handleChangeName} />
                         <ValidationButton action={handleClick}
                             size={{ height: 40, width: 200 }}

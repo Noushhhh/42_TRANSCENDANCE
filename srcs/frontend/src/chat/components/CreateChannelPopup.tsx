@@ -134,7 +134,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 ) : null
             }
             {
-                <div className="flex">
+            <div className="flex">
                 <h5>Channel Name</h5>
                 <input value={channelName} onChange={handleChannelName} type="text" />
             </div>
