@@ -7,6 +7,8 @@ import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import JoinProtectedChannel from "./JoinProtectedChannel";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 enum ChannelType {
     PUBLIC,
     PRIVATE,
@@ -89,7 +91,7 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
         try {
             setError(null);
             setApiResponse(null);
-            const response: Response = await fetch('http://localhost:4000/api/chat/isChannelNameExist', {
+            const response: Response = await fetch(`${API_BASE_URL}/api/chat/isChannelNameExist`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {

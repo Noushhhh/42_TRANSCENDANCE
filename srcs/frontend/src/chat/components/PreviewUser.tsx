@@ -2,6 +2,8 @@ import React, { ChangeEvent } from "react";
 import "../styles/PreviewUser.css";
 import CloseIcon from '@mui/icons-material/Close';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface PreviewUserProps {
     user: User;
     removeUserFromList: (input: User) => void;
@@ -26,7 +28,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
         return (
             <div className="PreviewUser MutedMode fadeIn">
                 <span className="SpanMutedMode">
-                    <img className="previewUserAvatar previewMutedMode"  src={`http://localhost:4000/${user.avatar}`}  alt="" width={29} height={29} />
+                    <img className="previewUserAvatar previewMutedMode"  src={`${API_BASE_URL}/${user.avatar}`}  alt="" width={29} height={29} />
                     {user.publicName} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
                 </span>
                 <div style={{display:"flex", flexDirection:"column"}}>
@@ -40,7 +42,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
     return (
         <div className="PreviewUser fadeIn">
             <span>
-                <img className="previewUserAvatar"  src={`http://localhost:4000/${user.avatar}`}  alt="" width={29} height={29} />
+                <img className="previewUserAvatar"  src={`${API_BASE_URL}/${user.avatar}`}  alt="" width={29} height={29} />
                 {user.publicName} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
             </span>
         </div>

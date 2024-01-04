@@ -199,7 +199,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
         isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
         if (isSenderMuted.isMuted === true) {
-            data.content = "you are mute from this channel";
+            data.content = "you are muted from this channel";
             return true;
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
