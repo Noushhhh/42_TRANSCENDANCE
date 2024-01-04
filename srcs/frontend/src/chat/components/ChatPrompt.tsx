@@ -86,8 +86,6 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
   }, []);
 
   const messageEvent = (data: Message) => {
-    console.log("Message received:");
-    console.log(data);
     if (!data) return;
     if (isWhitespace(data.content)) return;
     if (data.senderId === userId)
