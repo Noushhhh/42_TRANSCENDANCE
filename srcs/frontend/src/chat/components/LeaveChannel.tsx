@@ -14,7 +14,7 @@ import { useSocketContext } from '../contexts/socketContext';
 import { Socket } from 'socket.io-client';
 import { leaveChannel } from './ChannelUtils';
 
-interface ConfirmationPopup{
+interface ConfirmationPopupProps{
   setParentError: React.Dispatch<React.SetStateAction<string | null>>;
   isOwner: boolean | undefined;
   setDisplayNewOwner: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,7 +22,7 @@ interface ConfirmationPopup{
   goBack: () => void;
 }
 
-export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu, goBack }: ConfirmationPopup ) {
+export default function ConfirmationPopup( { setParentError, isOwner, setDisplayNewOwner, setDisplayMenu, goBack }: ConfirmationPopupProps ) {
 
   const [open, setOpen] = useState<boolean>(false);
 
