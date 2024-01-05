@@ -134,20 +134,9 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.usersService.findUserWithUsername(dto.username);
-                /*  At this point, if the user sends a signin request, that means whether his token is expired
-                    or he is not logged in(there is no cookies trace session in the browser), as in the fronted
-                    "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-                    before sending a request to backend */
-                if (req.cookies['userSession']) {
-                    //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-                    yield this.signout(user.id, res);
-                }
                 const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
                 if (!passwordMatch)
                     throw new common_1.UnauthorizedException('Incorrect password');
-                // Enhanced session check logic
-                // if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-                //   throw new UnauthorizedException('User is already logged in');
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
@@ -200,6 +189,53 @@ let AuthService = AuthService_1 = class AuthService {
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
+    // Method to invalidate all other sessions for a user except for the current session
+    invalidateOtherSessions(userId, currentSessionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.session.updateMany({
+                where: {
+                    userId: userId,
+                    sessionId: { not: currentSessionId },
+                    isValid: true
+                },
+                data: {
+                    isValid: false, // Mark other sessions as invalid
+                    expiredAt: new Date() // Set the expiration timestamp to now
+                },
+            });
+            console.log('Other sessions invalidated');
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+    /**
+     * Creates a new session for a user.
+     * @param userId The ID of the user for whom to create a session.
+     * @param sessionDuration The duration (in milliseconds) for which the session is valid.
+     * @returns The created session.
+     */
+    createNewSession(userId, expiredAt) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
+            const createdAt = new Date();
+            const session = yield this.prisma.session.create({
+                data: {
+                    userId: userId,
+                    sessionId: sessionId,
+                    createdAt: createdAt,
+                    expiredAt: expiredAt,
+                    isValid: true,
+                },
+            });
+            return session;
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    generateUniqueSessionId() {
+        // Implement logic to generate a unique session ID
+        // Example: using UUIDs
+        return require('crypto').randomBytes(16).toString('hex');
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
     /**
      * Generates JWT and refresh tokens for a user and updates session information in the database.
      * @param userId - The ID of the user.
@@ -229,10 +265,7 @@ let AuthService = AuthService_1 = class AuthService {
             const sessionId = this.generateSessionId();
             const sessionExpiresAt = tokenExpiresAt;
             try {
-                yield this.prisma.user.update({
-                    where: { id: userId },
-                    data: { sessionId, sessionExpiresAt },
-                });
+                yield this.createNewSession(userId, sessionExpiresAt);
             }
             catch (error) {
                 throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
@@ -389,10 +422,10 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // this.logger.debug("passing by signout");
-                yield this.prisma.user.update({
-                    where: { id: userId },
-                    data: { sessionId: null, sessionExpiresAt: null },
-                });
+                // await this.prisma.user.update({
+                //   where: { id: userId },
+                //   data: { sessionId: null, sessionExpiresAt: null },
+                // });
                 // Clear the JWT cookie or session
                 res.clearCookie('token');
                 res.clearCookie('refreshToken');
@@ -456,14 +489,6 @@ let AuthService = AuthService_1 = class AuthService {
                     // If the session exists, it means the token is expired. 
                     // Clear the session cookies and user session from the database.
                     yield this.signout(user.id, res);
-                }
-                // Enhanced session check logic: check if the user is already logged in
-                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-                    return res.status(common_1.HttpStatus.FORBIDDEN).json({
-                        statusCode: common_1.HttpStatus.FORBIDDEN,
-                        message: 'User is already logged in',
-                        error: 'FORBIDDEN'
-                    });
                 }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);

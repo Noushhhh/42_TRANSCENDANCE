@@ -31,7 +31,7 @@ services:
     image: backend_image # Set the image name
     volumes:
       - backend_volume:/usr/src/app
-    portsjkkk:
+    ports:
       - 4000:4000 
       - 5555:5555 # Map the container port to the host port
     # restart: unless-stopped
