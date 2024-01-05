@@ -1,7 +1,15 @@
-import { Injectable, CanActivate, ExecutionContext, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '../../prisma/prisma.service';
+import { IsInt, Min, Max } from 'class-validator';
+
+export class OwnerGuardDTO {
+  @IsInt()
+  @Min(0)
+  @Max(2000000)
+  channelId!: string;
+}
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
@@ -11,7 +19,6 @@ export class OwnerGuard implements CanActivate {
 
     canActivate = async (context: ExecutionContext): Promise<boolean> => {
 
-        console.log("inside Owner Guard");
         const request = context.switchToHttp().getRequest();
 
         const body = request.body;
@@ -34,6 +41,9 @@ export class OwnerGuard implements CanActivate {
             userId = parseInt(user.sub.toString(), 10);
         else
             return false;
+
+        if (channelId < 0 || channelId > 2000000)
+            throw new ForbiddenException("Incorrect channelId")
         const channel = await this.prisma.channel.findUnique({
             where: { id: channelId },
             include: { owner: true }
@@ -46,6 +56,6 @@ export class OwnerGuard implements CanActivate {
             return true;
         }
 
-        throw new UnauthorizedException("Only admin guard can access this");
+        throw new UnauthorizedException("Only admin can access this");
     }
 }
