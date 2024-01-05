@@ -76,8 +76,6 @@ const FriendsSearchBar: FC<FriendsSearchBarProps> = ({ socket }) => {
       }));
 
       setUsersFound(transformedUsers);
-
-      console.log("usersFound = ", usersFound);
     };
 
     const debounceTimer = setTimeout(() => {
