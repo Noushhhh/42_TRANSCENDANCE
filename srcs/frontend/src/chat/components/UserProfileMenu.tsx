@@ -9,7 +9,6 @@ import {
   blockUser,
   unblockUser,
   isUserIsBlockedBy,
-  fetchConversation
 } from "./ChannelUtils";
 import {
   useChannelIdContext,
