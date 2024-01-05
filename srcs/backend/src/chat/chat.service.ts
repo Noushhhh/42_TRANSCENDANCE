@@ -561,7 +561,7 @@ export class ChatService {
 
     const channelType: string = await this.getChannelType(channelId);
     if (channelType === "PRIVATE" && await this.isOwner(callerId, channelId) === false){
-      throw new ForbiddenException("Required owner privileges")
+      throw new ForbiddenException("Require owner privileges")
     }
 
     const channel = await this.prisma.channel.update({
