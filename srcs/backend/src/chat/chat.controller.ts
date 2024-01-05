@@ -144,8 +144,9 @@ export class ChatController {
 
     @Post('addUserToChannel')
     async addUserToChannel(
+        @GetUser('id') callerId: number,
         @Body() dto: PairUserIdChannelId): Promise<number> {
-        return this.chatService.addUserToChannel(dto.userId, dto.channelId);
+        return this.chatService.addUserToChannel(dto.userId, dto.channelId, callerId);
     }
 
     @Post('addUserToProtectedChannel')

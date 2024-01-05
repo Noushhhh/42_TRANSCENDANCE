@@ -3,13 +3,12 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res, Logger, ForbiddenException,
+    Response as NestResponse, Query, Body, NotFoundException, Res, Logger,
 } from '@nestjs/common'
-import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
 import { UsersService } from './users.service';
-import { UserIdDto, friendRequestDto, UpdatePublicNameDto, friendDto } from './dto';
+import { UserIdDto, UpdatePublicNameDto, friendDto } from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExtractJwt } from '../decorators/extract-jwt.decorator';
 import { DecodedPayload } from '../interfaces/decoded-payload.interface';
@@ -134,7 +133,6 @@ export class UsersController {
             await this.UsersService.updateAvatar(decodedPayload.sub, avatar);
             res.status(HttpStatus.OK).send({ statusCode: 200, valid: true, message: "Avatar was successfully updated" });
         } catch (error) {
-
             throw error;
         }
     }
