@@ -71,7 +71,10 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
 
     const callCreateChannel = async () => {
         try {
-            console.log("callCreateChannel");
+            if (channelType === "PASSWORD_PROTECTED" && password.length < 6){
+                setError("Channel password must be 6 characters minimum")
+                return ;
+            }
             if (channelName.length < 1)
                 setError("Channel name can't be empty");
             else{

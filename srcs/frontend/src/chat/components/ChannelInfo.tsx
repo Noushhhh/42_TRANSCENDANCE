@@ -215,10 +215,10 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
         <HeaderChannelInfo handleClick={() => {handleClick()}} title={"Groups information"} />
         <div className="ChannelInfoCard ChannelName">
           <h4>{channelName ? channelName : 'no-name'}</h4>
-          <h5>{numberUsersInChannel ? numberUsersInChannel : null} membres</h5>
+          <h5>{numberUsersInChannel ? numberUsersInChannel : null} member(s)</h5>
         </div>
         <div className="ChannelInfoCard SettingsButton">
-          <h4 className="clickable" onClick={handleSettings}>Parametres du groupe <ArrowForwardIosIcon className="icon" /></h4>
+          <h4 className="clickable" onClick={handleSettings}>Groups settings<ArrowForwardIosIcon className="icon" /></h4>
         </div>
         <div className="ChannelInfoCard SettingsButton leaveChannel">
           <LeaveChannel setParentError={setError} isOwner={isChannelOwner} setDisplayNewOwner={setDisplayNewOwner} setDisplayMenu={setdisplayMenu} goBack={goBackToChannelList}/>

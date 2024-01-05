@@ -101,7 +101,7 @@ export const fetchUser = async (
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
       const channelId = Number(id);
-      const response = await fetch(`${API_BASE_URL}/api/chat/getChannelHeader?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+      const response = await fetch(`${API_BASE_URL}/api/chat/getChannelHeader?channelId=${channelId}`, GetRequestOptions);
       handleHTTPErrors(response, {});
       const header: Channel = await response.json();
 
@@ -307,7 +307,7 @@ export const leaveChannel = async (
         "Content-Type": "application/json",
       },
       credentials: 'include',
-      body: JSON.stringify({ userId, channelId, newOwnerId }),
+      body: JSON.stringify({ channelId, newOwnerId }),
   };
   const response = await fetch(`${API_BASE_URL}/api/chat/leaveChannel`, requestOptions);
   handleHTTPErrors(response, {});
@@ -342,7 +342,7 @@ export const getUsernamesInChannelFromSubstring = async (
   const cleanSubstring: string = encodeURIComponent(substringLogin);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`, GetRequestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     return users;
@@ -574,7 +574,6 @@ export const isUserIsBan = async (channelId: number, userId: number): Promise<bo
 
 export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<boolean> => {
   try {
-    // same
     const response = await fetch(`${API_BASE_URL}/api/chat/addUserToProtectedChannel`, {
       method: "POST",
       headers: {
@@ -596,7 +595,6 @@ export const joinChannel = async (channel: IisChannelExist, userId: number): Pro
     let channelIdJoined: number = -1;
     switch (channel.channelType.toString()) {
       case "PUBLIC":
-        console.log('is public');
         channelIdJoined = await addUserIdToChannel(channel.id, userId); // check if we need to protect this API call
         break;
       case "PRIVATE":
