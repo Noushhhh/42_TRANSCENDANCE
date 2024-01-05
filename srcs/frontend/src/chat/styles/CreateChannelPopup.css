@@ -6,10 +6,14 @@
     justify-content: center;
     color: white;
     z-index: 10;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
 }
 
 .flex{
     display: flex;
+    justify-content: space-around;
 }
 
 .flex h5 {
@@ -17,11 +21,11 @@
 }
 
 .flex input {
-    width: 70%;
+    width: 55%;
 }
 
 .flex label{
-    width: 30%;
+    width: 45%;
 }
 
 .popupChannelCreation p, .popupChannelCreation h5, .popupChannelCreation h3    {

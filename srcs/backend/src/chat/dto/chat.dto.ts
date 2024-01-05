@@ -1,5 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, isDate, IsDate, MaxLength, Max, MinLength } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsAlphanumeric, IsNotEmpty, IsString, Min, IsInt, IsIn, IsOptional, IsDate, MaxLength, Max, MinLength, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 
@@ -114,8 +113,8 @@ export class ManagePasswordDto{
 
 export class ManageChannelTypeDto{
     @IsInt()
-    @Min(0)
     @Type(() => Number)
+    @Min(0)
     @Max(2000000)
     channelId!: number;
 
@@ -166,7 +165,6 @@ export class MessageToStoreDto {
     @MaxLength(5000)
     @IsString()
     content!: string;
-
 }
 
 export class getChannelUsernamesDto {
@@ -181,7 +179,6 @@ export class getChannelUsernamesDto {
     @IsNotEmpty()
     @MaxLength(150)
     substring!: string;
-
 }
 
 export class getUsernamesDto {
@@ -219,4 +216,22 @@ export class ManageAdminDto {
     @Min(0)
     @Max(2000000)
     channelId!: number;
+}
+
+export class CreateChannelDto {
+    @IsString()
+    @MaxLength(35)
+    name!: string;
+
+    @IsString()
+    @MaxLength(22)
+    password!: string;
+
+    @IsNumber({}, { each: true })
+    @Min(0, {each: true})
+    @Max(2000000, {each: true})
+    participants!: number[];
+
+    @IsIn(['PUBLIC', 'PRIVATE', 'PASSWORD_PROTECTED'])
+    type!: string;
 }

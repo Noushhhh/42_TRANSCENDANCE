@@ -3,7 +3,6 @@ import { Server, Socket } from 'socket.io';
 import { Message } from '@prisma/client';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-// import { SocketService } from './socket.service';
 import { ChatService } from './chat.service';
 
 @Injectable()
@@ -19,7 +18,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     constructor(
         private authService: AuthService,
-        private chatService: ChatService) { };
+        private chatService: ChatService) {};
 
     afterInit() {
         // middleware to check if client-socket can connect to our gateway
@@ -36,17 +35,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
                 next(new WsException('invalid token'));
             }
         })
-
-        /*this.server.on('connection', async (socket) => {
-            console.log(`userId ${socket.data.userId} is connected from chat gateway`);
-            this.joinRoomsForClient(socket.data.userId, socket);
-            this.readMap();
-
-            socket.on('disconnect', async () => {
-                console.log(`userId: ${socket.data.userId} is disconnected from chat gateway`);
-                this.leaveRoomsForClient(socket.data.userId, socket);
-            })
-        });*/
     }
 
     handleConnection(socket: Socket) {
@@ -64,7 +52,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async readMap() {
         const sockets = await this.server.fetchSockets();
         for (const socket of sockets) {
-            console.log(`userId:${socket.data.userId} is ${socket.id}`);
+            console.log(`userId:${socket.data.userId} is ${socket.id} (chat)`);
         }
     }
 
@@ -211,7 +199,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
         isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
         if (isSenderMuted.isMuted === true) {
-            data.content = "you are mute from this channel";
+            data.content = "you are muted from this channel";
             return true;
         }
         // emit with client instead of server doesnt trigger "message" events to initial client-sender

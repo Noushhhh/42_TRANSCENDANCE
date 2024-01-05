@@ -6,7 +6,7 @@ import SearchBarResults from "./SearchBarResults";
 import "../styles/SearchBar.css";
 import "../types/channel.type";
 import { useChannelHeaderContext, useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
-import { fetchUser, leaveChannel } from "./ChannelUtils";
+import { fetchUser } from "./ChannelUtils";
 import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import ChannelManagerMenu from "./ChannelManagerMenu";
@@ -72,7 +72,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       socket.off("channelDeleted", channelDeletedEvent);
       socket.off("kickedOrBanned", kickedOrBannedEvent);
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const channelDeletedEvent = async (channelId: number) => {
     // check if need to uncomment this part, I think no
@@ -101,7 +102,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       socket.off("messageBack", messageEvent);
       socket.off("changeConnexionState", changeConnexionStateEvent);
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     socket.on("addedToChannel", addedToChannelEvent);
@@ -109,6 +111,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     return () => {
       socket.off("addedToChannel", addedToChannelEvent);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const addedToChannelEvent = async () => {
@@ -143,6 +146,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     return () => {
       fetchBoolean.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needReload]);
 
   return (
@@ -192,9 +196,8 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
               channel.lastMsg = previewLastMessage.content;
             return (
               <MessageToClick
-                channel={channel}
                 key={index}
-                isConnected={channel.isConnected}
+                channel={channel}
                 setChannelClicked={setChannelClicked}
               />
             );

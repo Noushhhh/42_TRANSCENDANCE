@@ -1,13 +1,12 @@
-import React, { SetStateAction, Dispatch, useEffect } from "react";
+import React, { SetStateAction, Dispatch } from "react";
 
 interface SearchBarProps{
-    setDisplayResults: Dispatch<SetStateAction<boolean>>;
+    setDisplayResults?: Dispatch<SetStateAction<boolean>>;
     inputValue: string;
     setInputValue: Dispatch<SetStateAction<string>>;
-    action?: string;
 }
 
-function SearchBar( { setDisplayResults, inputValue, setInputValue, action }: SearchBarProps ){
+function SearchBar( { setDisplayResults, inputValue, setInputValue }: SearchBarProps ){
 
     const handleInputValue = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter')
@@ -18,7 +17,9 @@ function SearchBar( { setDisplayResults, inputValue, setInputValue, action }: Se
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
-        event.target.value.length > 2 ? setDisplayResults(true) : setDisplayResults(false);
+        if (setDisplayResults){
+            event.target.value.length === 0 ? setDisplayResults(false) : setDisplayResults(true)
+        }
       };
 
     return (

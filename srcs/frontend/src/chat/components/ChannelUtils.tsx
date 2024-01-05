@@ -1,6 +1,5 @@
 import { Socket } from 'socket.io-client';
-import { PairUserIdChannelId } from '../../../../backend/src/chat/dto/chat.dto';
-import { ErrorSharp } from '@mui/icons-material';
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface Message {
@@ -86,7 +85,7 @@ export const fetchUser = async (
 
   try {
 
-    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/getAllConvFromId`, {
       method: "POST",
       credentials: 'include',
       headers: {
@@ -102,7 +101,7 @@ export const fetchUser = async (
 
     const fetchChannelHeaders = listChannelId.map(async (id: string) => {
       const channelId = Number(id);
-      const response = await fetch(`http://localhost:4000/api/chat/getChannelHeader?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+      const response = await fetch(`${API_BASE_URL}/api/chat/getChannelHeader?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
       handleHTTPErrors(response, {});
       const header: Channel = await response.json();
 
@@ -131,7 +130,7 @@ export const fetchUser = async (
 
 export const getNumberUsersInChannel = async (channelId: number): Promise<number> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getNumberUsersInChannel?channelId=${channelId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/getNumberUsersInChannel?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const numberUsersInChannel: number = await response.json();
     return numberUsersInChannel;
@@ -142,7 +141,7 @@ export const getNumberUsersInChannel = async (channelId: number): Promise<number
 
 export const getChannelName = async (channelId: number): Promise<string | null> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getChannelName?channelId=${channelId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/getChannelName?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const channelName = await response.text();
     return channelName;
@@ -170,7 +169,7 @@ export const createChannel = async (
 
   try {
 
-    const response = await fetch(`http://localhost:4000/api/chat/addChannelToUser`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/addChannelToUser`, {
       method: "POST",
       credentials: 'include',
       headers: {
@@ -227,8 +226,7 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
 
   try {
     // get all the conversation of a user
-    let userId: number = participants[0];
-    const response = await fetch(`http://localhost:4000/api/chat/getAllConvFromId`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/getAllConvFromId`, {
       method: "POST",
       credentials: 'include',
       headers: {
@@ -242,7 +240,7 @@ export const isChannelExist = async (participants: number[]): Promise<number> =>
 
     channelList = await response.json();
     for (const convId of channelList) {
-      const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${convId}`, GetRequestOptions);
+      const response = await fetch(`${API_BASE_URL}/api/chat/getUsersFromChannelId?channelId=${convId}`, GetRequestOptions);
       handleHTTPErrors(response, {});
       const userList = await response.json();
       if (compareUsersWithNumbers(userList, participants) === true) {
@@ -274,7 +272,7 @@ export const setHeaderNameWhenTwoUsers = async (channelId: string, userId: numbe
     isConnected: false,
   };
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`, GetRequestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/getUsersFromChannelId?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     if (!users)
@@ -311,7 +309,7 @@ export const leaveChannel = async (
       credentials: 'include',
       body: JSON.stringify({ userId, channelId, newOwnerId }),
   };
-  const response = await fetch(`http://localhost:4000/api/chat/leaveChannel`, requestOptions);
+  const response = await fetch(`${API_BASE_URL}/api/chat/leaveChannel`, requestOptions);
   handleHTTPErrors(response, {});
   if (!response)
     return false;
@@ -325,7 +323,7 @@ export const leaveChannel = async (
 export const getUsernamesBySubstring = async (userIdCaller: number, substring: string): Promise<User[]> => {
   try {
     const cleanSubstring: string = encodeURIComponent(substring);
-    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesFromSubstring?substring=${cleanSubstring}`, GetRequestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/getUsernamesFromSubstring?substring=${cleanSubstring}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const listUsers: User[] = await response.json();
     const filteredListUsers = listUsers.filter((user: User) => user.id !== userIdCaller);
@@ -344,7 +342,7 @@ export const getUsernamesInChannelFromSubstring = async (
   const cleanSubstring: string = encodeURIComponent(substringLogin);
 
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`, GetRequestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/getUsernamesInChannelFromSubstring?channelId=${channelId}&substring=${cleanSubstring}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     return users;
@@ -357,7 +355,7 @@ export const banUserList = async (userList: User[], channelId: number, socket: S
   try {
     for (const user of userList) {
       const targetId: number = user.id;
-      const response: Response = await fetch(`http://localhost:4000/api/chat/banUserFromChannel`, {
+      const response: Response = await fetch(`${API_BASE_URL}/api/chat/banUserFromChannel`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -387,7 +385,7 @@ export const kickUserList = async (userList: User[], channelId: number, socket: 
     for (const user of userList) {
       try {
         const targetId: number = user.id;
-        const response: Response = await fetch(`http://localhost:4000/api/chat/kickUserFromChannel`, {
+        const response: Response = await fetch(`${API_BASE_URL}/api/chat/kickUserFromChannel`, {
           method: "POST",
           credentials: 'include',
           headers: {
@@ -414,7 +412,7 @@ export const kickUserList = async (userList: User[], channelId: number, socket: 
 export const fetchChannelUsers = async (channelId: number): Promise<User[]> => {
 
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getUsersFromChannelId?channelId=${channelId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/getUsersFromChannelId?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const users: User[] = await response.json();
     return users;
@@ -427,7 +425,7 @@ export const fetchChannelAdmins = async (channelId: number): Promise<User[]> => 
 
   try {
 
-    const response: Response = await fetch(`http://localhost:4000/api/chat/getAdmins?channelId=${channelId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/getAdmins?channelId=${channelId}`, GetRequestOptions);
     if (!response.ok) {
       throw new Error("Error fetching data");
     }
@@ -463,9 +461,8 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
   try {
     for (const user of userList) {
       const invitedId: number = user.user.id;
-      const response: Response = new Response();
       if (user.isAdmin === true) {
-        const response = await fetch(`http://localhost:4000/api/chat/addAdminToChannel`, {
+        const response = await fetch(`${API_BASE_URL}/api/chat/addAdminToChannel`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -475,7 +472,7 @@ export const manageAdminsToChannel = async (userList: { user: User, isAdmin: boo
         });
         handleHTTPErrors(response, {});
       } else {
-        const response = await fetch(`http://localhost:4000/api/chat/removeAdminFromChannel`, {
+        const response = await fetch(`${API_BASE_URL}/api/chat/removeAdminFromChannel`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -502,7 +499,7 @@ export const addUserIdToChannel = async (channelId: number, userId: number): Pro
       },
       body: JSON.stringify({ userId, channelId })
     };
-    const response = await fetch(`http://localhost:4000/api/chat/addUserToChannel`, requestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/addUserToChannel`, requestOptions);
     if (!response.ok) {
       return Promise.reject(await response.json());
     }
@@ -517,7 +514,7 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
 
   const responses: Promise<Response>[] = userList.map((user) => {
     const userId: number = user.id;
-    return fetch(`http://localhost:4000/api/chat/addUserToChannel`, {
+    return fetch(`${API_BASE_URL}/api/chat/addUserToChannel`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -558,7 +555,7 @@ export const addUserListToChannel = async (userList: User[], channelId: number, 
 
 export const isUserIsBan = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    const response = await fetch("http://localhost:4000/api/chat/isUserIsBan", {
+    const response = await fetch(`${API_BASE_URL}/api/chat/isUserIsBan`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -578,7 +575,7 @@ export const isUserIsBan = async (channelId: number, userId: number): Promise<bo
 export const joinProtectedChannel = async (channelId: number, userId: number, password: string): Promise<boolean> => {
   try {
     // same
-    const response = await fetch('http://localhost:4000/api/chat/addUserToProtectedChannel', {
+    const response = await fetch(`${API_BASE_URL}/api/chat/addUserToProtectedChannel`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -615,7 +612,7 @@ export const joinChannel = async (channel: IisChannelExist, userId: number): Pro
 
 export const isUserIsBlockedBy = async (targetId: number): Promise<boolean> => {
   try {
-    const response = await fetch("http://localhost:4000/api/chat/isUserIsBlockedBy", {
+    const response = await fetch(`${API_BASE_URL}/api/chat/isUserIsBlockedBy`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -636,7 +633,7 @@ export const isUserIsBlockedBy = async (targetId: number): Promise<boolean> => {
 }
 
 export const blockUser = async (targetId: number) => {
-  fetch("http://localhost:4000/api/chat/blockUser", {
+  fetch(`${API_BASE_URL}/api/chat/blockUser`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -658,13 +655,13 @@ export const blockUser = async (targetId: number) => {
 }
 
 export const unblockUser = async (targetId: number) => {
-  fetch("http://localhost:4000/api/chat/unblockUser", {
+  fetch(`${API_BASE_URL}/api/chat/unblockUser`, {
     method: 'POST',
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ userId: targetId }) // Convertit l'objet JavaScript en JSON
+    body: JSON.stringify({ userId: targetId })
   })
     .then(response => {
       if (!response.ok) {
@@ -678,14 +675,15 @@ export const unblockUser = async (targetId: number) => {
 
 export const fetchConversation = async (userId: number, channelId: number, addMsgToFetchedConversation: (message: Message) => void) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getAllMessagesByChannelId?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+    const response = await fetch(`${API_BASE_URL}/api/chat/getAllMessagesByChannelId?channelId=${channelId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const messageList = await response.json();
     if (!messageList)
       return;
     messageList.map((message: Message) => {
       userId === message.senderId ? message.messageType = "MessageTo" : message.messageType = "MessageFrom";
-      addMsgToFetchedConversation(message)
+      addMsgToFetchedConversation(message);
+      return null;
     })
   } catch (error) {
     throw error;
@@ -694,7 +692,7 @@ export const fetchConversation = async (userId: number, channelId: number, addMs
 
 export const manageChannelPassword = async (channelId: number, channelType: string, actualPassword: string, newPassword: string) => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/manageChannelPassword`, {
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/manageChannelPassword`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -716,7 +714,7 @@ export const manageChannelPassword = async (channelId: number, channelType: stri
 
 export const manageChannelType = async (channelId: number, channelType: string) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/manageChannelType`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/manageChannelType`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -736,7 +734,7 @@ export const manageChannelType = async (channelId: number, channelType: string) 
 
 export const getChannelType = async (channelId: number) => {
   try {
-    const response = await fetch(`http://localhost:4000/api/chat/getChannelType`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/getChannelType`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -754,7 +752,7 @@ export const getChannelType = async (channelId: number) => {
 
 export const isOwner = async (channelId: number, userId: number): Promise<boolean> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/chat/isOwner?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/chat/isOwner?channelId=${channelId}&userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const isOwner = await response.json();
     return isOwner;
@@ -763,16 +761,16 @@ export const isOwner = async (channelId: number, userId: number): Promise<boolea
   }
 }
 
-export const mute = async (mutedUserId: number, callerUserId: number, mutedUntilString: string, channelId: number) => {
+export const mute = async (mutedUserId: number, mutedUntilString: string, channelId: number) => {
   try {
     const mutedUntil: Date = new Date(mutedUntilString);
-    const response = await fetch(`http://localhost:4000/api/chat/mute`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/mute`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json' // Définissez le type de contenu JSON si nécessaire
       },
       credentials: 'include',
-      body: JSON.stringify({ mutedUserId, callerUserId, channelId, mutedUntil })
+      body: JSON.stringify({ mutedUserId, channelId, mutedUntil })
     });
     handleHTTPErrors(response, {});
     console.log("mute called");
@@ -783,7 +781,7 @@ export const mute = async (mutedUserId: number, callerUserId: number, mutedUntil
 
 export const getUsername = async (userId: number): Promise<string> => {
   try {
-    const response: Response = await fetch(`http://localhost:4000/api/users/getPublicName?userId=${userId}`, GetRequestOptions);
+    const response: Response = await fetch(`${API_BASE_URL}/api/users/getPublicName?userId=${userId}`, GetRequestOptions);
     handleHTTPErrors(response, {});
     const publicName: string = await response.text();
     return publicName;

@@ -14,7 +14,6 @@ interface ValidationButtonProps{
     }
 }
 
-
 function ValidationButton( { action, size, position }:ValidationButtonProps ) {
 
     return (

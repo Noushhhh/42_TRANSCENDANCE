@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import HeaderChatBox from "./HeaderChatBox";
 import ChatView from "./ChatView";
 import ChatPrompt from "./ChatPrompt";

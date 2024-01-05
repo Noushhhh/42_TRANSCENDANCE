@@ -7,6 +7,7 @@ import {
         Min,
         Length,
         Matches,
+        Max,
 } from "class-validator";
 
 import { Type } from "class-transformer";
@@ -23,6 +24,7 @@ export class CreateUserDto {
 export class UserIdDto {
         @IsInt()
         @Min(0)
+        @Max(2000000)
         @Type(() => Number)
         userId!: number;
 }

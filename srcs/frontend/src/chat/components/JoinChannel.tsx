@@ -1,7 +1,5 @@
 import React, { useState, useRef, ChangeEvent } from "react";
-import axios from "axios";
 import ValidationButton from "./ValidationButton";
-import { ChannelNameDto } from "../../../../backend/src/chat/dto/chat.dto";
 import "../styles/JoinChannel.css";
 import { fetchUser, joinChannel, isUserIsBan } from "./ChannelUtils";
 import { useUserIdContext } from "../contexts/userIdContext";
@@ -9,15 +7,12 @@ import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useSocketContext } from "../contexts/socketContext";
 import JoinProtectedChannel from "./JoinProtectedChannel";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 enum ChannelType {
     PUBLIC,
     PRIVATE,
     PASSWORD_PROTECTED,
-}
-
-interface joinChannelInterface{
-    type: ChannelType,
-    channelId: number,
 }
 
 interface isChannelExist {
@@ -35,7 +30,7 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
     const [error, setError] = useState<string | null>(null);
     const [apiResponse, setApiResponse] = useState<isChannelExist | null>(null);
     const [displayPasswordInput, setDisplayPasswordInput] = useState<boolean>(false);
-    const [channelNameDto, setChannelNameDto] = useState<ChannelNameDto>({ channelName: '' });
+    const [channelNameDto, setChannelNameDto] = useState<{channelName: string}>({ channelName: '' });
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const userId: number = useUserIdContext();
@@ -96,7 +91,7 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
         try {
             setError(null);
             setApiResponse(null);
-            const response: Response = await fetch('http://localhost:4000/api/chat/isChannelNameExist', {
+            const response: Response = await fetch(`${API_BASE_URL}/api/chat/isChannelNameExist`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {
@@ -131,8 +126,8 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
 
                     <JoinProtectedChannel setStateMessageToClick={setStateMessageToClick} channelId={apiResponse?.id} />
                     :
-                    <div>
-                        <p>Enter channel name:</p>
+                    <div className="joinChannelBox">
+                        <p>Channel name:</p>
                         <input ref={inputRef} onKeyDown={handleKeyDown} type="text" value={channelNameDto.channelName} onChange={handleChangeName} />
                         <ValidationButton action={handleClick}
                             size={{ height: 40, width: 200 }}

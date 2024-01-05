@@ -34,7 +34,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
   const [isChannelOwner, setIsChannelOwner] = useState<boolean | undefined>(undefined);
   const [displayNewOwner, setDisplayNewOwner] = useState<boolean>(false);
   const [newOwnerInput, setnewOwnerInput] = useState<string>("");
-  const [displayOwnerResults, setdisplayOwnerResults] = useState<boolean>(false);
+  // const [displayOwnerResults, setdisplayOwnerResults] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [newOwner, setNewOwner] = useState<User>();
   const [listUsersSearched, setListUsersSearched] = useState<User[] | null>([]);
@@ -49,7 +49,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
   const toggleMenu = useToggleMenu();
   const setToggleMenu: React.Dispatch<React.SetStateAction<boolean>> = useSetToggleMenu();
 
-  // when channelInfo is display, chatView is reduce (to have space for info's component)
+  // when channelInfo is display, chatView is reduce (to have space for info's component).
   let widthChatView: string | null = isChannelInfoDisplay ? "isDisplay" : "isReduce";
   // display or no channelInfo's container
   let isContainerDisplay: string | null = displayMenu ? "IsDisplay" : "IsReduce";
@@ -67,6 +67,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
       try {
         const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
         setnumberUsersInChannel(numberUsersInChannel);
+        await fetchChannelName();
       } catch (errors){
         console.log(errors);
       }
@@ -80,28 +81,31 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
       socket.off("channelNumberMembersChanged", updateChannelNumberMember);
       socket.on("kickedOrBanned", goBackToChannelList);
     };
+    
   });
+
+  const fetchChannelName = async () => {
+    try {
+      if (channelId !== -1) {
+        const isItChannelOwner: boolean = await isOwner(channelId, userId);
+        setIsChannelOwner(isItChannelOwner);
+        const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
+        setnumberUsersInChannel(numberUsersInChannel);
+        const channelName: string | null = await getChannelName(channelId);
+        setChannelName(channelName);
+      }
+    } catch (error) {
+      setError("fetching  error");
+    }
+  }
 
   useEffect(() => {
     setError(null);
     setChannelInfo(false);
     setdisplayMenu(true);
-    const fetchChannelName = async () => {
-      try {
-        if (channelId !== -1) {
-          const isItChannelOwner: boolean = await isOwner(channelId, userId);
-          setIsChannelOwner(isItChannelOwner);
-          const numberUsersInChannel: number = await getNumberUsersInChannel(channelId);
-          setnumberUsersInChannel(numberUsersInChannel);
-          const channelName: string | null = await getChannelName(channelId);
-          setChannelName(channelName);
-        }
-      } catch (error) {
-        setError("fetching  error");
-      }
-    }
     fetchChannelName();
     setDisplayNewOwner(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId]);
 
   const goBackToChannelList = (): void => {
@@ -149,7 +153,8 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
     if (isChannelInfoDisplay && window.innerWidth > 799 && !settingsClicked) {
       setdisplayMenu(true);
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleResize = () => {
     if (window.innerWidth > 799) {
@@ -192,7 +197,7 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
           <div>
             <p>Please provide a new owner/admin</p>
             <div style={{ color: "red" }}>{error}</div>
-            <SearchBar setDisplayResults={setdisplayOwnerResults} inputValue={newOwnerInput} setInputValue={setnewOwnerInput} />
+            <SearchBar inputValue={newOwnerInput} setInputValue={setnewOwnerInput} />
             {newOwner ? <PreviewUser user={newOwner} removeUserFromList={removeUserFromList} /> : null}
             <SearchBarResults inputValue={newOwnerInput} displayResults={true} showUserMenu={false} addUserToList={addUserToList} onlySearchInChannel={true} listUsersSearched={listUsersSearched} setListUsersSearched={setListUsersSearched} />
             <ValidationButton action={setNewOwnerAndLeaveChannel}

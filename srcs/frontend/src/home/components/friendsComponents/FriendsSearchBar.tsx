@@ -2,6 +2,8 @@ import React, { FC, useEffect, useState } from "react";
 import { sendFriendRequest } from "../../../user/FriendUtils";
 import { Socket } from "socket.io-client";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface User {
   id: number;
   name: string;
@@ -55,7 +57,7 @@ const FriendsSearchBar: FC<FriendsSearchBarProps> = ({ socket }) => {
       }
 
       const response = await fetch(
-        "http://localhost:4000/api/users/getUsersWithStr",
+        `${API_BASE_URL}/api/users/getUsersWithStr`,
         {
           method: "GET",
           credentials: "include",

@@ -7,12 +7,6 @@ import { isChannelIsLive } from "./ChannelUtils";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 
-// logique des lives status :
-
-// frontend : créer une fonction qui prend en paramètres un channelId
-// et return true ou false (oui ou non si channel est live)
-// puis appeller cette fonction des que qqun se connecte/deconnecte/est kick/ajoute d'un channel
-
 function IsConnected(): JSX.Element{
 
     const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -22,10 +16,8 @@ function IsConnected(): JSX.Element{
     const userId: number = useUserIdContext();
 
     const callIsChannelIsLive = async () => {
-        console.log("is Channel is live is triggered");
         try {
             const res: boolean = await isChannelIsLive(channelId, userId, socket);
-            console.log(`res is = ${res}`);
             setIsConnected(res);
         } catch (errors){
             console.log(errors);
@@ -41,14 +33,11 @@ function IsConnected(): JSX.Element{
 
     useEffect(() => {
         const isLive = async () => {
-            console.log("call is Live here");
             try {
                 const res: boolean = await isChannelIsLive(channelId, userId, socket);
-                console.log(`res is = ${res}`);
                 setIsConnected(res);
             } catch (errors){console.log(errors)};
         }
-
         isLive();
     }, [])
 

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface UserProps {
     user: User;
@@ -16,18 +18,15 @@ interface UserProps {
 
 function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminList }: UserProps) {
 
-    const [error, setError] = useState<string | null>(null);
-
-    const handleDivClick = () => {
-        console.log("run here ?");
-    };
-
     const addUser = (user: User) => {
         if (updateUserAdminList && showAdmin){
             updateUserAdminList(user);
             return;
         }
         addUserToList(user);
+    }
+
+    const onChange = () => {
     }
 
     if (!showUserMenu) {
@@ -38,11 +37,11 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                 <div className="Container_avatar">
                     {showAdmin?.show ? ( 
                         <div>
-                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar" checked={showAdmin?.isAdmin} onChange={handleDivClick} />
+                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar"onChange={onChange} checked={showAdmin?.isAdmin} />
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     {user.publicName && user.publicName}
@@ -54,7 +53,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>
