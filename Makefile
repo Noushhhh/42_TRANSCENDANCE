@@ -76,7 +76,7 @@ stop:
 # This rule removes the services, images, and volumes. It also removes the data directory.
 down: del_node_pack_front del_node_pack_backend del_uploads
 	@printf "Stopping the services and removing all resources...\n"
-	$(COMPOSE) down --rmi all --volumes 
+	$(COMPOSE) down --rmi all --volumes
 
 # This rule shows the logs of the services
 logs:
