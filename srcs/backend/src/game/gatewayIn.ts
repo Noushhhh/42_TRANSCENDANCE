@@ -350,4 +350,9 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   leaveSpecateMode(@ConnectedSocket() client: Socket) {
     this.gameLobby.removeFromSpectate(client.id);
   }
+
+  @SubscribeMessage("relaunchTimer")
+  relaunchTimer(@ConnectedSocket() client: Socket) {
+    this.gatewayOut.emitToUser(client.id, "relaunchGame", true);
+  }
 }

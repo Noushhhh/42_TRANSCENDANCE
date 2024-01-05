@@ -12,6 +12,7 @@ import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
 import PlayAgain from "./gameNetwork/PlayAgain";
+import Timer from "./gamePhysics/Timer";
 
 interface GameContainerProps {
   socket: Socket | undefined;
@@ -86,7 +87,7 @@ const GameContainer: FC<GameContainerProps> = ({
     setTimeout(() => {
       start();
       setGameLaunchedRef();
-    }, 1500);
+    }, 3000);
   };
 
   const setGameLaunchedRef = () => {
@@ -152,6 +153,7 @@ const GameContainer: FC<GameContainerProps> = ({
           <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} />
+          <Timer socket={socket} />
           <PrintWinner socket={socket} />
           <PlayAgain socket={socket} />
           <AutoLaunch
