@@ -36,14 +36,15 @@ export class AdminGuard implements CanActivate {
             userId = parseInt(user.sub.toString(), 10);
         else
             return false;
+        if (channelId < 0 || channelId > 2000000)
+            throw new ForbiddenException("Incorrect channelId")
         const channel = await this.prisma.channel.findUnique({
             where: { id: channelId },
             include: { admins: true }
         });
-
         if (!channel)
             throw new NotFoundException('Channel not found');
-
+        
         const isAdmin: boolean = channel.admins.some(admin => (admin.id === userId));
 
         if (!isAdmin)

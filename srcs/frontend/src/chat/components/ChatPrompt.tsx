@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState, useRef } from "react";
 import "../styles/ChatPrompt.css";
 import SendIcon from "@mui/icons-material/Send";
 import "../types/type.Message";
@@ -7,6 +7,8 @@ import { useSocketContext } from "../contexts/socketContext";
 import { useUserIdContext } from "../contexts/userIdContext";
 import { Socket } from "socket.io-client";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface ChatPromptProps {
   addMessage: (newMessage: Message, messageType: string) => void;
   setPreviewLastMessage: React.Dispatch<React.SetStateAction<Message | undefined>>;
@@ -14,6 +16,7 @@ interface ChatPromptProps {
 
 function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX.Element {
   const [message, setMessage] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const channelId: number = useChannelIdContext();
   const socket: Socket = useSocketContext();
@@ -27,9 +30,15 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
     return /^\s*$/.test(str);
   }
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && inputRef.current) {
+      sendMessage();
+    }
+  }
+
   const storeMsgToDatabase = async (message: MessageToStore) => {
     try {
-      await fetch(`http://localhost:4000/api/chat/addMessageToChannel`, {
+      await fetch(`${API_BASE_URL}/api/chat/addMessageToChannel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,9 +61,9 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
       messageType: "MessageTo",
     };
     let isSenderIsMuted: boolean = false;
-    if (msgToSend.content.length > 5000){
+    if (msgToSend.content.length > 5000) {
       alert('message too long: 5000char max');
-      return ;
+      return;
     }
     if (isWhitespace(message)) {
       setMessage("");
@@ -65,9 +74,9 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
       if (isSenderIsMuted)
         msgToSend.content = "You are muted from this channel";
       addMessage(msgToSend, "MessageTo");
-      if (isSenderIsMuted){
+      if (isSenderIsMuted) {
         setMessage("");
-        return ;
+        return;
       }
       const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
       setPreviewLastMessage(msgToSend);
@@ -80,9 +89,9 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
     socket.on("messageBack", messageEvent);
 
     return () => {
-    socket.on("messageBack", messageEvent);
+      socket.on("messageBack", messageEvent);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const messageEvent = (data: Message) => {
@@ -90,7 +99,7 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
     if (isWhitespace(data.content)) return;
     if (data.senderId === userId)
       addMessage(data, "MessageTo");
-    else 
+    else
       addMessage(data, "MessageFrom")
     setMessage("");
   };
@@ -101,10 +110,12 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
   return (
     <div className="ChatPrompt">
       <input
+        ref={inputRef}
         value={message}
         className="InputChatPrompt"
         onChange={handleMessageChange}
         type="text"
+        onKeyDown={handleKeyDown}
       />
       <button className="SendIconPromptChat" onClick={sendMessage}>
         <SendIcon />

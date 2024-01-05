@@ -3,6 +3,8 @@ import "../styles/SearchBar.css";
 import "../styles/User.css";
 import UserProfileMenu from "./UserProfileMenu";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface UserProps {
     user: User;
     showUserMenu: boolean;
@@ -24,6 +26,9 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         addUserToList(user);
     }
 
+    const onChange = () => {
+    }
+
     if (!showUserMenu) {
         return (
             <div className={`User User1 ${showAdmin?.isAdmin ? "clickable-div" : ""}`} onClick={() => {
@@ -32,11 +37,11 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                 <div className="Container_avatar">
                     {showAdmin?.show ? ( 
                         <div>
-                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar" checked={showAdmin?.isAdmin} />
+                            <input type="checkbox" id={`myCheckbox-${user.id}`} className="checkboxSearchBar"onChange={onChange} checked={showAdmin?.isAdmin} />
                             <label htmlFor={`myCheckbox-${user.id}`}></label>
                         </div>
                     ) : null}
-                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     {user.publicName && user.publicName}
@@ -48,7 +53,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
         return (
             <div className="User User2">
                 <div>
-                    {<img className="avatar_image" src={`http://localhost:4000/${user.avatar}`} alt="" width={49} height={49}/>}
+                    {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
                 <div className="username">
                     <UserProfileMenu user={user}/>

@@ -95,7 +95,7 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
                     return ;
                 }
                 if (userList[0])
-                    await mute(userList[0].id, userId, mutedUntil, channelId);
+                    await mute(userList[0].id, mutedUntil, channelId);
             }
             setSearchBarResults(false);
             setInputValue("");
