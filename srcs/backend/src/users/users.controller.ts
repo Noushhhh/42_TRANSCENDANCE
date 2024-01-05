@@ -3,7 +3,7 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res, Logger,
+    Response as NestResponse, Query, UseFilters, Body, BadRequestException, NotFoundException, Res, Logger, ForbiddenException,
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client';
 import { Request, Response } from 'express';
@@ -187,11 +187,10 @@ export class UsersController {
         try {
             if (!req.user?.id)
                 throw new NotFoundException("User not found");
-
             await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
             res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
-            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found!§§§", error: "Not Found" });
         }
     }
 
