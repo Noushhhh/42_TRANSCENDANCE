@@ -262,16 +262,16 @@ let AuthService = AuthService_1 = class AuthService {
             catch (error) {
                 throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
-            const sessionId = this.generateSessionId();
             const sessionExpiresAt = tokenExpiresAt;
+            let sessionCreationResponse = null;
             try {
-                yield this.createNewSession(userId, sessionExpiresAt);
+                sessionCreationResponse = yield this.createNewSession(userId, sessionExpiresAt);
             }
             catch (error) {
                 throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
             let newToken = { token, expiresAt: tokenExpiresAt };
-            return { newToken, refreshToken };
+            return { newToken, refreshToken, sessionCreation: sessionCreationResponse };
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -302,14 +302,13 @@ let AuthService = AuthService_1 = class AuthService {
                 sameSite: true,
                 maxAge: tokenMaxAge
             });
-            const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-            // Set the session cookie in the response
-            res.cookie('userSession', sessionValue, {
+            res.cookie('userSession', tokens.sessionCreation.sessionId, {
                 httpOnly: true,
                 secure: false,
                 sameSite: true,
                 maxAge: tokenMaxAge
             });
+            this.logger.debug(`passing by setting token sessionCreation: ${tokens.sessionCreation}`);
         }
         catch (error) {
             throw error;
@@ -326,8 +325,8 @@ let AuthService = AuthService_1 = class AuthService {
     signToken(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { newToken, refreshToken } = yield this.generateTokens(userId, email);
-                this.setTokens({ newToken, refreshToken }, res);
+                const { newToken, refreshToken, sessionCreation } = yield this.generateTokens(userId, email);
+                this.setTokens({ newToken, refreshToken, sessionCreation }, res);
                 return ({ statusCode: 200, valid: true, message: "Authentication successful" });
             }
             catch (error) {

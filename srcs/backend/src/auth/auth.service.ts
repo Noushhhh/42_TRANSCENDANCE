@@ -218,7 +218,13 @@ export class AuthService {
    * @param email - The email of the user.
    * @returns An object containing the generated JWT and refresh tokens, along with their expiration information.
    */
-  async generateTokens(userId: number, email: string): Promise<{ newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }> {
+  async generateTokens(userId: number, email: string): 
+    Promise<{
+      newToken: { token: string, expiresAt: Date },
+      refreshToken: { token: string, expiresAt: Date },
+      sessionCreation: any | null
+    }> {
+
     const payload = { sub: userId, email };
     const secret = this.JWT_SECRET;
     const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
@@ -238,17 +244,16 @@ export class AuthService {
       throw new HttpException("Error generating refresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
-    const sessionId = this.generateSessionId();
     const sessionExpiresAt = tokenExpiresAt;
-
+    let sessionCreationResponse: any | null = null;
     try {
-      await this.createNewSession(userId, sessionExpiresAt);
+      sessionCreationResponse = await this.createNewSession(userId, sessionExpiresAt);
     } catch (error) {
       throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
     let newToken = { token, expiresAt: tokenExpiresAt }
-    return { newToken, refreshToken };
+    return { newToken, refreshToken, sessionCreation: sessionCreationResponse};
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -258,7 +263,12 @@ export class AuthService {
    * @param tokens - Object containing the JWT token and refresh token with their expiration times.
    * @param res - HTTP response object to set cookies on.
    */
-  setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
+  setTokens(tokens: {
+    newToken: { token: string, expiresAt: Date },
+    refreshToken: { token: string, expiresAt: Date },
+    sessionCreation: any
+  },
+    res: Response) {
     try {
       // Error handling for undefined tokens
       if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
@@ -283,14 +293,13 @@ export class AuthService {
         maxAge: tokenMaxAge
       });
 
-      const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-      // Set the session cookie in the response
-      res.cookie('userSession', sessionValue, {
+      res.cookie('userSession', tokens.sessionCreation.sessionId, {
         httpOnly: true,
         secure: false,
         sameSite: true,
         maxAge: tokenMaxAge
       });
+      this.logger.debug(`passing by setting token sessionCreation: ${tokens.sessionCreation}`);
 
     } catch (error) {
       throw error;
@@ -298,7 +307,6 @@ export class AuthService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-
 
   /**
    * @brief This function signs a token.
@@ -309,8 +317,8 @@ export class AuthService {
    */
   async signToken(userId: number, email: string, res: Response): Promise<any> {
     try {
-      const { newToken, refreshToken } = await this.generateTokens(userId, email);
-      this.setTokens({ newToken, refreshToken }, res);
+      const { newToken, refreshToken, sessionCreation } = await this.generateTokens(userId, email);
+      this.setTokens({ newToken, refreshToken, sessionCreation }, res);
 
       return ({ statusCode: 200, valid: true, message: "Authentication successful" });
 
