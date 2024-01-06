@@ -29,6 +29,7 @@ function IsConnected(): JSX.Element{
         return () => {
           socket.off("channelNumberMembersChanged", callIsChannelIsLive);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
 
     useEffect(() => {
@@ -38,7 +39,8 @@ function IsConnected(): JSX.Element{
                 setIsConnected(res);
             } catch (errors){console.log(errors)};
         }
-        isLive();
+        isLive();    
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (

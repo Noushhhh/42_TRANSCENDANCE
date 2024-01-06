@@ -22,9 +22,11 @@ function MessageComponent(props: MessageComponentProps) {
                 setSenderUsername(username);
             } catch (errors: any){
                 setError(errors.message); // notify user of this error ? display something ?
+                console.log(error)
             }
         }
         fetchUsername();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const updatedClassName = `${props.messageType}`;
