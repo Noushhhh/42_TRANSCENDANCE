@@ -13,13 +13,18 @@ export class SessionService {
     public async clearExpiredSessions() {
         await this.prisma.session.deleteMany({
             where: {
-                expiredAt: { lt: new Date() }, // 'lt' means 'less than'. This condition selects sessions that have expired
-                isValid: false // Selects only the invalid sessions
+                OR: [
+                    {
+                        expiredAt: { lt: new Date() }, // Sessions that have expired
+                    },
+                    {
+                        isValid: false, // Sessions that are marked as invalid
+                    }
+                ],
             },
         });
         console.log('Expired sessions cleared');
     }
-
 
 
 }

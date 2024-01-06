@@ -137,6 +137,11 @@ let AuthService = AuthService_1 = class AuthService {
                 const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
                 if (!passwordMatch)
                     throw new common_1.UnauthorizedException('Incorrect password');
+                const existingsessions = yield this.findSessionsByUserId(user.id);
+                if (existingsessions && existingsessions.length > 0) {
+                    // invalidate existing sessions
+                    yield this.invalidateSessions(user.id);
+                }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
@@ -190,12 +195,11 @@ let AuthService = AuthService_1 = class AuthService {
     }
     // ─────────────────────────────────────────────────────────────────────────────
     // Method to invalidate all other sessions for a user except for the current session
-    invalidateOtherSessions(userId, currentSessionId) {
+    invalidateSessions(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.prisma.session.updateMany({
                 where: {
                     userId: userId,
-                    sessionId: { not: currentSessionId },
                     isValid: true
                 },
                 data: {
@@ -236,6 +240,22 @@ let AuthService = AuthService_1 = class AuthService {
         return require('crypto').randomBytes(16).toString('hex');
     }
     // ─────────────────────────────────────────────────────────────────────────────
+    /**
+         * Finds all sessions associated with a given user ID.
+         * @param userId The ID of the user.
+         * @returns A list of sessions.
+         */
+    findSessionsByUserId(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.session.findMany({
+                where: {
+                    userId: userId,
+                    isValid: true, // Assuming you want to find only valid (active) sessions
+                },
+            });
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
     /**
      * Generates JWT and refresh tokens for a user and updates session information in the database.
      * @param userId - The ID of the user.
@@ -308,7 +328,6 @@ let AuthService = AuthService_1 = class AuthService {
                 sameSite: true,
                 maxAge: tokenMaxAge
             });
-            this.logger.debug(`passing by setting token sessionCreation: ${tokens.sessionCreation}`);
         }
         catch (error) {
             throw error;
@@ -483,11 +502,10 @@ let AuthService = AuthService_1 = class AuthService {
                         error: 'CONFLICT'
                     });
                 }
-                // Check if the user session already exists
-                if (req.cookies['userSession']) {
-                    // If the session exists, it means the token is expired. 
-                    // Clear the session cookies and user session from the database.
-                    yield this.signout(user.id, res);
+                const existingsessions = yield this.findSessionsByUserId(user.id);
+                if (existingsessions && existingsessions.length > 0) {
+                    // invalidate existing sessions
+                    yield this.invalidateSessions(user.id);
                 }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);

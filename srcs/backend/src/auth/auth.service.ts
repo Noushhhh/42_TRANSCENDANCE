@@ -4,7 +4,7 @@ import {
   HttpStatus, Logger, HttpException, ConflictException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User , Session} from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/constants/constants';
@@ -110,6 +110,11 @@ export class AuthService {
       if (!passwordMatch)
         throw new UnauthorizedException('Incorrect password');
 
+      const existingsessions = await this.findSessionsByUserId(user.id);
+      if (existingsessions && existingsessions.length > 0) {
+        // invalidate existing sessions
+        await this.invalidateSessions(user.id);
+      } 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
 
@@ -163,11 +168,10 @@ export class AuthService {
   // ─────────────────────────────────────────────────────────────────────────────
 
   // Method to invalidate all other sessions for a user except for the current session
-  public async invalidateOtherSessions(userId: number, currentSessionId: string) {
+  public async invalidateSessions(userId: number) {
     await this.prisma.session.updateMany({
       where: {
         userId: userId,
-        sessionId: { not: currentSessionId },
         isValid: true
       },
       data: {
@@ -210,7 +214,26 @@ export class AuthService {
     // Example: using UUIDs
     return require('crypto').randomBytes(16).toString('hex');
   }
+
   // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+       * Finds all sessions associated with a given user ID.
+       * @param userId The ID of the user.
+       * @returns A list of sessions.
+       */
+  public async findSessionsByUserId(userId: number): Promise<Session[]> {
+    return await this.prisma.session.findMany({
+      where: {
+        userId: userId,
+        isValid: true, // Assuming you want to find only valid (active) sessions
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+
+
 
   /**
    * Generates JWT and refresh tokens for a user and updates session information in the database.
@@ -299,7 +322,6 @@ export class AuthService {
         sameSite: true,
         maxAge: tokenMaxAge
       });
-      this.logger.debug(`passing by setting token sessionCreation: ${tokens.sessionCreation}`);
 
     } catch (error) {
       throw error;
@@ -492,12 +514,11 @@ export class AuthService {
         });
       }
 
-      // Check if the user session already exists
-      if (req.cookies['userSession']) {
-        // If the session exists, it means the token is expired. 
-        // Clear the session cookies and user session from the database.
-        await this.signout(user.id, res);
-      }
+      const existingsessions = await this.findSessionsByUserId(user.id);
+      if (existingsessions && existingsessions.length > 0) {
+        // invalidate existing sessions
+        await this.invalidateSessions(user.id);
+      } 
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
