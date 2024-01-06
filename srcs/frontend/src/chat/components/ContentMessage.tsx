@@ -6,7 +6,15 @@ import { useState } from "react";
 import "../styles/ContentMessage.css";
 import "../types/type.Message";
 import { useUserIdContext } from "../contexts/userIdContext";
-import "../types/type.Message";
+
+interface Message {
+  id: number;
+  senderId: number;
+  channelId: number;
+  content: string;
+  createdAt: Date;
+  messageType: string;
+}
 
 
 interface contentMessageProps {

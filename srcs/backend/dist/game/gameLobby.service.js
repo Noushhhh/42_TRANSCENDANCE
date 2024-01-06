@@ -77,6 +77,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb) {
+                            console.log("C'est ici que ca casse ?");
                             throw new common_1.NotFoundException("player not found");
                         }
                         const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
@@ -89,6 +90,10 @@ let GameLobbyService = class GameLobbyService {
                     if (value.player1 != null && value.player2 != null) {
                         this.gatewayOut.emitToRoom(key, 'isLobbyFull', true);
                         value.gameState.gameState.isLobbyFull = true;
+                        value.gameState.gameState.newGameTimer = true;
+                        setTimeout(() => {
+                            value.gameState.gameState.newGameTimer = false;
+                        }, 1500);
                     }
                     // @to-do using a debug function here
                     this.printLobbies();
@@ -150,6 +155,10 @@ let GameLobbyService = class GameLobbyService {
             this.gatewayOut.isInLobby(true, player2);
             lobby.gameState.gameState.isLobbyFull = true;
             this.gatewayOut.emitToRoom(lobbyName, "lobbyIsCreated", true);
+            lobby.gameState.gameState.newGameTimer = true;
+            setTimeout(() => {
+                lobby.gameState.gameState.newGameTimer = false;
+            }, 1500);
             // @to-do using a debug function here
             this.printLobbies();
         });
@@ -226,21 +235,13 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p1Id = p1Id;
                     value.gameState.gameState.p1Name = p1Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
+                    this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
                     // @to-do using a debug function here
                     this.printLobbies();
                     return;
                 }
             }
         });
-    }
-    isPaused(player, isPaused) {
-        var _a, _b;
-        for (const [key, value] of lobbies_1.lobbies) {
-            if ((player === null || player === void 0 ? void 0 : player.id) === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || (player === null || player === void 0 ? void 0 : player.id) === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id)) {
-                value.gameState.gameState.isPaused = isPaused;
-                return;
-            }
-        }
     }
     getAllClientsInARoom(roomName) {
         const clients = this.socketMap.server.sockets.adapter.rooms.get(`${roomName}`);
@@ -330,8 +331,10 @@ let GameLobbyService = class GameLobbyService {
         var _a, _b;
         const playerSocketId = this.getSocketIdWithId(playerId);
         for (const [key, value] of lobbies_1.lobbies) {
-            if (playerSocketId === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || playerSocketId === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id))
-                return { isInGame: true, lobbyName: key };
+            if (playerSocketId === ((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) || playerSocketId === ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id)) {
+                if (value.gameState.gameState.isLobbyFull)
+                    return { isInGame: true, lobbyName: key };
+            }
         }
         return { isInGame: false, lobbyName: undefined };
     }
@@ -361,6 +364,24 @@ let GameLobbyService = class GameLobbyService {
             }
         }
         return false;
+    }
+    playAgain(playerId) {
+        var _a, _b;
+        for (const [key, value] of lobbies_1.lobbies) {
+            if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === playerId || ((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === playerId) {
+                value.gameState.gameState.isGameFinished = false;
+            }
+        }
+    }
+    isInSpectateMode(playerId) {
+        var _a;
+        for (const [key, value] of lobbies_1.lobbies) {
+            (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.forEach((spec) => {
+                console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
+                if (spec.id === playerId)
+                    this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+            });
+        }
     }
 };
 exports.GameLobbyService = GameLobbyService;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/HeaderChatBox.css";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import IsConnected from "./isConnected";
@@ -7,8 +7,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useChannelHeaderContext } from "../contexts/channelHeaderContext";
 import { useChannelIdContext } from "../contexts/channelIdContext";
 import { useToggleMenu, useSetToggleMenu } from "../contexts/toggleMenuMobile";
-import { useSocketContext } from "../contexts/socketContext";
-import { Socket } from "socket.io-client";
 
 interface HeaderChatBoxProps {
   channelInfo: boolean;
@@ -18,14 +16,11 @@ interface HeaderChatBoxProps {
 
 function HeaderChatBox({ channelInfo, setChannelInfo, backToChannels }: HeaderChatBoxProps) {
 
-  const [channelName, setChannelName] = useState<string | null>(null);
-
   const channelHeader = useChannelHeaderContext();
   const toggleMenu = useToggleMenu();
   const setToggleMenu = useSetToggleMenu();
 
   const channelId: number = useChannelIdContext();
-  const socket: Socket = useSocketContext();
 
   const handleSettingsClick = () => {
     setChannelInfo(!channelInfo);

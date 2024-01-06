@@ -46,6 +46,7 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
   useEffect(() => {
     setSettingsChannel(false);
     setisSettingsMenuDisplay(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId])
 
   const channelDeletedEvent = (channelId: number) => {

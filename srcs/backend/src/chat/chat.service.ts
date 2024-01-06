@@ -9,20 +9,6 @@ import { MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
 import { CreateChannelDto } from "./dto/chat.dto";
 
-interface MessageToStore {
-  channelId: number;
-  content: string;
-  senderId: number;
-}
-
-interface channelToAdd {
-  name: string,
-  password: string,
-  ownerId: number,
-  participants: number[],
-  type: string,
-}
-
 interface isChannelExist {
   isExist: boolean,
   channelType: ChannelType,
