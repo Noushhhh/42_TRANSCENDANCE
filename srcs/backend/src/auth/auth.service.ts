@@ -185,14 +185,38 @@ export class AuthService {
   // ─────────────────────────────────────────────────────────────────────
 
   /**
+      * Validates if a session is active and valid for a given user.
+      * @param userId The ID of the user.
+      * @param sessionId The ID of the session to validate.
+      * @returns A boolean indicating whether the session is valid.
+      */
+  public async validateSession(userId: number, sessionId: string): Promise<boolean> {
+    const session = await this.prisma.session.findFirst({
+      where: {
+        sessionId: sessionId,
+        userId: userId,
+        isValid: true, // Check if the session is marked as valid
+        expiredAt: {
+          gt: new Date() // Check if the session has not expired
+        }
+      },
+    });
+
+    return !!session; // Returns true if the session exists and is valid, false otherwise
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
    * Creates a new session for a user.
    * @param userId The ID of the user for whom to create a session.
    * @param sessionDuration The duration (in milliseconds) for which the session is valid.
    * @returns The created session.
    */
-  public async createNewSession(userId: number, expiredAt: Date) { // Default duration: 24 hours
+  public async createNewSession(userId: number) { // Default duration: 24 hours
     const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
     const createdAt = new Date();
+    const expiredAt = new Date(createdAt.getTime() + (15 * 60 * 1000)); //15 min as convention
 
     const session = await this.prisma.session.create({
       data: {
@@ -248,7 +272,14 @@ export class AuthService {
       sessionCreation: any | null
     }> {
 
-    const payload = { sub: userId, email };
+    let sessionCreationResponse: any | null = null;
+    try {
+      sessionCreationResponse = await this.createNewSession(userId);
+    } catch (error) {
+      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
+    }
+    let sessionId = sessionCreationResponse.sessionId;
+    const payload = { sub: userId, email, sessionId};
     const secret = this.JWT_SECRET;
     const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
 
@@ -267,13 +298,6 @@ export class AuthService {
       throw new HttpException("Error generating refresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
-    const sessionExpiresAt = tokenExpiresAt;
-    let sessionCreationResponse: any | null = null;
-    try {
-      sessionCreationResponse = await this.createNewSession(userId, sessionExpiresAt);
-    } catch (error) {
-      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
-    }
 
     let newToken = { token, expiresAt: tokenExpiresAt }
     return { newToken, refreshToken, sessionCreation: sessionCreationResponse};

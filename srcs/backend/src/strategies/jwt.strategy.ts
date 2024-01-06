@@ -1,70 +1,27 @@
-// // Importing necessary libraries and decorators
-// import { ExtractJwt, Strategy } from 'passport-jwt';
-// import { PassportStrategy } from '@nestjs/passport';
-// import { Injectable } from '@nestjs/common';
-
-// // Making JwtStrategy an injectable service
-// @Injectable()
-// export class JwtStrategy extends PassportStrategy(Strategy) {
-//   constructor() {
-//     super({
-//       // Function to extract JWT from request
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       // Configuration to enforce token expiration
-//       ignoreExpiration: false,
-//       // Secret key for JWT signing and verification
-//       secretOrKey: process.env.JWT_SECRET,
-      
-//     });
-//   }
-
-//   // Validation function to extract necessary data from token payload
-//   async validate(payload: any) {
-//     return payload;
-//   }
-// }
-
-// import { ExtractJwt, Strategy } from 'passport-jwt';
-// import { PassportStrategy } from '@nestjs/passport';
-// import { Injectable } from '@nestjs/common';
-// import { jwtConstants } from '../auth/constants/constants';
-
-// @Injectable()
-// export class JwtStrategy extends PassportStrategy(Strategy) {
-//   constructor() {
-//     super({
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       ignoreExpiration: false,
-//       // secretOrKey: process.env.JWT_SECRET,
-//       secretOrKey: jwtConstants.secret,
-//     });
-//   }
-
-//   async validate(payload: any) {
-//     console.log("PAYLOAD==", payload);
-//     return { username: payload.username };
-//   }
-// }
 
 // jwt.strategy.ts
-import { Injectable, UnauthorizedException} from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
+import { AuthService } from '../auth/auth.service';
+
 
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+    private readonly logger = new Logger(JwtStrategy.name);
     constructor(
         private readonly userService: UsersService,
+        private readonly authService: AuthService,
 
     ) {
         super({
-          jwtFromRequest: (req: any) => {
-            let token = null;
-            if (req && req.cookies) {
-                token = req.cookies['token'];
+            jwtFromRequest: (req: any) => {
+                let token = null;
+                if (req && req.cookies) {
+                    token = req.cookies['token'];
             }
             return token;
         },
@@ -75,11 +32,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(req: any, payload: any) {
-      const user = await this.userService.findUserWithId(payload.sub);
-      if (!user) {
-          throw new UnauthorizedException();
-      }
-      return user;
-  }
+        const user = await this.userService.findUserWithId(payload.sub);
+        const sessionId = payload.sessionId; // Extracting the sessionId from the payload
+
+        const isValidSession = await this.authService.validateSession(user.id, sessionId);
+        this.logger.debug(`Passing  by JwtStrategy isValidSession: ${isValidSession}\nuserName: ${user.username} \n`);
+        if (!user || !isValidSession) {
+            throw new UnauthorizedException();
+        }
+        return user;
+    }
 }
 

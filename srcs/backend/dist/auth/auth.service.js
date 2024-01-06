@@ -212,15 +212,38 @@ let AuthService = AuthService_1 = class AuthService {
     }
     // ─────────────────────────────────────────────────────────────────────
     /**
+        * Validates if a session is active and valid for a given user.
+        * @param userId The ID of the user.
+        * @param sessionId The ID of the session to validate.
+        * @returns A boolean indicating whether the session is valid.
+        */
+    validateSession(userId, sessionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield this.prisma.session.findFirst({
+                where: {
+                    sessionId: sessionId,
+                    userId: userId,
+                    isValid: true, // Check if the session is marked as valid
+                    expiredAt: {
+                        gt: new Date() // Check if the session has not expired
+                    }
+                },
+            });
+            return !!session; // Returns true if the session exists and is valid, false otherwise
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+    /**
      * Creates a new session for a user.
      * @param userId The ID of the user for whom to create a session.
      * @param sessionDuration The duration (in milliseconds) for which the session is valid.
      * @returns The created session.
      */
-    createNewSession(userId, expiredAt) {
+    createNewSession(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
             const createdAt = new Date();
+            const expiredAt = new Date(createdAt.getTime() + (15 * 60 * 1000)); //15 min as convention
             const session = yield this.prisma.session.create({
                 data: {
                     userId: userId,
@@ -264,7 +287,15 @@ let AuthService = AuthService_1 = class AuthService {
      */
     generateTokens(userId, email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const payload = { sub: userId, email };
+            let sessionCreationResponse = null;
+            try {
+                sessionCreationResponse = yield this.createNewSession(userId);
+            }
+            catch (error) {
+                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
+            }
+            let sessionId = sessionCreationResponse.sessionId;
+            const payload = { sub: userId, email, sessionId };
             const secret = this.JWT_SECRET;
             const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
             let token, tokenExpiresAt;
@@ -281,14 +312,6 @@ let AuthService = AuthService_1 = class AuthService {
             }
             catch (error) {
                 throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
-            }
-            const sessionExpiresAt = tokenExpiresAt;
-            let sessionCreationResponse = null;
-            try {
-                sessionCreationResponse = yield this.createNewSession(userId, sessionExpiresAt);
-            }
-            catch (error) {
-                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
             let newToken = { token, expiresAt: tokenExpiresAt };
             return { newToken, refreshToken, sessionCreation: sessionCreationResponse };
