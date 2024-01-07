@@ -494,7 +494,6 @@ let AuthService = AuthService_1 = class AuthService {
             try {
                 // Extract the 'code' from the query parameters
                 const code = req.query['code'];
-                this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
                 // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
                 this.logger.debug(`signToken ${token}`);
@@ -595,12 +594,11 @@ let AuthService = AuthService_1 = class AuthService {
                     code: code,
                     redirect_uri: process.env.CALLBACK_URL_42,
                 };
-                this.logger.debug(process.env.CALLBACK_URL_42);
                 return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
             }
             catch (error) {
-                this.logger.debug(`passing by sendAuthorizationCodeRequest erro: ${error}`);
-                throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
+                this.logger.debug(`Error sending Authorization code in 42api Auth: ${error}`);
+                throw new common_1.HttpException("Error sending Authorization code in 42api Auth: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
     }
