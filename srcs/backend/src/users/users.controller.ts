@@ -148,12 +148,6 @@ export class UsersController {
         return req.user;
     }
 
-    @Get('getPublicName')
-    getPublicName(
-        @Query() dto: UserIdDto): Promise<string | null> {
-        return this.UsersService.getPublicName(dto.userId);
-    }
-
     @Post('sendFriendRequest')
     async sendFriendRequest(@Req() req: Request, @Res() res: Response, @Body() friend: friendDto) {
         try {

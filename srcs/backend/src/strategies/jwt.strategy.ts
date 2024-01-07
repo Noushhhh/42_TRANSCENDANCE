@@ -1,85 +1,56 @@
-// // Importing necessary libraries and decorators
-// import { ExtractJwt, Strategy } from 'passport-jwt';
-// import { PassportStrategy } from '@nestjs/passport';
-// import { Injectable } from '@nestjs/common';
-
-// // Making JwtStrategy an injectable service
-// @Injectable()
-// export class JwtStrategy extends PassportStrategy(Strategy) {
-//   constructor() {
-//     super({
-//       // Function to extract JWT from request
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       // Configuration to enforce token expiration
-//       ignoreExpiration: false,
-//       // Secret key for JWT signing and verification
-//       secretOrKey: process.env.JWT_SECRET,
-      
-//     });
-//   }
-
-//   // Validation function to extract necessary data from token payload
-//   async validate(payload: any) {
-//     return payload;
-//   }
-// }
-
-// import { ExtractJwt, Strategy } from 'passport-jwt';
-// import { PassportStrategy } from '@nestjs/passport';
-// import { Injectable } from '@nestjs/common';
-// import { jwtConstants } from '../auth/constants/constants';
-
-// @Injectable()
-// export class JwtStrategy extends PassportStrategy(Strategy) {
-//   constructor() {
-//     super({
-//       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//       ignoreExpiration: false,
-//       // secretOrKey: process.env.JWT_SECRET,
-//       secretOrKey: jwtConstants.secret,
-//     });
-//   }
-
-//   async validate(payload: any) {
-//     console.log("PAYLOAD==", payload);
-//     return { username: payload.username };
-//   }
-// }
-
-// jwt.strategy.ts
-import { Injectable, UnauthorizedException} from '@nestjs/common';
+// Import necessary modules and services
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { UsersService } from '../users/users.service';
 import { jwtConstants } from '../auth/constants/constants';
-
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+    // Create a logger instance for logging
+    private readonly logger = new Logger(JwtStrategy.name);
+
     constructor(
         private readonly userService: UsersService,
-
+        private readonly authService: AuthService,
     ) {
+        // Call the constructor of PassportStrategy with JWT strategy options
         super({
-          jwtFromRequest: (req: any) => {
-            let token = null;
-            if (req && req.cookies) {
-                token = req.cookies['token'];
-            }
-            return token;
-        },
+            jwtFromRequest: (req: any) => {
+                let token = null;
+                if (req && req.cookies) {
+                    // Extract the JWT token from the request's cookies
+                    token = req.cookies['token'];
+                }
+                return token;
+            },
             ignoreExpiration: false,
-            secretOrKey: jwtConstants.secret,
-            passReqToCallback: true
+            secretOrKey: jwtConstants.secret, // Set the JWT secret key
+            passReqToCallback: true, // Pass the request object to the callback function
         });
     }
 
+    // Validate function is called when a request is processed with the JWT token
     async validate(req: any, payload: any) {
-      const user = await this.userService.findUserWithId(payload.sub);
-      if (!user) {
-          throw new UnauthorizedException();
-      }
-      return user;
-  }
-}
+        // Find the user based on the user ID (sub) from the JWT payload
+        const user = await this.userService.findUserWithId(payload.sub);
+        
+        // Extract the sessionId from the payload
+        const sessionId = payload.sessionId;
 
+        // Check if the session is valid for the user
+        const isValidSession = await this.authService.validateSession(user.id, sessionId);
+
+        // Log the debug information
+        // this.logger.debug(`Passing by JwtStrategy isValidSession: ${isValidSession}\nuserName: ${user.username} \n`);
+
+        // If the user is not found or the session is not valid, throw an UnauthorizedException
+        if (!user || !isValidSession) {
+            throw new UnauthorizedException();
+        }
+
+        // Return the user object, which will be available in the request
+        return user;
+    }
+}
