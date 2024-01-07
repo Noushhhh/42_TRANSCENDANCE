@@ -43,7 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         const isValidSession = await this.authService.validateSession(user.id, sessionId);
 
         // Log the debug information
-        this.logger.debug(`Passing by JwtStrategy isValidSession: ${isValidSession}\nuserName: ${user.username} \n`);
+        // this.logger.debug(`Passing by JwtStrategy isValidSession: ${isValidSession}\nuserName: ${user.username} \n`);
 
         // If the user is not found or the session is not valid, throw an UnauthorizedException
         if (!user || !isValidSession) {
