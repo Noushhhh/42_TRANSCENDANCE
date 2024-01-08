@@ -21,6 +21,7 @@ const PlayAgain: FC<PlayAgainProps> = ({ socket }) => {
     return () => {
       socket.off("playAgain", handlePlayAgain);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePlayAgain = () => {

@@ -19,7 +19,7 @@ const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
       const accessToken = data.accessToken;
 
       if (!socketRef.current) {
-        const newSocket = io("http://localhost:4000", {
+        const newSocket = io(`${API_BASE_URL}`, {
           auth: {
             token: accessToken,
           },
@@ -40,6 +40,7 @@ const IoConnection: FC<IoConnectionProps> = ({ setSocket, socketRef }) => {
         setSocket(undefined);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <></>;

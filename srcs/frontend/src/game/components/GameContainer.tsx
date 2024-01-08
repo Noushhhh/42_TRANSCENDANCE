@@ -13,6 +13,8 @@ import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
 import PlayAgain from "./gameNetwork/PlayAgain";
 import Timer from "./gamePhysics/Timer";
+import MobileControls from "./gamePhysics/MobileControls";
+import { isMobile } from "react-device-detect";
 
 interface GameContainerProps {
   socket: Socket | undefined;
@@ -72,6 +74,8 @@ const GameContainer: FC<GameContainerProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
+
+  useEffect(() => {});
 
   useEffect(() => {
     return () => {
@@ -142,7 +146,7 @@ const GameContainer: FC<GameContainerProps> = ({
     } else if (isLobbyFull === false && isInSpectate === true) {
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div>Game finished</div>
+          <div>Game is finished</div>
           <button onClick={() => handleSpectateBack()}>Back</button>
         </div>
       );
@@ -153,7 +157,7 @@ const GameContainer: FC<GameContainerProps> = ({
           <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} />
-          <Timer socket={socket} />
+          {isInSpectate === false ? <Timer socket={socket} /> : null}
           <PrintWinner socket={socket} />
           <PlayAgain socket={socket} />
           <AutoLaunch
@@ -161,6 +165,7 @@ const GameContainer: FC<GameContainerProps> = ({
             setGameLaunchedRef={setGameLaunchedRef}
             socket={socket}
           />
+          {isMobile ? <MobileControls socket={socket} /> : null}
         </div>
       );
     }
