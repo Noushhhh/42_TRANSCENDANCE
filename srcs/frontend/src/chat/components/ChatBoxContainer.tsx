@@ -12,6 +12,15 @@ import { getMyUserId } from "./ChannelUtils";
 import { toggleMenuMobile } from "../contexts/toggleMenuMobile";
 import { fetchUser } from "./ChannelUtils";
 
+interface Message {
+  id: number;
+  senderId: number;
+  channelId: number;
+  content: string;
+  createdAt: Date;
+  messageType: string;
+}
+
 interface ChatProps {
   socket: Socket | undefined;
 }
@@ -50,6 +59,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
     return () => {
       window.removeEventListener("resize", handleWindowResize);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelClicked, displayMessageSide]);
 
 
@@ -83,6 +93,7 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
         socket.off("kickedOrBanned", kickedOrBannedEvent);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
   const kickedOrBannedEvent = async (bannedFromChannelId: number) => {

@@ -1,10 +1,10 @@
 import {
   ForbiddenException, Res,
   Req, Injectable, UnauthorizedException, NotFoundException,
-  HttpStatus, Logger,  HttpException, ConflictException
+  HttpStatus, Logger, HttpException, ConflictException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User , Session} from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/constants/constants';
@@ -105,23 +105,16 @@ export class AuthService {
     try {
       const user = await this.usersService.findUserWithUsername(dto.username);
 
-      /*  At this point, if the user sends a signin request, that means whether his token is expired
-          or he is not logged in(there is no cookies trace session in the browser), as in the fronted 
-          "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-          before sending a request to backend */
-      if (req.cookies['userSession']) {
-        //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-        await this.signout(user.id, res);
-      }
 
       const passwordMatch = await argon.verify(user.hashPassword, dto.password);
       if (!passwordMatch)
         throw new UnauthorizedException('Incorrect password');
 
-      // Enhanced session check logic
-      // if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-      //   throw new UnauthorizedException('User is already logged in');
-
+      const existingsessions = await this.findSessionsByUserId(user.id);
+      if (existingsessions && existingsessions.length > 0) {
+        // invalidate existing sessions
+        await this.invalidateSessions(user.id);
+      } 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
 
@@ -172,8 +165,99 @@ export class AuthService {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Method to invalidate all other sessions for a user except for the current session
+  public async invalidateSessions(userId: number) {
+    await this.prisma.session.updateMany({
+      where: {
+        userId: userId,
+        isValid: true
+      },
+      data: {
+        isValid: false, // Mark other sessions as invalid
+        expiredAt: new Date() // Set the expiration timestamp to now
+      },
+    });
+    console.log('Other sessions invalidated');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+      * Validates if a session is active and valid for a given user.
+      * @param userId The ID of the user.
+      * @param sessionId The ID of the session to validate.
+      * @returns A boolean indicating whether the session is valid.
+      */
+  public async validateSession(userId: number, sessionId: string): Promise<boolean> {
+    const session = await this.prisma.session.findFirst({
+      where: {
+        sessionId: sessionId,
+        userId: userId,
+        isValid: true, // Check if the session is marked as valid
+        expiredAt: {
+          gt: new Date() // Check if the session has not expired
+        }
+      },
+    });
+
+    return !!session; // Returns true if the session exists and is valid, false otherwise
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * Creates a new session for a user.
+   * @param userId The ID of the user for whom to create a session.
+   * @param sessionDuration The duration (in milliseconds) for which the session is valid.
+   * @returns The created session.
+   */
+  public async createNewSession(userId: number) { // Default duration: 24 hours
+    const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
+    const createdAt = new Date();
+    const expiredAt = new Date(createdAt.getTime() + (15 * 60 * 1000)); //15 min as convention
+
+    const session = await this.prisma.session.create({
+      data: {
+        userId: userId,
+        sessionId: sessionId,
+        createdAt: createdAt,
+        expiredAt: expiredAt,
+        isValid: true,
+      },
+    });
+
+    return session;
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private generateUniqueSessionId() {
+    // Implement logic to generate a unique session ID
+    // Example: using UUIDs
+    return require('crypto').randomBytes(16).toString('hex');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+       * Finds all sessions associated with a given user ID.
+       * @param userId The ID of the user.
+       * @returns A list of sessions.
+       */
+  public async findSessionsByUserId(userId: number): Promise<Session[]> {
+    return await this.prisma.session.findMany({
+      where: {
+        userId: userId,
+        isValid: true, // Assuming you want to find only valid (active) sessions
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+
+
 
   /**
    * Generates JWT and refresh tokens for a user and updates session information in the database.
@@ -181,8 +265,21 @@ export class AuthService {
    * @param email - The email of the user.
    * @returns An object containing the generated JWT and refresh tokens, along with their expiration information.
    */
-  async generateTokens(userId: number, email: string): Promise<{ newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }> {
-    const payload = { sub: userId, email };
+  async generateTokens(userId: number, email: string): 
+    Promise<{
+      newToken: { token: string, expiresAt: Date },
+      refreshToken: { token: string, expiresAt: Date },
+      sessionCreation: any | null
+    }> {
+
+    let sessionCreationResponse: any | null = null;
+    try {
+      sessionCreationResponse = await this.createNewSession(userId);
+    } catch (error) {
+      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
+    }
+    let sessionId = sessionCreationResponse.sessionId;
+    const payload = { sub: userId, email, sessionId};
     const secret = this.JWT_SECRET;
     const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
 
@@ -201,20 +298,9 @@ export class AuthService {
       throw new HttpException("Error generating refresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
 
-    const sessionId = this.generateSessionId();
-    const sessionExpiresAt = tokenExpiresAt;
-
-    try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { sessionId, sessionExpiresAt },
-      });
-    } catch (error) {
-      throw new HttpException("Error updating user session in database: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
-    }
 
     let newToken = { token, expiresAt: tokenExpiresAt }
-    return { newToken, refreshToken };
+    return { newToken, refreshToken, sessionCreation: sessionCreationResponse};
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -224,7 +310,12 @@ export class AuthService {
    * @param tokens - Object containing the JWT token and refresh token with their expiration times.
    * @param res - HTTP response object to set cookies on.
    */
-  setTokens(tokens: { newToken: { token: string, expiresAt: Date }, refreshToken: { token: string, expiresAt: Date } }, res: Response) {
+  setTokens(tokens: {
+    newToken: { token: string, expiresAt: Date },
+    refreshToken: { token: string, expiresAt: Date },
+    sessionCreation: any
+  },
+    res: Response) {
     try {
       // Error handling for undefined tokens
       if (!tokens || !tokens.newToken.token || !tokens.refreshToken || !tokens.refreshToken.token) {
@@ -249,9 +340,7 @@ export class AuthService {
         maxAge: tokenMaxAge
       });
 
-      const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-// Set the session cookie in the response
-      res.cookie('userSession', sessionValue, {
+      res.cookie('userSession', tokens.sessionCreation.sessionId, {
         httpOnly: true,
         secure: false,
         sameSite: true,
@@ -265,7 +354,6 @@ export class AuthService {
 
   // ─────────────────────────────────────────────────────────────────────────────
 
-
   /**
    * @brief This function signs a token.
    * @param userId The user's ID.
@@ -275,8 +363,8 @@ export class AuthService {
    */
   async signToken(userId: number, email: string, res: Response): Promise<any> {
     try {
-      const { newToken, refreshToken } = await this.generateTokens(userId, email);
-      this.setTokens({ newToken, refreshToken }, res);
+      const { newToken, refreshToken, sessionCreation } = await this.generateTokens(userId, email);
+      this.setTokens({ newToken, refreshToken, sessionCreation }, res);
 
       return ({ statusCode: 200, valid: true, message: "Authentication successful" });
 
@@ -380,10 +468,10 @@ export class AuthService {
   async signout(userId: number, res: Response) {
     try {
       // this.logger.debug("passing by signout");
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { sessionId: null, sessionExpiresAt: null },
-      });
+      // await this.prisma.user.update({
+      //   where: { id: userId },
+      //   data: { sessionId: null, sessionExpiresAt: null },
+      // });
 
       // Clear the JWT cookie or session
       res.clearCookie('token');
@@ -415,7 +503,6 @@ export class AuthService {
 
       // Extract the 'code' from the query parameters
       const code = req.query['code'];
-      this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
 
       // Exchange the code for a token
       const token = await this.exchangeCodeForToken(code);
@@ -450,22 +537,11 @@ export class AuthService {
         });
       }
 
-      // Check if the user session already exists
-      if (req.cookies['userSession']) {
-        // If the session exists, it means the token is expired. 
-        // Clear the session cookies and user session from the database.
-        await this.signout(user.id, res);
-      }
-
-      // Enhanced session check logic: check if the user is already logged in
-      if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-        return res.status(HttpStatus.FORBIDDEN).json({
-          statusCode: HttpStatus.FORBIDDEN,
-          message: 'User is already logged in',
-          error: 'FORBIDDEN'
-        });
-
-      }
+      const existingsessions = await this.findSessionsByUserId(user.id);
+      if (existingsessions && existingsessions.length > 0) {
+        // invalidate existing sessions
+        await this.invalidateSessions(user.id);
+      } 
 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       await this.handleTwoFactorAuthentication(user, res);
@@ -528,13 +604,12 @@ export class AuthService {
         code: code,
         redirect_uri: process.env.CALLBACK_URL_42,
       };
-      this.logger.debug(process.env.CALLBACK_URL_42)
 
       return axios.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
 
     } catch (error) {
-      this.logger.debug(`passing by sendAuthorizationCodeRequest erro: ${error}`);
-      throw new HttpException("Error creating fresh token: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
+      this.logger.debug(`Error sending Authorization code in 42api Auth: ${error}`);
+      throw new HttpException("Error sending Authorization code in 42api Auth: " + (hasMessage(error) ? error.message : ''), HttpStatus.CONFLICT);
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -587,20 +662,20 @@ export class AuthService {
           id: userInfo.id,
         },
       });
-  
+
       if (existingUser) {
         // If the user already exists, log a message and update their 'firstConnexion' status.
         //console.log('User already exists:', existingUser);
         existingUser.firstConnexion = false;
         return existingUser;
       }
-  
+
       let avatarUrl;
       if (userInfo.image.link !== null) {
         // Use the user's profile picture link if it's not null.
         avatarUrl = userInfo.image.link;
       }
-  
+
       let avatarFile;
       try {
         // Download the user's avatar image.
@@ -609,7 +684,7 @@ export class AuthService {
         this.logger.debug('Error downloading user avatar:', downloadError);
         // Handle the error or assign a default avatar.
       }
-  
+
       try {
         // Create a new user in the database with the provided user information.
         const user = await this.prisma.user.create({
@@ -620,17 +695,17 @@ export class AuthService {
             avatar: null, // Initialize the avatar field with null for now.
           },
         });
-  
+
         // Update the user's avatar using the downloaded image, if available.
         if (avatarFile) {
           await this.usersService.updateAvatar(user.id, avatarFile);
         }
-  
+
         // Generate and store a two-factor authentication secret for the user.
         const { secret, otpauthUrl } = this.generateTwoFASecret(user.id);
         user.twoFASecret = secret;
         user.twoFAUrl = otpauthUrl;
-  
+
         // Return the newly created user.
         return user;
       } catch (creationError) {
@@ -644,7 +719,7 @@ export class AuthService {
       return null;
     }
   }
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**

@@ -9,6 +9,21 @@ import { Socket } from "socket.io-client";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+interface Message {
+  id: number;
+  senderId: number;
+  channelId: number;
+  content: string;
+  createdAt: Date;
+  messageType: string;
+}
+
+interface MessageToStore{
+	channelId: number;
+	content: string;
+	senderId: number;
+}
+
 interface ChatPromptProps {
   addMessage: (newMessage: Message, messageType: string) => void;
   setPreviewLastMessage: React.Dispatch<React.SetStateAction<Message | undefined>>;

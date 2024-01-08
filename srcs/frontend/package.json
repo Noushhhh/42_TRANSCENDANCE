@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.23.4",
+    "@babel/plugin-transform-numeric-separator": "^7.23.4",
+    "@babel/plugin-transform-private-methods": "^7.23.3",
+    "@babel/plugin-transform-private-property-in-object": "^7.23.4",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "5.15.0",
@@ -22,6 +26,7 @@
     "react-device-detect": "^2.2.3",
     "react-dom": "18.2.0",
     "react-konva": "18.2.10",
+    "react-one-tab-enforcer": "^2.1.2",
     "react-router-dom": "6.21.0",
     "react-scripts": "5.0.1",
     "react-toastify": "9.1.3",
@@ -59,8 +64,12 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-class-properties": "^7.23.3",
+    "@babel/plugin-transform-optional-chaining": "^7.23.4",
     "@types/js-cookie": "3.0.6",
     "backend": "file:../../backend",
+    "instead": "^1.0.3",
     "prisma": "5.7.0"
   }
 }

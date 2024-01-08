@@ -75,6 +75,7 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [twoFaCode, setTwoFaCode] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [twoFaError, setTwoFaError] = useState("");
   const [displayTwoFa, setDisplayTwoFa] = useState(false);
   const [userId, setUserId] = useState(0);

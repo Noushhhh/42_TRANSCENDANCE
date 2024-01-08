@@ -1,7 +1,6 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, Inject, forwardRef, NotAcceptableException, ServiceUnavailableException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException, NotAcceptableException, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Channel, Message, User, ChannelType, MutedUser } from "@prisma/client";
-import { ChatGateway } from "./chat.gateway";
 import * as argon from 'argon2';
 import { ForbiddenException } from "@nestjs/common";
 import { UnauthorizedException } from "@nestjs/common";
@@ -9,20 +8,6 @@ import { PairUserIdChannelId, muteDto } from "./dto/chat.dto";
 import { MessageToStoreDto } from "./dto/chat.dto";
 import { UsersService } from "../users/users.service";
 import { CreateChannelDto } from "./dto/chat.dto";
-
-interface MessageToStore {
-  channelId: number;
-  content: string;
-  senderId: number;
-}
-
-interface channelToAdd {
-  name: string,
-  password: string,
-  ownerId: number,
-  participants: number[],
-  type: string,
-}
 
 interface isChannelExist {
   isExist: boolean,
@@ -143,7 +128,7 @@ export class ChatService {
         id: channelId,
       },
       include: {
-        messages: true, // Inclure les messages associés au canal
+        messages: true,
       },
     });
 
@@ -553,11 +538,16 @@ export class ChatService {
     return channel.admins;
   }
 
-  async addUserToChannel(userId: number, channelId: number): Promise<number> {
+  async addUserToChannel(userId: number, channelId: number, callerId: number): Promise<number> {
 
     if (await this.isUserIsBan(channelId, userId)){
       const user: User = await this.userService.findUserWithId(userId);
       throw new NotAcceptableException(`${user.publicName} is ban from this channel`);
+    }
+
+    const channelType: string = await this.getChannelType(channelId);
+    if (channelType === "PRIVATE" && await this.isOwner(callerId, channelId) === false){
+      throw new ForbiddenException("Require owner privileges")
     }
 
     const channel = await this.prisma.channel.update({
@@ -610,7 +600,7 @@ export class ChatService {
     const passwordMatch = await argon.verify(channel.password, providedPassword);
     if (!passwordMatch)
       throw new ForbiddenException('Incorrect channel password');
-    await this.addUserToChannel(userId, channelId);
+    await this.addUserToChannel(userId, channelId, 0x0);
   }
 
   async getUserById(channelId: number): Promise<User> {
@@ -734,6 +724,9 @@ export class ChatService {
 
     const channelCheck = await this.getChannelById(channelId);
 
+    if (!channelCheck)
+      throw new NotFoundException("Channel not found")
+
     if (channelCheck.type === "PASSWORD_PROTECTED")
       throw new ForbiddenException("Forbidden access");
 
@@ -750,6 +743,8 @@ export class ChatService {
 
   async getChannelType(channelId: number) {
     const channel = await this.getChannelById(channelId);
+    if (!channel)
+      throw new NotFoundException("Channel not found")
     return channel.type;
   }
 

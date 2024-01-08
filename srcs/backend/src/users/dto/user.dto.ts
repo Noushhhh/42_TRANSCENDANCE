@@ -32,16 +32,22 @@ export class UserIdDto {
 export class friendRequestDto {
         @IsInt()
         @Type(() => Number)
+        @Min(0)
+        @Max(2000000)
         senderId!: number;
 
         @IsInt()
         @Type(() => Number)
+        @Min(0)
+        @Max(2000000)
         targetId!: number;
 }
 
 export class friendDto {
         @IsInt()
         @Type(() => Number)
+        @Min(0)
+        @Max(2000000)
         id!: number;
 }
 

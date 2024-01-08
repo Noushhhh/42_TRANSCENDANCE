@@ -163,6 +163,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     checkUserAuth();
     fetchUserInfo();
     return () => clearTimeout(loadingTimeout); // Cleanup function to clear the timeout
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [] );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,6 +176,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
       // Revoke URL to avoid memory leaks
       return () => URL.revokeObjectURL(imageUrl);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileImage, avatarFromBack]);
 
   // ─────────────────────────────────────────────────────────────────────────────

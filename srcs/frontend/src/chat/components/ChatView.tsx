@@ -9,6 +9,15 @@ import { Socket } from "socket.io-client";
 import { fetchUser } from "./ChannelUtils";
 import { useSetChannelHeaderContext } from "../contexts/channelHeaderContext";
 
+interface Message {
+  id: number;
+  senderId: number;
+  channelId: number;
+  content: string;
+  createdAt: Date;
+  messageType: string;
+}
+
 interface ChatViewProps {
   isChannelInfoDisplay: boolean;
   messages: Message[];
@@ -54,6 +63,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
       }
     }
     callFetchConversation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, ([channelId]));
 
   useEffect(() => {

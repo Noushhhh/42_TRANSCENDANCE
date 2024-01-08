@@ -6,7 +6,6 @@ services:
     container_name: db_container # Set the container name
     env_file:
       - .env # Set the environment file
-      - ./srcs/backend/prisma/.env # Set the environment file
     image: postgres:15.3 # Set the image name and set up version
     ports:
       - 5432
@@ -24,7 +23,6 @@ services:
     container_name: backend_container # Set the container name
     env_file:
       - .env # Set the environment file
-      - ./srcs/backend/prisma/.env
     build:
       context: ./srcs/backend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
@@ -46,6 +44,8 @@ services:
     build:
       context: ./srcs/frontend # Set the build context
       dockerfile: Dockerfile # Set the Dockerfile
+    env_file:
+      - .env # Set the environment file
     image: frontend_image # Set the image name
     volumes:
       - frontend_volume:/app

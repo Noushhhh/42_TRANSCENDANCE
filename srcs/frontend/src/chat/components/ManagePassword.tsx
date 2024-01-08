@@ -38,6 +38,7 @@ function ManagePassword({ needReload }: ManagePasswordProps) {
         setConfirmNewPassword("");
         setError(null);
         setSuccess(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [needReload]);
 
     const handleChannelTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {

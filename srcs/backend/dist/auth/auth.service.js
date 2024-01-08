@@ -134,20 +134,14 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.usersService.findUserWithUsername(dto.username);
-                /*  At this point, if the user sends a signin request, that means whether his token is expired
-                    or he is not logged in(there is no cookies trace session in the browser), as in the fronted
-                    "SignIn component" we are checking at component mount, if the user is authenticated using cookies or not,
-                    before sending a request to backend */
-                if (req.cookies['userSession']) {
-                    //so If we arreve here, the token is expired. So, we clear the session cookies and user session from database.
-                    yield this.signout(user.id, res);
-                }
                 const passwordMatch = yield argon.verify(user.hashPassword, dto.password);
                 if (!passwordMatch)
                     throw new common_1.UnauthorizedException('Incorrect password');
-                // Enhanced session check logic
-                // if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date())
-                //   throw new UnauthorizedException('User is already logged in');
+                const existingsessions = yield this.findSessionsByUserId(user.id);
+                if (existingsessions && existingsessions.length > 0) {
+                    // invalidate existing sessions
+                    yield this.invalidateSessions(user.id);
+                }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
             }
@@ -200,6 +194,91 @@ let AuthService = AuthService_1 = class AuthService {
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
+    // Method to invalidate all other sessions for a user except for the current session
+    invalidateSessions(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.session.updateMany({
+                where: {
+                    userId: userId,
+                    isValid: true
+                },
+                data: {
+                    isValid: false, // Mark other sessions as invalid
+                    expiredAt: new Date() // Set the expiration timestamp to now
+                },
+            });
+            console.log('Other sessions invalidated');
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+    /**
+        * Validates if a session is active and valid for a given user.
+        * @param userId The ID of the user.
+        * @param sessionId The ID of the session to validate.
+        * @returns A boolean indicating whether the session is valid.
+        */
+    validateSession(userId, sessionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield this.prisma.session.findFirst({
+                where: {
+                    sessionId: sessionId,
+                    userId: userId,
+                    isValid: true, // Check if the session is marked as valid
+                    expiredAt: {
+                        gt: new Date() // Check if the session has not expired
+                    }
+                },
+            });
+            return !!session; // Returns true if the session exists and is valid, false otherwise
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+    /**
+     * Creates a new session for a user.
+     * @param userId The ID of the user for whom to create a session.
+     * @param sessionDuration The duration (in milliseconds) for which the session is valid.
+     * @returns The created session.
+     */
+    createNewSession(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
+            const createdAt = new Date();
+            const expiredAt = new Date(createdAt.getTime() + (15 * 60 * 1000)); //15 min as convention
+            const session = yield this.prisma.session.create({
+                data: {
+                    userId: userId,
+                    sessionId: sessionId,
+                    createdAt: createdAt,
+                    expiredAt: expiredAt,
+                    isValid: true,
+                },
+            });
+            return session;
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    generateUniqueSessionId() {
+        // Implement logic to generate a unique session ID
+        // Example: using UUIDs
+        return require('crypto').randomBytes(16).toString('hex');
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+         * Finds all sessions associated with a given user ID.
+         * @param userId The ID of the user.
+         * @returns A list of sessions.
+         */
+    findSessionsByUserId(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.session.findMany({
+                where: {
+                    userId: userId,
+                    isValid: true, // Assuming you want to find only valid (active) sessions
+                },
+            });
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────
     /**
      * Generates JWT and refresh tokens for a user and updates session information in the database.
      * @param userId - The ID of the user.
@@ -208,7 +287,15 @@ let AuthService = AuthService_1 = class AuthService {
      */
     generateTokens(userId, email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const payload = { sub: userId, email };
+            let sessionCreationResponse = null;
+            try {
+                sessionCreationResponse = yield this.createNewSession(userId);
+            }
+            catch (error) {
+                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
+            }
+            let sessionId = sessionCreationResponse.sessionId;
+            const payload = { sub: userId, email, sessionId };
             const secret = this.JWT_SECRET;
             const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
             let token, tokenExpiresAt;
@@ -226,19 +313,8 @@ let AuthService = AuthService_1 = class AuthService {
             catch (error) {
                 throw new common_1.HttpException("Error generating refresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
-            const sessionId = this.generateSessionId();
-            const sessionExpiresAt = tokenExpiresAt;
-            try {
-                yield this.prisma.user.update({
-                    where: { id: userId },
-                    data: { sessionId, sessionExpiresAt },
-                });
-            }
-            catch (error) {
-                throw new common_1.HttpException("Error updating user session in database: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
-            }
             let newToken = { token, expiresAt: tokenExpiresAt };
-            return { newToken, refreshToken };
+            return { newToken, refreshToken, sessionCreation: sessionCreationResponse };
         });
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -269,9 +345,7 @@ let AuthService = AuthService_1 = class AuthService {
                 sameSite: true,
                 maxAge: tokenMaxAge
             });
-            const sessionValue = this.generateSessionId(); // Or another method to generate session identifier
-            // Set the session cookie in the response
-            res.cookie('userSession', sessionValue, {
+            res.cookie('userSession', tokens.sessionCreation.sessionId, {
                 httpOnly: true,
                 secure: false,
                 sameSite: true,
@@ -293,8 +367,8 @@ let AuthService = AuthService_1 = class AuthService {
     signToken(userId, email, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { newToken, refreshToken } = yield this.generateTokens(userId, email);
-                this.setTokens({ newToken, refreshToken }, res);
+                const { newToken, refreshToken, sessionCreation } = yield this.generateTokens(userId, email);
+                this.setTokens({ newToken, refreshToken, sessionCreation }, res);
                 return ({ statusCode: 200, valid: true, message: "Authentication successful" });
             }
             catch (error) {
@@ -389,10 +463,10 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // this.logger.debug("passing by signout");
-                yield this.prisma.user.update({
-                    where: { id: userId },
-                    data: { sessionId: null, sessionExpiresAt: null },
-                });
+                // await this.prisma.user.update({
+                //   where: { id: userId },
+                //   data: { sessionId: null, sessionExpiresAt: null },
+                // });
                 // Clear the JWT cookie or session
                 res.clearCookie('token');
                 res.clearCookie('refreshToken');
@@ -420,7 +494,6 @@ let AuthService = AuthService_1 = class AuthService {
             try {
                 // Extract the 'code' from the query parameters
                 const code = req.query['code'];
-                this.logger.debug(`passing by singToken42 req.query['code']: ${code}`);
                 // Exchange the code for a token
                 const token = yield this.exchangeCodeForToken(code);
                 this.logger.debug(`signToken ${token}`);
@@ -451,19 +524,10 @@ let AuthService = AuthService_1 = class AuthService {
                         error: 'CONFLICT'
                     });
                 }
-                // Check if the user session already exists
-                if (req.cookies['userSession']) {
-                    // If the session exists, it means the token is expired. 
-                    // Clear the session cookies and user session from the database.
-                    yield this.signout(user.id, res);
-                }
-                // Enhanced session check logic: check if the user is already logged in
-                if (user.sessionExpiresAt && new Date(user.sessionExpiresAt) > new Date()) {
-                    return res.status(common_1.HttpStatus.FORBIDDEN).json({
-                        statusCode: common_1.HttpStatus.FORBIDDEN,
-                        message: 'User is already logged in',
-                        error: 'FORBIDDEN'
-                    });
+                const existingsessions = yield this.findSessionsByUserId(user.id);
+                if (existingsessions && existingsessions.length > 0) {
+                    // invalidate existing sessions
+                    yield this.invalidateSessions(user.id);
                 }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 yield this.handleTwoFactorAuthentication(user, res);
@@ -530,12 +594,11 @@ let AuthService = AuthService_1 = class AuthService {
                     code: code,
                     redirect_uri: process.env.CALLBACK_URL_42,
                 };
-                this.logger.debug(process.env.CALLBACK_URL_42);
                 return axios_1.default.post('https://api.intra.42.fr/oauth/token', null, { params: requestBody });
             }
             catch (error) {
-                this.logger.debug(`passing by sendAuthorizationCodeRequest erro: ${error}`);
-                throw new common_1.HttpException("Error creating fresh token: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
+                this.logger.debug(`Error sending Authorization code in 42api Auth: ${error}`);
+                throw new common_1.HttpException("Error sending Authorization code in 42api Auth: " + ((0, has_message_tools_1.hasMessage)(error) ? error.message : ''), common_1.HttpStatus.CONFLICT);
             }
         });
     }

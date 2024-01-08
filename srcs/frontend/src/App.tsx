@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import { useSignOut } from "./home/tools/hooks/useSignOut";
 import { useNavigate } from "react-router-dom";
+import { withOneTabEnforcer } from "react-one-tab-enforcer"
 import {
   Welcome,
   SignIn,
@@ -71,54 +72,57 @@ const App: React.FC = () => {
 
 
   return (
-    <Routes>
-      <Route path="/" element={<Welcome />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/authchoice" element={<AuthChoice />} />
-      <Route path="/userprofilesetup" element={<UserProfileSetup />} />
-      <Route path="/callback42" element={<OAuth42Callback />} />
+    <>
+        <Routes>
+          <Route path="/" element={<Welcome />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/authchoice" element={<AuthChoice />} />
+          <Route path="/userprofilesetup" element={<UserProfileSetup />} />
+          <Route path="/callback42" element={<OAuth42Callback />} />
 
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute>
-            <ActivityLogoutHandler />
-            <HomePage />
-            <IoConnection setSocket={setSocket} socketRef={socketRef} />
-            <GameInvitation socket={socketRef.current} />
-            <SocketError
-              socket={socketRef.current}
-              error={error}
-              handleError={handleError}
-            ></SocketError>
-          </ProtectedRoute>
-        }
-      >
-        {/* Nested routes for different sections of the home page */}
-        <Route
-          path="chat"
-          element={<ChatBoxContainer socket={socketRef.current} />}
-        />
-        <Route path="friends" element={<Friends socket={socketRef.current}/>} />
-        <Route path="stats" element={<Stats />} />
-        <Route path="settings" element={<Settings />} />
-        <Route
-          path="game"
-          element={
-            <GameContainer
-              socket={socketRef.current}
-              error={error}
-              handleError={handleError}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <ActivityLogoutHandler />
+                <HomePage />
+                <IoConnection setSocket={setSocket} socketRef={socketRef} />
+                <GameInvitation socket={socketRef.current} />
+                <SocketError
+                  socket={socketRef.current}
+                  error={error}
+                  handleError={handleError}
+                ></SocketError>
+              </ProtectedRoute>
+            }
+          >
+            {/* Nested routes for different sections of the home page */}
+            <Route
+              path="chat"
+              element={<ChatBoxContainer socket={socketRef.current} />}
             />
-          }
-        />
-      </Route>
-      {/* Catch-all route for handling any unmatched URLs */}
-      {/*       https://stackoverflow.com/questions/74645355/react-router-v6-catch-all-path-does-not-work-when-using-nested-routes */}
-      <Route path="*" element={<ErrorComponent />} /> 
-    </Routes>
+            <Route path="friends" element={<Friends socket={socketRef.current} />} />
+            <Route path="stats" element={<Stats />} />
+            <Route path="settings" element={<Settings />} />
+            <Route
+              path="game"
+              element={
+                <GameContainer
+                  socket={socketRef.current}
+                  error={error}
+                  handleError={handleError}
+                />
+              }
+            />
+          </Route>
+          {/* Catch-all route for handling any unmatched URLs */}
+          {/*       https://stackoverflow.com/questions/74645355/react-router-v6-catch-all-path-does-not-work-when-using-nested-routes */}
+          <Route path="*" element={<ErrorComponent />} />
+        </Routes>
+    </>
   );
 };
 
-export default App;
+// export default App;
+export default withOneTabEnforcer()(App);
