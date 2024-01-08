@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../styles/generalStyles.css';
 import LoadingSpinner from '../tools/LoadingSpinner';
 import TwoFA from './TwoFA';
+import { formatPlayerName } from '../../game/components/gameNetwork/ScoreBoard';
 
 // Settings component definition, wrapped with React.memo for performance optimization
 const Settings: React.FC = React.memo(() => {
@@ -32,7 +33,7 @@ const Settings: React.FC = React.memo(() => {
   const fetchPublicName = async (): Promise<void> => {
     try {
       const userNameResultFromBack = await getPublicName();
-      setPublicName(userNameResultFromBack);
+      setPublicName(formatPlayerName(userNameResultFromBack));
     } catch (error) {
       console.error(`Error fetching publicName in settings component : 
       ${hasMessage(error) ? error.message : ""}`);

@@ -55,10 +55,12 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
     getFriendsList(userId, setFriendsList).catch((e) => {
       console.log(e);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     socket.emit("requestFriendsStatus", userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -76,6 +78,7 @@ const FriendsList: FC<FriendsListProps> = ({ userId, socket }) => {
       socket.off("friendStatus", handleFriendStatus);
       socket.off("refreshFriendList", refreshFriendList);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStatusChanged = () => {

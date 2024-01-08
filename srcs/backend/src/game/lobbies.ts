@@ -25,7 +25,6 @@ export class Lobby {
 
       return lobby;
     } catch (error) {
-      console.log("An error occurred during lobby initialization:", error);
       return null;
     }
   }

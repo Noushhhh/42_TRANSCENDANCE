@@ -68,10 +68,10 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       // return null if token is invalid
       try {
         const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
-        if (this.isUserAlreadyHasSocket(response!)) return;
         this.gameSockets.server = this.server;
         socket.data.userId = response;
         const clientId = socket.id;
+        this.sendDecoToOtherSameUsers(response!, clientId);
         this.gameSockets.setSocket(clientId, socket);
         socket.setMaxListeners(15);
         this.gameSockets.printSocketMap();
@@ -82,13 +82,15 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     })
   }
 
-  isUserAlreadyHasSocket(userId: number) {
+  sendDecoToOtherSameUsers(userId: number, socketId: string) {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
+
     for (const socket of sockets) {
-      if (socket[1].data.userId === userId)
-        return true;
+      if (socket[0] === socketId) return;
+      if (socket[1].data.userId === userId) {
+        this.gatewayOut.emitToUser(socket[0], "disconnectUser", true);
+      }
     }
-    return false;
   }
 
   printSockets() {
@@ -154,7 +156,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
-    console.log("sockets = ", sockets);
+
     for (const socket of sockets) {
       if (socket[1].data.userId === playersId.user1 || socket[1].data.userId === playersId.user2) {
         socket[1].data.userId === playersId.user1 ? p1SocketId = socket[0] : p2SocketId = socket[0];
@@ -219,7 +221,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       return response;
     };
 
-    if (this.gameLobby.isInLobby(playerToInvite) === true) {
+    if (this.gameLobby.isInLobby(playerToInvite) === true
+      || this.gameLobby.isInSpectateMode(playerToInvite.id) === true) {
       this.gatewayOut.emitToUser(client.id, "invitationStatus", "player is already in a lobby");
       const response: WebSocketResponse = {
         success: true,
@@ -344,5 +347,15 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   @SubscribeMessage('isInSpectateMode')
   isInSpectateMode(@ConnectedSocket() client: Socket) {
     this.gameLobby.isInSpectateMode(client.id);
+  }
+
+  @SubscribeMessage('leaveSpecateMode')
+  leaveSpecateMode(@ConnectedSocket() client: Socket) {
+    this.gameLobby.removeFromSpectate(client.id);
+  }
+
+  @SubscribeMessage("relaunchTimer")
+  relaunchTimer(@ConnectedSocket() client: Socket) {
+    this.gatewayOut.emitToUser(client.id, "relaunchGame", true);
   }
 }

@@ -61,7 +61,6 @@ export class GameLobbyService {
           value.gameState.gameState.p2Id = playerDbId;
           const playerDb = await this.userService.findUserWithId(playerDbId);
           if (!playerDb) {
-            console.log("C'est ici que ca casse ?")
             throw new NotFoundException("player not found");
           }
           const playerUserName = playerDb?.publicName ? playerDb?.publicName : playerDb?.username;
@@ -78,7 +77,7 @@ export class GameLobbyService {
           value.gameState.gameState.newGameTimer = true;
           setTimeout(() => {
             value.gameState.gameState.newGameTimer = false;
-          }, 1500);
+          }, 3000);
         }
         // @to-do using a debug function here
         this.printLobbies();
@@ -155,7 +154,7 @@ export class GameLobbyService {
     lobby.gameState.gameState.newGameTimer = true;
     setTimeout(() => {
       lobby.gameState.gameState.newGameTimer = false;
-    }, 1500);
+    }, 3000);
 
     // @to-do using a debug function here
     this.printLobbies();
@@ -371,12 +370,23 @@ export class GameLobbyService {
     }
   }
 
-  isInSpectateMode(playerId: string) {
+  isInSpectateMode(playerId: string): boolean {
     for (const [key, value] of lobbies) {
-      value.spectators?.forEach((spec) => {
-        console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
-        if (spec.id === playerId)
-          this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+      if (value.spectators?.some((spec) => spec.id === playerId)) {
+        this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  removeFromSpectate(playerId: string) {
+    for (const [key, value] of lobbies) {
+      value.spectators?.forEach((spec, i) => {
+        if (spec.id === playerId) {
+          value.spectators?.splice(i, 1);
+          this.gatewayOut.removeSpectate(false, playerId, key);
+        }
       })
     }
   }

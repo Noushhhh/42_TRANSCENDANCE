@@ -28,24 +28,26 @@ const MatchHistory: FC<MatchHistoryProps> = ({ userId }) => {
     const fetchGameStats = async () => {
       setIsLoading(true);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/stats/getMatchHistory`,
-        {
-          method: "GET",
-          credentials: "include",
+      setTimeout(async () => {
+        const response = await fetch(
+          `${API_BASE_URL}/api/stats/getMatchHistory`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          setIsLoading(false);
+          return Promise.reject(await response.json());
         }
-      );
 
-      if (!response.ok) {
+        const formattedResponse = await response.json();
+
+        setMatchHistory(formattedResponse.matchHistory.reverse());
+
         setIsLoading(false);
-        return Promise.reject(await response.json());
-      }
-
-      const formattedResponse = await response.json();
-
-      setMatchHistory(formattedResponse.matchHistory.reverse());
-
-      setIsLoading(false);
+      }, 100);
     };
 
     fetchGameStats().catch((e) => {

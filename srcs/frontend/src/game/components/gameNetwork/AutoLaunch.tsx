@@ -16,37 +16,37 @@ const AutoLaunch: FC<AutoLaunchProps> = ({
   const [player2Replay, setPlayer2Replay] = useState(false);
 
   useEffect(() => {
-    socket.on("relaunchGame", handleRelaunchGame);
     socket.on("player1Replay", handlePayer1Replay);
     socket.on("player2Replay", handlePayer2Replay);
 
     return () => {
-      socket.off("relaunchGame", handleRelaunchGame);
       socket.off("player1Replay", handlePayer1Replay);
       socket.off("player2Replay", handlePayer2Replay);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (player1Replay === true && player2Replay === true) {
+      socket.emit("relaunchTimer");
       setTimeout(() => {
         start().catch((e) => console.log(e));
         setGameLaunchedRef();
         socket.emit("playAgain");
-      }, 1500);
+      }, 3000);
       setPlayer1Replay(false);
       setPlayer2Replay(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player1Replay, player2Replay]);
 
   useEffect(() => {
     setTimeout(() => {
       start().catch((e) => console.log(e));
       setGameLaunchedRef();
-    }, 1500);
+    }, 3000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleRelaunchGame = () => {};
 
   const handlePayer1Replay = (res: boolean) => {
     setPlayer1Replay(res);

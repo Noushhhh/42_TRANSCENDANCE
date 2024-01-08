@@ -12,12 +12,16 @@ import { GameModule } from './game/game.module';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { StatsModule } from './stats/stats.module';
+<<<<<<< HEAD
+=======
+// import { LoggerMiddleware } from './middleWares/logger.middleware';
+>>>>>>> 365a6b1b1a65c283eb21ea2f730605938d0be725
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
-    ConfigModule.forRoot({isGlobal: true}),
+    ConfigModule.forRoot({ isGlobal: true }),
     ChatModule,
     PrismaModule,
     GameModule,
@@ -28,5 +32,8 @@ import { StatsModule } from './stats/stats.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer
+    // .apply(LoggerMiddleware)
+    // .forRoutes('*'); // Apply for all routes
   }
 }

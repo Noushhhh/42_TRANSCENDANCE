@@ -77,7 +77,6 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.p2Id = playerDbId;
                         const playerDb = yield this.userService.findUserWithId(playerDbId);
                         if (!playerDb) {
-                            console.log("C'est ici que ca casse ?");
                             throw new common_1.NotFoundException("player not found");
                         }
                         const playerUserName = (playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName) ? playerDb === null || playerDb === void 0 ? void 0 : playerDb.publicName : playerDb === null || playerDb === void 0 ? void 0 : playerDb.username;
@@ -93,7 +92,7 @@ let GameLobbyService = class GameLobbyService {
                         value.gameState.gameState.newGameTimer = true;
                         setTimeout(() => {
                             value.gameState.gameState.newGameTimer = false;
-                        }, 1500);
+                        }, 3000);
                     }
                     // @to-do using a debug function here
                     this.printLobbies();
@@ -158,7 +157,7 @@ let GameLobbyService = class GameLobbyService {
             lobby.gameState.gameState.newGameTimer = true;
             setTimeout(() => {
                 lobby.gameState.gameState.newGameTimer = false;
-            }, 1500);
+            }, 3000);
             // @to-do using a debug function here
             this.printLobbies();
         });
@@ -376,10 +375,22 @@ let GameLobbyService = class GameLobbyService {
     isInSpectateMode(playerId) {
         var _a;
         for (const [key, value] of lobbies_1.lobbies) {
-            (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.forEach((spec) => {
-                console.log("SPEC ? %s, playerId = %s", spec.id, playerId);
-                if (spec.id === playerId)
-                    this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+            if ((_a = value.spectators) === null || _a === void 0 ? void 0 : _a.some((spec) => spec.id === playerId)) {
+                this.gatewayOut.emitToUser(playerId, "isInSpectateMode", true);
+                return true;
+            }
+        }
+        return false;
+    }
+    removeFromSpectate(playerId) {
+        var _a;
+        for (const [key, value] of lobbies_1.lobbies) {
+            (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.forEach((spec, i) => {
+                var _a;
+                if (spec.id === playerId) {
+                    (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.splice(i, 1);
+                    this.gatewayOut.removeSpectate(false, playerId, key);
+                }
             });
         }
     }

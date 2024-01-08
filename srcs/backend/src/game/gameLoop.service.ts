@@ -141,7 +141,7 @@ export class GameLoopService {
           const winnerSocket = this.getSocketIdWithId(winnerId);
 
           await this.playerStats.addGameStatsToPlayers(lobby, winnerId, false, false);
-          this.gatewayOut.emitToRoom(key, "printWinner", score.p1Score === SCORE_TO_WIN ? `${lobby.gameState.gameState.p1Name} WON!` : `${lobby.gameState.gameState.p2Name} WON!`)
+          this.gatewayOut.emitToRoom(key, "printWinner", score.p1Score === SCORE_TO_WIN ? lobby.gameState.gameState.p1Name : lobby.gameState.gameState.p2Name)
           lobby.gameState.gameState.score = { p1Score: 0, p2Score: 0 };
           lobby.gameState.gameState.p1pos = {
             x: paddleGap,

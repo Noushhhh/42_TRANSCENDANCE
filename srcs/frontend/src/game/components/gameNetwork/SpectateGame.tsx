@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { SpectateGameProps } from "../../assets/data";
 import Lobby from "./Lobby";
 import Button from "../common/Button";
+import { formatPlayerName } from "./ScoreBoard";
 
 type LobbyData = {
   key: string;
@@ -14,11 +15,10 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
   const [lobbiesState, setLobbiesState] = useState<LobbyData[]>([]);
 
   useEffect(() => {
-    if (isButtonClicked)
-      socket.emit("updateStatus", "Spectating game");
     return () => {
       socket.emit("updateStatus", "Online");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isButtonClicked]);
 
   useEffect(() => {
@@ -51,8 +51,8 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
           <Lobby
             key={index}
             lobbyName={value.key}
-            player1Id={value.player1}
-            player2Id={value.player2}
+            player1Id={formatPlayerName(value.player1)}
+            player2Id={formatPlayerName(value.player2)}
             socket={socket}
           />
         ))}
