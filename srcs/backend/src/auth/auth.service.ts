@@ -113,6 +113,7 @@ export class AuthService {
       const existingsessions = await this.findSessionsByUserId(user.id);
       if (existingsessions && existingsessions.length > 0) {
         // invalidate existing sessions
+        console.log("ICI MEME");
         await this.invalidateSessions(user.id);
       } 
       // Check if 2FA (Two-Factor Authentication) is enabled for the user

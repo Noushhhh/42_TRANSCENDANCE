@@ -71,6 +71,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         this.gameSockets.server = this.server;
         socket.data.userId = response;
         const clientId = socket.id;
+        this.sendDecoToOtherSameUsers(response!, clientId);
         this.gameSockets.setSocket(clientId, socket);
         socket.setMaxListeners(15);
         this.gameSockets.printSocketMap();
@@ -81,13 +82,15 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     })
   }
 
-  isUserAlreadyHasSocket(userId: number) {
+  sendDecoToOtherSameUsers(userId: number, socketId: string) {
     const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
+
     for (const socket of sockets) {
-      if (socket[1].data.userId === userId)
-        return true;
+      if (socket[0] === socketId) return;
+      if (socket[1].data.userId === userId) {
+        this.gatewayOut.emitToUser(socket[0], "disconnectUser", true);
+      }
     }
-    return false;
   }
 
   printSockets() {
