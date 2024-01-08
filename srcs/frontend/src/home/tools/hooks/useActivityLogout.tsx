@@ -22,12 +22,12 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
       const timeSinceLastActivity = lastActivity ? Date.now() - Number(lastActivity) : null;
 
       if (timeSinceLastActivity && timeSinceLastActivity >= timeToLogout) {
-        //console.log("User inactive for too long. Signing out.");
+        console.log("User inactive for too long. Signing out.");
         handleSignOut();
         navigate('/signin');
       } else {
         timerId = setTimeout(() => {
-          //console.log("Inactivity timeout reached. Signing out.");
+          console.log("Inactivity timeout reached. Signing out.");
           handleSignOut();
           navigate('/signin');
         }, timeToLogout - (timeSinceLastActivity ?? 0));
@@ -47,7 +47,7 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
     // Handle changes in local storage (used for cross-tab synchronization)
     const onStorageUpdate = (event: StorageEvent) => {
       if (event.key === "lastActivity") {
-        //console.log("Local storage updated. Resetting timer.");
+        console.log("Local storage updated. Resetting timer.");
         updateLastActivity();
       }
     };
@@ -69,14 +69,14 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
   useEffect(() => {
     // Function to check token status and refresh if needed
     const checkTokenStatusAndRefresh = async () => {
-      //console.log("Checking token status and refreshing if needed");
+      console.log("Checking token status and refreshing if needed");
       const currentTokenExpired = await checkToken();
 
       if (currentTokenExpired === false) {
         // Token is still valid, refresh if needed
         await refreshTokenIfNeeded();
       } else if (currentTokenExpired === true) {
-        //console.log("Token expired. Signing out.");
+        console.log("Token expired. Signing out.");
         handleSignOut();
         navigate('/signin');
       }
@@ -87,7 +87,7 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
 
     // Cleanup the token check interval when unmounting
     return () => {
-      //console.log("Clearing token check interval");
+      console.log("Clearing token check interval");
       clearInterval(tokenCheckIntervalId);
     };
   }, [navigate, handleSignOut, refreshTokenIfNeeded, refreshCheckInterval]);

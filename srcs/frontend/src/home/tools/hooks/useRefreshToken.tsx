@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import axios from 'axios';
+import { getResponseBody } from '../Api';
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const useRefreshToken = () => {
@@ -8,18 +9,23 @@ export const useRefreshToken = () => {
   const refreshTokenIfNeeded = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      console.log("passing by userRefreshToken");
-      const response = await axios.post(`${API_BASE_URL}/api/auth/refreshToken`); // Adjust the endpoint if necessary
-      if (response.status === 200 ) {
-        // Assuming the response contains the new token
-        // Update the token in local storage or context
-        // localStorage.setItem('token', response.data.newToken);
-        setIsRefreshing(false);
-        return true;
-      } else {
-        setIsRefreshing(false);
-        return false;
+      const response = await fetch(`${API_BASE_URL}/api/auth/refreshToken`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        // If the response is not successful, parse the response body as JSON.
+        // This assumes that the server provides a JSON response containing error details.
+        const errorDetails = await getResponseBody(response);
+
+        // Reject the promise with a new Error object. 
+        // This provides a more detailed error message than simply rejecting with the raw response.
+        // makes it easier to understand the nature of the error when handling it later.
+        return Promise.reject(errorDetails);
       }
+      setIsRefreshing(false);
+      return true;
     } catch (error) {
       console.error('Error refreshing token:', error);
       setIsRefreshing(false);
