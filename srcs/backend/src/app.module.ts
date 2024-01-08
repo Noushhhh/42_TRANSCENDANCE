@@ -12,10 +12,7 @@ import { GameModule } from './game/game.module';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { StatsModule } from './stats/stats.module';
-<<<<<<< HEAD
-=======
 // import { LoggerMiddleware } from './middleWares/logger.middleware';
->>>>>>> 365a6b1b1a65c283eb21ea2f730605938d0be725
 
 @Module({
   imports: [
