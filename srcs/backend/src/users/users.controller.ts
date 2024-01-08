@@ -100,6 +100,14 @@ export class UsersController {
     }
 
     // ─────────────────────────────────────────────────────────────────────
+
+    @Get('getPublicName')
+    async getPublicName(
+        @Query() dto: UserIdDto): Promise<string | null> {
+        return this.UsersService.getPublicName(dto.userId);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     @Put('updatepublicname')
     async updatePublicName(
         @ExtractJwt() decodedPayload: DecodedPayload,
