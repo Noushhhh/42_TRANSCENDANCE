@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+import { formatPlayerName } from "../gameNetwork/ScoreBoard";
 
 interface PrintWinnerProps {
   socket: Socket;
@@ -28,10 +29,21 @@ const PrintWinner: FC<PrintWinnerProps> = ({ socket }) => {
   });
 
   const printWinnerEvent = (winner: string) => {
-    setWinnerMessage(winner);
+    setWinnerMessage(formatPlayerName(winner) + "WON!");
   };
 
-  return <div style={{ position: "absolute", top: "26rem" }}>{winnerMessage}</div>;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: "10%",
+        zIndex: "1",
+        backgroundColor: "black",
+      }}
+    >
+      {winnerMessage}
+    </div>
+  );
 };
 
 export default PrintWinner;

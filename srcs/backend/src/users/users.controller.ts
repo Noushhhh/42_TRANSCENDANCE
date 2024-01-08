@@ -246,6 +246,8 @@ export class UsersController {
                 throw new NotFoundException("User not found");
 
             const toSearch = req.headers['x-search-header']!.toString();
+            if (toSearch.length === 0) res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, usersFound: [] })
+
             const users = await this.UsersService.getUsersWithStr(req.user.id, toSearch);
             res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, usersFound: users })
         } catch (error) {

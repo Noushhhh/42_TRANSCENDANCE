@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, Get, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, HttpStatus, NotFoundException, Req, Res, UseGuards } from '@nestjs/common';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { Query } from '@nestjs/common';
@@ -43,15 +43,22 @@ export class GameController {
         const sockets = Array.from(this.gateway.server.sockets.sockets).map(socket => socket);
         for (const socket of sockets) {
           if (socket[1].data.userId == req.user.id) {
-            if (socket[0] != dto.clientId) {
+            if (socket[0] !== dto.clientId) {
               throw new ForbiddenException("Wrong socket id provided");
+            } else if (socket[0] === dto.clientId) {
+              break;
             }
           }
         }
+
         await this.gameLobby.addPlayerToLobby(dto.clientId, req.user.id);
-        res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
+        res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
       } catch (error) {
-        res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        if (error instanceof NotFoundException) {
+          res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+        } else if (error instanceof ForbiddenException) {
+          res.status(HttpStatus.FORBIDDEN).json({ statusCode: HttpStatus.FORBIDDEN, message: "Wrong socket provided", error: "Forbidden" });
+        }
       }
     }
   }
@@ -60,6 +67,6 @@ export class GameController {
   @Get('play')
   play(@Res() res: Response) {
     this.gameLoopService.startGameLoop();
-    res.status(HttpStatus.ACCEPTED).json({ statusCode: HttpStatus.ACCEPTED });
+    res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
   }
 }

@@ -4,6 +4,7 @@ import { Rect } from "react-konva";
 import * as data from "../../assets/data";
 import { Vector2d } from "konva/lib/types";
 import { gameConfig } from "../../assets/gameConfig";
+import MobileControls from "./MobileControls";
 
 const Paddles: FC<data.PaddleProps> = ({ socket }) => {
   const rect1Ref = useRef<Konva.Rect>(null);
@@ -131,6 +132,7 @@ const Paddles: FC<data.PaddleProps> = ({ socket }) => {
       if (keyState.current["ArrowDown"]) {
         socket.emit("getPlayerPos", "down");
       }
+
       animRequest = requestAnimationFrame(updateRect);
     };
 

@@ -140,6 +140,7 @@ let AuthService = AuthService_1 = class AuthService {
                 const existingsessions = yield this.findSessionsByUserId(user.id);
                 if (existingsessions && existingsessions.length > 0) {
                     // invalidate existing sessions
+                    console.log("ICI MEME");
                     yield this.invalidateSessions(user.id);
                 }
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user

@@ -11,8 +11,10 @@ import { useLocation } from "react-router-dom";
 import AutoLaunch from "./gameNetwork/AutoLaunch";
 import GameButtonsBar from "./gameUtils/GameButtonsBar";
 import PrintWinner from "./gameUtils/PrintWinner";
-import SocketError from "./gameNetwork/SocketError";
 import PlayAgain from "./gameNetwork/PlayAgain";
+import Timer from "./gamePhysics/Timer";
+import MobileControls from "./gamePhysics/MobileControls";
+import { isMobile } from "react-device-detect";
 
 interface GameContainerProps {
   socket: Socket | undefined;
@@ -39,11 +41,20 @@ const GameContainer: FC<GameContainerProps> = ({
 
   useEffect(() => {
     socket?.emit("requestLobbyState");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     socket?.emit("isInSpectateMode");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLobbyFull]);
+
+  useEffect(() => {
+    if (isInSpectate === true) {
+      socket?.emit("updateStatus", "Spectating game");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInSpectate]);
 
   useEffect(() => {
     socket?.on("connect", connectListener);
@@ -61,7 +72,10 @@ const GameContainer: FC<GameContainerProps> = ({
       socket?.off("lobbyState", handleLobbyState);
       socket?.off("isInSpectateMode", handleIsInSpectateMode);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
+
+  useEffect(() => {});
 
   useEffect(() => {
     return () => {
@@ -69,6 +83,7 @@ const GameContainer: FC<GameContainerProps> = ({
         socket?.emit("removeFromLobby");
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, isInLobby]);
 
   const handleNewGame = () => {
@@ -76,7 +91,7 @@ const GameContainer: FC<GameContainerProps> = ({
     setTimeout(() => {
       start();
       setGameLaunchedRef();
-    }, 1500);
+    }, 3000);
   };
 
   const setGameLaunchedRef = () => {
@@ -105,9 +120,11 @@ const GameContainer: FC<GameContainerProps> = ({
   };
 
   const handleIsInSpectateMode = (res: boolean) => {
-    console.log("IS SPECTATOR = ", res);
-    console.log("ici");
     setIsInSpectate(res);
+  };
+
+  const handleSpectateBack = () => {
+    socket?.emit("leaveSpecateMode");
   };
 
   const start = async () => {
@@ -120,11 +137,18 @@ const GameContainer: FC<GameContainerProps> = ({
   };
 
   if (isInLobby === true) {
-    if (isLobbyFull === false && socket) {
+    if (isLobbyFull === false && socket && isInSpectate === false) {
       return (
         <>
           <WaitingForPlayer socket={socket} />
         </>
+      );
+    } else if (isLobbyFull === false && isInSpectate === true) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div>Game is finished</div>
+          <button onClick={() => handleSpectateBack()}>Back</button>
+        </div>
       );
     } else if (isLobbyFull === true && socket) {
       return (
@@ -133,6 +157,7 @@ const GameContainer: FC<GameContainerProps> = ({
           <MiddleLine />
           <ScoreBoard socket={socket} />
           <GamePhysics socket={socket} />
+          {isInSpectate === false ? <Timer socket={socket} /> : null}
           <PrintWinner socket={socket} />
           <PlayAgain socket={socket} />
           <AutoLaunch
@@ -140,6 +165,7 @@ const GameContainer: FC<GameContainerProps> = ({
             setGameLaunchedRef={setGameLaunchedRef}
             socket={socket}
           />
+          {isMobile ? <MobileControls socket={socket} /> : null}
         </div>
       );
     }

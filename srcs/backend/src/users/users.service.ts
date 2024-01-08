@@ -467,7 +467,6 @@ export class UsersService {
             return user;
         }
         catch (error) {
-            console.error(`Error fetching user with id ${userId}`, error);
             throw error;
         }
     }
