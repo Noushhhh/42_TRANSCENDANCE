@@ -326,7 +326,6 @@ export class UsersService {
 
     async updateAvatar(userId: number, avatar: Express.Multer.File) {
         try {
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
             const maxFileSize = 5 * 1024 * 1024; // 5MB
 
             // Check file size
