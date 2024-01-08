@@ -105,40 +105,63 @@ export class UsersService {
      * @throws {NotFoundException} - Throws when the avatar or user is not found.
      */
     async getUserAvatar(@ExtractJwt() decodedPayload: DecodedPayload, @NestResponse() res: Response) {
-        let user;
+        let user: User;
         try {
             // Get the user profile using the decoded payload's subject (usually the user ID)
-            user = await this.getUserData(decodedPayload.sub);
+            user = await this.findUserWithId(decodedPayload.sub);
         } catch (userDataError) {
             // Handle errors related to fetching user data
             console.error('Error fetching user data:', userDataError);
             throw new BadRequestException('Error fetching user data');
         }
-    
+
         try {
             // Check if the user has an avatar set
             const path = user?.avatar;
             if (!path) {
                 throw new NotFoundException('Avatar not found');
             }
-    
+
             // Set the appropriate MIME type for the avatar image
             res.type('image/jpeg');
-    
+
             // Create a read stream for the avatar file
             const stream = fs.createReadStream(path);
-    
+
             stream.on('open', () => {
                 // Pipe the read stream to the response object to send the image data
                 stream.pipe(res);
             });
-    
-            stream.on('error', (err: NodeJS.ErrnoException) => {
+
+            stream.on('error', async (err: NodeJS.ErrnoException) => {
                 // Handle file read/stream errors
                 console.error('Error reading avatar file:', err);
                 if (err.code === 'ENOENT') {
-                    // File not found, throw NestJS NotFoundException
-                    throw new NotFoundException('Avatar not found');
+                    // File not found, use the default avatar
+                    const defaultAvatarStream = fs.createReadStream(DEFAULT_AVATAR_PATH);
+                    defaultAvatarStream.on('open', () => {
+                        // Pipe the default avatar stream to the response
+                        defaultAvatarStream.pipe(res);
+                    }).on('error', (defaultAvatarErr) => {
+                        // Handle errors while reading the default avatar file
+                        console.error('Error reading default avatar file:', defaultAvatarErr);
+                        throw new NotFoundException('Default avatar not found');
+                    });
+
+                    // Update user's avatar path in the database to the default avatar
+                    try {
+                        await this.prisma.user.update({
+                            where: {
+                                id: user.id,
+                            },
+                            data: {
+                                avatar: DEFAULT_AVATAR_PATH,
+                            },
+                        });
+                    } catch (updateError) {
+                        console.error('Error updating user data with default avatar:', updateError);
+                        throw new ConflictException('Error updating user data');
+                    }
                 } else {
                     // Other errors, throw NestJS InternalServerErrorException
                     throw new ConflictException('Error fetching avatar');
@@ -147,11 +170,9 @@ export class UsersService {
         } catch (streamError) {
             // Catch any other errors that might occur during file handling
             console.error('Error in file handling for getUserAvatar:', streamError);
-            throw streamError;
+            throw new ConflictException('Error in file handling');
         }
     }
-    
-
 
     // ─────────────────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────────────
