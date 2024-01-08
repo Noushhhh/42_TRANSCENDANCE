@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import { useSignOut } from "./home/tools/hooks/useSignOut";
 import { useNavigate } from "react-router-dom";
-import { withOneTabEnforcer } from "react-one-tab-enforcer"
+import { withOneTabEnforcer } from "react-one-tab-enforcer";
 import {
   Welcome,
   SignIn,
@@ -41,22 +41,39 @@ const App: React.FC = () => {
   const signOut = useSignOut();
   const navigate = useNavigate();
 
-// ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
   // Effect to listen for changes in local storage, specifically for logout
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'logout') {
-        console.log('Logout detected in another tab');
+      if (event.key === "logout") {
+        console.log("Logout detected in another tab");
         signOut();
-        navigate('/signin');
+        navigate("/signin");
       }
     };
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, [signOut, navigate]);
+
+  useEffect(() => {
+    socket?.on("disconnectUser", handleDisconnectUser);
+
+    return () => {
+      socket?.off("disconnectUser", handleDisconnectUser);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
+
+  const handleDisconnectUser = () => {
+    navigate("/signin");
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = undefined;
+      setSocket(undefined);
+    }
+  };
 
   // ─────────────────────────────────────────────────────────────────────
 
@@ -70,56 +87,58 @@ const App: React.FC = () => {
   };
   // ─────────────────────────────────────────────────────────────────────
 
-
   return (
     <>
-        <Routes>
-          <Route path="/" element={<Welcome />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/authchoice" element={<AuthChoice />} />
-          <Route path="/userprofilesetup" element={<UserProfileSetup />} />
-          <Route path="/callback42" element={<OAuth42Callback />} />
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/authchoice" element={<AuthChoice />} />
+        <Route path="/userprofilesetup" element={<UserProfileSetup />} />
+        <Route path="/callback42" element={<OAuth42Callback />} />
 
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <ActivityLogoutHandler />
+              <HomePage />
+              <IoConnection setSocket={setSocket} socketRef={socketRef} />
+              <GameInvitation socket={socketRef.current} />
+              <SocketError
+                socket={socketRef.current}
+                error={error}
+                handleError={handleError}
+              ></SocketError>
+            </ProtectedRoute>
+          }
+        >
+          {/* Nested routes for different sections of the home page */}
           <Route
-            path="/home"
+            path="chat"
+            element={<ChatBoxContainer socket={socketRef.current} />}
+          />
+          <Route
+            path="friends"
+            element={<Friends socket={socketRef.current} />}
+          />
+          <Route path="stats" element={<Stats />} />
+          <Route path="settings" element={<Settings />} />
+          <Route
+            path="game"
             element={
-              <ProtectedRoute>
-                <ActivityLogoutHandler />
-                <HomePage />
-                <IoConnection setSocket={setSocket} socketRef={socketRef} />
-                <GameInvitation socket={socketRef.current} />
-                <SocketError
-                  socket={socketRef.current}
-                  error={error}
-                  handleError={handleError}
-                ></SocketError>
-              </ProtectedRoute>
+              <GameContainer
+                socket={socketRef.current}
+                error={error}
+                handleError={handleError}
+              />
             }
-          >
-            {/* Nested routes for different sections of the home page */}
-            <Route
-              path="chat"
-              element={<ChatBoxContainer socket={socketRef.current} />}
-            />
-            <Route path="friends" element={<Friends socket={socketRef.current} />} />
-            <Route path="stats" element={<Stats />} />
-            <Route path="settings" element={<Settings />} />
-            <Route
-              path="game"
-              element={
-                <GameContainer
-                  socket={socketRef.current}
-                  error={error}
-                  handleError={handleError}
-                />
-              }
-            />
-          </Route>
-          {/* Catch-all route for handling any unmatched URLs */}
-          {/*       https://stackoverflow.com/questions/74645355/react-router-v6-catch-all-path-does-not-work-when-using-nested-routes */}
-          <Route path="*" element={<ErrorComponent />} />
-        </Routes>
+          />
+        </Route>
+        {/* Catch-all route for handling any unmatched URLs */}
+        {/*       https://stackoverflow.com/questions/74645355/react-router-v6-catch-all-path-does-not-work-when-using-nested-routes */}
+        <Route path="*" element={<ErrorComponent />} />
+      </Routes>
     </>
   );
 };
