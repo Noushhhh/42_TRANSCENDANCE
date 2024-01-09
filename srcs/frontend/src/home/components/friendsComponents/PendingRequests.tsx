@@ -59,6 +59,7 @@ const PendingRequests: FC<PendingRequestsProps> = ({ userId, socket }) => {
     return () => {
       socket.off("refreshPendingRequests", refreshPendingRequests);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleShowFriendRequests = () => {

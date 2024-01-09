@@ -11,7 +11,7 @@ type KonvaSize = [konvaWidth: number, konvaHeight: number];
 const GameConfigController = new data.GameConfig();
 
 const GamePhysics: FC<data.GamePhysicsProps> = ({ socket }) => {
-  const [konvaSize, setKonvaSize] = useState<KonvaSize>([1200, 800]);
+  const [ , setKonvaSize] = useState<KonvaSize>([1200, 800]);
   const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {

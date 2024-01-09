@@ -13,7 +13,7 @@ interface MessageComponentProps {
 function MessageComponent(props: MessageComponentProps) {
 
     const [senderUsername, setSenderUsername] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [ , setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchUsername = async () => {
@@ -25,6 +25,7 @@ function MessageComponent(props: MessageComponentProps) {
             }
         }
         fetchUsername();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const updatedClassName = `${props.messageType}`;
