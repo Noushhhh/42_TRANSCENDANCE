@@ -71,8 +71,12 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
 
     const callCreateChannel = async () => {
         try {
-            if (channelType === "PASSWORD_PROTECTED" && password.length < 6){
+            if (channelType === "PASSWORD_PROTECTED" && password.length < 6 ||
+                channelType === "PASSWORD_PROTECTED" && confirmPassword.length < 6){
                 setError("Channel password must be 6 characters minimum")
+                return ;
+            } else if (password.length != confirmPassword.length || password != confirmPassword){
+                setError("Password's doesnt match")
                 return ;
             }
             if (channelName.length < 1)
@@ -132,16 +136,11 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 listUsersSearched={listUsersSearched}
                 setListUsersSearched={setListUsersSearched}/>
             {
-                password !== confirmPassword ? (
-                    <p>Passwords doesn't match</p>
-                ) : null
-            }
-            {
             <div className="flex">
                 <h5>Channel Name</h5>
                 <input value={channelName} onChange={handleChannelName} type="text" />
             </div>
-        }
+            }
             <button onClick={callCreateChannel}>Create</button>
         </div>
     )   
