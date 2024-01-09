@@ -16,6 +16,8 @@ import Timer from "./gamePhysics/Timer";
 import MobileControls from "./gamePhysics/MobileControls";
 import { isMobile } from "react-device-detect";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 interface GameContainerProps {
   socket: Socket | undefined;
   error: string;
@@ -128,7 +130,7 @@ const GameContainer: FC<GameContainerProps> = ({
   };
 
   const start = async () => {
-    const response = await fetch("http://localhost:4000/api/game/play", {
+    const response = await fetch(`${API_BASE_URL}/api/game/play`, {
       method: "GET",
       credentials: "include",
     });

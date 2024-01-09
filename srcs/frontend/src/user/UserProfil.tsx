@@ -108,7 +108,7 @@ const UserProfil: FC<UserProfilProps> = ({
           src={
             isUrlContainsHttps(userProfile?.pAvatar!) === true
               ? userProfile?.pAvatar
-              : "http://localhost:4000/" + userProfile?.pAvatar
+              : `${API_BASE_URL}` + userProfile?.pAvatar
           }
           alt=""
         />

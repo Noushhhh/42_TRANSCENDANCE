@@ -16,7 +16,6 @@ interface SocketErrorObj {
 }
 
 const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
-  // @to-do REMOVE localhost
   const lobby = async () => {
     const response = await fetch(
       // socket.id

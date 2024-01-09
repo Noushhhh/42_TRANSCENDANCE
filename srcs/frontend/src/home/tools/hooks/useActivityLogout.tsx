@@ -4,8 +4,8 @@ import { useSignOut } from './useSignOut';
 import { useRefreshToken } from "./useRefreshToken";
 import { checkToken } from '../Api';
 
-// Custom hook for handling user inactivity logout and token refreshing
-const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval = 1000 * 60 * 10) => {
+// Custom hook for handling user inactivity logout and token refreshing --- 1000 * 60 * 20
+const useActivityLogout = (timeToLogout = 1000 * 60 * 5, refreshCheckInterval = 1000 * 60 * 10) => {
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
   const { refreshTokenIfNeeded } = useRefreshToken();
