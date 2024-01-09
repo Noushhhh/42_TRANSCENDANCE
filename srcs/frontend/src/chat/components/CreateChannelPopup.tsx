@@ -71,11 +71,11 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
 
     const callCreateChannel = async () => {
         try {
-            if (channelType === "PASSWORD_PROTECTED" && password.length < 6 ||
-                channelType === "PASSWORD_PROTECTED" && confirmPassword.length < 6){
+            if ((channelType === "PASSWORD_PROTECTED" && password.length < 6) ||
+                (channelType === "PASSWORD_PROTECTED" && confirmPassword.length < 6)){
                 setError("Channel password must be 6 characters minimum")
                 return ;
-            } else if (password.length != confirmPassword.length || password != confirmPassword){
+            } else if (password.length !== confirmPassword.length || password !== confirmPassword){
                 setError("Password's doesnt match")
                 return ;
             }
