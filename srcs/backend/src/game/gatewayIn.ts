@@ -13,7 +13,7 @@ import { Server, Socket } from 'socket.io';
 import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { gameSockets } from './gameSockets';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
 import { GatewayOut } from './gatewayOut';
@@ -23,13 +23,6 @@ interface WebSocketResponse {
   success: boolean;
   message?: string;
 }
-
-type GameDataArray = [
-  konvaHeight: number,
-  konvaWidth: number,
-  paddleHeight: number,
-  paddleWidth: number,
-]
 
 interface PlayersId {
   user1: number;
@@ -55,7 +48,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     private readonly gameLoop: GameLoopService,
     private readonly gameLobby: GameLobbyService,
     private readonly gameSockets: gameSockets,
-    private readonly playerStats: playerStatistics,
     private readonly authService: AuthService,
     private readonly gatewayOut: GatewayOut,
     private readonly userService: UsersService,
@@ -64,8 +56,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   afterInit() {
     this.server.use(async (socket, next) => {
 
-      // check token validity return the userId if correspond to associated token
-      // return null if token is invalid
       try {
         const response = await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         this.gameSockets.server = this.server;
@@ -163,7 +153,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       }
     }
     if (p1SocketId === null || p2SocketId === null) {
-      //@to-do bien gerer erreur
       const response: WebSocketResponse = {
         success: false,
         message: 'Error trying to invite friend to game',

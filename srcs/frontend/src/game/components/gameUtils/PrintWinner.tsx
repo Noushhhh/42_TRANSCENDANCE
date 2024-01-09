@@ -15,7 +15,6 @@ const PrintWinner: FC<PrintWinnerProps> = ({ socket }) => {
         setWinnerMessage("");
       }, 1500);
 
-      // Cleanup the timeout if the component unmounts or winnerMessage changes
       return () => clearTimeout(timeoutId);
     }
   }, [winnerMessage]);

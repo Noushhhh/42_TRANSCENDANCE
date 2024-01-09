@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 
 interface MobileControlsProps {
@@ -6,7 +6,6 @@ interface MobileControlsProps {
 }
 
 const MobileControls: FC<MobileControlsProps> = ({ socket }) => {
-  const [isButtonPressed, setIsButtonPressed] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -18,7 +17,6 @@ const MobileControls: FC<MobileControlsProps> = ({ socket }) => {
   }, []);
 
   const handleButtonPress = (buttonValue: string) => {
-    setIsButtonPressed(true);
     intervalRef.current = window.setInterval(() => {
       if (buttonValue === "up") {
         socket.emit("getPlayerPos", "up");
@@ -30,8 +28,6 @@ const MobileControls: FC<MobileControlsProps> = ({ socket }) => {
   };
 
   const handleButtonRelease = () => {
-    setIsButtonPressed(false);
-
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;

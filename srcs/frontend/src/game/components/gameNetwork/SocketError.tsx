@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect } from "react";
 import { Socket } from "socket.io-client";
 
 interface SocketErrorProps {
@@ -13,9 +13,6 @@ interface SocketErrorObj {
 }
 
 const SocketError: FC<SocketErrorProps> = ({ socket, error, handleError }) => {
-  // const [error, setError] = useState<string>("");
-  // const [errorStatus, setErrorStatus] = useState<number>(0);
-
   useEffect(() => {
     socket?.on("error", handleError);
 
@@ -23,14 +20,6 @@ const SocketError: FC<SocketErrorProps> = ({ socket, error, handleError }) => {
       socket?.off("error", handleError);
     };
   });
-
-  // const handleError = (error: SocketErrorObj) => {
-  //   setError(error.message);
-  //   console.error("error %d : %s", error.statusCode, error.message);
-  //   setTimeout(() => {
-  //     setError("");
-  //   }, 1500);
-  // };
 
   return (
     <div

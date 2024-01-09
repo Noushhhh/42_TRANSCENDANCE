@@ -5,17 +5,13 @@ import * as data from "../../assets/data";
 import { gameConfig } from "../../assets/gameConfig";
 import Paddles from "./Paddles";
 import Ball from "./Ball";
-import Ray from "./Ray";
 import Konva from "konva";
 
 type KonvaSize = [konvaWidth: number, konvaHeight: number];
 const GameConfigController = new data.GameConfig();
 
-const GamePhysics: FC<data.GamePhysicsProps> = ({
-  socket,
-}) => {
+const GamePhysics: FC<data.GamePhysicsProps> = ({ socket }) => {
   const [konvaSize, setKonvaSize] = useState<KonvaSize>([1200, 800]);
-  // const [p1Pos, setP1Pos] = useState<Vector2d>([])
   const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {
@@ -27,6 +23,7 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
       window.removeEventListener("resize", resizeEvent);
       socket.emit("updateStatus", "Online");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const resizeEvent = () => {
@@ -54,7 +51,6 @@ const GamePhysics: FC<data.GamePhysicsProps> = ({
       <Layer>
         <Paddles socket={socket} />
         <Ball socket={socket} ballPosRef={ballPosRef} />
-        <Ray socket={socket} />
       </Layer>
     </Stage>
   );

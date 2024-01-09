@@ -94,6 +94,7 @@ const UserProfil: FC<UserProfilProps> = ({
     };
 
     fetchUser().catch((e) => console.error(e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isDisplay) return <></>;

@@ -12,7 +12,6 @@ import { GameModule } from './game/game.module';
 import { AuthService } from './auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { StatsModule } from './stats/stats.module';
-// import { LoggerMiddleware } from './middleWares/logger.middleware';
 
 @Module({
   imports: [
