@@ -51,8 +51,6 @@ export class ChatService {
       return channel.name;
 
     const caller: User = await this.getUserById(callerId);
-    if (!caller)
-      throw new NotFoundException(`User with id ${callerId} not found`);
 
     const numberUsersInChannel: number = channel.participants.length;
     if (numberUsersInChannel === 2) {
@@ -67,6 +65,7 @@ export class ChatService {
   }
 
   async getChannelHeadersFromId(channelId: number, userId: number): Promise<ChannelLight> {
+    await this.getUserById(userId)
     const channel = await this.prisma.channel.findUnique({
       where: {
         id: channelId,
@@ -123,6 +122,7 @@ export class ChatService {
 
   async getAllMessagesByChannelId(channelId: number, userId: number): Promise<Message[]> {
 
+    await this.getUserById(userId)
     const channel = await this.prisma.channel.findUnique({
       where: {
         id: channelId,
@@ -151,7 +151,12 @@ export class ChatService {
 
   async addMessageToChannelId(message: MessageToStoreDto, senderId: number) {
 
+    console.log("addMessagetochannel called")
+
     await this.getChannelById(message.channelId);
+    await this.getUserById(senderId);
+
+    console.log("addMessagetochannel called after check")
 
     if (! await this.isUserIsInChannel(senderId , message.channelId))
       throw new ForbiddenException("user is not in channel");
@@ -235,7 +240,7 @@ export class ChatService {
         throw new NotFoundException("Error creating new channel");
       return newChannel.id;
     } catch (errors) {
-      throw errors;
+      throw new NotAcceptableException("Can\'t add channel to user")
     }
   }
 
@@ -292,16 +297,17 @@ export class ChatService {
     if (targetIsAdmin === true){
       if (callerIsOwner === false)
         throw new ForbiddenException(`Only owner can ${action} admin`);
-      await this.prisma.channel.update({
-        where: { id: channelId },
-        data: {
-          admins: {
-            disconnect: { id: targetId },
+      if (action === "kick" || action === "ban"){
+        await this.prisma.channel.update({
+          where: { id: channelId },
+          data: {
+            admins: {
+              disconnect: { id: targetId },
+            }
           }
-        }
-      })
+        })
+      }
     }
-
   }
 
   async kickUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
@@ -325,33 +331,13 @@ export class ChatService {
     return true;
   }
 
-  async deleteAllMessagesInChannel(channelId: number): Promise<void> {
-    await this.getChannelById(channelId);
-    await this.prisma.message.deleteMany({
-      where: { channelId, }
-    });
-  }
-
   async banUserFromChannel(userId: number, channelId: number, callerId: number): Promise<boolean> {
 
     await this.getChannelById(channelId);
+    await this.getUserById(userId);
+    await this.getUserById(callerId);
 
     await this.checkUsersCredentials(userId, callerId, channelId, "ban");
-
-    /*if (await this.isAdmin(userId, channelId) === true){
-      if (await this.isOwner(callerId, channelId) === false)
-        throw new ForbiddenException("You can't ban a channel Admin");
-      await this.prisma.channel.update({
-        where: { id: channelId },
-        data: {
-          admins: {
-            disconnect: { id: userId },
-          }
-        }
-      })
-    } else {
-        throw new ForbiddenException("Only admin/owner can ban");
-    }*/
 
     await this.kickUserFromChannel(userId, channelId, callerId);
 
@@ -371,6 +357,7 @@ export class ChatService {
   async leaveChannel(userId: number, channelId: number, newOwnerId?: number): Promise<boolean> {
 
     await this.getChannelById(channelId);
+    await this.getUserById(userId);
 
     if (! await this.isUserIsInChannel(userId, channelId))
       throw new ForbiddenException("user is not in channel");
@@ -429,6 +416,9 @@ export class ChatService {
 
   async addAdminToChannel(inviterId: number, invitedId: number, channelId: number): Promise<boolean> {
 
+    await this.getChannelById(channelId)
+    await this.getUserById(inviterId)
+    await this.getUserById(invitedId)
 
     if (await this.isAdmin(inviterId, channelId) === false) {
       throw new ForbiddenException("Is not admin");
@@ -438,12 +428,7 @@ export class ChatService {
       throw new NotFoundException("addAdminToChannel: user you want to add to admin is not in channel")
     }
 
-    const userToAdd = await this.prisma.user.findUnique({
-      where: { id: invitedId }
-    })
-
-    if (!userToAdd)
-      return false;
+    await this.getUserById(invitedId)
 
     const response = await this.prisma.channel.update({
       where: { id: channelId },
@@ -462,13 +447,16 @@ export class ChatService {
 
   async removeAdminFromChannel(inviterId: number, invitedId: number, channelId: number): Promise<boolean> {
 
+    await this.getChannelById(channelId)
+    await this.getUserById(inviterId)
+    await this.getUserById(invitedId)
+
     if (inviterId === invitedId) {
       throw new HttpException("You can't kick yourself", HttpStatus.FORBIDDEN);
     }
 
     if (await this.isAdmin(inviterId, channelId) === false) {
-      throw new HttpException("Only admins can remove others admins",
-        HttpStatus.FORBIDDEN);
+      throw new ForbiddenException("Only admins can remove others admins");
     }
 
     if (await this.isAdmin(invitedId, channelId) === false) {
@@ -481,12 +469,7 @@ export class ChatService {
         HttpStatus.FORBIDDEN);
     }
 
-    const userToAdd = await this.prisma.user.findUnique({
-      where: { id: invitedId }
-    })
-
-    if (!userToAdd)
-      return false;
+    await this.getUserById(invitedId)
 
     const response = await this.prisma.channel.update({
       where: { id: channelId },
@@ -498,6 +481,9 @@ export class ChatService {
         }
       }
     })
+
+    if (!response)
+      throw new NotAcceptableException("Error removing channel admin")
 
     return true;
   }
@@ -513,14 +499,13 @@ export class ChatService {
       throw new NotFoundException(`Channel with id ${channelId} not found`);
     }
 
-    const caller: User | undefined = await this.userService.findUserWithId(userId);
+    const caller: User = await this.userService.findUserWithId(userId);
 
     const users: User[] = channel.participants.filter((user) => {
       return user.publicName?.startsWith(substring)
     });
 
     const modifiedUsers = users.map(user => {
-      // Remplace le contenu de hashPassword par une chaîne vide
       return { ...user, hashPassword: '' };
     });
     
@@ -534,13 +519,12 @@ export class ChatService {
         admins: true
       }
     })
-    if (!channel) {
+    if (!channel)
       throw new NotFoundException("Channel not found");
-    }
     return channel.admins;
   }
 
-  async addUserToChannel(userId: number, channelId: number, callerId: number, callFromProtected?: boolean): Promise<number> {
+  async addUserToChannel(userId: number, channelId: number, callerId: number): Promise<number> {
 
     if (await this.isUserIsBan(channelId, userId)){
       const user: User = await this.userService.findUserWithId(userId);
@@ -548,11 +532,10 @@ export class ChatService {
     }
 
     const channelType: string = await this.getChannelType(channelId);
-    if (channelType === "PROTECTED" && callFromProtected === false)
-      throw new ForbiddenException("Forbidden action")
+    if (channelType === "PASSWORD_PROTECTED" && await this.isAdmin(callerId, channelId) === false)
+      throw new ForbiddenException("Only admin can invite in protected channel")
     if (channelType === "PRIVATE" && await this.isOwner(callerId, channelId) === false)
       throw new ForbiddenException("Require owner privileges")
-
 
     const channel = await this.prisma.channel.update({
       where: { id: channelId },
@@ -598,13 +581,34 @@ export class ChatService {
   }
 
   async addUserToProtectedChannel(channelId: number, providedPassword: string, userId: number): Promise<void> {
+
+    await this.getUserById(userId)
     const channel = await this.getChannelById(channelId);
+
+    if (await this.isUserIsBan(channelId, userId)){
+      const user: User = await this.userService.findUserWithId(userId);
+      throw new NotAcceptableException(`${user.publicName} is ban from this channel`);
+    }
+
+    const channelType: string = await this.getChannelType(channelId);
+
+    if (channelType != "PASSWORD_PROTECTED")
+      throw new ForbiddenException("Wrong method called")
     if (!channel.password)
       throw new ForbiddenException('Channel password not found');
     const passwordMatch = await argon.verify(channel.password, providedPassword);
     if (!passwordMatch)
       throw new ForbiddenException('Incorrect channel password');
-    await this.addUserToChannel(userId, channelId, 0, false);
+    const response = await this.prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        participants: {
+          connect: { id: userId }
+        }
+      }
+    })
+    if (!response)
+      throw new NotFoundException("Channel not found");
   }
 
   async getUserById(channelId: number): Promise<User> {

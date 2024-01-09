@@ -21,7 +21,6 @@ interface Message {
 interface MessageToStore{
 	channelId: number;
 	content: string;
-	senderId: number;
 }
 
 interface ChatPromptProps {
@@ -93,7 +92,7 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
         setMessage("");
         return;
       }
-      const { id, createdAt, messageType, ...parsedMessage } = msgToSend;
+      const { id, createdAt, messageType, senderId, ...parsedMessage } = msgToSend;
       setPreviewLastMessage(msgToSend);
       storeMsgToDatabase(parsedMessage);
       setMessage("");
