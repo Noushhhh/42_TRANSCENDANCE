@@ -593,6 +593,20 @@ export class UsersService {
 
         if (!target) throw new NotFoundException("User not found");
 
+        const isPendingRequest = await this.prisma.user.count({
+            where: {
+                id: senderId,
+                pendingRequestFrom: {
+                    some: {
+                        id: targetId,
+                    },
+                },
+            },
+        });
+
+        if (!isPendingRequest) throw new ForbiddenException("No pending request")
+
+
         await this.prisma.user.update({
             where: { id: senderId },
             data: {

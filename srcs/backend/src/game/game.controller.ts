@@ -17,7 +17,6 @@ interface User {
   twoFAUrl: boolean;
   firstConnexion: boolean;
   TwoFA: boolean;
-  // Other properties...
 }
 
 declare module 'express' {
@@ -31,7 +30,6 @@ export class GameController {
   constructor(
     private readonly gameLoopService: GameLoopService,
     private readonly gameLobby: GameLobbyService,
-    private readonly playerStats: playerStatistics,
     private readonly gateway: GatewayIn
   ) { }
 

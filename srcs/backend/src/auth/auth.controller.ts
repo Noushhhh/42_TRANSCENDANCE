@@ -1,5 +1,5 @@
 import {
- BadRequestException, Controller, Post,
+  BadRequestException, Controller, Post,
   Body, Res, Get, Req, Delete, UseFilters, NotFoundException, Logger, HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -83,26 +83,25 @@ export class AuthController {
   // @Public()
   @Get('callback42')
   async handle42Callback(@Req() req: Request, @Res() res: Response) {
-      await this.authService.signToken42(req, res);
+    await this.authService.signToken42(req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('enable2FA')
   async enable2FA(@ExtractJwt() decodedPayload: DecodedPayload, @Res() response: Response) {
-    // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
-      await this.authService.enable2FA(decodedPayload.sub, response);
+    await this.authService.enable2FA(decodedPayload.sub, response);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('disable2FA')
-  async disable2FA(@Req() req: Request) {
+  async disable2FA(@Req() req: Request, @Res() res: Response) {
     if (!req.user?.id) throw new NotFoundException("User not found");
 
     try {
       await this.authService.disable2FA(req.user.id);
-      return { res: true }
+      res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
     } catch (error) {
-      throw error;
+      res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
     }
   }
 
@@ -115,7 +114,7 @@ export class AuthController {
   @Post('verifyTwoFACode')
   async verifyTwoFACode(@Body() data: TwoFaUserIdDto, @Res() response: Response) {
     const res = await this.authService.verifyTwoFACode(data.userId, data.token, response)
-    return { res: res };
+    res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
   }
 
   @UseGuards(JwtAuthGuard)

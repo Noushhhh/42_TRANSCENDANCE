@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { gameConfig } from './data';
 
-const RAY_LENGHT = (15 + 20) / 1200;
 const BALL_SIZE = 20 / 1200.0;
 
 interface GameData {

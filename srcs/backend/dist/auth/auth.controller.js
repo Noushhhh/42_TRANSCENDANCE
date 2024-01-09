@@ -96,21 +96,20 @@ let AuthController = AuthController_1 = class AuthController {
     }
     enable2FA(decodedPayload, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            // @to-do Mettre ca dans un trycatch car la fonction peut renvoyer execp
             yield this.authService.enable2FA(decodedPayload.sub, response);
         });
     }
-    disable2FA(req) {
+    disable2FA(req, res) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
                 throw new common_1.NotFoundException("User not found");
             try {
                 yield this.authService.disable2FA(req.user.id);
-                return { res: true };
+                res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK });
             }
             catch (error) {
-                throw error;
+                res.status(common_1.HttpStatus.NOT_FOUND).json({ statusCode: common_1.HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
             }
         });
     }
@@ -122,7 +121,7 @@ let AuthController = AuthController_1 = class AuthController {
     verifyTwoFACode(data, response) {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield this.authService.verifyTwoFACode(data.userId, data.token, response);
-            return { res: res };
+            res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK });
         });
     }
     is2FaActivated(decodedPayload, response) {
@@ -220,8 +219,9 @@ __decorate([
     (0, common_2.UseGuards)(guards_1.JwtAuthGuard),
     (0, common_1.Post)('disable2FA'),
     __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "disable2FA", null);
 __decorate([

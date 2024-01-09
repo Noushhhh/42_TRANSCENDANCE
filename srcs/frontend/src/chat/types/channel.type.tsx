@@ -1,4 +1,4 @@
-
+// eslint-disable-next-line
 interface Channel {
     name: string;
     lastMsg: string;

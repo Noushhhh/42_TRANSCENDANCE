@@ -3,7 +3,7 @@
 // Will have to make API calls
 //    - DTO's
 //    - Try catch error handling
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import GameStats from "./statsComponents/gameStats";
 import { getMyUserId } from "../../chat/components/ChannelUtils";
 import MatchHistory from "./statsComponents/MatchHistory";

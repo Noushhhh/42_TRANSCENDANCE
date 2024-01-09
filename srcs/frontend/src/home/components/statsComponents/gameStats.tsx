@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
-import MatchHistory from "./MatchHistory";
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface GamePlayedProps {
