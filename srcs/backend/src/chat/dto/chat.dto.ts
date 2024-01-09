@@ -157,6 +157,7 @@ export class muteDto {
 }
 
 export class MessageToStoreDto {
+    @Type(() => Number)
     @IsInt()
     @Min(0)
     @Max(2000000)
