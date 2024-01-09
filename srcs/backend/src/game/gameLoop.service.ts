@@ -110,7 +110,6 @@ export class GameLoopService {
   }
 
   private updateBall = async () => {
-    // @to-do remove the pause system
     for (const [key, lobby] of lobbies) {
       if (lobby.gameState.gameState.isLobbyFull === false
         || lobby.gameState.gameState.isGameFinished === true

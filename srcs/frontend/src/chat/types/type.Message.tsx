@@ -1,4 +1,4 @@
-
+// eslint-disable-next-line
 interface User {
 	id: number;
 	username: string;

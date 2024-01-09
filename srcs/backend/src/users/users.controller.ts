@@ -3,7 +3,7 @@ import {
     Controller, Get, UseGuards, Req, Post,
     Put, UseInterceptors, UploadedFile,
     Request as NestRequest,
-    Response as NestResponse, Query, Body, NotFoundException, Res, Logger,
+    Response as NestResponse, Query, Body, NotFoundException, Res, Logger, ForbiddenException,
 } from '@nestjs/common'
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt.auth-guard';
@@ -162,10 +162,16 @@ export class UsersController {
             if (!req.user?.id)
                 throw new NotFoundException("User not found");
 
+            if (req.user.id === friend.id)
+                throw new ForbiddenException("Cannot self add friend");
+
             await this.UsersService.sendFriendRequest(req.user.id, friend.id);
             res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
-            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+            if (error instanceof ForbiddenException)
+                res.status(HttpStatus.FORBIDDEN).json({ statusCode: HttpStatus.FORBIDDEN, message: "Cannot self add friend", error: "Cannot self add friend" });
+            if (error instanceof NotFoundException)
+                res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
     }
 
@@ -190,7 +196,10 @@ export class UsersController {
             await this.UsersService.acceptFriendRequest(req.user.id, friend.id)
             res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK })
         } catch (error) {
-            res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found!§§§", error: "Not Found" });
+            if (error instanceof ForbiddenException)
+                res.status(HttpStatus.FORBIDDEN).json({ statusCode: HttpStatus.FORBIDDEN, message: "No pending request", error: "No pending request" });
+            if (error instanceof NotFoundException)
+                res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
         }
     }
 
