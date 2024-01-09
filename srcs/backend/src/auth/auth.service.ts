@@ -955,7 +955,6 @@ export class AuthService {
         });
       }
     } catch (error) {
-      // Handle any internal server errors and log them
       this.logger.debug('Internal Server Error occurred in enable2FA: ', error);
     }
   }

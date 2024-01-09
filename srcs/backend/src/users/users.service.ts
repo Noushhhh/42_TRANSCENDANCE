@@ -163,7 +163,6 @@ export class UsersService {
                         throw new ConflictException('Error updating user data');
                     }
                 } else {
-                    // Other errors, throw NestJS InternalServerErrorException
                     throw new ConflictException('Error fetching avatar');
                 }
             });
@@ -383,7 +382,6 @@ export class UsersService {
                 throw new ConflictException('Failed to update user avatar in database');
             }
         } catch (error) {
-            // Catch any other errors that might occur and throw an InternalServerErrorException
             throw error;
         }
     }
