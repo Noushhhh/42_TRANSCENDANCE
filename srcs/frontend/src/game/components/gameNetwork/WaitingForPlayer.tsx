@@ -45,6 +45,7 @@ const WaitingForPlayer: FC<WaitingForPlayerProps> = ({ socket }) => {
     return () => {
       socket.emit("updateStatus", "Online");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Konva from "konva";
-import { Rect } from "react-konva";
 
 const MiddleLine = () => {
   const [divSize, setDivSize] = useState<number>(

@@ -2,11 +2,6 @@ import { Vector2d } from "konva/lib/types";
 import { Socket } from "socket.io-client";
 import { gameConfig } from "./gameConfig";
 
-// export const gameConfig.konvaWidth = 800;
-// export const gameConfig.konvaHeight = 400;
-// export const gameConfig.paddleHeight = 150;
-// export const gameConfig.paddleWidth = 25;
-
 export class GameConfig {
   public setKonvaWidth(size: number) {
     gameConfig.konvaWidth = size;

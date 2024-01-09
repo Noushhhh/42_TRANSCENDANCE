@@ -18,7 +18,6 @@ interface SocketErrorObj {
 const GameMenu: FC<GameMenuProps> = ({ socket, handleError }) => {
   const lobby = async () => {
     const response = await fetch(
-      // socket.id
       `${API_BASE_URL}/api/game/lobby?clientId=${socket.id}`,
       {
         method: "GET",

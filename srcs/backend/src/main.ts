@@ -1,4 +1,3 @@
-// Import necessary modules and classes
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -8,6 +7,7 @@ import * as path from 'path';
 import cookieParser from 'cookie-parser';
 import cron from 'node-cron';
 import { SessionService } from './auth/session.service';
+import { BrowserCheckMiddleware } from './tools/requestsMiddleware'
 
 
 // The bootstrap function is the entry point of the application
@@ -86,8 +86,10 @@ export default async function App() {
   //make sure all the Expired sessions are deleted from the data base, this job will be executed every minute
   cron.schedule('* * * * *', async () => {
     await sessionService.clearExpiredSessions();
-    // console.log("Cron job executed every minute");
   });
+
+  const BC = new BrowserCheckMiddleware;
+  app.use('/api', BC.use);
 
   // Start the application and listen on port 4000
   await app.listen(4000);
