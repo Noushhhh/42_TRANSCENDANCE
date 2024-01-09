@@ -195,7 +195,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
       return response;
     }
 
-    const p1Name = p1.username;
+    const p1Name = p1.publicName;
 
     for (const socket of sockets) {
       if (socket[1].data.userId === playersId.user1 || socket[1].data.userId === playersId.user2) {
@@ -232,7 +232,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     }
 
     if (p1SocketId === null || p2SocketId === null) {
-      //@to-do bien gerer erreur
       const response: WebSocketResponse = {
         success: false,
         message: 'Error trying to invite friend to game',
@@ -276,36 +275,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
   requestLobbyState(@ConnectedSocket() client: Socket) {
     this.gameLobby.printLobbies();
     this.gameLobby.sendLobbyState(client);
-  }
-
-  @SubscribeMessage('requestUsersId')
-  requestUsersId(@ConnectedSocket() client: Socket, @MessageBody() otherId: string): WebSocketResponse {
-    // const clientId = 
-    const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
-    let clientId: number | null = null;
-    let otherId_: number | null = null;
-
-    for (const socket of sockets) {
-      console.log(socket[0]);
-      if (socket[0] === client.id || socket[0] === otherId) {
-        socket[0] === client.id ? clientId = socket[1].data.userId : otherId_ = socket[1].data.userId;
-      }
-    }
-
-    if (!clientId || !otherId_) {
-      const response: WebSocketResponse = {
-        success: false,
-        message: 'Error trying to find user ID',
-      };
-      return response;
-    };
-
-    this.gatewayOut.emitToUser(client.id, "getUsersId", { callerId: clientId, targetId: otherId_ })
-    const response: WebSocketResponse = {
-      success: true,
-      message: 'Users ID well found',
-    };
-    return response;
   }
 
   @SubscribeMessage('acceptReplay')
