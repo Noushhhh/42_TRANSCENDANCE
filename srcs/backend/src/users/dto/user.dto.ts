@@ -68,11 +68,13 @@ export class TwoFADataDto {
 
 export class TwoFaUserIdDto {
         @IsInt()
-        @Min(0)
         @Type(() => Number)
+        @Min(0)
+        @Min(2000000)
         userId!: number;
 
         @IsString()
         @IsNotEmpty()
+        @Length(0, 20)
         token!: string;
 }
