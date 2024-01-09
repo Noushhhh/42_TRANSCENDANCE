@@ -8,6 +8,7 @@ import {
         Length,
         Matches,
         Max,
+        MaxLength,
 } from "class-validator";
 
 import { Type } from "class-transformer";
@@ -63,17 +64,19 @@ export class UpdatePublicNameDto {
 export class TwoFADataDto {
         @IsString()
         @IsNotEmpty()
+        @Length(0, 6)
         token!: string;
 }
 
 export class TwoFaUserIdDto {
+        @Type(() => Number)
         @IsInt()
         @Min(0)
         @Max(2000000)
-        @Type(() => Number)
         userId!: number;
 
         @IsString()
         @IsNotEmpty()
+        @Length(0, 6)
         token!: string;
 }

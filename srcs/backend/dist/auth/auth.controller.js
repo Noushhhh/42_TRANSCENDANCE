@@ -102,9 +102,9 @@ let AuthController = AuthController_1 = class AuthController {
     disable2FA(req, res) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
-                throw new common_1.NotFoundException("User not found");
             try {
+                if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+                    throw new common_1.NotFoundException("User not found");
                 yield this.authService.disable2FA(req.user.id);
                 res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK });
             }
@@ -121,7 +121,9 @@ let AuthController = AuthController_1 = class AuthController {
     verifyTwoFACode(data, response) {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield this.authService.verifyTwoFACode(data.userId, data.token, response);
-            res.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK });
+            if (res === false)
+                response.status(common_1.HttpStatus.UNAUTHORIZED).json({ statusCode: common_1.HttpStatus.OK, message: "Wrong code, please try again!" });
+            response.status(common_1.HttpStatus.OK).json({ statusCode: common_1.HttpStatus.OK });
         });
     }
     is2FaActivated(decodedPayload, response) {

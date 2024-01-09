@@ -343,9 +343,10 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
   if (!response.ok) return Promise.reject(await response.json());
 
   const formattedRes = await response.json();
+
   if (formattedRes.valid === true) {
     // setTwoFaError("");
-    navigate("/home");
+    navigate("/home/game");
   }
 
 };

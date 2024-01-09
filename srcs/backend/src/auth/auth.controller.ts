@@ -95,9 +95,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('disable2FA')
   async disable2FA(@Req() req: Request, @Res() res: Response) {
-    if (!req.user?.id) throw new NotFoundException("User not found");
-
     try {
+      if (!req.user?.id) throw new NotFoundException("User not found");
+
       await this.authService.disable2FA(req.user.id);
       res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
     } catch (error) {
@@ -114,7 +114,10 @@ export class AuthController {
   @Post('verifyTwoFACode')
   async verifyTwoFACode(@Body() data: TwoFaUserIdDto, @Res() response: Response) {
     const res = await this.authService.verifyTwoFACode(data.userId, data.token, response)
-    res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
+    if (res === false)
+      response.status(HttpStatus.UNAUTHORIZED).json({ statusCode: HttpStatus.OK, message: "Wrong code, please try again!" })
+
+    response.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -123,7 +126,6 @@ export class AuthController {
     try {
       const res = await this.authService.is2FaEnabled(decodedPayload.sub);
       response.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, res: res });
-
     } catch (error) {
       this.logger.error(error);
     }
