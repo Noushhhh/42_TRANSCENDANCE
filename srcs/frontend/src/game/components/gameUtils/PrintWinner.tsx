@@ -29,7 +29,7 @@ const PrintWinner: FC<PrintWinnerProps> = ({ socket }) => {
   });
 
   const printWinnerEvent = (winner: string) => {
-    setWinnerMessage(formatPlayerName(winner) + "WON!");
+    setWinnerMessage(formatPlayerName(winner) + " WON!");
   };
 
   return (

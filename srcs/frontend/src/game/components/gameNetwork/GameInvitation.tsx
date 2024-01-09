@@ -1,7 +1,6 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { blockUser as blockUserUtil } from "../../../chat/components/ChannelUtils";
 
 interface GameInvitationProps {
   socket: Socket | undefined;
@@ -12,15 +11,9 @@ interface InvitationData {
   playerSocketId: string;
 }
 
-interface UsersId {
-  callerId: number;
-  targetId: number;
-}
-
 const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
   const [invitation, setInvitation] = useState<boolean>(false);
   const [invitedBy, setInvitedBy] = useState<string>("");
-  const [toBlock, setToBlock] = useState<boolean>(false);
   const invitedBySocketId = useRef<string>("");
 
   const navigate = useNavigate();
@@ -28,13 +21,12 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
   useEffect(() => {
     socket?.on("invitation", handleInvitation);
     socket?.on("lobbyIsCreated", handleLobbyCreation);
-    socket?.on("getUsersId", handleGetUsersId);
 
     return () => {
       socket?.off("invitation", handleInvitation);
       socket?.off("lobbyIsCreated", handleLobbyCreation);
-      socket?.off("getUsersId", handleGetUsersId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
   const handleInvitation = async (data: InvitationData) => {
@@ -47,12 +39,6 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     navigate("/home/game");
   };
 
-  const handleGetUsersId = async (usersId: UsersId) => {
-    if (toBlock === true) {
-      blockUserUtil(usersId.targetId);
-    }
-  };
-
   const acceptInvitation = () => {
     socket?.emit("resToInvitation", {
       res: true,
@@ -61,7 +47,6 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
     setInvitation(false);
     setInvitedBy("");
     invitedBySocketId.current = "";
-    // navigate("/home/game");
   };
 
   const refuseInvitation = () => {
@@ -69,14 +54,6 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
       res: false,
       id: invitedBySocketId.current,
     });
-    setInvitation(false);
-    setInvitedBy("");
-    invitedBySocketId.current = "";
-  };
-
-  const blockUser = () => {
-    socket?.emit("requestUsersId", invitedBySocketId.current);
-    setToBlock(true);
     setInvitation(false);
     setInvitedBy("");
     invitedBySocketId.current = "";
@@ -93,10 +70,9 @@ const GameInvitation: FC<GameInvitationProps> = ({ socket }) => {
         }}
       >
         <p>{invitedBy} wants to play!</p>
-        <div>
+        <div style={{display: "flex", justifyContent: "space-around"}}>
           <button onClick={acceptInvitation}>Accept</button>
           <button onClick={refuseInvitation}>Refuse</button>
-          <button onClick={blockUser}>Block</button>
         </div>
       </div>
     );
