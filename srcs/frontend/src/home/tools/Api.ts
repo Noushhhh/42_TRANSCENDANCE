@@ -353,7 +353,7 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
 
 // ─────────────────────────────────────────────────────────────────────────────
 
- export const checkToken = async () => {
+export const checkToken = async () => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
@@ -365,16 +365,14 @@ export const verify2FA = async (userId: number, twoFaCode: string, navigate: Nav
     });
 
     clearTimeout(timeoutId);
-    //            console.log(`passing by useTokenExpired response.ok = ${response.ok}`)
+
     if (response.ok) {
-      //                console.log(`passing by if condition true withing checkToken response.ok = ${response.ok}`);
       return false;  //
     }
     else {
-      //                console.log(`passing by if condition false withing checkToken response.ok = ${response.ok}`);
       return true;   // Return the actual result
     }
-    //            console.log(`after setting tokenExpired withing checkToken ${tokenExpired}`);
+
   } catch (error) {
     console.error("Token check error:", hasMessage(error) ? error.message : error);
   }
