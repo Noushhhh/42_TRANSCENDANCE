@@ -210,7 +210,6 @@ export class ChatController {
         return this.chatService.manageChannelType(data.channelId, data.channelType);
     }
 
-    @UseGuards(OwnerGuard)
     @Post('getChannelType')
     async getChannelType(
         @Body() data: ChannelIdDto) {
