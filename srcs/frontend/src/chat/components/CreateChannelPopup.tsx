@@ -48,6 +48,10 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
         setConfirmPassword(event.target.value);
     }
 
+    function isWhitespace(str: string): boolean {
+        return /^\s*$/.test(str);
+      }
+
     function checkIfAlreadyInList(usernameToCheck: string) {
         for (const user of userListChannel) {
           if (user.username === usernameToCheck) {
@@ -76,7 +80,10 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 setError("Channel password must be 6 characters minimum")
                 return ;
             } else if (password.length !== confirmPassword.length || password !== confirmPassword){
-                setError("Password's doesnt match")
+                setError("Password's doesnt match");
+                return ;
+            } else if (isWhitespace(channelName)){
+                setError("Provide valid channel name");
                 return ;
             }
             if (channelName.length < 1)

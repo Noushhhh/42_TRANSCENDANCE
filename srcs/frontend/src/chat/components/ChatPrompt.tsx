@@ -115,7 +115,8 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
       addMessage(data, "MessageTo");
     else
       addMessage(data, "MessageFrom")
-    setMessage("");
+    console.log("i was setting to void");
+      // setMessage("");
   };
 
   if (channelId === -1) {

@@ -157,29 +157,21 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   const handlePrivateMessageClick = async () => {
-    const response = await isChannelExist([userId, user.id]);
-    if (response !== -1) {
-      setChannelId(response);
-    } else {
-      try {
-        const channelIdCreated: number = await createChannel(
-          "",
-          "",
-          [userId, user.id],
-          "PUBLIC",
-          setChannelHeader,
-          userId,
-          socket
-        );
+    try {
+      const response = await isChannelExist([userId, user.id]);
+      if (response !== -1) {
+        setChannelId(response);
+      } else {
+        const channelIdCreated: number = await createChannel("", "", [userId, user.id], "PRIVATE", setChannelHeader, userId, socket);
         const data = {
           channelId,
           userId: user.id,
         };
         socket.emit("joinChannel", channelIdCreated);
         socket.emit("notifySomeoneJoinChannel", data);
-      } catch (error) {
-        console.log("error while creating channel");
-      }
+      } 
+    } catch (error) {
+      console.log("error while creating channel");
     }
     handleClose();
   };
