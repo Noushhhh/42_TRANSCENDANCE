@@ -60,7 +60,6 @@ export class AuthService {
    */
   async signup(dto: AuthDto, res: Response) {
     const hashPassword = await argon.hash(dto.password);
-    console.log(`passing by signup service username: ${dto.username} password ${dto.password}`);
 
     try {
 
@@ -73,7 +72,6 @@ export class AuthService {
         },
       });
 
-      // console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
       return res.status(HttpStatus.CREATED).json({
         statusCode: HttpStatus.CREATED,
         message: "user was create successfully"
@@ -559,7 +557,6 @@ export class AuthService {
     try {
       // Check if 2FA (Two-Factor Authentication) is enabled for the user
       if (await this.is2FaEnabled(user.id) === false) {
-        // console.log(`Passing by 2FA is not activated`);
         // If 2FA is not enabled, proceed to sign the token
         const result = await this.signToken(user.id, user.username, res);
         // Validate the result of token signing
@@ -596,7 +593,6 @@ export class AuthService {
   // ─────────────────────────────────────────────────────────────────────────────
   private async sendAuthorizationCodeRequest(code: string) {
     try {
-      // console.log(`passing by sendAuthorizationCodeRequest code: ${code}`)
       const requestBody = {
         grant_type: 'authorization_code',
         client_id: process.env.UID_42,
@@ -665,7 +661,6 @@ export class AuthService {
 
       if (existingUser) {
         // If the user already exists, log a message and update their 'firstConnexion' status.
-        //console.log('User already exists:', existingUser);
         existingUser.firstConnexion = false;
         return existingUser;
       }

@@ -84,12 +84,10 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
   
   useEffect(() => {
     if (socket){
-      console.log("render");
       socket.on("kickedOrBanned", kickedOrBannedEvent);
     }
     return () => {
       if (socket){
-        console.log("return useffect");
         socket.off("kickedOrBanned", kickedOrBannedEvent);
       }
     };
@@ -106,10 +104,6 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
       console.log(error);
     }
   }
-
-  useEffect(() => {
-    console.log(channelClicked);
-  }, [channelClicked])
 
   if (userId === -1 || socket === undefined) return <p>loader</p>;
 

@@ -136,14 +136,11 @@ export class playerStatistics {
     const gameState = lobby.gameState.gameState;
 
     await this.addGamePlayedToUsers(gameState.p1Id, gameState.p2Id);
-    // Add game to p1
+
     await this.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, p1Left, p2Left);
-    // Add game to p2
+
     await this.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, p2Left, p1Left);
 
-    // Add win to winner
     await this.addWinToPlayer(winnerId);
-
-    console.log("PLAYERS STATS UPDATED")
   }
 }

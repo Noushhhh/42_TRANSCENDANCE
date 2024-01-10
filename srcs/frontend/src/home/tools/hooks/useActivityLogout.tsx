@@ -5,7 +5,10 @@ import { useRefreshToken } from "./useRefreshToken";
 import { checkToken } from "../Api";
 
 // Custom hook for handling user inactivity logout and token refreshing --- 1000 * 60 * 20
-const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval = 1000 * 60 * 10) => {
+const useActivityLogout = (
+  timeToLogout = 1000 * 60 * 20,
+  refreshCheckInterval = 1000 * 60 * 10
+) => {
   const navigate = useNavigate();
   const handleSignOut = useSignOut();
   const { refreshTokenIfNeeded } = useRefreshToken();
@@ -24,12 +27,10 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
         : null;
 
       if (timeSinceLastActivity && timeSinceLastActivity >= timeToLogout) {
-        console.log("User inactive for too long. Signing out.");
         handleSignOut();
         navigate("/signin");
       } else {
         timerId = setTimeout(() => {
-          console.log("Inactivity timeout reached. Signing out.");
           handleSignOut();
           navigate("/signin");
         }, timeToLogout - (timeSinceLastActivity ?? 0));
@@ -51,7 +52,6 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
     // Handle changes in local storage (used for cross-tab synchronization)
     const onStorageUpdate = (event: StorageEvent) => {
       if (event.key === "lastActivity") {
-        console.log("Local storage updated. Resetting timer.");
         updateLastActivity();
       }
     };
@@ -75,14 +75,12 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
   useEffect(() => {
     // Function to check token status and refresh if needed
     const checkTokenStatusAndRefresh = async () => {
-      console.log("Checking token status and refreshing if needed");
       const currentTokenExpired = await checkToken();
 
       if (currentTokenExpired === false) {
         // Token is still valid, refresh if needed
-        await refreshTokenIfNeeded().catch(e => e);
+        await refreshTokenIfNeeded().catch((e) => e);
       } else if (currentTokenExpired === true) {
-        console.log("Token expired. Signing out.");
         handleSignOut();
         navigate("/signin");
       }
@@ -96,7 +94,6 @@ const useActivityLogout = (timeToLogout = 1000 * 60 * 20, refreshCheckInterval =
 
     // Cleanup the token check interval when unmounting
     return () => {
-      console.log("Clearing token check interval");
       clearInterval(tokenCheckIntervalId);
     };
   }, [navigate, handleSignOut, refreshTokenIfNeeded, refreshCheckInterval]);

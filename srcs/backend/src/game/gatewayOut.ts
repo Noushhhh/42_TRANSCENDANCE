@@ -28,9 +28,6 @@ export class GatewayOut implements OnGatewayInit {
 
   afterInit() {
     this.server.use(async (socket, next) => {
-
-      // check token validity return the userId if correspond to associated token
-      // return null if token is invalid
       try {
         await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         next();

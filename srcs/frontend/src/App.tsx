@@ -46,7 +46,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "logout") {
-        console.log("Logout detected in another tab");
         signOut();
         navigate("/signin");
       }

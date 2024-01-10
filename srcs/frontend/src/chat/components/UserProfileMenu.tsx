@@ -91,7 +91,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
     socket.on("isInviteAccepted", handleInvitation);
     socket.on("lobbyIsCreated", handleLobbyCreation);
     socket.on("invitationStatus", handleInvitationStatus);
-    
+
     return () => {
       socket.off("isInviteAccepted", handleInvitation);
       socket.off("lobbyIsCreated", handleLobbyCreation);
@@ -207,9 +207,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       socket.emit(
         "launchGameWithFriend",
         { user1: userId, user2: user.id },
-        (res: GatewayResponse) => {
-          console.log(res.message);
-        }
+        (res: GatewayResponse) => {}
       );
     }
     if (invitationRes.res === false) {
@@ -222,7 +220,6 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
       await blockUser(user.id);
       socket.emit("block", { blockerId: userId, blockedId: user.id });
       await fetchUser(setChannelHeader, userId, socket);
-      console.log("blocked");
       handleClose();
     } catch (error) {
       console.log("error blocking user");
@@ -271,7 +268,7 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
   };
 
   return (
-    <div style={{width:"100%"}}>
+    <div style={{ width: "100%" }}>
       {isUserProfilDisplayed ? (
         <UserProfil
           isDisplay={isUserProfilDisplayed}

@@ -105,7 +105,6 @@ function JoinChannel({ setStateMessageToClick }: JoinChannelProps) {
                 return ;
             }
             const data = await response.json();
-            console.log("status === ", response.status);
             if (response.status === 201) {
                 setApiResponse(data);
             } else {

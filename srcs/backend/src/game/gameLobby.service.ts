@@ -18,19 +18,6 @@ export class GameLobbyService {
     private readonly userService: UsersService,
   ) { }
 
-  printLobbies() {
-    console.log("lobbies size", lobbies.size);
-    lobbies.forEach((value: Lobby, key: string) => {
-      console.log("------------------")
-      console.log("|", key, "|")
-      console.log("|", value.player1 ? '0' : 'X', "|")
-      console.log("|", value.player2 ? '0' : 'X', "|")
-      console.log("|", value.player1?.id, "|")
-      console.log("|", value.player2?.id, "|")
-      console.log("------------------")
-    })
-  }
-
   async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
@@ -79,8 +66,6 @@ export class GameLobbyService {
             value.gameState.gameState.newGameTimer = false;
           }, 3000);
         }
-        // @to-do using a debug function here
-        this.printLobbies();
         return;
       }
     }
@@ -95,12 +80,9 @@ export class GameLobbyService {
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);
-    this.printLobbies();
   }
 
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
-    this.socketMap.printSocketMap();
-
     const lobbyName = uuid();
 
     const player1 = this.socketMap.getSocket(playerSocketId);
@@ -155,9 +137,6 @@ export class GameLobbyService {
     setTimeout(() => {
       lobby.gameState.gameState.newGameTimer = false;
     }, 3000);
-
-    // @to-do using a debug function here
-    this.printLobbies();
   }
 
   addSpectatorToLobby(spectatorId: string, lobbyName: string) {
@@ -201,8 +180,6 @@ export class GameLobbyService {
         value.gameState.gameState.p2Id = p2Id
         value.gameState.gameState.p2Name = p2Name;
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
-        // @to-do using a debug function here
-        this.printLobbies();
         return;
       }
       // If player one leave the game
@@ -230,8 +207,6 @@ export class GameLobbyService {
         value.gameState.gameState.p1Name = p1Name;
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
-        // @to-do using a debug function here
-        this.printLobbies();
         return;
       }
     }
@@ -244,11 +219,7 @@ export class GameLobbyService {
       return;
     }
     for (const clientId of clients) {
-
-      //this is the socket of each client in the room.
       const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
-
-      console.log(clientSocket?.id);
     }
   }
 
@@ -281,14 +252,6 @@ export class GameLobbyService {
         this.gatewayOut.emitToRoom(key, 'receivePlayersPos', [value.gameState.gameState.p1pos, value.gameState.gameState.p2pos]);
         return;
       }
-    }
-  }
-
-  printLobbyPlayerPos() {
-    for (const [key, value] of lobbies) {
-      console.log(key, "p1pos:", value.gameState.gameState.p1pos);
-      console.log(key, "p2pos:", value.gameState.gameState.p2pos);
-      console.log(key, "config: ", value.gameState.gameData);
     }
   }
 

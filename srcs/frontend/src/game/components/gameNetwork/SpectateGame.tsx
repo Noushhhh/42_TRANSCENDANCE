@@ -29,7 +29,6 @@ const SpectateGame: FC<SpectateGameProps> = ({ socket }) => {
   }, [socket]);
 
   const getAllLobbiesListener = (data: { lobbies: LobbyData[] }) => {
-    console.log("lobbies: ", data.lobbies, typeof data.lobbies);
     setLobbiesState(data.lobbies);
   };
 

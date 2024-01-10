@@ -62,7 +62,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         this.sendDecoToOtherSameUsers(response!, clientId);
         this.gameSockets.setSocket(clientId, socket);
         socket.setMaxListeners(15);
-        this.gameSockets.printSocketMap();
         next();
       } catch (error) {
         next(new WsException('invalid token'));
@@ -253,14 +252,8 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     return response;
   }
 
-  @SubscribeMessage('printLobbies')
-  printLobbies() {
-    this.gameLobby.printLobbies();
-  }
-
   @SubscribeMessage('requestLobbyState')
   requestLobbyState(@ConnectedSocket() client: Socket) {
-    this.gameLobby.printLobbies();
     this.gameLobby.sendLobbyState(client);
   }
 

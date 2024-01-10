@@ -34,19 +34,6 @@ let GameLobbyService = class GameLobbyService {
         this.playerStats = playerStats;
         this.userService = userService;
     }
-    printLobbies() {
-        console.log("lobbies size", lobbies_1.lobbies.size);
-        lobbies_1.lobbies.forEach((value, key) => {
-            var _a, _b;
-            console.log("------------------");
-            console.log("|", key, "|");
-            console.log("|", value.player1 ? '0' : 'X', "|");
-            console.log("|", value.player2 ? '0' : 'X', "|");
-            console.log("|", (_a = value.player1) === null || _a === void 0 ? void 0 : _a.id, "|");
-            console.log("|", (_b = value.player2) === null || _b === void 0 ? void 0 : _b.id, "|");
-            console.log("------------------");
-        });
-    }
     addPlayerToLobby(playerId, playerDbId) {
         return __awaiter(this, void 0, void 0, function* () {
             this.gatewayOut.updateLobbiesGameState();
@@ -94,8 +81,6 @@ let GameLobbyService = class GameLobbyService {
                             value.gameState.gameState.newGameTimer = false;
                         }, 3000);
                     }
-                    // @to-do using a debug function here
-                    this.printLobbies();
                     return;
                 }
             }
@@ -108,12 +93,10 @@ let GameLobbyService = class GameLobbyService {
             lobbies_1.lobbies.set(lobbyName, lobby);
             player === null || player === void 0 ? void 0 : player.join(lobbyName);
             this.gatewayOut.isInLobby(true, player);
-            this.printLobbies();
         });
     }
     launchGameWithFriend(playerId, playerSocketId, friendId, friendSocketId) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.socketMap.printSocketMap();
             const lobbyName = (0, uuid_1.v4)();
             const player1 = this.socketMap.getSocket(playerSocketId);
             if (!player1) {
@@ -158,8 +141,6 @@ let GameLobbyService = class GameLobbyService {
             setTimeout(() => {
                 lobby.gameState.gameState.newGameTimer = false;
             }, 3000);
-            // @to-do using a debug function here
-            this.printLobbies();
         });
     }
     addSpectatorToLobby(spectatorId, lobbyName) {
@@ -206,8 +187,6 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p2Id = p2Id;
                     value.gameState.gameState.p2Name = p2Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
-                    // @to-do using a debug function here
-                    this.printLobbies();
                     return;
                 }
                 // If player one leave the game
@@ -235,8 +214,6 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p1Name = p1Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                     this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
-                    // @to-do using a debug function here
-                    this.printLobbies();
                     return;
                 }
             }
@@ -249,9 +226,7 @@ let GameLobbyService = class GameLobbyService {
             return;
         }
         for (const clientId of clients) {
-            //this is the socket of each client in the room.
             const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
-            console.log(clientSocket === null || clientSocket === void 0 ? void 0 : clientSocket.id);
         }
     }
     isInLobby(player) {
@@ -284,13 +259,6 @@ let GameLobbyService = class GameLobbyService {
                 this.gatewayOut.emitToRoom(key, 'receivePlayersPos', [value.gameState.gameState.p1pos, value.gameState.gameState.p2pos]);
                 return;
             }
-        }
-    }
-    printLobbyPlayerPos() {
-        for (const [key, value] of lobbies_1.lobbies) {
-            console.log(key, "p1pos:", value.gameState.gameState.p1pos);
-            console.log(key, "p2pos:", value.gameState.gameState.p2pos);
-            console.log(key, "config: ", value.gameState.gameData);
         }
     }
     sendLobbyGameState(player) {

@@ -34,14 +34,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   afterInit() {
     this.server.use(async (socket, next) => {
-
-      // check token validity return the userId if correspond to associated token
-      // return null if token is invalid
       try {
         await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         next();
       } catch (error) {
-        // console.log('invalid token - id')
         next(new WsException('invalid token'));
       }
     })
@@ -63,13 +59,6 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async updateStatus(@ConnectedSocket() client: Socket, @MessageBody() status: string) {
     clientStatus.set(client.data.userId, status);
     await this.sendStatusToFriends(client.data.userId);
-  }
-
-  @SubscribeMessage('printStatusMap')
-  printStatusMap() {
-    clientStatus.forEach((value, key) => {
-      console.log("status [%s  %d]", value, key);
-    })
   }
 
   @SubscribeMessage('pendingRequestSent')

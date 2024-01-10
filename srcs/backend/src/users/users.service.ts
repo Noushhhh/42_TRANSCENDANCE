@@ -492,7 +492,6 @@ export class UsersService {
 
     async findUserWithUsername(usernameinput: string): Promise<User> {
         try {
-            console.log("username INPUT ====", usernameinput);
             const user = await this.prisma.user.findUnique({
                 where: {
                     username: usernameinput,

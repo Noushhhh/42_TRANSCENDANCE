@@ -70,7 +70,6 @@ function ManagePassword({ needReload }: ManagePasswordProps) {
         }
         try {
             if (actualChannelType === "PASSWORD_PROTECTED" || newChannelType === "PASSWORD_PROTECTED") {
-                console.log("manage channel password")
                 await manageChannelPassword(channelId, newChannelType, actualPassword, newPassword);
             }
             else if (newChannelType === "PUBLIC" || newChannelType === "PRIVATE"){

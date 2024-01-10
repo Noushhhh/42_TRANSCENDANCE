@@ -96,7 +96,6 @@ let AuthService = AuthService_1 = class AuthService {
     signup(dto, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashPassword = yield argon.hash(dto.password);
-            console.log(`passing by signup service username: ${dto.username} password ${dto.password}`);
             try {
                 const user = yield this.prisma.user.create({
                     data: {
@@ -106,7 +105,6 @@ let AuthService = AuthService_1 = class AuthService {
                         avatar: constants_2.DEFAULT_AVATAR_PATH, //define default avatar upon creation
                     },
                 });
-                // console.log(`passing by signup service after user result from prisma ${user.id}, ${user.username}, ${user.hashPassword}`);
                 return res.status(common_1.HttpStatus.CREATED).json({
                     statusCode: common_1.HttpStatus.CREATED,
                     message: "user was create successfully"
@@ -545,7 +543,6 @@ let AuthService = AuthService_1 = class AuthService {
             try {
                 // Check if 2FA (Two-Factor Authentication) is enabled for the user
                 if ((yield this.is2FaEnabled(user.id)) === false) {
-                    // console.log(`Passing by 2FA is not activated`);
                     // If 2FA is not enabled, proceed to sign the token
                     const result = yield this.signToken(user.id, user.username, res);
                     // Validate the result of token signing
@@ -586,7 +583,6 @@ let AuthService = AuthService_1 = class AuthService {
     sendAuthorizationCodeRequest(code) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // console.log(`passing by sendAuthorizationCodeRequest code: ${code}`)
                 const requestBody = {
                     grant_type: 'authorization_code',
                     client_id: process.env.UID_42,
@@ -649,7 +645,6 @@ let AuthService = AuthService_1 = class AuthService {
                 });
                 if (existingUser) {
                     // If the user already exists, log a message and update their 'firstConnexion' status.
-                    //console.log('User already exists:', existingUser);
                     existingUser.firstConnexion = false;
                     return existingUser;
                 }

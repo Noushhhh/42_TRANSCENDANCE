@@ -123,7 +123,6 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
       if (newOwner) {
         const isUserLeaved = await leaveChannel(userId, channelId, setChannelHeader, socket, newOwner.id);
         if (isUserLeaved){
-          console.log("set channelId to -1");
           setChannelId(-1);
         }
         setNewOwner(undefined);
