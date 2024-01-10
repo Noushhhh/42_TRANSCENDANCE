@@ -67,12 +67,15 @@ const App: React.FC = () => {
   }, [socket]);
 
   const handleDisconnectUser = () => {
-    navigate("/signin");
+    
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = undefined;
       setSocket(undefined);
     }
+    signOut();
+  
+    navigate("/signin");
   };
 
   // ─────────────────────────────────────────────────────────────────────

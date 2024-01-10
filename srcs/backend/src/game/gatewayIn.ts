@@ -6,7 +6,6 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
   WsException,
-  OnGatewayInit,
   OnGatewayConnection
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
@@ -14,7 +13,6 @@ import { GameLoopService } from './gameLoop.service';
 import { GameLobbyService } from './gameLobby.service';
 import { gameSockets } from './gameSockets';
 import { Injectable } from '@nestjs/common';
-import { playerStatistics } from './playerStatistics.service';
 import { AuthService } from '../auth/auth.service';
 import { GatewayOut } from './gatewayOut';
 import { UsersService } from '../users/users.service';
