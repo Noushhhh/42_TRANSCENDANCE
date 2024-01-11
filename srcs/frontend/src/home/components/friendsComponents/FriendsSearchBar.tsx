@@ -81,7 +81,7 @@ const FriendsSearchBar: FC<FriendsSearchBarProps> = ({ socket }) => {
     };
 
     const debounceTimer = setTimeout(() => {
-      handleSearchFriend().catch((e) => console.error(e));
+      handleSearchFriend().catch((e) => e);
     }, 75);
 
     return () => clearTimeout(debounceTimer);
