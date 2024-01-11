@@ -50,7 +50,6 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
   }, [channelId])
 
   const channelDeletedEvent = (channelId: number) => {
-    console.log(`ping received client-side with id: ${channelId}`);
     setChannelInfo(false);
     setisSettingsMenuDisplay(false);
     setdisplayMenu(true);

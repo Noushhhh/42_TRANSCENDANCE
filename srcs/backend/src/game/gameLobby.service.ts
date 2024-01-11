@@ -18,19 +18,6 @@ export class GameLobbyService {
     private readonly userService: UsersService,
   ) { }
 
-  printLobbies() {
-    console.log("lobbies size", lobbies.size);
-    lobbies.forEach((value: Lobby, key: string) => {
-      console.log("------------------")
-      console.log("|", key, "|")
-      console.log("|", value.player1 ? '0' : 'X', "|")
-      console.log("|", value.player2 ? '0' : 'X', "|")
-      console.log("|", value.player1?.id, "|")
-      console.log("|", value.player2?.id, "|")
-      console.log("------------------")
-    })
-  }
-
   async addPlayerToLobby(playerId: string, playerDbId: number) {
     this.gatewayOut.updateLobbiesGameState();
     const player = this.socketMap.getSocket(playerId);
@@ -79,8 +66,6 @@ export class GameLobbyService {
             value.gameState.gameState.newGameTimer = false;
           }, 3000);
         }
-        // @to-do using a debug function here
-        this.printLobbies();
         return;
       }
     }
@@ -95,12 +80,9 @@ export class GameLobbyService {
     lobbies.set(lobbyName, lobby);
     player?.join(lobbyName);
     this.gatewayOut.isInLobby(true, player);
-    this.printLobbies();
   }
 
   async launchGameWithFriend(playerId: number, playerSocketId: string, friendId: number, friendSocketId: string) {
-    this.socketMap.printSocketMap();
-
     const lobbyName = uuid();
 
     const player1 = this.socketMap.getSocket(playerSocketId);
@@ -155,14 +137,11 @@ export class GameLobbyService {
     setTimeout(() => {
       lobby.gameState.gameState.newGameTimer = false;
     }, 3000);
-
-    // @to-do using a debug function here
-    this.printLobbies();
   }
 
-  addSpectatorToLobby(spectatorId: string, lobbyName: string) {
+  addSpectatorToLobby(spectatorId: string, lobbyName: string): number {
     const spectator = this.socketMap.getSocket(spectatorId);
-    if (!spectator) return;
+    if (!spectator) return -1;
 
     for (const [key, value] of lobbies) {
       if (key === lobbyName) {
@@ -170,17 +149,20 @@ export class GameLobbyService {
         spectator.join(lobbyName);
         this.gatewayOut.isInLobby(true, spectator);
         this.gatewayOut.emitToUser(spectatorId, "isLobbyFull", true);
+        return 0;
       }
     }
+
+    return -1;
   }
 
   async removePlayerFromLobby(player: Socket) {
+    let res: number = 0;
     for (const [key, value] of lobbies) {
       const lobby = lobbies.get(key);
       player.leave(key);
       // If player one leave the game
       if (value.player1?.id === player.id) {
-        const p1SocketId = this.getSocketIdWithId(value.gameState.gameState.p1Id);
         if (lobby) {
           lobby.player1 = null;
         }
@@ -190,7 +172,7 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p2Id && value.gameState.gameState.isGameFinished === false) {
-          await this.playerStats.addGameStatsToPlayers(value, p2Id, true, false);
+          res = await this.playerStats.addGameStatsToPlayers(value, p2Id, true, false);
         } else if (!p2Id) { // there is no more player in the lobby
           lobbies.delete(key);
         }
@@ -201,13 +183,10 @@ export class GameLobbyService {
         value.gameState.gameState.p2Id = p2Id
         value.gameState.gameState.p2Name = p2Name;
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
-        // @to-do using a debug function here
-        this.printLobbies();
-        return;
+        return res;
       }
       // If player one leave the game
       if (value.player2?.id === player.id) {
-        const p2SocketId = this.getSocketIdWithId(value.gameState.gameState.p2Id);
         if (lobby) {
           lobby.player2 = null;
         }
@@ -217,7 +196,7 @@ export class GameLobbyService {
         // There was a game so add this
         // game to the player's match history
         if (p1Id && value.gameState.gameState.isGameFinished === false) {
-          await this.playerStats.addGameStatsToPlayers(value, p1Id, false, true);
+          res = await this.playerStats.addGameStatsToPlayers(value, p1Id, false, true);
         } else if (!p1Id) { // there is no more player in the lobby
           lobbies.delete(key);
         }
@@ -230,9 +209,7 @@ export class GameLobbyService {
         value.gameState.gameState.p1Name = p1Name;
         this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
         this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
-        // @to-do using a debug function here
-        this.printLobbies();
-        return;
+        return res;
       }
     }
   }
@@ -244,11 +221,7 @@ export class GameLobbyService {
       return;
     }
     for (const clientId of clients) {
-
-      //this is the socket of each client in the room.
       const clientSocket = this.socketMap.server.sockets.sockets.get(clientId);
-
-      console.log(clientSocket?.id);
     }
   }
 
@@ -276,19 +249,12 @@ export class GameLobbyService {
 
   sendPlayersPos(player: Socket | undefined) {
     if (!player) return
+
     for (const [key, value] of lobbies) {
       if (value.player1?.id === player?.id || value.player2?.id === player?.id) {
         this.gatewayOut.emitToRoom(key, 'receivePlayersPos', [value.gameState.gameState.p1pos, value.gameState.gameState.p2pos]);
         return;
       }
-    }
-  }
-
-  printLobbyPlayerPos() {
-    for (const [key, value] of lobbies) {
-      console.log(key, "p1pos:", value.gameState.gameState.p1pos);
-      console.log(key, "p2pos:", value.gameState.gameState.p2pos);
-      console.log(key, "config: ", value.gameState.gameData);
     }
   }
 

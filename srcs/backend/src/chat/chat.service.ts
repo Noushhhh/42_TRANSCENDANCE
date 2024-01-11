@@ -150,13 +150,8 @@ export class ChatService {
 
 
   async addMessageToChannelId(message: MessageToStoreDto, senderId: number) {
-
-    console.log("addMessagetochannel called")
-
     await this.getChannelById(message.channelId);
     await this.getUserById(senderId);
-
-    console.log("addMessagetochannel called after check")
 
     if (! await this.isUserIsInChannel(senderId , message.channelId))
       throw new ForbiddenException("user is not in channel");

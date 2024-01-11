@@ -28,11 +28,6 @@ export class Lobby {
       return null;
     }
   }
-
-  public printPlayersPos() {
-    console.log("print 4: ", this.gameState.gameState.p1pos);
-    console.log("print 4: ", this.gameState.gameState.p2pos);
-  }
 }
 
 export let lobbies: Map<string, Lobby> = new Map();

@@ -60,7 +60,6 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
       console.log(error);
     }
     if (bannedFromChannelId === channelId){
-      console.log("channelId set to -1");
       setChannelId(-1);
     }
   }
@@ -78,7 +77,6 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
   const channelDeletedEvent = async (channelId: number) => {
     // check if need to uncomment this part, I think no
     try {
-      console.log("in channelDeletedEvent");
       await fetchUser(setChannelHeader, channelId, socket);
     } catch (errors) {
     }
@@ -123,7 +121,6 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
   }
 
   const messageEvent = (data: Message) => {
-    console.log(data);
     if (!data) return;
     setPreviewLastMessage(data);
     const foundChannel = findChannelById(data.channelId);

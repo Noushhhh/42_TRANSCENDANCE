@@ -19,7 +19,6 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
     }
 
     const handleDatetimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-        console.log(mutedUntil);
         if (setMutedUntil)
             setMutedUntil(event.target.value);
     };

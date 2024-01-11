@@ -52,7 +52,7 @@ export class UsersService {
 
         // Check if JWT_SECRET is set, otherwise throw an error
         if (!this.JWT_SECRET) {
-            throw new Error('JWT_SECRET environment variable not set!');
+            throw new NotFoundException('JWT_SECRET environment variable not set!');
         }
     }
 
@@ -419,9 +419,9 @@ export class UsersService {
             return file;
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error('Failed to download file: ' + error.message);
+                throw new BadRequestException('Failed to download file: ' + error.message);
             } else {
-                throw new Error('Failed to download file: An unknown error occurred');
+                throw new BadRequestException('Failed to download file: An unknown error occurred');
             }
         }
     }
@@ -492,7 +492,6 @@ export class UsersService {
 
     async findUserWithUsername(usernameinput: string): Promise<User> {
         try {
-            console.log("username INPUT ====", usernameinput);
             const user = await this.prisma.user.findUnique({
                 where: {
                     username: usernameinput,
@@ -775,7 +774,7 @@ export class UsersService {
         });
 
         if (!user1) {
-            throw new Error(`User with id ${userId1} not found.`);
+            throw new NotFoundException(`User with id ${userId1} not found.`);
         }
 
         return user1.friends.some((friend) => friend.id === userId2);

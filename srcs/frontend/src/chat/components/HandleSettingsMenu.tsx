@@ -119,7 +119,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
 
     const addUserToList = (user: User) => {
         if (action === "mute") {
-            console.log("set muted user called");
             setUserList([user]);
             return;
         }

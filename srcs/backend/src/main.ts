@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { ValidationPipe } from '@nestjs/common';
+import { UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import * as path from 'path';
 import cookieParser from 'cookie-parser';
@@ -45,16 +45,17 @@ export default async function App() {
       const isAllowed = !origin || allowedOrigins.some((allowedOrigin) => {
         if (typeof allowedOrigin === 'string') {
           return origin === allowedOrigin;
-        } else if (allowedOrigin instanceof RegExp) {
-          return allowedOrigin.test(origin);
-        }
+        } 
+        // else if (allowedOrigin instanceof RegExp) {
+        //   return allowedOrigin.test(origin);
+        // }
         return false;
       });
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new UnauthorizedException('Not allowed by CORS'));
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

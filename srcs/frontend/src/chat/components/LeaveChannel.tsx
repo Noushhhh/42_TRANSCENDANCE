@@ -43,7 +43,6 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
   const handleAgree = async () => {
     try{
       if (isOwner === true){
-        console.log("need to display new owner");
         setDisplayNewOwner(true)
         setOpen(false);
         setDisplayMenu(false);
@@ -52,7 +51,6 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
       await leaveChannel(userId, channelId, setChannelHeader, socket);
       socket.emit("leaveChannel", channelId);
       goBack();
-      console.log("channelId set to -1");
       setChannelId(-1);
     } catch (error: any){
       console.log(error.message);

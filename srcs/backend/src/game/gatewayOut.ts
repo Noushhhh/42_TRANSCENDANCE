@@ -28,9 +28,6 @@ export class GatewayOut implements OnGatewayInit {
 
   afterInit() {
     this.server.use(async (socket, next) => {
-
-      // check token validity return the userId if correspond to associated token
-      // return null if token is invalid
       try {
         await this.authService.checkOnlyTokenValidity(socket.handshake.auth.token);
         next();
@@ -64,5 +61,9 @@ export class GatewayOut implements OnGatewayInit {
 
   removeSpectate(isInLobby: boolean, playerId: string, room: string) {
     this.server.to(room).emit('isOnLobby', isInLobby, playerId);
+  }
+
+  socketError(clientId: string, message: string) {
+    this.emitToUser(clientId, 'error', message);
   }
 }

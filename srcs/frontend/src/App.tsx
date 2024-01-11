@@ -46,7 +46,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "logout") {
-        console.log("Logout detected in another tab");
         signOut();
         navigate("/signin");
       }
@@ -110,8 +109,6 @@ const App: React.FC = () => {
               <GameInvitation socket={socketRef.current} />
               <SocketError
                 socket={socketRef.current}
-                error={error}
-                handleError={handleError}
               ></SocketError>
             </ProtectedRoute>
           }

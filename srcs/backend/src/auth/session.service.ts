@@ -23,10 +23,7 @@ export class SessionService {
                 ],
             },
         });
-        console.log('Expired sessions cleared');
     }
-
-
 }
 
 

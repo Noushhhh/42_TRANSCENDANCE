@@ -19,7 +19,6 @@ export class playerStatistics {
       },
     });
 
-    // @to-do throw exception if one of the 2 players is not found
     if (!p1 || !p2) {
       return -1;
     }
@@ -132,18 +131,18 @@ export class playerStatistics {
     return 0;
   }
 
-  async addGameStatsToPlayers(lobby: Lobby, winnerId: number, p1Left: boolean, p2Left: boolean) {
+  async addGameStatsToPlayers(lobby: Lobby, winnerId: number, p1Left: boolean, p2Left: boolean): Promise<number> {
     const gameState = lobby.gameState.gameState;
+    let res: number = 0;
 
-    await this.addGamePlayedToUsers(gameState.p1Id, gameState.p2Id);
-    // Add game to p1
-    await this.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, p1Left, p2Left);
-    // Add game to p2
-    await this.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, p2Left, p1Left);
+    res = await this.addGamePlayedToUsers(gameState.p1Id, gameState.p2Id);
 
-    // Add win to winner
-    await this.addWinToPlayer(winnerId);
+    res = await this.addGameToMatchHistory(gameState.p1Id, gameState.p2Name, gameState.score.p1Score, gameState.score.p2Score, p1Left, p2Left);
 
-    console.log("PLAYERS STATS UPDATED")
+    res = await this.addGameToMatchHistory(gameState.p2Id, gameState.p1Name, gameState.score.p2Score, gameState.score.p1Score, p2Left, p1Left);
+
+    res = await this.addWinToPlayer(winnerId);
+
+    return res;
   }
 }
