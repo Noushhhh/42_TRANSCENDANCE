@@ -226,7 +226,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         if (data.content.length > 5000) {
             data.content = "Message too long. Maximum length: 5000";
-            this.socketError(client.id, "Message too long. Maximum length: 5000");
             return false;
         }
         if (this.isInRoom(client, data.channelId) === false) {
@@ -236,7 +235,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
         if (isSenderMuted.isMuted === true) {
             data.content = "you are muted from this channel";
-            this.socketError(client.id, "You are muted from this channel");
             return true;
         }
 

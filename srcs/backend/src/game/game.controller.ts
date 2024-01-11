@@ -54,7 +54,9 @@ export class GameController {
       } catch (error) {
         if (error instanceof NotFoundException) {
           res.status(HttpStatus.NOT_FOUND).json({ statusCode: HttpStatus.NOT_FOUND, message: "User not found", error: "Not Found" });
+          this.gateway.server.to(dto.clientId).emit("error", "Error trying to create lobby");
         } else if (error instanceof ForbiddenException) {
+          this.gateway.server.to(dto.clientId).emit("error", "Error trying to create lobby");
           res.status(HttpStatus.FORBIDDEN).json({ statusCode: HttpStatus.FORBIDDEN, message: "Wrong socket provided", error: "Forbidden" });
         }
       }
