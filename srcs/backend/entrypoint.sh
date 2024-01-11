@@ -19,8 +19,8 @@ fi
 echo "Running prisma migrations"
 npx prisma migrate deploy
 
-echo "Starting prisma studio"
-npx prisma studio &
+#echo "Starting prisma studio"
+#npx prisma studio &
 
 echo "Starting the Node.js application"
 npm run start:dev
