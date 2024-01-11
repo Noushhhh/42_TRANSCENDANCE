@@ -389,9 +389,6 @@ export class ChatService {
       return true;
     }
 
-    if (await this.isAdmin(userId, channelId))
-      throw new ForbiddenException("Admin can't leave channel");
-
     const response: Channel = await this.prisma.channel.update({
       where: { id: channelId },
       data: {
@@ -427,7 +424,7 @@ export class ChatService {
     await this.getUserById(invitedId)
 
     if (await this.isAdmin(inviterId, channelId) === false) {
-      throw new ForbiddenException("Is not admin");
+      throw new ForbiddenException("Unauthorized access");
     }
 
     if (await this.isUserIsInChannel(invitedId, channelId) === false) {
@@ -461,19 +458,20 @@ export class ChatService {
       throw new HttpException("You can't kick yourself", HttpStatus.FORBIDDEN);
     }
 
-    if (await this.isAdmin(inviterId, channelId) === false) {
+    if (await this.isOwner(invitedId, channelId) === true)
+      throw new ForbiddenException("Unauthorized access")
+
+    if (await this.isAdmin(inviterId, channelId) === false)
       throw new ForbiddenException("Only admins can remove others admins");
-    }
 
-    if (await this.isAdmin(invitedId, channelId) === false) {
-      throw new HttpException(`user: ${invitedId} is not admin in this channel`,
-        HttpStatus.FORBIDDEN);
-    }
+    if (await this.isOwner(inviterId, channelId) === false && await this.isAdmin(invitedId, channelId) === true)
+      throw new ForbiddenException("Can't revoke admin")
 
-    if (await this.isUserIsInChannel(invitedId, channelId) === false) {
-      throw new HttpException(`user: ${invitedId} is not in channel`,
-        HttpStatus.FORBIDDEN);
-    }
+    if (await this.isAdmin(invitedId, channelId) === false)
+      throw new ForbiddenException(`user: ${invitedId} is not admin in this channel`);
+
+    if (await this.isUserIsInChannel(invitedId, channelId) === false)
+      throw new ForbiddenException(`user: ${invitedId} is not in channel`);
 
     await this.getUserById(invitedId)
 

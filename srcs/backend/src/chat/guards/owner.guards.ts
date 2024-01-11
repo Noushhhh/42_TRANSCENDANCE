@@ -56,6 +56,6 @@ export class OwnerGuard implements CanActivate {
             return true;
         }
 
-        throw new UnauthorizedException("Only admin can access this");
+        throw new UnauthorizedException("Unauthorized access");
     }
 }

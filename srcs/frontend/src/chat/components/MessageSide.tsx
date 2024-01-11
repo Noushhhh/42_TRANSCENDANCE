@@ -115,9 +115,7 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
   const addedToChannelEvent = async () => {
     try {
       await fetchUser(setChannelHeader, userId, socket);
-    } catch (error: any) {
-      console.log(error);
-    }
+    } catch (error: any) {}
   }
 
   const messageEvent = (data: Message) => {

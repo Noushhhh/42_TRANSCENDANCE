@@ -533,7 +533,6 @@ export const manageAdminsToChannel = async (
       }
     }
   } catch (error: any) {
-    console.log(error);
     throw error;
   }
 };

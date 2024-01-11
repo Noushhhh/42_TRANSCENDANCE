@@ -29,11 +29,11 @@ export default async function App() {
   );
 
   const allowedOrigins = [
-    'http://localhost:8080',
     // Add a pattern to allow any IP from the local network
     /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
     /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
     'http://10.19.229.202:8080',
+    'http://localhost:8080',
     // ... other origins ...
   ];
 

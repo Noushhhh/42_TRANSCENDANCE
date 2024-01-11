@@ -19,9 +19,7 @@ function IsConnected(): JSX.Element{
         try {
             const res: boolean = await isChannelIsLive(channelId, userId, socket);
             setIsConnected(res);
-        } catch (errors){
-            console.log(errors);
-        }
+        } catch (errors){}
     }
 
     useEffect(() => {

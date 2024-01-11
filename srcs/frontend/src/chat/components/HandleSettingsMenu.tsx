@@ -103,7 +103,6 @@ function HandleSettingsMenu({ isSettingsMenuDisplay, setisSettingsMenuDisplay, t
             await fetchUser(setChannelHeader, userId, socket);
         }
         catch (error: any) {
-            console.log(error);
             setError(error.message);
         }
     }
