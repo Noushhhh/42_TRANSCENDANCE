@@ -16,6 +16,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
+const isUnauthorizedError = (error: any): boolean => {
+  return error && error.message && typeof error.message === 'string' && error.message.includes('Unauthorized');
+};
+
+
 const defaultImage = 'defaultProfileImage.jpg';
 const MIN_LOADING_TIME = 1000;
 
@@ -73,6 +78,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       toast.info('Please provide a Profile Name to access the game');
     } catch (error) {
       toast.error(hasMessage(error) ? error.message : 'Error fetching user data');
+      if (isUnauthorizedError(error))
+        navigate('/Authchoice');
     }
   };
 
@@ -90,7 +97,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
       console.error('User not authenticated accessing userProfileSetup: ',
         hasMessage(error) ? error.message : "");
       toast.error("You are not authenticated, please sign in");
-      navigate('/signin');
+      if (isUnauthorizedError(error))
+        navigate('/Authchoice');
     }
   }
 
@@ -110,6 +118,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     } catch (error) {
       console.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
       toast.error(`Failed to update profile name : ${hasMessage(error) ? error.message : ""}`);
+      if (isUnauthorizedError(error))
+        navigate('/Authchoice');
     }
   }, [profileName, updatePublicName]);
 
@@ -123,11 +133,14 @@ const UserProfileSetup: React.FC = React.memo(() => {
         toast.success('Avatar updated successfully!');
       } catch (error) {
         toast.error(hasMessage(error) ? error.message : 'Failed to update avatar');
+        if (isUnauthorizedError(error))
+          navigate('/Authchoice');
         try {
           const defaultProfileImage = await fetchImageAsFile(defaultImage, "defaultImage");
           setProfileImage(defaultProfileImage);
         } catch (fetchError) {
           console.error('Failed to fetch the default profile image:', hasMessage(fetchError) ? fetchError.message : '');
+
         }
       }
     }
@@ -152,6 +165,8 @@ const UserProfileSetup: React.FC = React.memo(() => {
     } catch (error) {
       console.error('passing by catch checkAndNavigate');
       toast.error(hasMessage(error)? error.message: "Something went wrong please try again.");
+      if (isUnauthorizedError(error))
+        navigate('/Authchoice');
     }
   }, [avatarFromBack, profileImage, isClientRegistered, navigate, updateAvatar])
 
@@ -218,6 +233,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
       <button className="button" onClick={handleUpdatePublicName}>Update Profile Name</button>
 
       <input
+        style={{minHeight:"30px"}}
         type="file"
         onChange={handleImageChange}
       />

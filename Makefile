@@ -12,8 +12,8 @@ CWD = $(shell dirname $(PWD))
 
 # This gets the ID of the running containers
 CONTAINER = $(shell docker ps -q)
-# This is the command to run docker-compose with your specific .yml file and project name
-COMPOSE = docker-compose -f ./docker-compose.yml -p $(NAME)
+# This is the command to run docker compose with your specific .yml file and project name
+COMPOSE = docker compose -f ./docker-compose.yml -p $(NAME)
 
 # As we are using the command sed in the update_env rule, we need to be careful with sed as the syntax
 # change taking into account the operating system
@@ -74,7 +74,7 @@ stop:
 	$(COMPOSE) stop
 
 # This rule removes the services, images, and volumes. It also removes the data directory.
-down: del_node_pack_front del_node_pack_backend del_uploads
+down: stop del_node_pack_front del_node_pack_backend del_uploads
 	@printf "Stopping the services and removing all resources...\n"
 	$(COMPOSE) down --rmi all --volumes
 

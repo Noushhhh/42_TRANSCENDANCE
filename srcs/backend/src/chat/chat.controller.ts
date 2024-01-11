@@ -24,7 +24,7 @@ interface isChannelExist {
 export class ChatController {
     
     constructor(private chatService: ChatService) { };
-    
+
     @Post('getAllConvFromId')
     async getAllConvFromId(@GetUser('id') userId: number): Promise<number[]> {
         console.log("TEST ICI")
