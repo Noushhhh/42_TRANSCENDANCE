@@ -288,11 +288,17 @@ export class ChatService {
   async checkUsersCredentials(targetId: number, callerId: number, channelId: number, action: string): Promise<void> {
 
     const targetIsAdmin: boolean = await this.isAdmin(targetId, channelId);
+    const targetIsOwner: boolean = await this.isOwner(targetId, channelId);
     const callerIsAdmin: boolean = await this.isAdmin(callerId, channelId);
     const callerIsOwner: boolean = await this.isOwner(callerId, channelId);
 
     if (callerIsAdmin === false)
       throw new ForbiddenException(`Only admin can ${action}`);
+
+    if (targetIsOwner === true){
+      if (callerIsAdmin === true && callerIsOwner === false)
+        throw new ForbiddenException(`Unauthorized to ${action} owner`)
+    }
 
     if (targetIsAdmin === true){
       if (callerIsOwner === false)
@@ -532,10 +538,10 @@ export class ChatService {
     }
 
     const channelType: string = await this.getChannelType(channelId);
-    if (channelType === "PASSWORD_PROTECTED" && await this.isAdmin(callerId, channelId) === false)
+    if ((channelType === "PASSWORD_PROTECTED") && (await this.isAdmin(callerId, channelId) === false))
       throw new ForbiddenException("Only admin can invite in protected channel")
-    if ((channelType === "PRIVATE") && (await this.isOwner(callerId, channelId) === false || await this.isAdmin(callerId, channelId)))
-      throw new ForbiddenException("Require owner privileges")
+    if ((channelType === "PRIVATE") && (await this.isAdmin(callerId, channelId) === false))
+      throw new ForbiddenException("Require admin privileges")
 
     const channel = await this.prisma.channel.update({
       where: { id: channelId },
