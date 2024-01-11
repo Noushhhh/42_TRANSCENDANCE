@@ -1,3 +1,4 @@
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { IsNotEmpty, IsString, registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
 // This is a custom function that creates a special kind of check for passwords.
@@ -67,28 +68,28 @@ export function IsEmailValid(validationOptions?: ValidationOptions) {
 export const validatePassword = async (password: string): Promise<any> => {
     // The password must be at least 8 characters long.
     if (password.length < 8) {
-        throw new Error('Password should be at least 8 characters long.');
+        throw new BadRequestException('Password should be at least 8 characters long.');
     }
 
     // The password must not exceed 30 characters characters long.
     if (password.length > 30) {
-        throw new Error('Password must not exceed 30 characters characters long.');
+        throw new BadRequestException('Password must not exceed 30 characters characters long.');
     }
     // The password must have at least one lowercase letter.
     if (!/[a-z]/.test(password)) {
-        throw new Error('Password should contain at least one lowercase letter.');
+        throw new BadRequestException('Password should contain at least one lowercase letter.');
     }
     // The password must have at least one uppercase letter.
     if (!/[A-Z]/.test(password)) {
-        throw new Error('Password should contain at least one uppercase letter.');
+        throw new BadRequestException('Password should contain at least one uppercase letter.');
     }
     // The password must have at least one number.
     if (!/[0-9]/.test(password)) {
-        throw new Error('Password should contain at least one digit.');
+        throw new BadRequestException('Password should contain at least one digit.');
     }
     // The password must have at least one special character like @ or #.
     if (!/[@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(password)) {
-        throw new Error('Password should contain at least one special character (e.g., @, #, $, etc.).');
+        throw new BadRequestException('Password should contain at least one special character (e.g., @, #, $, etc.).');
     }
 };
 
@@ -98,7 +99,7 @@ export const validatePassword = async (password: string): Promise<any> => {
 export const validateEmail = async (email: string): Promise<any> => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address.');
+        throw new ForbiddenException('Please enter a valid email address.');
     }
 };
 

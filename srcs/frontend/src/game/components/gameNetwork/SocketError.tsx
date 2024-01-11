@@ -1,25 +1,23 @@
 import React, { FC, useEffect } from "react";
 import { Socket } from "socket.io-client";
+import { toast, ToastContainer } from 'react-toastify';
 
 interface SocketErrorProps {
   socket: Socket | undefined;
-  error: string;
-  handleError: (error: SocketErrorObj) => void;
 }
 
-interface SocketErrorObj {
-  statusCode: number;
-  message: string;
-}
-
-const SocketError: FC<SocketErrorProps> = ({ socket, error, handleError }) => {
+const SocketError: FC<SocketErrorProps> = ({ socket }) => {
   useEffect(() => {
-    socket?.on("error", handleError);
+    socket?.on("error", handleError1);
 
     return () => {
-      socket?.off("error", handleError);
+      socket?.off("error", handleError1);
     };
   });
+
+  const handleError1 = (message: string) => {
+    toast.error(message);
+  }
 
   return (
     <div
@@ -35,7 +33,7 @@ const SocketError: FC<SocketErrorProps> = ({ socket, error, handleError }) => {
         fontWeight: "600",
       }}
     >
-      {error}
+      <ToastContainer />
     </div>
   );
 };

@@ -48,7 +48,7 @@ export class AuthService {
   ) {
     this.JWT_SECRET = jwtConstants.secret;
     if (!this.JWT_SECRET) {
-      throw new Error("JWT_SECRET environment variable not set!");
+      throw new NotFoundException("JWT_SECRET environment variable not set!");
     }
   }
 
@@ -1028,7 +1028,7 @@ export class AuthService {
       case 's': // Seconds
         return timeValue * 1000;
       default:
-        throw new Error(`Unsupported time format: ${timeStr}`);
+        throw new ForbiddenException(`Unsupported time format: ${timeStr}`);
     }
   }
 

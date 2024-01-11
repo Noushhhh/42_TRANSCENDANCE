@@ -147,25 +147,27 @@ let GameLobbyService = class GameLobbyService {
         var _a;
         const spectator = this.socketMap.getSocket(spectatorId);
         if (!spectator)
-            return;
+            return -1;
         for (const [key, value] of lobbies_1.lobbies) {
             if (key === lobbyName) {
                 (_a = value.spectators) === null || _a === void 0 ? void 0 : _a.push(spectator);
                 spectator.join(lobbyName);
                 this.gatewayOut.isInLobby(true, spectator);
                 this.gatewayOut.emitToUser(spectatorId, "isLobbyFull", true);
+                return 0;
             }
         }
+        return -1;
     }
     removePlayerFromLobby(player) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
+            let res = 0;
             for (const [key, value] of lobbies_1.lobbies) {
                 const lobby = lobbies_1.lobbies.get(key);
                 player.leave(key);
                 // If player one leave the game
                 if (((_a = value.player1) === null || _a === void 0 ? void 0 : _a.id) === player.id) {
-                    const p1SocketId = this.getSocketIdWithId(value.gameState.gameState.p1Id);
                     if (lobby) {
                         lobby.player1 = null;
                     }
@@ -175,7 +177,7 @@ let GameLobbyService = class GameLobbyService {
                     // There was a game so add this
                     // game to the player's match history
                     if (p2Id && value.gameState.gameState.isGameFinished === false) {
-                        yield this.playerStats.addGameStatsToPlayers(value, p2Id, true, false);
+                        res = yield this.playerStats.addGameStatsToPlayers(value, p2Id, true, false);
                     }
                     else if (!p2Id) { // there is no more player in the lobby
                         lobbies_1.lobbies.delete(key);
@@ -187,11 +189,10 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p2Id = p2Id;
                     value.gameState.gameState.p2Name = p2Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
-                    return;
+                    return res;
                 }
                 // If player one leave the game
                 if (((_b = value.player2) === null || _b === void 0 ? void 0 : _b.id) === player.id) {
-                    const p2SocketId = this.getSocketIdWithId(value.gameState.gameState.p2Id);
                     if (lobby) {
                         lobby.player2 = null;
                     }
@@ -201,7 +202,7 @@ let GameLobbyService = class GameLobbyService {
                     // There was a game so add this
                     // game to the player's match history
                     if (p1Id && value.gameState.gameState.isGameFinished === false) {
-                        yield this.playerStats.addGameStatsToPlayers(value, p1Id, false, true);
+                        res = yield this.playerStats.addGameStatsToPlayers(value, p1Id, false, true);
                     }
                     else if (!p1Id) { // there is no more player in the lobby
                         lobbies_1.lobbies.delete(key);
@@ -214,7 +215,7 @@ let GameLobbyService = class GameLobbyService {
                     value.gameState.gameState.p1Name = p1Name;
                     this.gatewayOut.emitToRoom(key, "isLobbyFull", false);
                     this.gatewayOut.emitToUser(player.id, "isLobbyFull", false);
-                    return;
+                    return res;
                 }
             }
         });

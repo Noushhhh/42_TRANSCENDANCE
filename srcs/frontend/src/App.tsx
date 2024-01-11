@@ -109,8 +109,6 @@ const App: React.FC = () => {
               <GameInvitation socket={socketRef.current} />
               <SocketError
                 socket={socketRef.current}
-                error={error}
-                handleError={handleError}
               ></SocketError>
             </ProtectedRoute>
           }

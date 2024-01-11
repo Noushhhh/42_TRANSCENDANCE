@@ -80,14 +80,6 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     }
   }
 
-  printSockets() {
-    const sockets = Array.from(this.server.sockets.sockets).map(socket => socket);
-    console.log("Sockets: ");
-    for (const socket of sockets) {
-      console.log(socket[1].id);
-    }
-  }
-
   handleConnection(socket: Socket) {
     console.log(`userId ${socket.data.userId} is connected from game gateway`);
   }
@@ -100,6 +92,11 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('getPlayerPos')
   getPlayerPos(@MessageBody() direction: string, @ConnectedSocket() client: Socket) {
+    if (typeof direction !== 'string') {
+      this.gatewayOut.socketError(client.id, "Error trying to send player position");
+      return;
+    }
+
     this.gameLoop.updatePlayerPos(direction, client);
   }
 
@@ -110,7 +107,15 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('setIntoLobby')
   setIntoLobby(@MessageBody() lobbyName: string, @ConnectedSocket() client: Socket) {
-    this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
+    if (typeof lobbyName !== 'string') {
+      this.gatewayOut.socketError(client.id, "Error trying to get lobby name");
+      return;
+    }
+
+    const res = this.gameLobby.addSpectatorToLobby(client.id, lobbyName);
+    if (res === -1) {
+      this.gatewayOut.socketError(client.id, "Error trying to join spectate mode");
+    }
   }
 
   @SubscribeMessage('sendPlayersPos')
@@ -125,7 +130,11 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('removeFromLobby')
   async removeFromLobby(@ConnectedSocket() client: Socket) {
-    await this.gameLobby.removePlayerFromLobby(client);
+    const res = await this.gameLobby.removePlayerFromLobby(client);
+
+    if (res === -1) {
+      this.gatewayOut.socketError(client.id, "Error trying to remove player from lobby");
+    }
   }
 
   @SubscribeMessage('resizeEvent')
@@ -149,11 +158,13 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         socket[1].data.userId === playersId.user1 ? p1SocketId = socket[0] : p2SocketId = socket[0];
       }
     }
+
     if (p1SocketId === null || p2SocketId === null) {
       const response: WebSocketResponse = {
         success: false,
         message: 'Error trying to invite friend to game',
       };
+      this.gatewayOut.socketError(client.id, "Error trying to invite friend to game");
       return response;
     }
 
@@ -171,13 +182,13 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
     let p1SocketId: string | null = null;
     let p2SocketId: string | null = null;
 
-    // @to-do gerer le cas de crash ici
     const p1 = await this.userService.findUserWithId(playersId.user1);
     if (!p1) {
       const response: WebSocketResponse = {
         success: false,
         message: 'Please try again',
       };
+      this.gatewayOut.socketError(client.id, "Player not found");
       return response;
     }
 
@@ -194,6 +205,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         success: false,
         message: 'Player is not connected',
       };
+      this.gatewayOut.socketError(client.id, "Player is not connected");
       return response;
     }
 
@@ -204,6 +216,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         success: false,
         message: 'Error trying to invite friend to game',
       };
+      this.gatewayOut.socketError(client.id, "Error trying to invite friend to game");
       return response;
     };
 
@@ -222,6 +235,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         success: false,
         message: 'Error trying to invite friend to game',
       };
+      this.gatewayOut.socketError(client.id, "Error trying to invite friend to game");
       return response;
     }
 
@@ -241,6 +255,7 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         success: false,
         message: 'Player not found',
       };
+      this.gatewayOut.socketError(client.id, "Player not found");
       return response;
     };
 
@@ -270,12 +285,18 @@ export class GatewayIn implements OnGatewayDisconnect, OnGatewayConnection {
         this.gatewayOut.emitToUser(opponentId, "player2Replay", true);
         this.gatewayOut.emitToUser(client.id, "player2Replay", true);
       }
+    } else if (opponentId === undefined) {
+      this.gatewayOut.socketError(client.id, "Player not found");
     }
   }
 
   @SubscribeMessage('refuseReplay')
   async refuseReplay(@ConnectedSocket() client: Socket) {
-    await this.gameLobby.removePlayerFromLobby(client);
+    const res = await this.gameLobby.removePlayerFromLobby(client);
+
+    if (res === -1) {
+      this.gatewayOut.socketError(client.id, "Error trying to remove player from lobby");
+    }
   }
 
   @SubscribeMessage('isUserInGame')

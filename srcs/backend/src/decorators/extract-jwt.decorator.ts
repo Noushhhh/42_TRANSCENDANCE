@@ -24,7 +24,7 @@ export const ExtractJwt = createParamDecorator((data, context: ExecutionContext)
 
   // If the JWT secret is not set, throw an error
   if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET environment variable not set!');
+    throw new UnauthorizedException('JWT_SECRET environment variable not set!');
   }
 
   // Get the HTTP request object from the execution context

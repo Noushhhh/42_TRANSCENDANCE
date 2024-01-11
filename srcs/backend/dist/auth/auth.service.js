@@ -84,7 +84,7 @@ let AuthService = AuthService_1 = class AuthService {
         this.API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
         this.JWT_SECRET = constants_1.jwtConstants.secret;
         if (!this.JWT_SECRET) {
-            throw new Error("JWT_SECRET environment variable not set!");
+            throw new common_1.NotFoundException("JWT_SECRET environment variable not set!");
         }
     }
     /**
@@ -981,7 +981,7 @@ let AuthService = AuthService_1 = class AuthService {
             case 's': // Seconds
                 return timeValue * 1000;
             default:
-                throw new Error(`Unsupported time format: ${timeStr}`);
+                throw new common_1.ForbiddenException(`Unsupported time format: ${timeStr}`);
         }
     }
 };

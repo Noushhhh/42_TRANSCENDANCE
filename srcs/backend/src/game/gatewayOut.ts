@@ -62,4 +62,8 @@ export class GatewayOut implements OnGatewayInit {
   removeSpectate(isInLobby: boolean, playerId: string, room: string) {
     this.server.to(room).emit('isOnLobby', isInLobby, playerId);
   }
+
+  socketError(clientId: string, message: string) {
+    this.emitToUser(clientId, 'error', message);
+  }
 }

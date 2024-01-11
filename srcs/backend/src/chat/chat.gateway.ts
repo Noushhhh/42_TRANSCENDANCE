@@ -57,9 +57,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     async joinBlockedRooms(userId: number, socket: Socket) {
-        const blockedUsersId: number[] = await this.chatService.getBlockedUsersById(userId);
-        for (const id of blockedUsersId) {
-            socket.join(String(`whoBlocked${id}`));
+        try {
+            const blockedUsersId: number[] = await this.chatService.getBlockedUsersById(userId);
+            for (const id of blockedUsersId) {
+                socket.join(String(`whoBlocked${id}`));
+            }
+        } catch (error) {
+            
         }
     }
 
@@ -205,5 +209,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         // emit with client instead of server doesnt trigger "message" events to initial client-sender
         client.to(String(data.channelId)).except(String(`whoBlocked${data.senderId}`)).emit("messageBack", data);
         return false;
+    }
+
+    socketError(clientId: string, message: string) {
+        // this.server.(clientId, 'error', message);
     }
 }

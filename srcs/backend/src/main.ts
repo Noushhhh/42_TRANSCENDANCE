@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { ValidationPipe } from '@nestjs/common';
+import { UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import * as path from 'path';
 import cookieParser from 'cookie-parser';
@@ -30,10 +30,7 @@ export default async function App() {
 
   const allowedOrigins = [
     'http://localhost:8081',
-    // Add a pattern to allow any IP from the local network
-    /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
-    /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
-    // ... other origins ...
+    
   ];
 
   // Configure CORS (Cross-Origin Resource Sharing) options
@@ -43,16 +40,17 @@ export default async function App() {
       const isAllowed = !origin || allowedOrigins.some((allowedOrigin) => {
         if (typeof allowedOrigin === 'string') {
           return origin === allowedOrigin;
-        } else if (allowedOrigin instanceof RegExp) {
-          return allowedOrigin.test(origin);
-        }
+        } 
+        // else if (allowedOrigin instanceof RegExp) {
+        //   return allowedOrigin.test(origin);
+        // }
         return false;
       });
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new UnauthorizedException('Not allowed by CORS'));
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
