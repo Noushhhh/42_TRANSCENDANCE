@@ -33,7 +33,7 @@ export default async function App() {
     // Add a pattern to allow any IP from the local network
     /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
     /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
-    'http://10.13.10.3:8081',
+    'http://10.13.5.5:8080',
     '*'
     // ... other origins ...
   ];
@@ -46,9 +46,9 @@ export default async function App() {
         if (typeof allowedOrigin === 'string') {
           return origin === allowedOrigin;
         } 
-        // else if (allowedOrigin instanceof RegExp) {
-        //   return allowedOrigin.test(origin);
-        // }
+        else if (allowedOrigin instanceof RegExp) {
+          return allowedOrigin.test(origin);
+        }
         return false;
       });
 
