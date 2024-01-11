@@ -85,11 +85,11 @@ logs:
 refresh:
 	@printf "Refreshing the services...\n"
 	@printf "Stop containers, delete volumes, rebuild containers.\n"
-	$(COMPOSE) stop frontend nginx backend 
-	$(COMPOSE) rm -f --volumes frontend nginx backend
-	docker rmi -f frontend_image nginx_image backend_image
-	$(COMPOSE) build backend frontend nginx
-	$(COMPOSE) up -d backend frontend nginx
+	$(COMPOSE) stop frontend backend 
+	$(COMPOSE) rm -f --volumes frontend backend
+	docker rmi -f frontend_image backend_image
+	$(COMPOSE) build backend frontend
+	$(COMPOSE) up -d backend frontend
 
 prune:
 	@printf "Pruning unused containers, images, and volumes...\n"
@@ -106,12 +106,6 @@ recreate_backend: del_node_pack_backend
 	$(COMPOSE) stop backend
 	$(COMPOSE) rm -f backend
 	$(COMPOSE) up -d --build backend
-
-recreate_nginx:
-	@echo "Recreating nginx service..."
-	$(COMPOSE) stop nginx 
-	$(COMPOSE) rm -f nginx 
-	$(COMPOSE) up -d --build nginx 
 
 del_node_pack_front:
 	@echo "Removing frontend node_modules and package-lock.json"
