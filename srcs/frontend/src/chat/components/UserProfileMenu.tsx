@@ -269,9 +269,12 @@ export default function UserProfileMenu({ user }: UserProfileMenuProps) {
         />
       ) : null}
       <InvitationStatus invitationStatus={invitationStatus} />
-      <p onClick={handleClick} className="User">
-        {user.publicName && user.publicName}
-      </p>
+      { user.publicName ? 
+        <p onClick={handleClick} className="User" title={user.publicName}>
+        {user.publicName}
+      </p> : null
+      }
+
       <Menu
         id="fade-menu"
         MenuListProps={{

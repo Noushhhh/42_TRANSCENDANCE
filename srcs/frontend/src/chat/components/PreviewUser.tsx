@@ -25,7 +25,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
 
     if (mutedMode) {
         return (
-            <div className="PreviewUser MutedMode fadeIn">
+            <div style={{overflow:"hidden"}} className="PreviewUser MutedMode fadeIn">
                 <span className="SpanMutedMode">
                     <img className="previewUserAvatar previewMutedMode"  src={`${API_BASE_URL}/${user.avatar}`}  alt="" width={29} height={29} />
                     {user.publicName} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />
@@ -39,7 +39,7 @@ function PreviewUser({ user, removeUserFromList, mutedMode, mutedUntil, setMuted
     }
 
     return (
-        <div className="PreviewUser fadeIn">
+        <div style={{overflow:"hidden"}} className="PreviewUser fadeIn">
             <span>
                 <img className="previewUserAvatar"  src={`${API_BASE_URL}/${user.avatar}`}  alt="" width={29} height={29} />
                 {user.publicName} <CloseIcon className="icon" style={{ width: "14px" }} onClick={() => removeUser(user)} />

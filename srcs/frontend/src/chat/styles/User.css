@@ -37,4 +37,5 @@
 .username{
     display: flex;
     padding-left: 15px;
+    overflow: hidden;
 }
