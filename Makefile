@@ -74,7 +74,7 @@ stop:
 	$(COMPOSE) stop
 
 # This rule removes the services, images, and volumes. It also removes the data directory.
-down: del_node_pack_front del_node_pack_backend del_uploads
+down: stop del_node_pack_front del_node_pack_backend del_uploads
 	@printf "Stopping the services and removing all resources...\n"
 	$(COMPOSE) down --rmi all --volumes
 

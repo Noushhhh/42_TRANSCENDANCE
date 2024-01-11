@@ -218,6 +218,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
       <button className="button" onClick={handleUpdatePublicName}>Update Profile Name</button>
 
       <input
+        style={{minHeight:"30px"}}
         type="file"
         onChange={handleImageChange}
       />
