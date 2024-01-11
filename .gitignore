@@ -6,4 +6,5 @@ package-lock.json
 package-lock.json
 srcs/backend/dist/
 srcs/frontend/dist/
+srcs/frontend/build/
 check42api.sh

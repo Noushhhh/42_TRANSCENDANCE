@@ -31,7 +31,7 @@ services:
       - backend_volume:/usr/src/app
     ports:
       - 4000:4000
-      #- 5555:5555 # Map the container port to the host port
+      - 5555:5555 # Map the container port to the host port
     # restart: unless-stopped
     networks:
       - app_network # Connect to the app network
