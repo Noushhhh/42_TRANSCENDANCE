@@ -241,7 +241,7 @@ let AuthService = AuthService_1 = class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const sessionId = this.generateUniqueSessionId(); // Implement this method to generate a unique session ID.
             const createdAt = new Date();
-            const expiredAt = new Date(createdAt.getTime() + (15 * 60 * 1000)); //15 min as convention
+            const expiredAt = new Date(createdAt.getTime() + (24 * 60 * 60 * 1000)); //1d
             const session = yield this.prisma.session.create({
                 data: {
                     userId: userId,
@@ -295,7 +295,7 @@ let AuthService = AuthService_1 = class AuthService {
             let sessionId = sessionCreationResponse.sessionId;
             const payload = { sub: userId, email, sessionId };
             const secret = this.JWT_SECRET;
-            const tokenExpiration = process.env.JWT_EXPIRATION || '15m';
+            const tokenExpiration = process.env.JWT_EXPIRATION || '1d';
             let token, tokenExpiresAt;
             try {
                 token = yield this.jwt.signAsync(payload, { expiresIn: tokenExpiration, secret });
