@@ -18,7 +18,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     constructor(
         private authService: AuthService,
-        private chatService: ChatService) {};
+        private chatService: ChatService) { };
 
     afterInit() {
         // middleware to check if client-socket can connect to our gateway
@@ -63,7 +63,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
                 socket.join(String(`whoBlocked${id}`));
             }
         } catch (error) {
-            
+            return -1;
         }
     }
 
@@ -117,38 +117,58 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     @SubscribeMessage("block")
     handleBlock(@MessageBody() data: { blockerId: number, blockedId: number }, @ConnectedSocket() client: Socket) {
-        console.log(`userId: ${data.blockerId} is blocking ${data.blockedId}`);
+        if (typeof data.blockerId !== 'number' || typeof data.blockedId !== 'number') {
+            this.socketError(client.id, "Error trying to block user");
+            return;
+        }
+
         client.join(String(`whoBlocked${data.blockedId}`));
     }
 
     @SubscribeMessage("unblock")
     handleUnblock(@MessageBody() data: { blockerId: number, blockedId: number }, @ConnectedSocket() client: Socket) {
-        console.log(`userId: ${data.blockerId} is unblocking ${data.blockedId}`);
+        if (typeof data.blockerId !== 'number' || typeof data.blockedId !== 'number') {
+            this.socketError(client.id, "Error trying to unblock user");
+            return;
+        }
+
         client.leave(String(`whoBlocked${data.blockedId}`));
     }
 
     @SubscribeMessage("joinChannel")
     handleJoinChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
-        console.log(`userId: ${client.data.userId} is joining channelId: ${channelId}`);
+        if (typeof channelId !== 'number') {
+            this.socketError(client.id, "Error trying to join channel");
+            return;
+        }
+
         this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         client.join(String(channelId));
     }
 
     @SubscribeMessage("leaveChannel")
     handleLeaveChannel(@MessageBody() channelId: number, @ConnectedSocket() client: Socket) {
-        console.log(`userId: ${client.data.userId} is leaving channelId: ${channelId}`);
+        if (typeof channelId !== 'number') {
+            this.socketError(client.id, "Error trying to leave channel");
+            return;
+        }
+
         this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         client.leave(String(channelId));
     }
 
     @SubscribeMessage("notifySomeoneLeaveChannel")
-    async handlenotifySomeoneLeaveChannel(@MessageBody() data: { channelId: number, userId: number }) {
+    async handlenotifySomeoneLeaveChannel(@ConnectedSocket() client: Socket, @MessageBody() data: { channelId: number, userId: number }) {
+        if (typeof data.channelId !== 'number' || typeof data.userId !== 'number') {
+            this.socketError(client.id, "Error trying to notify users");
+            return;
+        }
+
         const { channelId, userId } = data;
-        console.log(`${userId} is kicked of ${channelId}`);
+
         this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         const socket = await this.getSocketByUserId(userId);
-        if (!socket){
-            console.log("shoulndt return here");
+        if (!socket) {
             return
         }
         socket.emit("kickedOrBanned", channelId);
@@ -156,9 +176,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage("notifySomeoneJoinChannel")
-    async handlenotifySomeoneJoinChannel(@MessageBody() data: { channelId: number, userId: number }) {
+    async handlenotifySomeoneJoinChannel(@ConnectedSocket() client: Socket, @MessageBody() data: { channelId: number, userId: number }) {
+        if (typeof data.channelId !== 'number' || typeof data.userId !== 'number') {
+            this.socketError(client.id, "Error trying to notify users");
+            return;
+        }
+
         const { channelId, userId } = data;
-        console.log(`userId: ${userId} is joining of ${channelId}`);
         this.server.to(String(channelId)).emit("channelNumberMembersChanged", channelId);
         const socket = await this.getSocketByUserId(userId);
         if (!socket)
@@ -167,16 +191,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         socket.emit("addedToChannel");
     }
 
-    @SubscribeMessage('setNewUserConnected')
-    handleSetNewUserConnected(@MessageBody() userId: number, @ConnectedSocket() client: Socket) {
-        this.server.emit("changeConnexionState");
-    }
-
     @SubscribeMessage('isChannelLive')
-    async handleIsUserConnected(@MessageBody() data: {channelId: number, userId: number}, @ConnectedSocket() client: Socket): Promise<boolean> {
+    async handleIsUserConnected(@MessageBody() data: { channelId: number, userId: number }, @ConnectedSocket() client: Socket): Promise<boolean> {
+        if (typeof data.channelId !== 'number' || typeof data.userId !== 'number') {
+            this.socketError(client.id, "Error trying to notify users");
+            return false;
+        }
+
         const { channelId, userId } = data;
         const connectedClients = await this.server.in(String(channelId)).fetchSockets();
-        for (const client of connectedClients){
+        for (const client of connectedClients) {
             if (client.data.userId && client.data.userId != userId)
                 return true;
         }
@@ -194,24 +218,31 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     @SubscribeMessage('message')
     async handleMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket): Promise<boolean> {
+        if (typeof data.channelId !== 'number' || typeof data.content !== 'string'
+            || typeof data.id !== 'number' || typeof data.senderId !== 'number') {
+            this.socketError(client.id, "Error trying to send message");
+            return false;
+        }
+
         if (data.content.length > 5000) {
             data.content = "Message too long. Maximum length: 5000";
             return false;
         }
-        if (this.isInRoom(client, data.channelId) === false)
+        if (this.isInRoom(client, data.channelId) === false) {
             return false;
+        }
         let isSenderMuted: { isMuted: boolean, isSet: boolean, rowId: number };
         isSenderMuted = await this.chatService.isMute({ channelId: data.channelId, userId: data.senderId });
         if (isSenderMuted.isMuted === true) {
             data.content = "you are muted from this channel";
             return true;
         }
-        // emit with client instead of server doesnt trigger "message" events to initial client-sender
+
         client.to(String(data.channelId)).except(String(`whoBlocked${data.senderId}`)).emit("messageBack", data);
         return false;
     }
 
     socketError(clientId: string, message: string) {
-        // this.server.(clientId, 'error', message);
+        this.server.to(clientId).emit('error', message);
     }
 }

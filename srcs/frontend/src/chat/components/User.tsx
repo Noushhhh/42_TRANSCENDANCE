@@ -29,6 +29,9 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
     const onChange = () => {
     }
 
+    if (!user.publicName)
+        return <div></div>
+
     if (!showUserMenu) {
         return (
             <div className={`User User1 ${showAdmin?.isAdmin ? "clickable-div" : ""}`} onClick={() => {
@@ -43,8 +46,8 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                     ) : null}
                     {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
-                <div className="username">
-                    {user.publicName && user.publicName}
+                <div className="username" style={{overflow:"hidden"}} title={user.publicName}>
+                    {user.publicName ? user.publicName && user.publicName : null}
                 </div>
             </div>
         )
@@ -55,7 +58,7 @@ function User({ user, showUserMenu, addUserToList, showAdmin, updateUserAdminLis
                 <div>
                     {<img className="avatar_image" src={`${API_BASE_URL}/${user.avatar}`} alt="" width={49} height={49}/>}
                 </div>
-                <div className="username">
+                <div className="username" style={{overflow:"hidden"}} title={user.publicName}>
                     <UserProfileMenu user={user}/>
                 </div>
             </div>

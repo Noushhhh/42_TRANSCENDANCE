@@ -762,8 +762,6 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        const userIdMap = user.friends.map((friend) => friend.id);
-
         return user.friends.map((friend) => friend.id);
     }
 

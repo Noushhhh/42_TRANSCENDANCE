@@ -221,7 +221,6 @@ export class ChatService {
           name: channelInfo.name,
           password: hashPassword,
           ownerId,
-          // admins: channelInfo.ownerId,
           type: ChannelType[channelInfo.type as keyof typeof ChannelType],
           participants: {
             connect: participants,
@@ -235,6 +234,12 @@ export class ChatService {
         throw new NotFoundException("Error creating new channel");
       return newChannel.id;
     } catch (errors) {
+      console.log(errors)
+      if (errors instanceof HttpException) {
+        const httpCode = errors.getStatus(); // Obtenez le code HTTP de l'exception
+        if (httpCode === 406)
+          throw new NotAcceptableException("Channel_name already taken")
+      }
       throw new NotAcceptableException("Can\'t add channel to user")
     }
   }
@@ -529,7 +534,7 @@ export class ChatService {
     const channelType: string = await this.getChannelType(channelId);
     if (channelType === "PASSWORD_PROTECTED" && await this.isAdmin(callerId, channelId) === false)
       throw new ForbiddenException("Only admin can invite in protected channel")
-    if (channelType === "PRIVATE" && await this.isOwner(callerId, channelId) === false)
+    if ((channelType === "PRIVATE") && (await this.isOwner(callerId, channelId) === false || await this.isAdmin(callerId, channelId)))
       throw new ForbiddenException("Require owner privileges")
 
     const channel = await this.prisma.channel.update({

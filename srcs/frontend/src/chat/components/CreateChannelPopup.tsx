@@ -79,7 +79,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                 (channelType === "PASSWORD_PROTECTED" && confirmPassword.length < 6)){
                 setError("Channel password must be 6 characters minimum")
                 return ;
-            } else if (password.length !== confirmPassword.length || password !== confirmPassword){
+            } else if ((channelType === "PASSWORD_PROTECTED") && (password.length !== confirmPassword.length || password !== confirmPassword)){
                 setError("Password's doesnt match");
                 return ;
             } else if (isWhitespace(channelName)){
@@ -115,7 +115,7 @@ function CreateChannelPopup( { setIsDisplay }: CreateChannelPopupProps )  {
                     <option value="PRIVATE">PRIVATE</option>
                 </select>
             </div>
-            {channelType === 'PASSWORD_PROTECTED' || channelType === 'PRIVATE' ? (
+            {channelType === 'PASSWORD_PROTECTED' ? (
             <div>
                 <div className="flex">
                     <h5>Password</h5>

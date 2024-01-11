@@ -132,14 +132,14 @@ function ChannelSettings({ settingsChannel, setSettingsChannel, setdisplayMenu, 
           handleClick={backInfoMenu}
           title={"Group settings"}
         />
-        <div className="ContentChannelSettings">
+        <div style={{overflow:"hidden"}} className="ContentChannelSettings">
           {menuItems.map((item, index) => (
             <div
               key={index}
               onClick={() => item.function(item)}
               className="ChannelInfoCard"
             >
-              <h4>{item.title}</h4>
+              <h4 style={{overflow:"hidden"}}>{item.title}</h4>
             </div>
           ))}
         </div>

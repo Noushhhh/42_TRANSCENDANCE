@@ -6,7 +6,7 @@ class CommonChannelNameDto {
     @IsString()
     @IsNotEmpty()
     @IsAlphanumeric()
-    @MaxLength(22)
+    @MaxLength(30)
     channelName!: string;
 }
 
