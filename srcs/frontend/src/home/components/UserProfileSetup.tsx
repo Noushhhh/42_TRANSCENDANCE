@@ -121,6 +121,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
       if (isUnauthorizedError(error))
         navigate('/Authchoice');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileName, updatePublicName]);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,6 +147,7 @@ const UserProfileSetup: React.FC = React.memo(() => {
     }
     else
       toast.error("You must provided a new avatar");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newAvatar, profileImage, updateAvatar]);
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -34,7 +34,6 @@ export default async function App() {
     /^http:\/\/10\.20\.15\.\d{1,3}:8081$/,
     /^http:\/\/10\.20\.[0-7]\.\d{1,3}:8081$/, // Pattern to match IPs from 10.20.0.0 to 10.20.7.255
     'http://10.13.5.5:8080',
-    '*'
     // ... other origins ...
   ];
 

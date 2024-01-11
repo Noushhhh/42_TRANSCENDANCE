@@ -16,8 +16,8 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
+echo "building the Node.js application"
 
-echo "Starting the Node.js application"
 npm run build 
 
 npm install -g serve
