@@ -71,22 +71,6 @@ services:
     networks:
       - app_network
 
-  nginx:
-    container_name: nginx_container
-    build:
-      context: ./srcs/nginx
-      dockerfile: Dockerfile
-    image: nginx_image
-    ports:
-      - 8081:80
-    networks:
-      - app_network
-    depends_on:
-      - backend
-      - frontend
-    tty: true
-    stdin_open: true
-
 networks:
   app_network:
 
