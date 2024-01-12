@@ -20,7 +20,7 @@ const OAuth42Callback: React.FC = () => {
     // Loading spinner timeout
     let loadingTimeout: NodeJS.Timeout;
 
-    console.log('OAuth42Callback rendered'); // Log when component is rendered
+    // console.log('OAuth42Callback rendered'); // Log when component is rendered
     // ─────────────────────────────────────────────────────────────────────────────
 
     // Set loading spinner to false after MIN_LOADING_TIME passed
@@ -35,14 +35,14 @@ const OAuth42Callback: React.FC = () => {
 
     const handle42Callback = useCallback(async (code: string) => {
         try {
-            console.log(`passinb by habdle42Callback`);
+            // console.log(`passinb by habdle42Callback`);
             const result = await axios.get(`${API_BASE_URL}/api/auth/callback42?code=${code}`,
                 { withCredentials: true });
             console.log(result);
             const userId = result.data.userId;
             //Theo's logic returns from backed the userId to check if 2FA is activated other wise return null
             if (userId) {
-                console.log("USER ID 2FA = ", userId);
+                // console.log("USER ID 2FA = ", userId);
                 setUserId(userId);
                 setDisplayTwoFa(true);
             } else {
@@ -50,7 +50,6 @@ const OAuth42Callback: React.FC = () => {
             }
             // navigate('/home');
         } catch (error) {
-            console.error(error);
             console.error(hasMessage(error) ? error.message : "Something went wrong when calling callback42 endpoint");
             navigate('/authchoice', {
                 state: {
@@ -73,12 +72,12 @@ const OAuth42Callback: React.FC = () => {
 
     useEffect(() => {
 
-        console.log('useEffect triggered in OAuth42Callback'); // Log when useEffect is triggered
+        // console.log('useEffect triggered in OAuth42Callback'); // Log when useEffect is triggered
 
         const code = new URLSearchParams(window.location.search).get('code');
 
         if (code) {
-            console.log(code);
+            // console.log(code);
             handle42Callback(code);
         } else {
             navigate('/error');
@@ -90,7 +89,7 @@ const OAuth42Callback: React.FC = () => {
 
     const handleVerify2FA = async () => {
         try {
-            console.log(`Passing by handleVerify2FA`);
+            // console.log(`Passing by handleVerify2FA`);
             await verify2FA(userId, twoFaCode, navigate);
         } catch (error) {
             console.error(`Error when verifying 2FA : ${hasMessage(error) ? error.message : ""}`);
