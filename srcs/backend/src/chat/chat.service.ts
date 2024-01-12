@@ -398,6 +398,17 @@ export class ChatService {
       }
     })
 
+    if (await this.isAdmin(userId, channelId) === true){
+      await this.prisma.channel.update({
+        where: { id: channelId },
+        data: {
+          admins: {
+            disconnect: { id: userId }
+          }
+        }
+      })
+    }
+
     if (!response)
       return false;
 
