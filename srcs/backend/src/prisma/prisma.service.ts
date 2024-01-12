@@ -13,7 +13,6 @@ export class PrismaService extends PrismaClient {
     }
 
     cleanDb() {
-        console.log("deleting database");
         try {
             return this.$transaction([
                 this.matchHistory.deleteMany(),

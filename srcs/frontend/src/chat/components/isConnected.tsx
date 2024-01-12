@@ -35,7 +35,7 @@ function IsConnected(): JSX.Element{
             try {
                 const res: boolean = await isChannelIsLive(channelId, userId, socket);
                 setIsConnected(res);
-            } catch (errors){console.log(errors)};
+            } catch (errors){};
         }
         isLive();
         // eslint-disable-next-line react-hooks/exhaustive-deps

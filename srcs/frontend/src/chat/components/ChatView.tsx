@@ -72,7 +72,6 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
     try {
       await fetchUser(setChannelHeader, userId, socket);
     } catch (error) {
-      console.log(error);
     }
     if (bannedFromChannelId === channelId){
       setChannelId(-1);

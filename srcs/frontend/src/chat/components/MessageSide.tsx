@@ -57,7 +57,6 @@ function MessageSide({ setChannelClicked, previewLastMessage, setPreviewLastMess
     try {
       await fetchUser(setChannelHeader, userId, socket);
     } catch (error) {
-      console.log(error);
     }
     if (bannedFromChannelId === channelId){
       setChannelId(-1);
