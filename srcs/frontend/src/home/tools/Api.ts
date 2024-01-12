@@ -374,6 +374,6 @@ export const checkToken = async () => {
     }
 
   } catch (error) {
-    console.error("Token check error:", hasMessage(error) ? error.message : error);
+    // console.error("Token check error:", hasMessage(error) ? error.message : error);
   }
 };

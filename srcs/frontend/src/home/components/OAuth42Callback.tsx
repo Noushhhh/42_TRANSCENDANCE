@@ -38,7 +38,7 @@ const OAuth42Callback: React.FC = () => {
             // console.log(`passinb by habdle42Callback`);
             const result = await axios.get(`${API_BASE_URL}/api/auth/callback42?code=${code}`,
                 { withCredentials: true });
-            console.log(result);
+            // console.log(result);
             const userId = result.data.userId;
             //Theo's logic returns from backed the userId to check if 2FA is activated other wise return null
             if (userId) {
