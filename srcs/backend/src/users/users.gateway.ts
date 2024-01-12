@@ -62,7 +62,11 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     clientStatus.set(client.data.userId, status);
-    await this.sendStatusToFriends(client.data.userId);
+    try {
+      await this.sendStatusToFriends(client.data.userId);
+    } catch (error) {
+      this.socketError(client.id, "Error trying to update live status");
+    }
   }
 
   @SubscribeMessage('pendingRequestSent')
@@ -73,12 +77,9 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const targetSocketId = await this.getSocketIdWithId(targetId);
-    if (!targetSocketId) {
-      this.socketError(client.id, "Error trying to refresh pending request");
-      return;
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("refreshPendingRequests");
     }
-
-    this.server.to(targetSocketId).emit("refreshPendingRequests");
   }
 
   @SubscribeMessage('friendRequestAccepted')
@@ -89,12 +90,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const targetSocketId = await this.getSocketIdWithId(targetId);
-    if (!targetSocketId) {
-      this.socketError(client.id, "Error trying to accept friend request");
-      return;
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("refreshFriendList");
     }
 
-    this.server.to(targetSocketId).emit("refreshFriendList");
     this.server.to(client.id).emit("refreshFriendList");
     this.server.to(client.id).emit("refreshPendingRequests");
     if (await this.sendStatusToFriends(client.data.userId) === -1
@@ -112,12 +111,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const targetSocketId = await this.getSocketIdWithId(targetId);
-    if (!targetSocketId) {
-      this.socketError(client.id, "Error trying to refuse friend request");
-      return;
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("refreshPendingRequests");
     };
 
-    this.server.to(targetSocketId).emit("refreshPendingRequests");
     this.server.to(client.id).emit("refreshPendingRequests");
   }
 
@@ -129,12 +126,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     
     const targetSocketId = await this.getSocketIdWithId(targetId);
-    if (!targetSocketId) {
-      this.socketError(client.id, "Error trying to refresh friend list");
-      return;
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("refreshFriendList");
     };
 
-    this.server.to(targetSocketId).emit("refreshFriendList");
     this.server.to(client.id).emit("refreshFriendList");
   }
 
