@@ -61,7 +61,6 @@ function ChatPrompt({ addMessage, setPreviewLastMessage }: ChatPromptProps): JSX
         credentials: "include",
       })
     } catch (errors) {
-      console.log(errors);
     }
   };
 

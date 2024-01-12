@@ -69,7 +69,6 @@ function ChannelInfo({ isChannelInfoDisplay, setChannelInfo, setDisplayMessageSi
         setnumberUsersInChannel(numberUsersInChannel);
         await fetchChannelName();
       } catch (errors){
-        console.log(errors);
       }
     }
   }

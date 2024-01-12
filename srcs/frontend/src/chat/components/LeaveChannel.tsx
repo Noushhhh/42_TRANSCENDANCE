@@ -53,7 +53,6 @@ export default function ConfirmationPopup( { setParentError, isOwner, setDisplay
       goBack();
       setChannelId(-1);
     } catch (error: any){
-      console.log(error.message);
       setParentError(error.message);
     }
     setOpen(false);

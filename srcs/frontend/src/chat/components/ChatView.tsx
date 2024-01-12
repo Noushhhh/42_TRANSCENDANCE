@@ -58,9 +58,7 @@ function ChatView({ isChannelInfoDisplay, messages, userId, setMessages }: ChatV
             scrollToBottom();
           }, 950);
         }
-      } catch (error) {
-        console.log('error while fetching conv');
-      }
+      } catch (error) {}
     }
     callFetchConversation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
