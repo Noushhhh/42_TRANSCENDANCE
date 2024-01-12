@@ -626,7 +626,6 @@ export const isUserIsBan = async (
     if (!response.ok) return Promise.reject(await response.json());
     return await response.json();
   } catch (error) {
-    console.log(error);
   }
   return false;
 };

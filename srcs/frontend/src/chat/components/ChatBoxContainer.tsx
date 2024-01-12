@@ -100,7 +100,6 @@ const ChatBoxContainer: FC<ChatProps> = ({ socket }) => {
         backToChannels();
       }
     } catch (error) {
-      console.log(error);
     }
   }
 

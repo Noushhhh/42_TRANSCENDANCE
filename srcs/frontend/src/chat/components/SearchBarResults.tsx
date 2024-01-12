@@ -73,7 +73,6 @@ function SearchBarResults({ inputValue, displayResults, showUserMenu, addUserToL
                     await fetchUsers();
                 }
             } catch (error: any){
-                console.log(error.message);
             }
         }
         fetch();

@@ -234,7 +234,6 @@ export class ChatService {
         throw new NotFoundException("Error creating new channel");
       return newChannel.id;
     } catch (errors) {
-      console.log(errors)
       if (errors instanceof HttpException) {
         const httpCode = errors.getStatus(); // Obtenez le code HTTP de l'exception
         if (httpCode === 406)
