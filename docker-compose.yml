@@ -6,7 +6,10 @@ services:
     container_name: db_container # Set the container name
     env_file:
       - .env # Set the environment file
-    image: postgres:15.3 # Set the image name and set up version
+    build:
+      context: ./srcs/db # Set the build context
+      dockerfile: Dockerfile # Set the Dockerfile
+    image: db_image # Set the image name and set up version
     ports:
       - 5432
     volumes:

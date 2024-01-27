@@ -85,11 +85,11 @@ logs:
 refresh:
 	@printf "Refreshing the services...\n"
 	@printf "Stop containers, delete volumes, rebuild containers.\n"
-	$(COMPOSE) stop frontend backend 
-	$(COMPOSE) rm -f --volumes frontend backend
-	docker rmi -f frontend_image backend_image
-	$(COMPOSE) build backend frontend
-	$(COMPOSE) up -d backend frontend
+	$(COMPOSE) stop frontend backend  db
+	$(COMPOSE) rm -f --volumes frontend backend db
+	docker rmi -f frontend_image backend_image db_image
+	$(COMPOSE) build backend frontend db
+	$(COMPOSE) up -d backend frontend db
 
 prune:
 	@printf "Pruning unused containers, images, and volumes...\n"
